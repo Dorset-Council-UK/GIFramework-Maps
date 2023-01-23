@@ -1,0 +1,83 @@
+﻿@model List<GIFrameworkMaps.Data.Models.Version>
+@using Microsoft.Extensions.Configuration;
+@inject IConfiguration configuration;
+@{
+    string appName = configuration.GetValue<string>("GIFrameworkMaps:appName");
+    ViewData["Title"] = "Management";
+}
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Configure the application</p>
+
+<div class="container">
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a href="#" class="stretched-link">
+                        <h4 class="card-title"><i class="bi bi-map"></i> Versions</h4>
+                    </a>
+                    <p class="card-text">Create, update and delete @appName versions</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a href="#">
+                        <h4 class="card-title"><i class="bi bi-geo"></i> Layers</h4>
+                        <p class="card-text">Manage layers consumed by @appName</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a href="#">
+                        <h4 class="card-title"><i class="bi bi-people"></i> Users</h4>
+                        <p class="card-text">Manage user permissions</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a href="#">
+                        <h4 class="card-title"><i class="bi bi-search"></i> Search definitions</h4>
+                        <p class="card-text">Manage searches available in @appName</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a href="@Url.Action("Index","ManagementSystem")">
+                        <h4 class="card-title"><i class="bi bi-gear"></i> System</h4>
+                        <p class="card-text">Check and update system settings and cache</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a href="@Url.Action("BroadcastMessage","Management")">
+                        <h4 class="card-title"><i class="bi bi-broadcast-pin"></i> Broadcast</h4>
+                        <p class="card-text">Broadcast a message to @appName users</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+            
+</div>
+

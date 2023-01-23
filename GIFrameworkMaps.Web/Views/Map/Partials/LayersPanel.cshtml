@@ -1,0 +1,58 @@
+﻿@model List<GIFrameworkMaps.Data.Models.ViewModels.CategoryViewModel>
+
+<div class="card-body">
+    <div class="card-title-closeable">
+        <h5 class="card-title">Layers</h5>
+        <button type="button" class="btn-close" data-gifw-dismiss-sidebar="layers-control" aria-label="Close"></button>
+    </div>
+
+    <h6 class="card-subtitle mb-2 text-muted">Add some layers to your map</h6>
+
+    <ul class="nav nav-tabs nav-fill" id="gifw-layer-control-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="gifw-layer-control-picker-tab" data-bs-toggle="tab" data-bs-target="#gifw-layer-control-picker" type="button" role="tab" aria-controls="gifw-layer-control-picker" aria-selected="true">All layers</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="gifw-layer-control-active-layers-tab" data-bs-toggle="tab" data-bs-target="#gifw-layer-control-active-layers" type="button" role="tab" aria-controls="gifw-layer-control-active-layer" aria-selected="false">Active layers</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="gifw-layer-control-tab-content">
+        <div class="tab-pane fade show active" id="gifw-layer-control-picker" role="tabpanel" aria-labelledby="gifw-layer-control-picker-tab">
+            <div class="my-2">
+                <label for="gifw-layer-switcher-search" class="visually-hidden">Search for a layer</label>
+                <input type="search" class="form-control form-control-sm" id="gifw-layer-switcher-search" placeholder="Type to search for a layer" autocomplete="off">
+                <div id="gifw-layer-search-error" class="form-text text-danger" style="display:none;">
+
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-auto">
+                    <label for="gifw-layer-switcher-sort" class="visually-hidden">Layer list sorting</label>
+                    <select class="form-select form-select-sm" id="gifw-layer-switcher-sort">
+                        <option value="default">Sort folders by: Default</option>
+                        <option value="alpha">Sort folders by: Alphabetical</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layer-switcher-tree mt-1">
+                @*Layer tree will be rendered here*@
+            </div>
+
+
+        </div>
+
+        <div class="tab-pane fade" id="gifw-layer-control-active-layers" role="tabpanel" aria-labelledby="gifw-layer-control-active-layers-tab">
+            <div class="alert alert-info">You don't have any layers turned on. Go to the picker to turn some layers on</div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="btn-group" role="group" aria-label="Layer control buttons">
+            <button type="button" class="btn btn-outline-primary" id="gifw-layers-turn-off"><i class="bi bi-power"></i> Turn off all</button>
+            <button type="button" class="btn btn-outline-primary" id="gifw-layers-add" data-bs-toggle="modal" data-bs-target="#add-layer-modal"><i class="bi bi-plus-circle"></i> Add layer</button>
+            <button type="button" class="btn btn-outline-primary" id="gifw-layers-view-legend"><i class="bi bi-list-task"></i> Show legend</button>
+         </div>
+    </div>
+
+</div>

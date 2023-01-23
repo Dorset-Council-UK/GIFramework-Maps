@@ -1,0 +1,167 @@
+﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+.navbar {
+    background-color: #05476d;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255,255,255,.85)
+}
+
+    .navbar-dark .navbar-nav .nav-link:focus, .navbar-dark .navbar-nav .nav-link:hover {
+        color: rgba(255,255,255,1)
+    }
+/* Provide sufficient contrast against white background */
+a {
+    color: #1d70b8;
+}
+
+    a:hover, a:focus {
+        color: #23527c;
+    }
+
+.btn-primary {
+    color: #fff;
+    background-color: #05476d;
+    border-color: #0b2d49;
+}
+
+    .btn-primary:not(:disabled):not(.disabled).active, .btn-primary:not(:disabled):not(.disabled):active, .show > .btn-primary.dropdown-toggle {
+        background-color: #0b2d49;
+    }
+
+    .btn-primary:hover {
+        background-color: #0b2d49;
+        border-color: #0b2d49;
+    }
+
+.btn-primary:focus, .btn-primary.focus {
+    color: white;
+    box-shadow: 0 0 0 0.2rem rgba(11, 45, 73,.3)
+}
+
+.btn-primary:not(:disabled):not(.disabled).active:focus, .btn-primary:not(:disabled):not(.disabled):active:focus, .show > .btn-primary.dropdown-toggle:focus {
+    box-shadow: 0 0 0 0.2rem rgba(11, 45, 73,.3);
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+    color: #fff;
+    background-color: #05476d;
+    border-color: #1861ac;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+.border-top {
+    border-top: 1px solid #e5e5e5;
+}
+
+.border-bottom {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy {
+    font-size: 1rem;
+    line-height: inherit;
+}
+
+body {
+    min-height: 100vh;
+}
+
+.flex-grow {
+    flex: 1 1 auto;
+}
+
+footer {
+    position: relative;
+    background-color: #dee0e2;
+    height: 100%;
+    color: #6a737c;
+    padding-bottom: 20px;
+    padding-top: 10px;
+    margin-top: 20px;
+}
+
+    footer:after {
+        background: #05476d;
+        position: absolute;
+        content: '';
+        height: 5px;
+        right: 0;
+        left: 0;
+        top: 0;
+    }
+
+    footer .container {
+        background-color: transparent;
+        padding-top: 1rem;
+    }
+
+    footer a {
+        color: #454a4c;
+        text-decoration: underline;
+    }
+
+    footer ul > li {
+        padding-bottom: 10px;
+    }
+
+    footer img.brand {
+        max-width: 180px;
+        min-width: 120px;
+    }
+
+.dropdown-menu.dropdown-menu-block {
+    padding: 10px;
+}
+
+.account-box {
+    min-width: 260px;
+    margin-top: 4px;
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+}
+.card.link-card {
+    height: 4rem;
+    background-color: #fbfbfb;
+    background-repeat: no-repeat;
+    background-size: cover;
+    margin-top: .5rem;
+    border-color: #e0e0e0;
+}
+
+.card.link-card:hover {
+    box-shadow: 2px 2px 5px #e0e0e0;
+    border-color: grey;
+    transition: all 0.2s ease;
+}
+
+.card.link-card.active:hover {
+    box-shadow: none;
+}
+
+.card.link-card a {
+    color:inherit;
+    text-decoration: none;
+}
+
+/*temporary bootstrap icons alignment*/
+[class^="bi-"]::before, [class*=" bi-"]::before{
+    vertical-align:-.125em;
+}

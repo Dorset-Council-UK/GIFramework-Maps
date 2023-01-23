@@ -1,0 +1,39 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.VersionViewModel
+
+<div class="modal" tabindex="-1" id="add-layer-modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add a layer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Add a layer to your map, either from a web based source, or uploaded from your computer. These layers are only added for the duration of your session.</p>
+                <div class="row mb-3">
+                    <div class="col-md-6 d-grid pb-2">
+                        <button type="button" class="btn btn-lg btn-outline-primary" id="gifw-add-web-layer-button">
+                            <i class="bi bi-globe fs-1"></i>
+                            <br />
+                            Add a web layer
+                        </button>
+                    </div>
+                    <div class="col-md-6 d-grid pb-2">
+                        <button type="button" class="btn btn-lg btn-outline-primary" id="gifw-upload-data-button">
+                            <i class="bi bi-cloud-upload fs-1"></i>
+                            <br />
+                            Upload data
+                        </button>
+                    </div>
+                </div>
+                @if (Uri.IsWellFormedUriString(Model.HelpURL, UriKind.Absolute))
+                {
+                    <p><a href="@Model.HelpURL" target="_blank">Help and further instructions</a></p>
+                }
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

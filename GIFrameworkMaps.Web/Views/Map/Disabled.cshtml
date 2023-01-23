@@ -1,0 +1,26 @@
+﻿@model GIFrameworkMaps.Data.Models.Version
+@using Microsoft.Extensions.Configuration;
+@inject IConfiguration configuration;
+@{
+    string appName = configuration.GetValue<string>("GIFrameworkMaps:appName");
+    ViewData["Title"] = "Version disabled";
+}
+
+<h1>This version of @appName has been disabled</h1>
+<p class="lead">This may be permanent or temporary. Please contact us if you have questions.</p>
+<div>
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+    </dl>
+</div>

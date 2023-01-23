@@ -1,0 +1,26 @@
+﻿@model GIFrameworkMaps.Data.Models.Version
+@using Microsoft.Extensions.Configuration;
+@inject IConfiguration configuration;
+@{
+    string appName = configuration.GetValue<string>("GIFrameworkMaps:appName");
+    ViewData["Title"] = "Forbidden";
+}
+
+<h1>You don't have access to this version of @appName</h1>
+
+<div>
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+    </dl>
+</div>

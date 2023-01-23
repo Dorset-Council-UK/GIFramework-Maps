@@ -1,0 +1,22 @@
+﻿@model List<GIFrameworkMaps.Data.Models.Version>
+@{
+    ViewData["Title"] = "System management";
+}
+
+<partial name="ManagementPartials/BackToManagementHome" />
+
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Check and update system settings and cache</p>
+
+<div class="row">
+    <h2>Cache</h2>
+    <p>Click the big red button below to clear the in memory cache for the application.</p>
+    <p>All cached objects will be purged and will need to be retrieved from storage again.</p>
+    <form asp-controller="ManagementSystem" asp-action="PurgeCache" method="post">
+        <input type="submit" class="btn btn-danger" value="Purge Memory Cache"/>
+    </form>
+</div>
+
+            
+
+

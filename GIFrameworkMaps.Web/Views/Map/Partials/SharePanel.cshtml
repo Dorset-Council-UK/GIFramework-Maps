@@ -1,0 +1,39 @@
+﻿<div class="card-body">
+    <div class="card-title-closeable">
+        <h5 class="card-title">Share</h5>
+        <button type="button" class="btn-close" data-gifw-dismiss-sidebar="legends" aria-label="Close"></button>
+    </div>
+    
+    @*<h6 class="card-subtitle mb-2 text-muted">Share a link to the map or get an embed code</h6>*@
+    <div id="gifw-share-container">
+        <h6>Share a direct link to the map</h6>
+        <div class="my-2">
+            <label for="gifw-share-link" class="visually-hidden">Direct link</label>
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" id="gifw-share-link" readonly value="">
+                <button class="btn btn-outline-primary" type="button" data-gifw-copy-target="#gifw-share-link" data-bs-toggle="tooltip" data-bs-title="Copied to clipboard!" data-bs-trigger="manual">
+                    <i class="bi bi-clipboard"></i> Copy<span class="visually-hidden"> the link to the clipboard</span>
+                </button>
+            </div>
+
+            <div class="border-start pt-2 ps-2">
+                <p>This link does not include any annotations, measurements or custom layers you have added to the map</p>
+            </div>
+
+        </div>
+        <h6 class="mt-2">Embed the map in your own page</h6>
+        <p>Copy the code below and paste into your webpage to embed the map</p>
+        <div class="my-2">
+            <label for="gifw-share-embed-code" class="visually-hidden">Embed code</label>
+            <textarea class="form-control" id="gifw-share-embed-code" readonly rows="6"></textarea>
+            <button class="btn btn-outline-primary my-2" type="button" data-gifw-copy-target="#gifw-share-embed-code" data-bs-toggle="tooltip" data-bs-title="Copied to clipboard!" data-bs-trigger="manual">
+                <i class="bi bi-clipboard"></i> Copy<span class="visually-hidden"> the embed code to the clipboard</span>
+            </button>
+            <div class="border-start pt-2 ps-2">
+                <p>This embed code does not include any annotations, measurements or custom layers you have added to the map</p>
+            </div>
+        </div>
+    </div>
+
+    
+</div>

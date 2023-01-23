@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "sourceMap": true,
+    "target": "ES2021",
+    "allowSyntheticDefaultImports": true,
+    "noUnusedLocals": true,
+    "moduleResolution": "Node",
+    "skipLibCheck": true
+  },
+  "exclude": [
+    "node_modules",
+    "wwwroot"
+  ]
+}

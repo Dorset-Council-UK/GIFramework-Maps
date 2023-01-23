@@ -1,0 +1,42 @@
+{
+  "header": {
+    "uri": "https://this.is.an.example.com",
+    "query": "example",
+    "format": "JSON",
+    "maxresults": 50,
+    "offset": 0,
+    "totalresults": 1,
+    "bounds": "",
+    "filter": ""
+  },
+  "results": [
+    {
+      "GAZETTEER_ENTRY": {
+        "ID": "10000000000000000000",
+        "NAMES_URI": "http://example.com",
+        "NAME1": "Example",
+        "TYPE": "populatedPlace",
+        "LOCAL_TYPE": "Hamlet",
+        "GEOMETRY_X": 358947.0,
+        "GEOMETRY_Y": 89005.0,
+        "MOST_DETAIL_VIEW_RES": 5000,
+        "LEAST_DETAIL_VIEW_RES": 25000,
+        "MBR_XMIN": 358385.0,
+        "MBR_YMIN": 88725.0,
+        "MBR_XMAX": 359113.0,
+        "MBR_YMAX": 89225.0,
+        "POSTCODE_DISTRICT": "AA1",
+        "POSTCODE_DISTRICT_URI": "",
+        "COUNTY_UNITARY": "Example County",
+        "COUNTY_UNITARY_URI": "",
+        "COUNTY_UNITARY_TYPE": "",
+        "REGION": "South West",
+        "REGION_URI": "",
+        "COUNTRY": "England",
+        "COUNTRY_URI": "",
+        "SAME_AS_GEONAMES": "",
+        "SAME_AS_DBPEDIA": ""
+      }
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+﻿@model List<GIFrameworkMaps.Data.Models.Version>
+@{
+    ViewData["Title"] = "Message broadcaster";
+}
+
+<partial name="ManagementPartials/BackToManagementHome" />
+
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Broadcast a message to all current users. Use sparingly!</p>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="mb-3">
+                <label for="messageTypeInput" class="form-label">Message Type</label>
+                <select id="messageTypeInput" class="form-select">
+                    <option>Toast</option>
+                    <option>Popup</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="messageSeverityInput" class="form-label">Message Severity</label>
+                <select id="messageSeverityInput" class="form-select">
+                    <option>Informational</option>
+                    <option>Warning</option>
+                    <option>Danger</option>
+                    <option>Success</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="messageInput" class="form-label">Message</label>
+                <textarea class="form-control" id="messageInput" required></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="versionInput" class="form-label">Broadcast to version</label>
+                <select class="form-select" id="versionInput" required>
+                    <option value="all" selected>All</option>
+                    @foreach(GIFrameworkMaps.Data.Models.Version version in Model)
+                    {
+                        <option value="@version.Slug">@version.Name</option>
+                    }
+                </select>
+            </div>
+
+            <input type="button" id="sendButton" class="btn btn-primary" value="Send Broadcast" />
+        </div>
+    </div>
+
+            
+</div>
+
+<hr />
+
+<div class="row">
+    <div class="col-6">
+        <ul id="messagesList"></ul>
+    </div>
+</div>
+<script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+<script>
+    @{
+        var host = Context.Request.Host.ToUriComponent();
+        var pathBase = Context.Request.PathBase.ToUriComponent();
+        string AppRoot = $"{Context.Request.Scheme}://{host}{pathBase}";
+    }
+    /*TODO: Yuck, global var. Kill it with fire*/
+    var appRoot = '@AppRoot'
+    </script>
+<script src="~/js/broadcast.js"></script>

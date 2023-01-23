@@ -1,0 +1,43 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.VersionViewModel
+
+<div class="modal" tabindex="-1" id="add-layer-upload-data-modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>You can upload KML, GPX, GeoJSON, TopoJSON or IGC files.<p>
+                <p>All data is processed in your browser and nothing is sent to us. There is a filesize limit of 50MB.</p>
+                <div class="card dropzone">
+                    <div class="card-body text-center">
+                        <p>
+                            Drag and Drop your files here<br />or<br />
+                            <form>
+                                <label for="gifw-layer-upload-input" class="btn btn-outline-primary">Choose a file</label>
+                                <input type="file" multiple accept=".kml,.gpx,.json,.geojson,.topojson,.igc" id="gifw-layer-upload-input" class="visually-hidden" />
+                            </form>
+                    </div>
+                </div>
+                <ul class="list-inline">
+                            @if (Uri.IsWellFormedUriString(Model.HelpURL, UriKind.Absolute))
+                            {
+                        <li class="list-inline-item"><a href="@Model.HelpURL" target="_blank">Help and further instructions</a></li>
+                            }
+                            @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["ToSLink"])) && Uri.IsWellFormedUriString(Convert.ToString(ViewData["ToSLink"]), UriKind.Absolute))
+                            {
+                        <li class="list-inline-item"><a href="@ViewData["ToSLink"]" target="_blank">Terms of use</a></li>
+                            }
+                            @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["PrivacyLink"])) && Uri.IsWellFormedUriString(Convert.ToString(ViewData["PrivacyLink"]), UriKind.Absolute))
+                            {
+                        <li class="list-inline-item"><a href="@ViewData["PrivacyLink"]" target="_blank">Privacy</a></li>
+                            }
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

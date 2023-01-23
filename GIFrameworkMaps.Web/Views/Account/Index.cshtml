@@ -1,0 +1,14 @@
+﻿@{
+    ViewData["Title"] = "My account";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<h2>Details</h2>
+<p>Your email address and password is managed by your external identity provider. </p>
+
+<p>You can update the details you give us using the Edit Profile button below</p>
+<p>
+    <a class="btn btn-primary" id="login" asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="EditProfile">Edit Profile</a>
+</p>
+

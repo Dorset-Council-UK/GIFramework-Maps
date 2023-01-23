@@ -1,0 +1,28 @@
+﻿@model GIFrameworkMaps.Data.Models.WelcomeMessage
+
+@if (Model != null)
+    {
+        <div class="modal fade"
+             tabindex="-1"
+             id="welcome-modal"
+             data-bs-backdrop="@(Model.DismissOnButtonOnly ?  "static" : "true")"
+             data-bs-keyboard="@(Model.DismissOnButtonOnly ?  "false" : "true")">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">@Model.Title</h5>
+                        @if (!Model.DismissOnButtonOnly)
+                        {
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        }
+                    </div>
+                    <div class="modal-body">
+                        @Html.Raw(Model.Content)
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@(!String.IsNullOrEmpty(Model.DismissText) ? Model.DismissText : "Close") </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+}

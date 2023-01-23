@@ -1,0 +1,55 @@
+﻿<div class="modal" tabindex="-1" id="gifw-error-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">There was a problem</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>There was a problem, but the developer didn't provide any further information. That's not very helpful...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" tabindex="-1" id="gifw-complete-failure-modal" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">There was a problem</h5>
+            </div>
+            <div class="modal-body">
+                <p>There was a problem, but the developer didn't provide any further information. That's not very helpful...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-absolute p-3 bottom-0 start-0">
+    <div class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false" id="gifw-error-toast">
+        <div class="toast-header">
+            <strong class="me-auto"><span>There was an problem</span></strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            <span>There was a problem, but the developer didn't provide any further information. That's not very helpful...</span>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-absolute p-3 bottom-0 start-0">
+    <div class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="4000" id="gifw-layer-range-toast">
+        <div class="d-flex">
+            <div class="toast-body">
+                <span></span>
+            </div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    </div>
+</div>

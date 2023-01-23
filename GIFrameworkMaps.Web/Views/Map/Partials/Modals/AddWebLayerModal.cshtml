@@ -1,0 +1,59 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.VersionViewModel
+
+<div class="modal" tabindex="-1" id="add-layer-web-layer-modal">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add a web layer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Choose a service from the list below and hit Connect to view the layers you can add.</p>
+
+                <div id="add-layer-web-layer-services-loading">
+                    <h5 class="card-title placeholder-glow">
+                        <span class="placeholder col-6"></span>
+                    </h5>
+                    <p class="card-text placeholder-glow">
+                        <span class="placeholder col-7"></span>
+                        <span class="placeholder col-4"></span>
+                        <span class="placeholder col-4"></span>
+                        <span class="placeholder col-6"></span>
+                        <span class="placeholder col-8"></span>
+                    </p>
+                </div>
+
+                <div id="add-layer-web-layer-services-container" style="display:none;">
+                    <label for="ogc-server-name">Service</label>
+                    <select class="form-select mb-2" name="ogc-server-name">
+                    </select>
+                    <button type="button" class="btn btn-outline-primary mb-2" id="gifw-connect-ogc-service">Connect</button>
+                    <input type="search" class="form-control form-control-sm mb-2" style="display:none;" placeholder="Type to search for a layer" id="add-layer-web-layer-search" />
+                    <div id="add-layer-web-layer-search-error" class="form-text text-danger" style="display: none;"></div>
+                    <div id="gifw-add-web-layer-list" class="list-group">
+                    </div>
+                </div>
+                
+
+                <hr />
+                <ul class="list-inline">
+                    @if (Uri.IsWellFormedUriString(Model.HelpURL, UriKind.Absolute))
+                    {
+                        <li class="list-inline-item"><a href="@Model.HelpURL" target="_blank">Help and further instructions</a></li>
+                    }
+                    @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["ToSLink"])) && Uri.IsWellFormedUriString(Convert.ToString(ViewData["ToSLink"]), UriKind.Absolute))
+                    {
+                        <li class="list-inline-item"><a href="@ViewData["ToSLink"]" target="_blank">Terms of use</a></li>
+                    }
+                    @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["PrivacyLink"])) && Uri.IsWellFormedUriString(Convert.ToString(ViewData["PrivacyLink"]), UriKind.Absolute))
+                    {
+                        <li class="list-inline-item"><a href="@ViewData["PrivacyLink"]" target="_blank">Privacy</a></li>
+                    }
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

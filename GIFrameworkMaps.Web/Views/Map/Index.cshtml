@@ -1,0 +1,124 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.VersionViewModel
+@using Microsoft.Extensions.Configuration;
+@inject IConfiguration configuration;
+@{
+    string logoURL = Model.Theme.LogoURL;
+}
+@{
+    ViewData["VersionName"] = Model.Name;
+    ViewData["VersionID"] = Model.Id;
+    ViewData["HelpURL"] = Model.HelpURL;
+    ViewData["FeedbackURL"] = Model.FeedbackURL;
+    ViewData["Description"] = Model.Description;
+    ViewData["LogoURL"] = Model.Theme.LogoURL;
+    ViewData["CustomFaviconURL"] = Model.Theme.CustomFaviconURL;
+    ViewData["ToSLink"] = configuration.GetValue<string>("GIFrameworkMaps:ToSLink");
+    ViewData["PrivacyLink"] = configuration.GetValue<string>("GIFrameworkMaps:PrivacyLink");
+    Layout = "_MapLayout";
+}
+<main id="giframeworkMapContainer" class="giframeworkMapContainer">
+    <section id="giframeworkMap" class="giframeworkMap"></section>
+
+    <section id="search-container"></section>
+
+    <aside id="sidebar-container">
+        <div id="sidebar-links"></div>
+        <div class="sidebar-panels" id="gifw-sidebar-right">
+            <div class="card sidebar" id="basemaps" style="display:none;">
+                <partial name="Partials/BasemapsPanel" model="Model.Basemaps" />
+            </div>
+
+            <div class="card sidebar" id="layers-control" style="display:none;">
+                <partial name="Partials/LayersPanel" model="Model.Categories" />
+            </div>
+
+            <div class="card sidebar" id="annotation-style-panel" style="display:none;">
+                <partial name="Partials/AnnotationStyling" />
+            </div>
+            
+            <div class="card sidebar" id="legends" style="display:none;">
+                <partial name="Partials/LegendsPanel" />
+            </div>
+
+            <div class="card sidebar" id="share" style="display:none;">
+                <partial name="Partials/SharePanel" />
+            </div>
+
+            <div class="card sidebar" id="print-control" style="display:none;">
+                <partial name="Partials/PrintPanel" />
+            </div>
+        </div>
+
+        <div class="sidebar-panels sidebar-left" id="gifw-sidebar-left">
+            <div class="card sidebar" id="gifw-search-results" style="display:none;">
+                <div class="card-body">
+                    <div class="card-title-closeable">
+                        <h4 class="card-title">Search results</h4>
+                        <button type="button" class="btn-close" data-gifw-dismiss-sidebar="search-results" aria-label="Close"></button>
+                    </div>
+                    <h5 class="card-subtitle text-muted mb-3" id="gifw-search-results-count"></h5>
+                    <div id="gifw-search-results-list">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <div id="gifw-popup" class="ol-popup">
+        <button type="button" id="gifw-popup-closer" class="ol-popup-closer btn-close" aria-label="Close popup"></button>
+        <div id="gifw-popup-content" class="ol-popup-content">No content here yet</div>
+    </div>
+
+
+
+
+    <section id="broadcast-notifications-container">
+        <partial name="Partials/BroadcastNotifications" />
+    </section>
+
+    <section id="error-notifications-container">
+        <partial name="Partials/ErrorNotifications" />
+    </section>
+</main>
+
+@section Modals{
+
+    <partial name="Partials/Modals/SearchConfiguratorModal" />
+
+    <partial name="Partials/Modals/MetadataModal" />
+
+    <partial name="Partials/Modals/AddLayerModal" model="Model"/>
+
+    <partial name="Partials/Modals/AddLayerUploadModal" model="Model"/>
+
+    <partial name="Partials/Modals/AddWebLayerModal" model="Model" />
+
+    <partial name="Partials/Modals/CoordinateConfiguratorModal" />
+
+    <partial name="Partials/Modals/LayerFilteringModal" />
+
+    <partial name="Partials/Modals/AlternateStyleModal" />
+
+    <partial name="Partials/Modals/WelcomeMessageModal" model="Model.WelcomeMessage" />
+}
+@section Scripts{
+    @*TODO - This is nasty, should be converted to a single call to retrieve a JSON block rather than
+        shoving the data into the view
+    *@
+    <script>
+        var gifw_appinsights_key = "@(configuration.GetValue<string>("ApplicationInsights:ConnectionString"))";
+        var gifw_version_config_url = "@Url.Action("VersionConfiguration","API",new {id=Model.Id})";
+        var gifw_map_services_access_token = "@ViewData["MapServicesAccessToken"]";
+        var gifw_map_services_access_url = "@Html.Raw(ViewData["MapServicesAccessURL"])";
+    </script>
+}
+
+@section Styles{
+    <style type="text/css">
+    .giframeworkMap {
+        --primary-color: #@Model.Theme.PrimaryColour;
+        --primary-color-transparent-90: #@(Model.Theme.PrimaryColour)E6;
+        --primary-color-transparent-50: #@(Model.Theme.PrimaryColour)80;
+    }
+    </style>
+}

@@ -1,0 +1,21 @@
+﻿@using Microsoft.Extensions.Configuration;
+@inject IConfiguration configuration;
+
+@*
+    TODO - Add other analytics providers as additional options
+*@
+@{
+    string cfToken = configuration.GetValue<string>("GIFrameworkMaps:CloudflareWebAnalyticsToken");
+
+    if (!string.IsNullOrEmpty(cfToken))
+    {
+        <!-- Cloudflare Web Analytics -->
+
+        <script 
+            defer 
+            src='https://static.cloudflareinsights.com/beacon.min.js'
+            data-cf-beacon='{"token": "@cfToken"}'></script>
+
+        <!-- End Cloudflare Web Analytics -->
+    }
+}

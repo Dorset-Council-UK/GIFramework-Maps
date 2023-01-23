@@ -1,0 +1,23 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+
+<div class="px-4 py-5 my-5 text-center">
+    <i class="bi bi-emoji-dizzy-fill display-1"></i>
+    <h1 class="display-5 fw-bold">Sorry, an error occurred</h1>
+    <div class="col-lg-6 mx-auto">
+        <p class="lead mb-4">The developers have been automatically notified.</p>
+        <p>It may have been a temporary glitch, so please try again.</p>
+    </div>
+</div>
+
+
+@if (Model.ShowRequestId)
+{
+    <p>
+        <strong>Request ID:</strong> <code>@Model.RequestId</code>
+    </p>
+}
+

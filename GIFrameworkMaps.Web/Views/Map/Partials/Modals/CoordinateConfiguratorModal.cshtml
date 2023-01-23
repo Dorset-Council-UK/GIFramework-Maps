@@ -1,0 +1,38 @@
+﻿<div class="modal" tabindex="-1" id="coordinate-configurator-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Projection settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="row" id="coordConfigForm">
+                    <div class="mb-3 col-12">
+                        <label for="coordConfigProjection" class="form-label">Projection setting</label>
+                        <select class="form-select" id="coordConfigProjection" aria-describedby="coordConfigProjection">
+                            <option value="27700" selected data-gifw-default-decimals="0">British National Grid</option>
+                            <option value="277001">British National Grid Alpha Numeric</option>
+                            <option value="4326" data-gifw-default-decimals="4">Latitude/Longitude (WGS84)</option>
+                            <option value="43261" data-gifw-default-decimals="1">Degrees/Minutes/Seconds (WGS84)</option>
+                            <option value="3857" data-gifw-default-decimals="0">Spherical Mercator</option>
+
+                        </select>
+                        <div class="form-text">This only sets the projection that is used for display, it does not change the actual projection of the map</div>
+                    </div>
+                    <div class="mb-3 col-6">
+                        <label for="coordConfigDecimals" class="form-label">Decimal places</label>
+                        <input type="number" min="0" max="5" value="0" class="form-control" id="coordConfigDecimals">
+                    </div>
+                    <div class="mb-3 col-12">
+                        <label for="coordConfigCopyPaste" class="form-label">Copy and paste coordinates</label>
+                        <div class="form-text">Right-click (or long tap on mobiles and tablets) anywhere on the map to copy your coordinates</div>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
