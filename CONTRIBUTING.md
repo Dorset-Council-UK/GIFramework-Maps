@@ -1,14 +1,14 @@
 # Contributing to GIFrameworkMaps
 
-Thanks for your interest in contributing to GIFrameworkMaps.  Please see the project's [Code of Conduct](https://github.com/RobQuincey-DC/repository-testing/blob/main/CODE_OF_CONDUCT.md) before proceeding.
+Thanks for your interest in contributing to GIFrameworkMaps.  Please see the project's [Code of Conduct](https://github.com/Dorset-Council-UK/GIFramework-Maps/blob/main/CODE_OF_CONDUCT.md) before proceeding.
 
 ## Submitting Bug Reports
 
-Please use the [GitHub issue tracker](https://github.com/RobQuincey-DC/repository-testing/issues). Before creating a new issue, do a quick search to see if the problem has been reported already.
+Please use the [GitHub issue tracker](https://github.com/Dorset-Council-UK/GIFramework-Maps/issues). Before creating a new issue, do a quick search to see if the problem has been reported already.
 
 ## Contributing Code
 
-See [`DEVELOPING.md`](https://github.com/RobQuincey-DC/repository-testing/blob/main/DEVELOPING.md) to learn how to get started developing.
+See [`DEVELOPING.md`](https://github.com/Dorset-Council-UK/GIFramework-Maps/blob/main/DEVELOPING.md) to learn how to get started developing.
 
 Our preferred means of receiving contributions is through [pull requests](https://help.github.com/articles/using-pull-requests). Make sure
 that your pull request follows our pull request guidelines below before submitting it.
@@ -23,7 +23,7 @@ This page describes what you need to know to contribute code to GIFrameworkMaps 
 
 ## Contributor License Agreement
 
-Your contribution will be under our [license](https://raw.githubusercontent.com/RobQuincey-DC/repository-testing/main/LICENSE.md) as per [GitHub's terms of service](https://help.github.com/articles/github-terms-of-service/#6-contributions-under-repository-license).
+Your contribution will be under our [license](https://github.com/Dorset-Council-UK/GIFramework-Maps/blob/main/LICENCE) as per [GitHub's terms of service](https://help.github.com/articles/github-terms-of-service/#6-contributions-under-repository-license).
 
 
 ## Pull request guidelines
