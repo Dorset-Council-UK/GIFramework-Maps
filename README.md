@@ -3,36 +3,63 @@ GIFrameworkMaps
 
 GIFrameworkMaps is a [.NET](https://dot.net) based web mapping application designed and developed by the Dorset Council GIS team.
 
+It is used by Dorset Council as their primary web mapping application for staff and the public. You can see it running live [here](https://gi.dorsetcouncil.gov.uk/dorsetexplorer).
+
+GIFrameworkMaps is Free and Open Source software, it uses [OpenLayers](https://openlayers.org/) and [Bootstrap](https://getbootstrap.com/), as well as many other libraries, and is licensed under the MIT licence.
+
+## Features
+TODO
+
+## Bugs
+
+Please use the [GitHub issue tracker](https://github.com/Dorset-Council-UK/GIFramework-Maps/issues) for all bugs and feature requests. Before creating a new issue, do a quick search to see if the problem has been reported already.
+
+Dorset Council staff should submit issues via the internal help desk.
+
 ## Dependencies
 To run GIFrameworkMaps with minimal modification, you will need.
-- A web server capable of running .NET 5 applications, such as IIS, Kestral or Azure
-- PostgresSQL 13+ with PostGIS extension
-- Azure Key Vault
+- A web server capable of running .NET applications, such as IIS, Kestral or Azure
+- PostgreSQL 13+ with PostGIS extension
 
 GIFrameworkMaps uses [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/), so any spatial database that has an Entity Framework Core provider should work, but this has not been tested. For a full list of providers, check the [Entity Framework docs](https://docs.microsoft.com/en-us/ef/core/providers/?tabs=dotnet-core-cli).
 
-You could also put your user secrets into Environment Variables rather than Azure Key Vault, but this will require some modification.
-## Get Started
-- Clone the repository. The master branch should always be the latest, stable version.
-- Create a user in your database called 'efcore' with permission to create schemas and login
-- Set up your connection strings and user secrets (TODO - Document/Script this)
-- Run the Entity Framework migrations
-    - Using Visual Studio
-        - `Update-Database -Context IdentityContext`
-        - `Update-Database -Context ApplicationDbContext`
-    - Using .Net CLI
-        - `dotnet ef database update --context IdentityContext`
-        - `dotnet ef database update --context ApplicationDbContext`
-- Run an `npm update` to download the dependencies
-    - In Visual Studio this can be done by installing the NPM Task Runner Extension and using Task Runner Explorer
-- Build and Run!
-
-
 ## Contributing
 
-Some of the best ways to contribute are to try things out, file issues, join in design conversations,
-and make pull-requests.
+Please see our guide on [contributing](CONTRIBUTING.md) if you're interested in getting involved.
 
 ## Reporting security issues
 
 Security issues should be reported privately, via email, to the Dorset Council GIS team gis@dorsetcouncil.gov.uk. You should receive a response within 24 hours during business days.
+
+## Core developers
+
+GIFrameworkMaps is a Dorset Council Open Source project.
+
+- [Paul Wittle](https://github.com/paul-dorsetcouncil) - Dorset Council
+- [Rob Quincey](https://github.com/RobQuincey-DC) - Dorset Council
+- [Lucy Bishop](https://github.com/VulpesFerrilata) - Dorset Council
+
+## Alternatives
+
+GIFrameworkMaps is a Dorset Council project and has been built according to our particular needs. Whilst we believe the project can be easily used and adapted
+by others, and is fairly flexible, there are other alternatives out there that may fit your needs better.
+
+Check out the [OSGeo website](https://www.osgeo.org/choose-a-project/) for other alternatives that may be better suited to your needs.
+
+## Acknowledgements
+
+GIFrameworkMaps would not be possible without the open source community. This is just a small list of our favourite open source projects and organisations that have helped us.
+
+- [OpenLayers](https://openlayers.org)
+- [GeoServer](https://geoserver.org)
+- [Bootstrap](https://getbootstrap.com)
+- [.NET](https://dot.net)
+- [Postgres](https://www.postgresql.org/)/[PostGIS](https://postgis.net/)
+- [TypeScript](https://typescriptlang.org)
+- [GeoSolutions](https://geosolutionsgroup.com)
+
+## Licencing
+Unless stated otherwise, the codebase is released under the MIT License. This covers both the codebase and any sample code in the documentation.
+
+The documentation is © Dorset Council and available under the terms of the Open Government 3.0 licence.
+
