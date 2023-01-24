@@ -30,6 +30,7 @@ jobs:
       working-directory: 'GIFrameworkMaps.Web'
     - name: webpack
       run: webpack --mode=development
+      working-directory: 'GIFrameworkMaps.Web'
     - name: Build
       run: dotnet build --no-restore
     - name: Test
