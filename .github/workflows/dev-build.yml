@@ -25,6 +25,9 @@ jobs:
     - name: npm install
       run: npm install
       working-directory: 'GIFrameworkMaps.Web'
+    - name: Install webpack
+      run: npm i -D webpack webpack-cli
+      working-directory: 'GIFrameworkMaps.Web'
     - name: webpack
       run: webpack --mode=development
     - name: Build
