@@ -36,7 +36,7 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Publish
-      run: dotnet publish -o ./release
+      run: dotnet publish -o '../release'
       working-directory: 'GIFrameworkMaps.Web'
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v3
