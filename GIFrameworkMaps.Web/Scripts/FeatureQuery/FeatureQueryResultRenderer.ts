@@ -257,7 +257,7 @@ export class FeatureQueryResultRenderer {
         }
         this._gifwMapInstance.popupOverlay.overlay.setPosition(coords);
         this._gifwMapInstance.popupOverlay.overlay.panIntoView({
-            margin: 60,
+            margin: 90,
             animation: { duration: 250 }
         });
         if (popupOptions && popupOptions.offset !== undefined) {
