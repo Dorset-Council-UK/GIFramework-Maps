@@ -214,5 +214,23 @@ namespace GIFrameworkMaps.Data
             });
             return services;
         }
+
+        public List<ProxyAllowedHost> GetProxyAllowedHosts()
+        {
+            string cacheKey = $"ProxyAllowedHosts";
+            if (_memoryCache.TryGetValue(cacheKey, out List<ProxyAllowedHost> cacheValue))
+            {
+                return cacheValue;
+            }
+
+            var allowedHosts = _context.ProxyAllowedHosts.AsNoTracking().ToList();
+
+            _memoryCache.Set(cacheKey, allowedHosts, new MemoryCacheEntryOptions
+            {
+                Priority = CacheItemPriority.Low,
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(12)
+            });
+            return allowedHosts;
+        }
     }
 }

@@ -29,6 +29,7 @@ namespace GIFrameworkMaps.Data
         public DbSet<Models.Authorization.ApplicationRole> ApplicationRoles { get; set; }
         public DbSet<Models.Authorization.ApplicationUserRole> ApplicationUserRoles { get; set; }
         public DbSet<Models.WebLayerServiceDefinition> WebLayerServiceDefinitions { get; set; }
+        public DbSet<Models.ProxyAllowedHost> ProxyAllowedHosts{get;set;}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

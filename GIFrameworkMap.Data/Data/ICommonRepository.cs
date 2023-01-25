@@ -13,5 +13,6 @@ namespace GIFrameworkMaps.Data
         List<Models.Version> GetVersions();
         List<Models.Authorization.ApplicationUserRole> GetUserRoles(string userId);
         List<Models.WebLayerServiceDefinition> GetWebLayerServiceDefinitions();
+        List<Models.ProxyAllowedHost> GetProxyAllowedHosts();
     }
 }
