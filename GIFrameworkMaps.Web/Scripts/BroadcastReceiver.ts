@@ -9,7 +9,6 @@ export class BroadcastReceiver {
             if (version === "all" || version === versionSlug) {
                 var msg = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
                 var encodedMsg = `${messageSeverity}: ${msg} (${messageType})`;
-                console.log(encodedMsg);
                 switch (messageType) {
                     case "Toast":
                         BroadcastReceiver.showToast(messageSeverity,msg);

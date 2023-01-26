@@ -192,7 +192,6 @@ export class Metadata {
             
             let styles = (evaluateXPathToNodes(`//Layer[Name='${layerName}']/Style`, doc, null, null, { language: evaluateXPath.XQUERY_3_1_LANGUAGE }) as Node[]);
 
-            console.log(styles);
             //parse styles into list of styles
             let availableStyles: Style[] = [];
             styles.forEach(s => {

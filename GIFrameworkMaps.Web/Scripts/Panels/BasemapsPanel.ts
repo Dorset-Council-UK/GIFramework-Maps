@@ -15,14 +15,12 @@ export class BasemapsPanel implements SidebarPanel {
         this.container = container;
     }
     init() {
-        console.log(`init called on Basemaps (container ${this.container})`);
         this.renderBasemapsPanel();
         this.attachCloseButton();
         //this.attachBasemapSelectors();
         //this.attachMetaControls();
     };
     render() {
-        console.log(`render called on Basemaps (container ${this.container})`);
         this.renderBasemapsPanel();
     };
     /*TODO - Make this generic*/

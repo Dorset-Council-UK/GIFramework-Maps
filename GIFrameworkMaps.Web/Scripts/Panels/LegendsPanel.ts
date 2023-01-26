@@ -13,7 +13,6 @@ export class LegendsPanel implements SidebarPanel {
         this.container = container;
     }
     init() {
-        console.log(`init called on Legends (container ${this.container})`);
         this.attachCloseButton();
         this.gifwMapInstance.olMap.on('moveend', e => {
             //check to see if legends panel is visible before calling for a re-render
@@ -25,7 +24,6 @@ export class LegendsPanel implements SidebarPanel {
         this.render();
     };
     render() {
-        console.log(`render called on Legends (container ${this.container})`);
         let resolution = this.gifwMapInstance.olMap.getView().getResolution();
         this.updateLegend(resolution);
     };

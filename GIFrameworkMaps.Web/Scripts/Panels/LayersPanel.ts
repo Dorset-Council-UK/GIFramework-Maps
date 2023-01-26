@@ -45,7 +45,6 @@ export class LayersPanel implements SidebarPanel {
         this.loadingLayers = {};
     }
     init() {
-        console.log(`init called on Layers (container ${this.container})`);
         this.previousZoom = Math.ceil(this.gifwMapInstance.olMap.getView().getZoom());
         this.attachCloseButton();
         this.attachControls();
@@ -66,7 +65,6 @@ export class LayersPanel implements SidebarPanel {
         })
     };
     render() {
-        console.log(`render called on Layers (container ${this.container})`);
         this.updateControlState();
     };
 

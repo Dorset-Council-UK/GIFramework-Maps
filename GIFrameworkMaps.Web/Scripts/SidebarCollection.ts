@@ -11,7 +11,6 @@ export class SidebarCollection {
         let actualOrdering: number = 1;
         this.sidebars.sort((a, b) => a.ordering - b.ordering).forEach(sidebar => {
             sidebar.ordering = actualOrdering;
-            console.log(sidebar);
             sidebar.addButton();
             actualOrdering++;
         });
