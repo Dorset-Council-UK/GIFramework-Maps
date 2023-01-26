@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data
 {
@@ -224,6 +225,24 @@ namespace GIFrameworkMaps.Data
             }
 
             var allowedHosts = _context.ProxyAllowedHosts.AsNoTracking().ToList();
+
+            _memoryCache.Set(cacheKey, allowedHosts, new MemoryCacheEntryOptions
+            {
+                Priority = CacheItemPriority.Low,
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(12)
+            });
+            return allowedHosts;
+        }
+
+        public async Task<List<ProxyAllowedHost>> GetProxyAllowedHostsAsync()
+        {
+            string cacheKey = $"ProxyAllowedHosts";
+            if (_memoryCache.TryGetValue(cacheKey, out List<ProxyAllowedHost> cacheValue))
+            {
+                return cacheValue;
+            }
+
+            var allowedHosts = await _context.ProxyAllowedHosts.AsNoTracking().ToListAsync();
 
             _memoryCache.Set(cacheKey, allowedHosts, new MemoryCacheEntryOptions
             {

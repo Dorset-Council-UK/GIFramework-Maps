@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data
 {
@@ -14,5 +15,7 @@ namespace GIFrameworkMaps.Data
         List<Models.Authorization.ApplicationUserRole> GetUserRoles(string userId);
         List<Models.WebLayerServiceDefinition> GetWebLayerServiceDefinitions();
         List<Models.ProxyAllowedHost> GetProxyAllowedHosts();
+
+        Task<List<Models.ProxyAllowedHost>> GetProxyAllowedHostsAsync();
     }
 }

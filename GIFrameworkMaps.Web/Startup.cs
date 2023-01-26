@@ -120,7 +120,7 @@ namespace GIFrameworkMaps.Web
                     Microsoft.Extensions.Primitives.StringValues url;
                     if (queryContext.Collection.TryGetValue("url", out url))
                     {
-                        var error = await forwarder.SendAsync(httpContext, "https://example.com", httpClient, requestOptions, transformer);
+                        var error = await forwarder.SendAsync(httpContext, url, httpClient, requestOptions, transformer);
                         // Check if the proxy operation was successful
                         if (error != ForwarderError.None)
                         {
@@ -338,7 +338,7 @@ namespace GIFrameworkMaps.Web
                     using (var scope = _app.ApplicationServices.CreateScope())
                     {
                         var repo = scope.ServiceProvider.GetRequiredService<ICommonRepository>();
-                        allowedHosts = repo.GetProxyAllowedHosts();
+                        allowedHosts = await repo.GetProxyAllowedHostsAsync();
                     }
                     string decodedUrl = System.Uri.UnescapeDataString(url);
                     Uri requestUri = new Uri(decodedUrl);
