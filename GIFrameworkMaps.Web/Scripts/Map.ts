@@ -431,7 +431,9 @@ export class GIFWMap {
             infoListTitleTemplate: "",
             filterable: false,
             defaultFilterEditable: false,
-            removable: (type === LayerGroupType.UserNative)
+            removable: (type === LayerGroupType.UserNative),
+            proxyMetaRequests: false,
+            proxyMapRequests: false
         }
 
         let layerGroup = this.getLayerGroupOfType(type);
@@ -467,7 +469,7 @@ export class GIFWMap {
      * @param olLayerOpts Additional options to add to the OpenLayers options
      */
     public addWebLayerToMap(
-        source: TileWMS,
+        source: TileWMS|ImageWMS,
         name: string,
         visible: boolean = true,
         type = LayerGroupType.Overlay,
@@ -478,20 +480,31 @@ export class GIFWMap {
     ) {
         
         let ol_layer;
+        if (source instanceof TileWMS) {
+            ol_layer = new olLayer.Tile({
+                source: source,
+                className: `layer-${layerId}`,
+                visible: visible,
+                zIndex: zIndex,
+                ...olLayerOpts
+            });
+        } else {
+            ol_layer = new olLayer.Image({
+                source: source,
+                className: `layer-${layerId}`,
+                visible: visible,
+                zIndex: zIndex,
+                ...olLayerOpts
+            });
+        }
 
-        ol_layer = new olLayer.Tile({
-            source: source,
-            className: `layer-${layerId}`,
-            visible: visible,
-            zIndex: zIndex,
-            ...olLayerOpts
-        });
 
 
         ol_layer.setProperties({ "hasBeenOpened": visible });
         ol_layer.setProperties({ "layerId": layerId })
         ol_layer.setProperties({ "name": name });
         ol_layer.setProperties({ "gifw-queryable": queryable })
+        ol_layer.setProperties({ "gifw-proxy-meta-request": true });
         ol_layer.setProperties({ "gifw-is-user-layer": true })
          /*TODO - This is a little odd. We have to create a 'stub' gifwLayer and an ol_layer
           * for different purposes. Be good if this was more streamlined*/
@@ -513,6 +526,8 @@ export class GIFWMap {
             filterable: true,
             defaultFilterEditable: false,
             removable: true,
+            proxyMetaRequests: true,
+            proxyMapRequests: true
         }
 
         let layerGroup = this.getLayerGroupOfType(type);
@@ -899,6 +914,10 @@ export class GIFWMap {
             console.warn(`Sidebar with ID ${id} not found or more than one found`);
         }
         
+    }
+
+    public createProxyURL(url: string) {
+        return `${document.location.protocol}//${this.config.appRoot}proxy?url=${encodeURIComponent(url)}`;
     }
 }
 

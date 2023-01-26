@@ -41,4 +41,6 @@ export interface Layer {
     filterable: boolean;
     defaultFilterEditable: boolean;
     removable: boolean;
+    proxyMetaRequests: boolean;
+    proxyMapRequests: boolean;
 }

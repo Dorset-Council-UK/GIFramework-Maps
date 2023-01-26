@@ -3,7 +3,7 @@ import Fuse from "fuse.js";
 import { containsExtent } from "ol/extent";
 import { transformExtent } from "ol/proj";
 import * as olSource from "ol/source";
-import { Options as TileWMSOptions } from "ol/source/TileWMS";
+import { Options as ImageWMSOptions } from "ol/source/ImageWMS";
 import { LayerResource } from "./Interfaces/OGCMetadata/LayerResource";
 import { WebLayerServiceDefinition } from "./Interfaces/WebLayerServiceDefinition";
 import { GIFWMap } from "./Map";
@@ -56,16 +56,24 @@ export class WebLayerService {
             connectBtn.disabled = true;
             connectBtn.insertAdjacentElement('afterbegin', Spinner.create(['spinner-border-sm','me-2']));
             
-            let serviceUrl = (document.querySelector('select[name="ogc-server-name"]') as HTMLSelectElement).selectedOptions[0].value;
-            let version = (document.querySelector('select[name="ogc-server-name"]') as HTMLSelectElement).selectedOptions[0].dataset.gifwWmsVersion;
-            let availableLayers = await Metadata.getLayersFromCapabilities(serviceUrl,version);
+            let serviceId = (document.querySelector('select[name="ogc-server-name"]') as HTMLSelectElement).selectedOptions[0].value;
+
+            let serviceDefinition = this.serviceDefinitions.filter(s => s.id === parseInt(serviceId))[0]
+
+            let version = serviceDefinition.version || "1.1.0";
+            let proxyMetaRequests = serviceDefinition.proxyMetaRequests;
+            let proxyEndpoint = "";
+            if (proxyMetaRequests) {
+                proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
+            }
+            let availableLayers = await Metadata.getLayersFromCapabilities(serviceDefinition.url, version, proxyEndpoint);
             let layersListContainer = document.getElementById('gifw-add-web-layer-list');
             const searchInput: HTMLInputElement = document.getElementById('add-layer-web-layer-search') as HTMLInputElement;
             const errMsg = document.getElementById('add-layer-web-layer-search-error');
             layersListContainer.innerHTML = '';
             if (availableLayers && availableLayers.length !== 0) {
                 availableLayers.forEach(layer => {
-                    layersListContainer.appendChild(this.renderLayerItem(layer));
+                    layersListContainer.appendChild(this.renderLayerItem(layer, serviceDefinition));
                 })
 
                 searchInput.style.display = '';
@@ -96,11 +104,8 @@ export class WebLayerService {
             optGroup.label = group[0] || 'Other';
             group[1].forEach(definition => {
                 let opt = document.createElement('option');
-                opt.value = definition.url;
+                opt.value = definition.id.toString();
                 opt.text = definition.name;
-                if (definition.version) {
-                    opt.dataset.gifwWmsVersion = definition.version;
-                }
                 optGroup.appendChild(opt);
             })
             selectEle.appendChild(optGroup);
@@ -115,7 +120,7 @@ export class WebLayerService {
     * @returns HTMLElement
     *
     */
-    private renderLayerItem(layerDetails: LayerResource): HTMLElement {
+    private renderLayerItem(layerDetails: LayerResource, serviceDefinition: WebLayerServiceDefinition): HTMLElement {
         let layerItemContainer = document.createElement('div');
         layerItemContainer.className = `list-group-item`;
         layerItemContainer.id = layerDetails.name;
@@ -127,7 +132,9 @@ export class WebLayerService {
         layerItemContainer.appendChild(addLayerButton);
         addLayerButton.addEventListener('click', e => {
             try {
-                let tileWMSOpts: TileWMSOptions = {
+                
+                
+                let tileWMSOpts: ImageWMSOptions = {
                     url: layerDetails.baseUrl,
                     params: {
                         "LAYERS": layerDetails.name,
@@ -136,9 +143,18 @@ export class WebLayerService {
                     },
                     attributions: layerDetails.attribution,
                     crossOrigin: 'anonymous',
-                    projection: layerDetails.projection
+                    projection: layerDetails.projection,
+                
                 };
-                let source = new olSource.TileWMS(tileWMSOpts);
+
+                if (serviceDefinition.proxyMapRequests) {
+                    tileWMSOpts.imageLoadFunction = (imageTile: any, src: string) => {
+                        let proxyUrl = this.gifwMapInstance.createProxyURL(src);
+                        imageTile.getImage().src = proxyUrl;
+                    };
+                }
+
+                let source = new olSource.ImageWMS(tileWMSOpts);
 
 
                 this.gifwMapInstance.addWebLayerToMap(

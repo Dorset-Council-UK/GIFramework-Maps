@@ -249,8 +249,12 @@ export class BasemapsPanel implements SidebarPanel {
 
             let layerGroup = this.gifwMapInstance.getLayerGroupOfType(LayerGroupType.Basemap);
             let layerConfig = (layerGroup.layers as Layer[]).filter(l => l.id == eTarget.dataset.gifwAboutBasemap);
+            let proxyEndpoint = "";
+            if (layerConfig[0].proxyMetaRequests) {
+                proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
+            }
             if (layerConfig && layerConfig.length === 1) {
-                CSWMetadataViewer.showMetadataModal(layerConfig[0]);
+                CSWMetadataViewer.showMetadataModal(layerConfig[0], undefined, proxyEndpoint);
             }
             e.preventDefault();
         })

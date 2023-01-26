@@ -917,9 +917,9 @@ export class LayersPanel implements SidebarPanel {
             });
         });
         //attach invisible button
-        let invisibileButtons: NodeListOf<HTMLInputElement> = container.querySelectorAll('input[data-gifw-controls-invisible-layer]');
-        invisibileButtons.forEach(invisibileButton => {
-            invisibileButton.addEventListener('change', e => {
+        let invisibleButtons: NodeListOf<HTMLInputElement> = container.querySelectorAll('input[data-gifw-controls-invisible-layer]');
+        invisibleButtons.forEach(invisibleButton => {
+            invisibleButton.addEventListener('change', e => {
                 let element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
 
                 let layerId = element.dataset.gifwControlsInvisibleLayer;
@@ -971,7 +971,7 @@ export class LayersPanel implements SidebarPanel {
 
                 let layerId = element.dataset.gifwControlsFilterLayer;
 
-                let layer = this.gifwMapInstance.getLayerConfigById(layerId);
+                let layer = this.gifwMapInstance.getLayerConfigById(layerId,[LayerGroupType.Overlay]);
                 e.preventDefault();
                 let layerFilter = new LayerFilter(this, layer);
                 layerFilter.showFilterDialog();
@@ -1017,7 +1017,19 @@ export class LayersPanel implements SidebarPanel {
                     baseUrl = layerSource.getUrl();
                 }
 
-                let styleListPromise = Metadata.getStylesForLayer(baseUrl, featureTypeName);
+                let authKey = Util.Helper.getValueFromObjectByKey(sourceParams, "authkey");
+                let additionalParams = {};
+                if (authKey) {
+                    additionalParams = { authkey: authKey };
+                }
+
+                let proxyEndpoint = "";
+                let layerId = layer.get("layerId");
+                let gifwLayer = this.gifwMapInstance.getLayerConfigById(layerId, [LayerGroupType.Overlay]);
+                if (gifwLayer.proxyMetaRequests) {
+                    proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
+                }
+                let styleListPromise = Metadata.getStylesForLayer(baseUrl, featureTypeName, proxyEndpoint, additionalParams);
                 if (styleListPromise) {
                     styleListPromise.then(styles => {
                         styleModalContent.innerHTML = '';
