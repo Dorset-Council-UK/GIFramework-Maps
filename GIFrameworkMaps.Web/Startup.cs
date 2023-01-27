@@ -350,6 +350,7 @@ namespace GIFrameworkMaps.Web
                     proxyRequest.RequestUri = requestUri;
                     //Transform request headers
                     proxyRequest.Headers.Host = null;
+                    proxyRequest.Headers.Remove("Origin");
                     proxyRequest.Headers.Remove("Cookie");
                 }
                 else
