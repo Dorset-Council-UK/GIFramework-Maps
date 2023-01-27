@@ -183,7 +183,11 @@ export class LayerList {
                 let layerConfig = (layerGroup.layers as Layer[]).filter(l => l.id == eTarget.dataset.gifwAboutLayer);
                 if (layerConfig && layerConfig.length === 1) {
                     let isFiltered = this.layersPanelInstance.getLayerFilteredStatus(layer, (olLayer as olLayer), false);
-                    CSWMetadataViewer.showMetadataModal(layerConfig[0], isFiltered);
+                    let proxyEndpoint = "";
+                    if (layerConfig[0].proxyMetaRequests) {
+                        proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
+                    }
+                    CSWMetadataViewer.showMetadataModal(layerConfig[0], isFiltered, proxyEndpoint);
                 }
                 e.preventDefault();
             });

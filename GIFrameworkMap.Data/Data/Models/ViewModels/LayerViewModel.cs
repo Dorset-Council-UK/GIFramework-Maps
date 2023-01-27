@@ -20,6 +20,8 @@ namespace GIFrameworkMaps.Data.Models.ViewModels
         public string? InfoListTitleTemplate { get; set; }
         public bool Filterable { get; set; }
         public bool DefaultFilterEditable { get; set; }
+        public bool ProxyMetaRequests { get; set; }
+        public bool ProxyMapRequests { get; set; }
         public LayerSource LayerSource { get; set;}
     }
 }

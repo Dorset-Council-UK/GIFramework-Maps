@@ -7,6 +7,8 @@
     version: string;
     category: string;
     sortOrder: number;
+    proxyMetaRequests: boolean;
+    proxyMapRequests: boolean;
 }
 
 export enum ServiceType {
