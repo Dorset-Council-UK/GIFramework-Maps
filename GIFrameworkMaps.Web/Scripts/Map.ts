@@ -471,6 +471,8 @@ export class GIFWMap {
     public addWebLayerToMap(
         source: TileWMS|ImageWMS,
         name: string,
+        proxyMetaRequests: boolean = false,
+        proxyMapRequests: boolean = false,
         visible: boolean = true,
         type = LayerGroupType.Overlay,
         zIndex: number = 0,
@@ -504,7 +506,9 @@ export class GIFWMap {
         ol_layer.setProperties({ "layerId": layerId })
         ol_layer.setProperties({ "name": name });
         ol_layer.setProperties({ "gifw-queryable": queryable })
-        ol_layer.setProperties({ "gifw-proxy-meta-request": true });
+        if (proxyMetaRequests) {
+            ol_layer.setProperties({ "gifw-proxy-meta-request": true });
+        }
         ol_layer.setProperties({ "gifw-is-user-layer": true })
          /*TODO - This is a little odd. We have to create a 'stub' gifwLayer and an ol_layer
           * for different purposes. Be good if this was more streamlined*/
@@ -526,8 +530,8 @@ export class GIFWMap {
             filterable: true,
             defaultFilterEditable: false,
             removable: true,
-            proxyMetaRequests: true,
-            proxyMapRequests: true
+            proxyMetaRequests: proxyMetaRequests,
+            proxyMapRequests: proxyMapRequests
         }
 
         let layerGroup = this.getLayerGroupOfType(type);

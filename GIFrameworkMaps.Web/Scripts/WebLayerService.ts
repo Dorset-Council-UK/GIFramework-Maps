@@ -4,6 +4,7 @@ import { containsExtent } from "ol/extent";
 import { transformExtent } from "ol/proj";
 import * as olSource from "ol/source";
 import { Options as ImageWMSOptions } from "ol/source/ImageWMS";
+import { Options as TileWMSOptions } from "ol/source/TileWMS";
 import { LayerResource } from "./Interfaces/OGCMetadata/LayerResource";
 import { WebLayerServiceDefinition } from "./Interfaces/WebLayerServiceDefinition";
 import { GIFWMap } from "./Map";
@@ -132,34 +133,57 @@ export class WebLayerService {
         layerItemContainer.appendChild(addLayerButton);
         addLayerButton.addEventListener('click', e => {
             try {
-                
-                
-                let tileWMSOpts: ImageWMSOptions = {
-                    url: layerDetails.baseUrl,
-                    params: {
-                        "LAYERS": layerDetails.name,
-                        "FORMAT": layerDetails.formats[0],
-                        "TILED": "true"
-                    },
-                    attributions: layerDetails.attribution,
-                    crossOrigin: 'anonymous',
-                    projection: layerDetails.projection,
-                
-                };
+                let source: olSource.ImageWMS | olSource.TileWMS;
 
                 if (serviceDefinition.proxyMapRequests) {
-                    tileWMSOpts.imageLoadFunction = (imageTile: any, src: string) => {
-                        let proxyUrl = this.gifwMapInstance.createProxyURL(src);
-                        imageTile.getImage().src = proxyUrl;
+                    let imageWMSOpts: ImageWMSOptions = {
+                        url: layerDetails.baseUrl,
+                        params: {
+                            "LAYERS": layerDetails.name,
+                            "FORMAT": layerDetails.formats[0],
+                            "TILED": "false"
+                        },
+                        attributions: layerDetails.attribution,
+                        crossOrigin: 'anonymous',
+                        projection: layerDetails.projection,
+                
                     };
+                    if (serviceDefinition.proxyMapRequests) {
+                        imageWMSOpts.imageLoadFunction = (imageTile: any, src: string) => {
+                            let proxyUrl = this.gifwMapInstance.createProxyURL(src);
+                            imageTile.getImage().src = proxyUrl;
+                        };
+                    }
+
+                    source = new olSource.ImageWMS(imageWMSOpts);
+                } else {
+                    let tileWMSOpts: TileWMSOptions = {
+                        url: layerDetails.baseUrl,
+                        params: {
+                            "LAYERS": layerDetails.name,
+                            "FORMAT": layerDetails.formats[0],
+                            "TILED": "true"
+                        },
+                        attributions: layerDetails.attribution,
+                        crossOrigin: 'anonymous',
+                        projection: layerDetails.projection,
+
+                    };
+                    if (serviceDefinition.proxyMapRequests) {
+                        tileWMSOpts.tileLoadFunction = (imageTile: any, src: string) => {
+                            let proxyUrl = this.gifwMapInstance.createProxyURL(src);
+                            imageTile.getImage().src = proxyUrl;
+                        };
+                    }
+
+                    source = new olSource.TileWMS(tileWMSOpts);
                 }
-
-                let source = new olSource.ImageWMS(tileWMSOpts);
-
 
                 this.gifwMapInstance.addWebLayerToMap(
                     source,
-                    layerDetails.title
+                    layerDetails.title,
+                    serviceDefinition.proxyMetaRequests,
+                    serviceDefinition.proxyMapRequests
                 )
                 let layerModal = Modal.getInstance('#add-layer-web-layer-modal');
 
