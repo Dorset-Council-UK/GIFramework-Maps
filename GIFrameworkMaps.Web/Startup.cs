@@ -348,8 +348,9 @@ namespace GIFrameworkMaps.Web
                     }
 
                     proxyRequest.RequestUri = requestUri;
-                    // Suppress the original request header, use the one from the destination Uri.
+                    //Transform request headers
                     proxyRequest.Headers.Host = null;
+                    proxyRequest.Headers.Remove("Cookie");
                 }
                 else
                 {
