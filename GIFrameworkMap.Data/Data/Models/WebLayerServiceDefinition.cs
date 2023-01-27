@@ -21,6 +21,8 @@ namespace GIFrameworkMaps.Data.Models
         public string Category { get; set; }
         [Required]
         public int SortOrder { get; set; }
+        public bool ProxyMetaRequests { get; set; }
+        public bool ProxyMapRequests { get; set; }
     }
 
     public enum ServiceType

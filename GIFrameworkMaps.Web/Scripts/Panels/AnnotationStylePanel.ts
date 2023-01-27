@@ -17,14 +17,12 @@ export default class AnnotationStylePanel implements SidebarPanel {
     }
 
     init() {
-        console.log(`init called on Annotation Styling (container ${this.container})`);
         this.attachCloseButton();
         this.optionsPanel = document.querySelector(`${this.container} .gifw-annotation-style-options`);
         this.render();
     }
 
     render() {
-        console.log(`render called on Annotation Styling (container ${this.container})`);
         if (this.optionsPanel) {
             if (this.activeStyle) {
                 this.optionsPanel.innerHTML = this.activeStyle.activeTool.optionsHTML;

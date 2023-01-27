@@ -1194,8 +1194,11 @@ export class LayerFilter {
             if (authKey) {
                 additionalParams = { authkey: authKey };
             }
-
-            let serverCapabilities = await Metadata.getBasicCapabilities(baseUrl, additionalParams);
+            let proxyEndpoint = "";
+            if (this.layerConfig.proxyMetaRequests) {
+                proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
+            }
+            let serverCapabilities = await Metadata.getBasicCapabilities(baseUrl, additionalParams, proxyEndpoint);
 
             if (serverCapabilities &&
                 serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType && c.url !== '').length !== 0 &&
@@ -1203,7 +1206,7 @@ export class LayerFilter {
             ) {
                 //has all relevant capabilities
                 let describeFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType)[0];
-                let featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, featureTypeName, describeFeatureCapability.method);
+                let featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, featureTypeName, describeFeatureCapability.method, undefined, proxyEndpoint);
                 if (featureDescription && featureDescription.featureTypes.length === 1) {
                     return featureDescription.featureTypes[0].properties;
                 }
@@ -1241,7 +1244,10 @@ export class LayerFilter {
                 }
 
                 let url = `${baseUrl}${baseUrl.indexOf('?') === -1 ? '?' : '&'}${searchParams}`;
-
+                
+                if (this.layerConfig.proxyMetaRequests) {
+                    url = this.gifwMapInstance.createProxyURL(url);
+                }
 
                 let response = await fetch(url,
                     {
@@ -1304,8 +1310,11 @@ export class LayerFilter {
             } else {
                 baseUrl = (source as ImageWMS).getUrl();
             }
-
-            let serverCapabilities = await Metadata.getWPSCapabilities(baseUrl);
+            let proxyEndpoint = "";
+            if (this.layerConfig.proxyMetaRequests) {
+                proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
+            }
+            let serverCapabilities = await Metadata.getWPSCapabilities(baseUrl, proxyEndpoint);
 
             if (serverCapabilities &&
                 serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WPS_DescribeProcess && c.url !== '').length !== 0 &&
@@ -1315,8 +1324,10 @@ export class LayerFilter {
                 let describeProcessCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WPS_DescribeProcess)[0];
 
                 let hasPagedUniqueProcess = await Metadata.hasWPSProcess(describeProcessCapability.url,
-                                                                      describeProcessCapability.method,
-                                                                      'gs:PagedUnique');
+                                                                        describeProcessCapability.method,
+                                                                        'gs:PagedUnique',
+                                                                        proxyEndpoint
+                                                                        );
                 if (hasPagedUniqueProcess) {
                     //set flag
                     this.useWPSSearchSuggestions = true;

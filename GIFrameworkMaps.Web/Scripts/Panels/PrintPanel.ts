@@ -25,7 +25,6 @@ export class PrintPanel implements SidebarPanel {
         this.container = container;
     }
     init() {
-        console.log(`init called on Print (container ${this.container})`);
         this.exportInstance = new Export(this.pdfPageSettings, `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}print/configuration/${this.gifwMapInstance.config.id}`);
         this.attachCloseButton();
         this.updateValidationRules();
@@ -34,7 +33,6 @@ export class PrintPanel implements SidebarPanel {
     }
 ;
     render() {
-        console.log(`render called on Print (container ${this.container})`);
     };
     /*TODO - Make this generic*/
     private attachCloseButton():void {

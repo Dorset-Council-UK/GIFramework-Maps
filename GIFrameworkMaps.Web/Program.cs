@@ -108,5 +108,4 @@ var forwarder = app.Services.GetService<IHttpForwarder>();
 
 var startup = new Startup(builder.Configuration);
 startup.Configure(app, app.Environment, forwarder);
-//app.MapReverseProxy();
 app.Run();

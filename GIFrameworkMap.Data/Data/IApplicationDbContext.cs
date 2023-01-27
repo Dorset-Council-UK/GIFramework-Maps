@@ -21,5 +21,6 @@ namespace GIFrameworkMaps.Data
         DbSet<Models.Authorization.ApplicationRole> ApplicationRoles { get; set; }
         DbSet<Models.Authorization.ApplicationUserRole> ApplicationUserRoles { get; set; }
         DbSet<Models.WebLayerServiceDefinition> WebLayerServiceDefinitions { get; set; }
+        DbSet<Models.ProxyAllowedHost> ProxyAllowedHosts { get; set; }
     }
 }

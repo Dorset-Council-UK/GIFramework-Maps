@@ -29,6 +29,7 @@ namespace GIFrameworkMaps.Data
         public DbSet<Models.Authorization.ApplicationRole> ApplicationRoles { get; set; }
         public DbSet<Models.Authorization.ApplicationUserRole> ApplicationUserRoles { get; set; }
         public DbSet<Models.WebLayerServiceDefinition> WebLayerServiceDefinitions { get; set; }
+        public DbSet<Models.ProxyAllowedHost> ProxyAllowedHosts{get;set;}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,6 +45,8 @@ namespace GIFrameworkMaps.Data
             modelBuilder.Entity<WelcomeMessage>().Property(w => w.DismissOnButtonOnly).HasDefaultValue(false);
             modelBuilder.Entity<TourDetails>().Property(w => w.Frequency).HasDefaultValue(-1);
             modelBuilder.Entity<WebLayerServiceDefinition>().Property(w => w.Type).HasConversion<string>();
+            modelBuilder.Entity<Layer>().Property(l => l.ProxyMetaRequests).HasDefaultValue(false);
+            modelBuilder.Entity<Layer>().Property(l => l.ProxyMapRequests).HasDefaultValue(false);
             /*Exclude DB search results from EF Migrations - https://stackoverflow.com/a/65151839/863487 */
             modelBuilder.Entity<Models.Search.DatabaseSearchResult>().HasNoKey().ToTable(nameof(DatabaseSearchResults), t => t.ExcludeFromMigrations());
         }

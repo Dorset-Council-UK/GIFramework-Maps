@@ -58,7 +58,6 @@ export class Search {
         this.searchEndpointURL = searchEndpointURL;
     }
     init(permalinkParams?: Record<string, string>) {
-        console.log(`init called on Search (container ${this.container})`);
         //inject search box into document
         let container = document.querySelector(this.container);
         container.insertAdjacentHTML('beforeend', this.searchBoxHTML);
