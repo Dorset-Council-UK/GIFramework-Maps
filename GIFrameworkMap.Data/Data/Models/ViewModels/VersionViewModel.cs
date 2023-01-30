@@ -15,6 +15,7 @@ namespace GIFrameworkMaps.Data.Models.ViewModels
         public List<BasemapViewModel> Basemaps { get; set; }
         public string HelpURL { get; set; }
         public string FeedbackURL { get; set; }
+        public bool ShowLogin { get; set; }
         public Theme Theme { get; set; }
         public Bound Bound { get; set; }
         public WelcomeMessage WelcomeMessage { get; set; }
