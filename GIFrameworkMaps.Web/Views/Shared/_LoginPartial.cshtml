@@ -1,15 +1,17 @@
 ﻿@using System.Security.Principal
 
-<ul class="navbar-nav">
-    @if (User.Identity.IsAuthenticated)
-    {
+@if (Convert.ToBoolean(ViewData["ShowLogin"]) || User.Identity.IsAuthenticated)
+{
+    <ul class="navbar-nav">
+        @if (User.Identity.IsAuthenticated)
+        {
         <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#"><i class="bi-person-circle"></i> @User.Identity.Name</a>
             <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" id="my-account" asp-area="" asp-controller="Account" asp-action="Index">My account</a></li>
                 @if (User.IsInRole("GIFWAdmin"))
                 {
-                    <li><a class="dropdown-item" id="management"  asp-area="" asp-controller="Management" asp-action="Index">Manage application</a></li>
+                <li><a class="dropdown-item" id="management" asp-area="" asp-controller="Management" asp-action="Index">Manage application</a></li>
                 }
                 <li><hr class="dropdown-divider"></li>
                 <li>
@@ -18,11 +20,12 @@
             </ul>
         </li>
 
-    }
-    else
-    {
+        }
+        else
+        {
         <li class="nav-item">
             <a class="nav-link" id="login" asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="SignIn">Login/Register</a>
         </li>
-    }
-</ul>
+        }
+    </ul>
+}
