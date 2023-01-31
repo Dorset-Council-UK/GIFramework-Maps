@@ -15,14 +15,12 @@ export class BasemapsPanel implements SidebarPanel {
         this.container = container;
     }
     init() {
-        console.log(`init called on Basemaps (container ${this.container})`);
         this.renderBasemapsPanel();
         this.attachCloseButton();
         //this.attachBasemapSelectors();
         //this.attachMetaControls();
     };
     render() {
-        console.log(`render called on Basemaps (container ${this.container})`);
         this.renderBasemapsPanel();
     };
     /*TODO - Make this generic*/
@@ -249,8 +247,12 @@ export class BasemapsPanel implements SidebarPanel {
 
             let layerGroup = this.gifwMapInstance.getLayerGroupOfType(LayerGroupType.Basemap);
             let layerConfig = (layerGroup.layers as Layer[]).filter(l => l.id == eTarget.dataset.gifwAboutBasemap);
+            let proxyEndpoint = "";
+            if (layerConfig[0].proxyMetaRequests) {
+                proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
+            }
             if (layerConfig && layerConfig.length === 1) {
-                CSWMetadataViewer.showMetadataModal(layerConfig[0]);
+                CSWMetadataViewer.showMetadataModal(layerConfig[0], undefined, proxyEndpoint);
             }
             e.preventDefault();
         })

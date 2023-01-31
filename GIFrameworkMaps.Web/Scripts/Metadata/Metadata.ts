@@ -8,7 +8,7 @@ import * as olExtent from "ol/extent";
 export class Metadata {
 
     /*TODO - Make all the metadata fetchers use this generic function*/
-    static async getCapabilities(baseUrl: string, service: string = "WMS", version: string = "1.1.0") {
+    static async getCapabilities(baseUrl: string, service: string = "WMS", version: string = "1.1.0", proxyEndpoint: string = "") {
         let getCapabilitiesURLParams = new URLSearchParams({
             service: service,
             version: version,
@@ -19,13 +19,15 @@ export class Metadata {
         let combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, getCapabilitiesURLParams, true);
 
         let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
-
+        if (proxyEndpoint !== "") {
+            fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
+        }
         let response = await fetch(fetchUrl);
         return response;
 
     }
 
-    static async getDescribeFeatureType(baseUrl: string, featureTypeName: string, httpMethod: string, outputFormat: string = 'application/json', additionalUrlParams: {} = {}): Promise<DescribeFeatureType> {
+    static async getDescribeFeatureType(baseUrl: string, featureTypeName: string, httpMethod: string, outputFormat: string = 'application/json', proxyEndpoint:string = "", additionalUrlParams: {} = {}): Promise<DescribeFeatureType> {
         
         let describeFeatureURLParams = new URLSearchParams({
             service: 'WFS',
@@ -40,7 +42,9 @@ export class Metadata {
         let baseURLParams = baseURLasURL.searchParams;
         let combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, describeFeatureURLParams, true);
         let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
-
+        if (proxyEndpoint !== "") {
+            fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
+        }
 
         try {
             let response = await fetch(fetchUrl,
@@ -64,7 +68,7 @@ export class Metadata {
      * a stripped down set of basic capabilities.
      * @param baseUrl - The base URL of the OGC server you want to query
      */
-    static async getBasicCapabilities(baseUrl: string, additionalUrlParams: {} = {}): Promise<BasicServerCapabilities> {
+    static async getBasicCapabilities(baseUrl: string, additionalUrlParams: {} = {}, proxyEndpoint: string = ""): Promise<BasicServerCapabilities> {
         let getCapabilitiesURLParams = new URLSearchParams({
             service: 'WFS',
             version: '1.1.0',
@@ -76,7 +80,9 @@ export class Metadata {
         let combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, getCapabilitiesURLParams, true);
 
         let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
-
+        if (proxyEndpoint !== "") {
+            fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
+        }
         try {
             let response = await fetch(fetchUrl);
             if (!response.ok) {
@@ -157,7 +163,7 @@ export class Metadata {
      * @param baseUrl - The base URL of the OGC server you want to query
      * @param layerName - The name of the layer to find in the list
      */
-    static async getStylesForLayer(baseUrl: string, layerName: string, additionalUrlParams: {} = {}): Promise<Style[]> {
+    static async getStylesForLayer(baseUrl: string, layerName: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}): Promise<Style[]> {
         let getCapabilitiesURLParams = new URLSearchParams({
             service: 'WMS',
             version: '1.1.0',
@@ -169,6 +175,9 @@ export class Metadata {
         let combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, getCapabilitiesURLParams, true);
 
         let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
+        if (proxyEndpoint !== "") {
+            fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
+        }
 
         try {
             let response = await fetch(fetchUrl);
@@ -183,7 +192,6 @@ export class Metadata {
             
             let styles = (evaluateXPathToNodes(`//Layer[Name='${layerName}']/Style`, doc, null, null, { language: evaluateXPath.XQUERY_3_1_LANGUAGE }) as Node[]);
 
-            console.log(styles);
             //parse styles into list of styles
             let availableStyles: Style[] = [];
             styles.forEach(s => {
@@ -214,9 +222,9 @@ export class Metadata {
         }
     }
 
-    static async getLayersFromCapabilities(baseUrl: string, version:string = "1.1.0") {
+    static async getLayersFromCapabilities(baseUrl: string, version:string = "1.1.0", proxyEndpoint:string = "") {
         try {
-            let response = await this.getCapabilities(baseUrl, "WMS", version);
+            let response = await this.getCapabilities(baseUrl, "WMS", version, proxyEndpoint);
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
@@ -321,7 +329,7 @@ export class Metadata {
      * a stripped down set of basic capabilities.
      * @param baseUrl - The base URL of the OGC server you want to query
      */
-    static async getWPSCapabilities(baseUrl: string, additionalUrlParams: {} = {}): Promise<BasicServerCapabilities> {
+    static async getWPSCapabilities(baseUrl: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}): Promise<BasicServerCapabilities> {
         let getCapabilitiesURLParams = new URLSearchParams({
             service: 'wps',
             version: '1.1.0',
@@ -333,7 +341,9 @@ export class Metadata {
         let combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, getCapabilitiesURLParams, true);
 
         let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
-
+        if (proxyEndpoint !== "") {
+            fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
+        }
         try {
             let response = await fetch(fetchUrl);
             if (!response.ok) {
@@ -404,7 +414,7 @@ export class Metadata {
 
     }
 
-    static async hasWPSProcess(baseUrl: string, httpMethod: string, processName: string, additionalUrlParams: {} = {}): Promise<boolean> {
+    static async hasWPSProcess(baseUrl: string, httpMethod: string, processName: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}): Promise<boolean> {
         let describeProcessURLParams = new URLSearchParams({
             service: 'WPS',
             version: '1.1.0',
@@ -417,7 +427,9 @@ export class Metadata {
         let combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, describeProcessURLParams, true);
 
         let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
-
+        if (proxyEndpoint !== "") {
+            fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
+        }
         try {
             let response = await fetch(fetchUrl,
                 { method: httpMethod }

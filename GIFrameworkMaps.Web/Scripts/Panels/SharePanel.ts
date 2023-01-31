@@ -12,7 +12,6 @@ export class SharePanel implements SidebarPanel {
         this.container = container;
     }
     init() {
-        console.log(`init called on Share (container ${this.container})`);
         this.attachCloseButton();
         this.attachCopyButtons();
 
@@ -27,7 +26,6 @@ export class SharePanel implements SidebarPanel {
         this.render();
     };
     render() {
-        console.log(`render called on Share (container ${this.container})`);
         this.updatePermalink();
     };
     /*TODO - Make this generic*/

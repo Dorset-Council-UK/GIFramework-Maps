@@ -1,15 +1,16 @@
 {
   "name": "giframeworkmaps",
   "version": "1.0.0",
-  "description": "A .NET 6 based web map using OpenLayers, Bootstrap, Entity Framework Core and Identity Framework",
+  "description": "A .NET based web map built with OpenLayers and Bootstrap",
   "repository": "https://dev.azure.com/dccgisvsts/GIFrameworkMaps",
-  "license": "OGL-UK-3.0",
+  "license": "MIT",
   "main": "index.js",
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:webpack": "webpack",
-    "watch:webpack": "webpack --watch",
+    "build:webpack": "webpack --config webpack.dev.js",
+    "watch:webpack": "webpack --config webpack.dev.js --watch",
+    "build:webpack-prod": "webpack --config webpack.prod.js",
     "audit": "npm audit",
     "audit fix": "npm audit fix",
     "outdated": "npm outdated"
@@ -30,7 +31,7 @@
     "jspdf": "2.5.1",
     "luxon": "3.2.1",
     "nunjucks": "3.2.3",
-    "ol": "7.2.2", 
+    "ol": "7.2.2",
     "ol-contextmenu": "5.1.1",
     "proj4": "2.8.0",
     "shepherd.js": "11.0.1",
@@ -47,7 +48,8 @@
     "ts-loader": "9.4.2",
     "typescript": "4.9.4",
     "webpack": "5.75.0",
-    "webpack-cli": "5.0.1"
+    "webpack-cli": "5.0.1",
+    "webpack-merge": "5.8.0"
   },
   "-vs-binding": {
     "ProjectOpened": [

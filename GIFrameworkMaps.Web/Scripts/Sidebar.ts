@@ -22,7 +22,6 @@ export class Sidebar {
     }
 
     public open(): void {
-        console.log(`open sidebar called for ${this.name}`);
         let sidebarPanelsContainer = document.querySelector('#gifw-sidebar-right');
         let sidebar: HTMLDivElement = sidebarPanelsContainer.querySelector('#' + this.id);
 
@@ -52,7 +51,6 @@ export class Sidebar {
         
     }
     public close(): void {
-        console.log(`close sidebar called for ${this.name}`);
         Sidebar.close();
         
     }
@@ -75,7 +73,6 @@ export class Sidebar {
 
 
     static close() {
-        console.log(`static close method called`);
         var sidebarPanelsContainer = document.querySelector('#gifw-sidebar-right');
         sidebarPanelsContainer.classList.toggle('show', false);
         var otherSidebars: NodeListOf<HTMLDivElement> = sidebarPanelsContainer.querySelectorAll('.sidebar');

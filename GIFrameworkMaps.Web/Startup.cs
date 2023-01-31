@@ -22,6 +22,7 @@ using System;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 using Yarp.ReverseProxy.Transforms;
+using GIFrameworkMaps.Data.Models;
 
 namespace GIFrameworkMaps.Web
 {
@@ -34,14 +35,11 @@ namespace GIFrameworkMaps.Web
 
         public IConfiguration Configuration { get; }
 
-        //// This method gets called by the runtime. Use this method to add services to the container.
-        //public void ConfigureServices(IServiceCollection services)
-        //{
-            
-        //}
-
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHttpForwarder forwarder)
+        public void Configure(
+            IApplicationBuilder app, 
+            IWebHostEnvironment env, 
+            IHttpForwarder forwarder)
         {
             app.UseForwardedHeaders();
             if (env.IsDevelopment())
@@ -89,7 +87,9 @@ namespace GIFrameworkMaps.Web
             });
 
             // Setup our own request transform class
-            var transformer = new CustomTransformer(); // or HttpTransformer.Default;
+            
+
+            var transformer = new CustomTransformer(app); // or HttpTransformer.Default;
             var requestOptions = new ForwarderRequestConfig { ActivityTimeout = TimeSpan.FromSeconds(100) };
 
 
@@ -114,21 +114,13 @@ namespace GIFrameworkMaps.Web
                 
                 endpoints.MapControllerRoute("Default_Slug", "{slug1}/{slug2?}/{slug3?}", new { controller = "Map", action = "Index", slug1 = default_version_slug });
                 
-                //Future routes
-                //endpoints.MapControllerRoute("User_Generated", "u/{id}", new { controller = "Map", action = "UserGeneratedMap" });
-                //endpoints.MapControllerRoute("Enhanced_Permalink", "p/{id}", new { controller = "Map", action = "EnhancedPermalink" });
-
-                //endpoints.MapControllerRoute(
-                //    name: "default",
-                //    pattern: "{controller=Home}/{action=Index}/{id?}");
-
                 endpoints.Map("/proxy", async httpContext =>
                 {
                     var queryContext = new QueryTransformContext(httpContext.Request);
                     Microsoft.Extensions.Primitives.StringValues url;
                     if (queryContext.Collection.TryGetValue("url", out url))
                     {
-                        var error = await forwarder.SendAsync(httpContext, "https://example.com", httpClient, requestOptions, transformer);
+                        var error = await forwarder.SendAsync(httpContext, url, httpClient, requestOptions, transformer);
                         // Check if the proxy operation was successful
                         if (error != ForwarderError.None)
                         {
@@ -322,24 +314,44 @@ namespace GIFrameworkMaps.Web
         }
         private class CustomTransformer : HttpTransformer
         {
-            public override async ValueTask TransformRequestAsync(HttpContext httpContext,
-                HttpRequestMessage proxyRequest, string destinationPrefix)
+            IApplicationBuilder _app;
+            public CustomTransformer(IApplicationBuilder app)
+            {
+                _app = app;
+            }
+            public override async ValueTask TransformRequestAsync(
+                HttpContext httpContext,
+                HttpRequestMessage proxyRequest, 
+                string destinationPrefix)
             {
                 // Copy all request headers
                 await base.TransformRequestAsync(httpContext, proxyRequest, destinationPrefix);
 
-                //// Customize the query string:
+                // Customize the query string:
                 var queryContext = new QueryTransformContext(httpContext.Request);
 
                 var url = queryContext.Collection["url"];
                 if (!string.IsNullOrEmpty(url))
                 {
-                    //TODO - Validate against proxy allow list
+                    List<ProxyAllowedHost> allowedHosts;
+                    /*TODO - Injecting the common repository in this way seems a little suspect but does work*/
+                    using (var scope = _app.ApplicationServices.CreateScope())
+                    {
+                        var repo = scope.ServiceProvider.GetRequiredService<ICommonRepository>();
+                        allowedHosts = await repo.GetProxyAllowedHostsAsync();
+                    }
                     string decodedUrl = System.Uri.UnescapeDataString(url);
+                    Uri requestUri = new Uri(decodedUrl);
 
-                    proxyRequest.RequestUri = new Uri(decodedUrl);
-                    // Suppress the original request header, use the one from the destination Uri.
+                    if(allowedHosts.FirstOrDefault(h => h.Host.ToLower() == requestUri.Host.ToLower()) == null){
+                        return;
+                    }
+
+                    proxyRequest.RequestUri = requestUri;
+                    //Transform request headers
                     proxyRequest.Headers.Host = null;
+                    proxyRequest.Headers.Remove("Origin");
+                    proxyRequest.Headers.Remove("Cookie");
                 }
                 else
                 {

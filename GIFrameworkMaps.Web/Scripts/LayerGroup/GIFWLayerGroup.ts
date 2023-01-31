@@ -5,6 +5,7 @@ import * as olSource from "ol/source";
 import { Layer } from "../Interfaces/Layer";
 import { Options as ImageWMSOptions } from "ol/source/ImageWMS";
 import { Options as TileWMSOptions } from "ol/source/TileWMS";
+import { Options as XYZOptions } from "ol/source/XYZ";
 import { Extent } from "ol/extent";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { LayerGroup } from "./LayerGroup";
@@ -37,7 +38,7 @@ export class GIFWLayerGroup implements LayerGroup {
         let viewProj = 'EPSG:3857';
         if (this.layers !== null) {
             this.layers.forEach((layer) => {
-                let opts: Record<string, any> = {};
+                //let opts: Record<string, any> = {};
                 let ol_layer;
                 /*define reused attributes*/
                 let className = `${this.layerGroupType === LayerGroupType.Basemap ? "basemapLayer" : "layer"}-${layer.id}`;
@@ -57,18 +58,26 @@ export class GIFWLayerGroup implements LayerGroup {
                 switch (layer.layerSource.layerSourceType.name) {
                     
                     case "XYZ":
-                        layer.layerSource.layerSourceOptions.forEach(function (ls) {
-                            if (ls.name.toLowerCase() === "tilegrid") {
-                                opts['tileGrid'] = new TileGrid(JSON.parse(ls.value));
-                            } else {
-                                opts[`${ls.name}`] = ls.value;
-                            }
-                        });
-                        opts['attributions'] = layer.layerSource.attribution.attributionHTML;
-                        opts["crossOrigin"] = 'anonymous';
-                        
+                        let xyzOpts: XYZOptions = {
+                            url: layer.layerSource.layerSourceOptions.filter(o => o.name.toLowerCase() === "url")[0].value,
+                            attributions: layer.layerSource.attribution.attributionHTML,
+                            crossOrigin: 'anonymous',
+                            projection: projection
+                        }
+
+                        let tileGrid = layer.layerSource.layerSourceOptions.filter(o => o.name.toLowerCase() === 'tilegrid');
+                        if (tileGrid.length !== 0) {
+                            xyzOpts.tileGrid = new TileGrid(JSON.parse(tileGrid[0].value));
+                        }
+
+                        if (layer.proxyMapRequests) {
+                            xyzOpts.tileLoadFunction = (imageTile: any, src: string) => {
+                                let proxyUrl = this.gifwMapInstance.createProxyURL(src);
+                                imageTile.getImage().src = proxyUrl;
+                            };
+                        }
                         ol_layer = new olLayer.Tile({
-                            source: new olSource.XYZ(opts),
+                            source: new olSource.XYZ(xyzOpts),
                             visible: visible,
                             className: className,
                             maxZoom: maxZoom,
@@ -96,6 +105,14 @@ export class GIFWLayerGroup implements LayerGroup {
                             crossOrigin: 'anonymous',
                             projection: projection
                         };
+
+                        if (layer.proxyMapRequests) {
+                            tileWMSOpts.tileLoadFunction = (imageTile: any, src: string) => {
+                                let proxyUrl = this.gifwMapInstance.createProxyURL(src);
+                                imageTile.getImage().src = proxyUrl;
+                            };
+                        }
+
                         ol_layer = new olLayer.Tile({
                             source: new olSource.TileWMS(tileWMSOpts),
                             visible: visible,
@@ -122,7 +139,12 @@ export class GIFWLayerGroup implements LayerGroup {
                             })[0],
                             projection: projection
                         };
-
+                        if (layer.proxyMapRequests) {
+                            imageWMSOpts.imageLoadFunction = (imageTile: any, src: string) => {
+                                let proxyUrl = this.gifwMapInstance.createProxyURL(src);
+                                imageTile.getImage().src = proxyUrl;
+                            };
+                        }
                         ol_layer = new olLayer.Image({
                             source: new olSource.ImageWMS(imageWMSOpts),
                             visible: visible,
@@ -141,6 +163,7 @@ export class GIFWLayerGroup implements LayerGroup {
                 
                 ol_layer.setProperties({ "layerId": layer.id });
                 ol_layer.setProperties({ "gifw-queryable": layer.queryable });
+                ol_layer.setProperties({ "gifw-proxy-meta-request": layer.proxyMetaRequests });
                 ol_layer.setProperties({ "name": layer.name });
                 ol_layer.setProperties({ "saturation": layer.defaultSaturation });
                 ol_layer.setProperties({ "layerGroupType": this.layerGroupType })

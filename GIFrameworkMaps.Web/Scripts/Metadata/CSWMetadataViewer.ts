@@ -6,7 +6,7 @@ import { CSWMetadata, CSWMetadataLinks } from "../Interfaces/OGCMetadata/CSWMeta
 
 export class CSWMetadataViewer {
 
-    static getCSWMetadataForLayer(layer:Layer): Promise<CSWMetadata> {
+    static getCSWMetadataForLayer(layer:Layer, proxyEndpoint: string = ""): Promise<CSWMetadata> {
         let CSWMetadataURL = layer.layerSource.layerSourceOptions.filter(l => l.name == "cswendpoint");
         if (CSWMetadataURL.length !== 0) {
             let CSWMetadataGetURL = new URL(CSWMetadataURL[0].value.toString());
@@ -14,12 +14,24 @@ export class CSWMetadataViewer {
             if (descriptionParams.length == 1) {
                 let cswParams = JSON.parse(descriptionParams[0].value);
                 if (cswParams) {
-                    CSWMetadataGetURL.search = new URLSearchParams(cswParams).toString();
+                    let combinedParams = new URLSearchParams(cswParams);
+                    if (CSWMetadataGetURL.searchParams) {
+                        combinedParams = new URLSearchParams({
+                            ...Object.fromEntries(combinedParams),
+                            ...Object.fromEntries(CSWMetadataGetURL.searchParams)
+                        })
+                    }
+                    CSWMetadataGetURL.search = combinedParams.toString();
                 }
             }
 
+            let fetchUrl = CSWMetadataGetURL.toString();
+            if (proxyEndpoint !== "") {
+                fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
+            }
+
             let CSWMetadataPromise = new Promise<CSWMetadata>((resolve, reject) => {
-                fetch(CSWMetadataGetURL.toString())
+                fetch(fetchUrl)
                     .then(response => response.text())
                     .then(data => {
                         let parser = new DOMParser();
@@ -165,7 +177,7 @@ export class CSWMetadataViewer {
                 </div>`
     }
 
-    static showMetadataModal(layerConfig: Layer, isFiltered: boolean = false) {
+    static showMetadataModal(layerConfig: Layer, isFiltered: boolean = false, proxyEndpoint:string = "") {
         let metaModal = new Modal(document.getElementById('meta-modal'), {});
         let metaModalContent = document.querySelector('#meta-modal .modal-body');
         if (layerConfig) {
@@ -183,7 +195,9 @@ export class CSWMetadataViewer {
             metaModalContent.innerHTML = descriptionHTML;
             metaModal.show();
 
-            let metadataPromise = CSWMetadataViewer.getCSWMetadataForLayer(layerConfig);
+
+            
+            let metadataPromise = CSWMetadataViewer.getCSWMetadataForLayer(layerConfig, proxyEndpoint);
             if (metadataPromise) {
                 metadataPromise.then(metadata => {
                     metaModalContent.innerHTML = CSWMetadataViewer.createCSWMetadataHTML(metadata,isFiltered);

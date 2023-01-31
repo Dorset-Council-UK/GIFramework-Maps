@@ -384,7 +384,14 @@ export class FeatureQuerySearch {
                 ) {
                     //has all relevant capabilities
                     let describeFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType)[0];
-                    let featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, featureTypeName, describeFeatureCapability.method);
+
+                    let proxyEndpoint = "";
+                    
+                    if (layer.get('gifw-proxy-meta-requests') === "true") {
+                        proxyEndpoint = `${document.location.protocol}//${this._gifwMapInstance.config.appRoot}proxy`;
+                    }
+
+                    let featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, featureTypeName, describeFeatureCapability.method,undefined,proxyEndpoint);
                     if (featureDescription) {
                         let geomColumnName = featureDescription.featureTypes[0].properties.filter(p => p.type.indexOf("gml:") === 0);
                         if (geomColumnName.length !== 0) {
@@ -503,7 +510,11 @@ export class FeatureQuerySearch {
         let abortController = new AbortController();
         let timer = window.setTimeout(() => abortController.abort(), this._maxTimeout);
         let promise = new Promise<FeatureQueryResponse>((resolve, reject) => {
-            fetch(request.searchUrl, {
+            let fetchUrl = request.searchUrl;
+            if (request.layer.get('gifw-proxy-meta-request') === true) {
+                fetchUrl = this._gifwMapInstance.createProxyURL(request.searchUrl);
+            }
+            fetch(fetchUrl, {
                 method: request.wfsRequest ? "POST" : "GET",
                 mode: 'cors',
                 headers: { 'Content-Type': 'application/vnd.ogc.gml' },
