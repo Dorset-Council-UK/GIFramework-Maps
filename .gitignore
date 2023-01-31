@@ -343,6 +343,7 @@ healthchecksdb
 /GIFrameworkMaps.Web/Scripts/**/*.js.map
 /GIFrameworkMaps.Web/Scripts/**/*.js
 /GIFrameworkMaps.Web/wwwroot/js/bundle.*
+/GIFrameworkMaps.Web/wwwroot/js/*.bundle.*
 /GIFrameworkMaps.Web/ScaffoldingReadMe.txt
 #files added by jsPdf
 /GIFrameworkMaps.Web/wwwroot/js/vendors-node_modules_html2canvas_dist_html2canvas_js.bundle.js.map

@@ -1,9 +1,7 @@
 ﻿const path = require('path');
 
 module.exports = {
-    mode: 'development',
     entry: './Scripts/app.ts',
-    devtool: 'source-map',
     module: {
         rules: [
             {

@@ -17,7 +17,9 @@
 
   <ItemGroup>
     <None Remove="Scripts\app.ts" />
-    <None Remove="webpack.config.js" />
+    <None Remove="webpack.common.js" />
+    <None Remove="webpack.dev.js" />
+    <None Remove="webpack.prod.js" />
   </ItemGroup>
 
   <ItemGroup>
@@ -63,7 +65,9 @@
 
   <ItemGroup>
     <TypeScriptCompile Include="Scripts\app.ts" />
-    <TypeScriptCompile Include="webpack.config.js" />
+    <TypeScriptCompile Include="webpack.prod.js" />
+    <TypeScriptCompile Include="webpack.dev.js" />
+    <TypeScriptCompile Include="webpack.common.js" />
   </ItemGroup>
 
 </Project>
