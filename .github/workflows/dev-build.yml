@@ -29,7 +29,7 @@ jobs:
       run: npm i -g webpack webpack-cli
       working-directory: 'GIFrameworkMaps.Web'
     - name: webpack
-      run: webpack --mode=development
+      run: webpack --config webpack.dev.js
       working-directory: 'GIFrameworkMaps.Web'
     - name: Build
       run: dotnet build --no-restore
