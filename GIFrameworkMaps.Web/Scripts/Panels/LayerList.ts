@@ -191,9 +191,8 @@ export class LayerList {
                 e.preventDefault();
             });
             innerFormCheckContainer.appendChild(aboutButton);
-
-
         }
+
         if (this.layersPanelInstance.isLayerFilterable(layer, olLayer as olLayer)) {
             let filterButton = document.createElement('a');
             filterButton.id = `gifw-filter-layer-${layer.id}`

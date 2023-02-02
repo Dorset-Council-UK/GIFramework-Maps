@@ -1118,6 +1118,12 @@ export class LayersPanel implements SidebarPanel {
         document.getElementById(this.gifwMapInstance.id).dispatchEvent(new CustomEvent('gifw-update-permalink'));
     }
 
+    /**
+     * Returns a boolean indicating if the layer is filterable
+     * @param layer The layer configuration information
+     * @param olLayer The OpenLayers layer
+     * @return Boolean indicating if the layer is filterable
+     * */
     public isLayerFilterable(layer: Layer, olLayer: olLayer): boolean {
         return (layer.filterable && (olLayer.getSource() instanceof TileWMS || olLayer.getSource() instanceof ImageWMS));
     }
