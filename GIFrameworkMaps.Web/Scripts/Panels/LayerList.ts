@@ -1,5 +1,4 @@
-﻿import { ImageWMS, TileWMS } from "ol/source";
-import { Category } from "../Interfaces/Category";
+﻿import { Category } from "../Interfaces/Category";
 import { Layer } from "../Interfaces/Layer";
 import { Layer as olLayer } from "ol/layer";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
@@ -195,9 +194,7 @@ export class LayerList {
 
 
         }
-
-        let source = (olLayer as olLayer).getSource();
-        if (layer.filterable && (source instanceof TileWMS || source instanceof ImageWMS)) {
+        if (this.layersPanelInstance.isLayerFilterable(layer, olLayer as olLayer)) {
             let filterButton = document.createElement('a');
             filterButton.id = `gifw-filter-layer-${layer.id}`
             filterButton.className = `ms-2`;
