@@ -1125,7 +1125,7 @@ export class LayersPanel implements SidebarPanel {
      * @return Boolean indicating if the layer is filterable
      * */
     public isLayerFilterable(layer: Layer, olLayer: olLayer): boolean {
-        return (layer.filterable && (olLayer.getSource() instanceof TileWMS || olLayer.getSource() instanceof ImageWMS));
+        return (layer?.filterable && (olLayer.getSource() instanceof TileWMS || olLayer.getSource() instanceof ImageWMS));
     }
 
     /**
