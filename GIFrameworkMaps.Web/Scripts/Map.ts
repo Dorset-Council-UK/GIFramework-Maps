@@ -623,7 +623,7 @@ export class GIFWMap {
             let lgLayers = lg.layers as Layer[];
             lgLayers.forEach(l => {
 
-                if (l.id.toString() == layerId) {
+                if (l.id?.toString() == layerId) {
                     layer = l;
                 }
             });

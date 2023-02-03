@@ -124,7 +124,7 @@ export class LayersPanel implements SidebarPanel {
             accordion.classList.add("accordion","mt-2","active-layers-list");
             switchedOnLayers.sort((a, b) => b.getZIndex() - a.getZIndex()).forEach(l => {
                 let layerId = l.get('layerId');
-                let layerConfig = this.gifwMapInstance.getLayerConfigById(layerId);
+                let layerConfig = this.gifwMapInstance.getLayerConfigById(layerId, [LayerGroupType.Overlay, LayerGroupType.SystemNative, LayerGroupType.UserNative]);
                 let layerHtml = `
                     <div class="accordion-item" data-gifw-layer-id="${layerId}" id="active-layer-${layerId}">
                             <h2 class="accordion-header">
