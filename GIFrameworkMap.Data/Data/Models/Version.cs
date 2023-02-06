@@ -21,6 +21,7 @@ namespace GIFrameworkMaps.Data.Models
         public string Slug { get; set; }
         public bool Enabled { get; set; }
         public bool RequireLogin { get; set; }
+        public bool ShowLogin { get; set; }
         public string RedirectionURL { get; set; }
         public string HelpURL { get; set; }
         public string FeedbackURL { get; set; }

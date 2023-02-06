@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.HttpOverrides;
 using Yarp.ReverseProxy.Forwarder;
+using Microsoft.Extensions.Logging.ApplicationInsights;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -100,7 +102,11 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddHttpForwarder();
 
-builder.Services.AddApplicationInsightsTelemetry();
+//Setting this here ensures that the connection string is used from the secrets or KeyVault. 
+//We have had examples where this has not worked as expected unless put here in this form.
+ApplicationInsightsServiceOptions AppInsightOptions = new ApplicationInsightsServiceOptions();
+AppInsightOptions.ConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
+builder.Services.AddApplicationInsightsTelemetry(AppInsightOptions);
 
 
 var app = builder.Build();

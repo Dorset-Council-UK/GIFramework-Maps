@@ -124,7 +124,7 @@ export class LayersPanel implements SidebarPanel {
             accordion.classList.add("accordion","mt-2","active-layers-list");
             switchedOnLayers.sort((a, b) => b.getZIndex() - a.getZIndex()).forEach(l => {
                 let layerId = l.get('layerId');
-                let layerConfig = this.gifwMapInstance.getLayerConfigById(layerId);
+                let layerConfig = this.gifwMapInstance.getLayerConfigById(layerId, [LayerGroupType.Overlay, LayerGroupType.SystemNative, LayerGroupType.UserNative]);
                 let layerHtml = `
                     <div class="accordion-item" data-gifw-layer-id="${layerId}" id="active-layer-${layerId}">
                             <h2 class="accordion-header">
@@ -153,7 +153,7 @@ export class LayersPanel implements SidebarPanel {
                                         </label>
                                     </div>
                                     ${l.getSource() instanceof TileWMS || l.getSource() instanceof ImageWMS ? `<button type="button" class="btn btn-outline-primary mt-3" id="layers-alt-styles-${layerId}" data-gifw-controls-style-layer="${layerId}"><i class="bi bi-eyedropper"></i> Alternate Styles</button>` : ``}
-                                    ${l.getSource() instanceof TileWMS || l.getSource() instanceof ImageWMS ? `<button type="button" class="btn btn-outline-primary mt-3 ms-2" id="gifw-active-layers-filter-${layerId}" data-gifw-controls-filter-layer="${layerId}"><i class="bi bi-funnel${this.getLayerFilteredStatus(layerConfig,l) ? "-fill":""}"></i> Filter</button>` : ``}
+                                    ${this.isLayerFilterable(layerConfig, l) ? `<button type="button" class="btn btn-outline-primary mt-3 ms-2" id="gifw-active-layers-filter-${layerId}" data-gifw-controls-filter-layer="${layerId}"><i class="bi bi-funnel${this.getLayerFilteredStatus(layerConfig,l) ? "-fill":""}"></i> Filter</button>` : ``}
                                 </div>
                             </div>
                         </div>
@@ -1116,6 +1116,16 @@ export class LayersPanel implements SidebarPanel {
         layerSource.updateParams({ STYLES: styleName });
         //TODO - Replace these with 'change' events on the source/layer itself?
         document.getElementById(this.gifwMapInstance.id).dispatchEvent(new CustomEvent('gifw-update-permalink'));
+    }
+
+    /**
+     * Returns a boolean indicating if the layer is filterable
+     * @param layer The layer configuration information
+     * @param olLayer The OpenLayers layer
+     * @return Boolean indicating if the layer is filterable
+     * */
+    public isLayerFilterable(layer: Layer, olLayer: olLayer): boolean {
+        return (layer?.filterable && (olLayer.getSource() instanceof TileWMS || olLayer.getSource() instanceof ImageWMS));
     }
 
     /**
