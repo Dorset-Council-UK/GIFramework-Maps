@@ -13,7 +13,7 @@
         <div class="col">
             <div class="card link-card h-100">
                 <div class="card-body">
-                    <a href="#" class="stretched-link">
+                    <a asp-action="Index" asp-controller="ManagementVersion" class="stretched-link">
                         <h4 class="card-title"><i class="bi bi-map"></i> Versions</h4>
                     </a>
                     <p class="card-text">Create, update and delete @appName versions</p>
@@ -68,7 +68,7 @@
         <div class="col">
             <div class="card link-card h-100">
                 <div class="card-body">
-                    <a href="@Url.Action("Index", "ManagementAttribution")" class="stretched-link">
+                    <a asp-action="Index" asp-controller="ManagementAttribution" class="stretched-link">
                         <h4 class="card-title"><i class="bi bi-c-circle"></i> Attributions</h4>
                         <p class="card-text">Manage attributions available in @appName</p>
                     </a>
@@ -112,7 +112,7 @@
         <div class="col">
             <div class="card link-card h-100">
                 <div class="card-body">
-                    <a href="@Url.Action("Index","ManagementSystem")" class="stretched-link">
+                    <a asp-action="Index" asp-controller="ManagementSystem" class="stretched-link">
                         <h4 class="card-title"><i class="bi bi-gear"></i> System</h4>
                         <p class="card-text">Check and update system settings and cache</p>
                     </a>
