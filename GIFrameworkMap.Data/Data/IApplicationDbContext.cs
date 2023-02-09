@@ -23,5 +23,6 @@ namespace GIFrameworkMaps.Data
         DbSet<Models.WebLayerServiceDefinition> WebLayerServiceDefinitions { get; set; }
         DbSet<Models.ProxyAllowedHost> ProxyAllowedHosts { get; set; }
         DbSet<Models.Attribution> Attribution { get; set; }
+        DbSet<Models.Bound> Bound { get; set; }
     }
 }

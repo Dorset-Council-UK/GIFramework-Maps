@@ -111,6 +111,11 @@ namespace GIFrameworkMaps.Web
                     pattern: "Management/Attribution/{action=Index}/{id?}",
                     defaults: new { controller = "ManagementAttribution", action = "Index" });
 
+                endpoints.MapControllerRoute(
+                   name: "ManagementInterface-Bound",
+                   pattern: "Management/Bound/{action=Index}/{id?}",
+                   defaults: new { controller = "ManagementBound", action = "Index" });
+
                 endpoints.MapControllerRoute("General_Map_Redirect", "Map", new { controller = "Map", action = "RedirectToGeneral" });
                 
                 endpoints.MapControllerRoute(

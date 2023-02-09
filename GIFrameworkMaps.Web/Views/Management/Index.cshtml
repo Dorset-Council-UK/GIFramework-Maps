@@ -68,7 +68,7 @@
         <div class="col">
             <div class="card link-card h-100">
                 <div class="card-body">
-                    <a href="@Url.Action("Index", "ManagementAttribution")" class="stretched-link">
+                    <a asp-action="Index" asp-controller="ManagementAttribution" class="stretched-link">
                         <h4 class="card-title"><i class="bi bi-c-circle"></i> Attributions</h4>
                         <p class="card-text">Manage attributions available in @appName</p>
                     </a>
@@ -79,7 +79,7 @@
         <div class="col">
             <div class="card link-card h-100">
                 <div class="card-body">
-                    <a href="#" class="stretched-link">
+                    <a asp-action="Index" asp-controller="ManagementBound" class="stretched-link">
                         <h4 class="card-title"><i class="bi bi-bounding-box-circles"></i> Bounds</h4>
                         <p class="card-text">Manage the bounds available in @appName</p>
                     </a>
@@ -112,7 +112,7 @@
         <div class="col">
             <div class="card link-card h-100">
                 <div class="card-body">
-                    <a href="@Url.Action("Index","ManagementSystem")" class="stretched-link">
+                    <a asp-action="Index" asp-controller="ManagementSystem" class="stretched-link">
                         <h4 class="card-title"><i class="bi bi-gear"></i> System</h4>
                         <p class="card-text">Check and update system settings and cache</p>
                     </a>
@@ -123,7 +123,7 @@
         <div class="col">
             <div class="card link-card h-100">
                 <div class="card-body">
-                    <a href="@Url.Action("BroadcastMessage","Management")" class="stretched-link">
+                    <a asp-action="BroadcastMessage" asp-controller="Management" class="stretched-link">
                         <h4 class="card-title"><i class="bi bi-broadcast-pin"></i> Broadcast</h4>
                         <p class="card-text">Broadcast a message to @appName users</p>
                     </a>
