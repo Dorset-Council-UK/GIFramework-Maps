@@ -9,5 +9,7 @@ namespace GIFrameworkMaps.Data
         bool PurgeCache();
         Task<Attribution> GetAttribution(int id);
         Task<List<Attribution>> GetAttributions();
+        Task<Bound> GetBound(int id);
+        Task<List<Bound>> GetBounds();
     }
 }

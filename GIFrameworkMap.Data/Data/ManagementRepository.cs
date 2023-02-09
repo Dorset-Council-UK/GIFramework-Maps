@@ -40,6 +40,22 @@ namespace GIFrameworkMaps.Data
             return attribution;
         }
 
+        public async Task<List<Bound>> GetBounds()
+        {
+            var bounds = await _context.Bound
+                .AsNoTracking()
+                .ToListAsync();
+
+            return bounds;
+        }
+
+        public async Task<Bound> GetBound(int id)
+        {
+            var bound = await _context.Bound.FirstOrDefaultAsync(a => a.Id == id);
+
+            return bound;
+        }
+
         /// <summary>
         /// Purges the .NET memory cache
         /// </summary>
