@@ -1,13 +1,13 @@
-﻿@model GIFrameworkMaps.Data.Models.Attribution
+﻿@model GIFrameworkMaps.Data.Models.Bound
 @{
-    ViewData["Title"] = $"Delete attribution '{Model.Name}'";
+    ViewData["Title"] = $"Delete bound '{Model.Name}'";
 }
 
 <h1>@ViewData["Title"]</h1>
 <div class="row mt-2">
-    <h2>Are you sure you want to delete this attribution?</h2>
+    <h2>Are you sure you want to delete this bound?</h2>
     <p class="lead">This action cannot be undone.</p>
-    <p>If layers are still using this attribution, you will not be able to delete it. Reassign layers to different attributions before deleting the attribution.</p>
+    <p>If layers are still using this attribution, you will not be able to delete it. Reassign layers to different bounds before deleting the bound.</p>
 
     <form asp-action="Delete">
         <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>

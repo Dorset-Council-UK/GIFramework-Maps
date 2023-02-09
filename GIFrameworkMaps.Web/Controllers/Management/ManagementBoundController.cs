@@ -82,17 +82,17 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(bound);
         }
 
-        // POST: Attribution/Edit/1
+        // POST: Bound/Edit/1
         [HttpPost, ActionName("Edit")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id)
         {
-            var attributionToUpdate = await _context.Attribution.FirstOrDefaultAsync(a => a.Id == id);
+            var boundToUpdate = await _context.Bound.FirstOrDefaultAsync(a => a.Id == id);
 
             if (await TryUpdateModelAsync(
-                attributionToUpdate,
+                boundToUpdate,
                 "",
-                a => a.Name, a=> a.AttributionHTML))
+                a => a.Name, a=> a.Description, a => a.BottomLeftX, a => a.BottomLeftY, a => a.TopRightX, a => a.TopRightY))
             {
 
                 try
@@ -102,16 +102,16 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
                 catch (DbUpdateException ex )
                 {
-                    _logger.LogError(ex, "Attribution edit failed");
+                    _logger.LogError(ex, "Bound edit failed");
                     ModelState.AddModelError("", "Unable to save changes. " +
                         "Try again, and if the problem persists, " +
                         "contact your system administrator.");
                 }
             }
-            return View(attributionToUpdate);
+            return View(boundToUpdate);
         }
 
-        // GET: Attribution/Delete/1
+        // GET: Bound/Delete/1
         public async Task<IActionResult> Delete(int id)
         {
             var bound = await _repository.GetBound(id);
@@ -124,34 +124,34 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(bound);
         }
 
-        // POST: Attribution/Delete/1
+        // POST: Bound/Delete/1
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var attributionToDelete = await _context.Attribution.FirstOrDefaultAsync(a => a.Id == id);
-            var linkedLayers = await _context.LayerSource.Where(l => l.Attribution.Id == id).ToListAsync();
-            if (linkedLayers.Count == 0)
-            {
+            var boundToDelete = await _context.Bound.FirstOrDefaultAsync(a => a.Id == id);
+            //var linkedLayers = await _context.LayerSource.Where(l => l.Bound.Id == id).ToListAsync();
+            //if (linkedLayers.Count == 0)
+            //{
                 try
                 {
-                    _context.Attribution.Remove(attributionToDelete);
+                    _context.Bound.Remove(boundToDelete);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
                 {
-                    _logger.LogError(ex, "Attribution delete failed");
+                    _logger.LogError(ex, "Bound delete failed");
                     ModelState.AddModelError("", "Unable to save changes. " +
                         "Try again, and if the problem persists, " +
                         "contact your system administrator.");
                 }
-            }
-            else
-            {
-                ModelState.AddModelError("", "There are layers in use that use this attribution, so you cannot delete it.");
-            }
-            return View(attributionToDelete);
+            //}
+            //else
+            //{
+            //    ModelState.AddModelError("", "There are layers in use that use this bound, so you cannot delete it.");
+            //}
+            return View(boundToDelete);
         }
 
 

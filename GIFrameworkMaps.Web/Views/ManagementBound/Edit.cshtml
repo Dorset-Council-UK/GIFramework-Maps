@@ -1,6 +1,6 @@
-﻿@model GIFrameworkMaps.Data.Models.Attribution
+﻿@model GIFrameworkMaps.Data.Models.Bound
 @{
-    ViewData["Title"] = $"Edit attribution '{Model.Name}'";
+    ViewData["Title"] = $"Edit bound '{Model.Name}'";
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -15,10 +15,29 @@
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="mb-3">
-                <label asp-for="AttributionHTML" class="control-label"></label>
-                <textarea asp-for="AttributionHTML" class="form-control"></textarea>
-                <div class="form-text">Use the placeholder {{CURRENT_YEAR}} to add the current year automatically</div>
-                <span asp-validation-for="AttributionHTML" class="text-danger"></span>
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="BottomLeftX" class="control-label"></label>
+                <input asp-for="BottomLeftX" class="form-control" />
+                <span asp-validation-for="BottomLeftX" class="text-danger"></span>
+            </div>
+             <div class="mb-3">
+                <label asp-for="BottomLeftY" class="control-label"></label>
+                <input asp-for="BottomLeftY" class="form-control" />
+                <span asp-validation-for="BottomLeftY" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="TopRightX" class="control-label"></label>
+                <input asp-for="TopRightX" class="form-control" />
+                <span asp-validation-for="TopRightX" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="TopRightY" class="control-label"></label>
+                <input asp-for="TopRightY" class="form-control" />
+                <span asp-validation-for="TopRightY" class="text-danger"></span>
             </div>
             <div class="mb-3">
                 <input type="submit" value="Save" class="btn btn-primary btn-lg" />
