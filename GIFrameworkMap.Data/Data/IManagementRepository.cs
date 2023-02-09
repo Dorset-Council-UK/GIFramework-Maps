@@ -11,5 +11,7 @@ namespace GIFrameworkMaps.Data
         Task<List<Attribution>> GetAttributions();
         Task<Bound> GetBound(int id);
         Task<List<Bound>> GetBounds();
+        Task<Theme> GetTheme(int id);
+        Task<List<Theme>> GetThemes();
     }
 }

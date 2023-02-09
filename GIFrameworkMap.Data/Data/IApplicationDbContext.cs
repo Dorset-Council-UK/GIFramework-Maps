@@ -24,5 +24,6 @@ namespace GIFrameworkMaps.Data
         DbSet<Models.ProxyAllowedHost> ProxyAllowedHosts { get; set; }
         DbSet<Models.Attribution> Attribution { get; set; }
         DbSet<Models.Bound> Bound { get; set; }
+        DbSet<Models.Theme> Theme { get; set; }
     }
 }
