@@ -60,7 +60,7 @@ export class GIFWLayerGroup implements LayerGroup {
                     case "XYZ":
                         let xyzOpts: XYZOptions = {
                             url: layer.layerSource.layerSourceOptions.filter(o => o.name.toLowerCase() === "url")[0].value,
-                            attributions: layer.layerSource.attribution.attributionHTML,
+                            attributions: layer.layerSource.attribution.renderedAttributionHTML,
                             crossOrigin: 'anonymous',
                             projection: projection
                         }
@@ -96,7 +96,7 @@ export class GIFWLayerGroup implements LayerGroup {
                             }).map(function (o) {
                                 return o.value;
                             })[0],
-                            attributions: layer.layerSource.attribution.attributionHTML,
+                            attributions: layer.layerSource.attribution.renderedAttributionHTML,
                             params: layer.layerSource.layerSourceOptions.filter(function (o) {
                                 return o.name.toLowerCase() == 'params';
                             }).map(function (o) {
@@ -131,7 +131,7 @@ export class GIFWLayerGroup implements LayerGroup {
                             }).map(function (o) {
                                 return o.value;
                             })[0],
-                            attributions: layer.layerSource.attribution.attributionHTML,
+                            attributions: layer.layerSource.attribution.renderedAttributionHTML,
                             params: layer.layerSource.layerSourceOptions.filter(function (o) {
                                 return o.name == 'params';
                             }).map(function (o) {
