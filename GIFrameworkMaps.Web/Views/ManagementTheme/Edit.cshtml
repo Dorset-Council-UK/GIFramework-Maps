@@ -16,12 +16,12 @@
             </div>
             <div class="mb-3">
                 <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
+                <textarea asp-for="Description" class="form-control"></textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
             <div class="mb-3">
                 <label asp-for="PrimaryColour" class="control-label"></label>
-                <input asp-for="PrimaryColour" class="form-control" type="color" />
+                <input asp-for="PrimaryColour" class="form-control form-control-color" type="color" />
                 <span asp-validation-for="PrimaryColour" class="text-danger"></span>
             </div>
             <div class="mb-3">
