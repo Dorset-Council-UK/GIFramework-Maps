@@ -36,6 +36,10 @@
                 <div class="form-text">If you want a custom favicon, link to your files here. Leave this blank to use the default favicon</div>
                 <span asp-validation-for="CustomFaviconURL" class="text-danger"></span>
             </div>
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+            </div>
         </form>
         
     </div>

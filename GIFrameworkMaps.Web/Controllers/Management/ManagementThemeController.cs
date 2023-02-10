@@ -54,6 +54,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             {
                 try
                 {
+                    theme.PrimaryColour = theme.PrimaryColour.Replace("#", "");
                     _context.Add(theme);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
@@ -97,6 +98,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
                 try
                 {
+                    themeToUpdate.PrimaryColour = themeToUpdate.PrimaryColour.Replace("#", "");
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
