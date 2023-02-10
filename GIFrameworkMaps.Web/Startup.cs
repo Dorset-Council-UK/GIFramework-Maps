@@ -121,6 +121,11 @@ namespace GIFrameworkMaps.Web
                    pattern: "Management/Theme/{action=Index}/{id?}",
                    defaults: new { controller = "ManagementTheme", action = "Index" });
 
+                endpoints.MapControllerRoute(
+                   name: "ManagementInterface-WelcomeMessage",
+                   pattern: "Management/WelcomeMessage/{action=Index}/{id?}",
+                   defaults: new { controller = "WelcomeMessage", action = "Index" });
+
                 endpoints.MapControllerRoute("General_Map_Redirect", "Map", new { controller = "Map", action = "RedirectToGeneral" });
                 
                 endpoints.MapControllerRoute(

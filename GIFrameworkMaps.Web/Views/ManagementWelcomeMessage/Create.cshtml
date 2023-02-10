@@ -1,0 +1,70 @@
+﻿@model GIFrameworkMaps.Data.Models.WelcomeMessage
+@{
+    ViewData["Title"] = $"Create new welcome message";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row mt-2">
+    <div class="col-md-8">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <div class="mb-3">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Title" class="control-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <div class="form-text">This text will appear in bold at the top of your welcome message</div>
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Content" class="control-label"></label>
+                <textarea asp-for="Content" class="form-control" rows="5"></textarea>
+                <div class="form-text">Please include any HTML markup for paragraps, headers and links</div>
+                <span asp-validation-for="Content" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Frequency" class="control-label"></label>
+                <select asp-for="Frequency" class="form-select">
+                    <option value="-1">Just once</option>
+                    <option value="0">Always</option>
+                    <option value="">Other</option>
+                </select>
+                <span asp-validation-for="Frequency" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="UpdateDate" class="control-label"></label>
+                <input asp-for="UpdateDate" class="form-control" />
+                <div class="form-text">A date when this message has been updated enough to re-show it to the user. For example, if you make significant changes to the message and want to forcibly re-trigger it for all users, set this to the current date, and anyone who hasn't viewed or dismissed the message since that date will be re-prompted</div>
+                <span asp-validation-for="UpdateDate" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <input asp-for="DismissOnButtonOnly" class="form-check-input" type="checkbox" />
+                <label asp-for="DismissOnButtonOnly" class="control-label"> Dismiss using button only?</label>
+                <div class="form-text">Tick this box if you want users to only be able to dismiss your message by using the dismiss button</div>
+                <span asp-validation-for="DismissOnButtonOnly" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="DismissText" class="control-label"></label>
+                <input asp-for="DismissText" class="form-control" />
+                <div class="form-text">The text you want on your button.Leave this blank to use the default of 'Close'</div>
+                <span asp-validation-for="DismissText" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Cancel</a>
+</div>
+
+
+            
+
+
