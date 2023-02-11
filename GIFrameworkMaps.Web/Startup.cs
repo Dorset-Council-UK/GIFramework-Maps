@@ -181,6 +181,7 @@ namespace GIFrameworkMaps.Web
                         Name = "General",
                         Description = "The general version",
                         RequireLogin = false,
+                        ShowLogin = true,
                         Enabled = true,
                         Slug = "general",
                         Bound = ukBound,

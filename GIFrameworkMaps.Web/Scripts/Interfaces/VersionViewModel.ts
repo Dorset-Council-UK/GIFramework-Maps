@@ -14,6 +14,7 @@ export interface VersionViewModel {
     basemaps: Basemap[];
     helpURL: string;
     feedbackURL: string;
+    showLogin: boolean,
     theme: Theme;
     bound: Bound;
     welcomeMessage: WelcomeMessage;

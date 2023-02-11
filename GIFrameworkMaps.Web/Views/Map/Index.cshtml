@@ -14,6 +14,7 @@
     ViewData["CustomFaviconURL"] = Model.Theme.CustomFaviconURL;
     ViewData["ToSLink"] = configuration.GetValue<string>("GIFrameworkMaps:ToSLink");
     ViewData["PrivacyLink"] = configuration.GetValue<string>("GIFrameworkMaps:PrivacyLink");
+    ViewData["ShowLogin"] = Model.ShowLogin;
     Layout = "_MapLayout";
 }
 <main id="giframeworkMapContainer" class="giframeworkMapContainer">
