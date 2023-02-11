@@ -1,14 +1,16 @@
 ﻿import { DateTime } from "luxon";
-import { Util } from "./Util";
 import Shepherd from 'shepherd.js';
 import { TourDetails } from "./Interfaces/Tour/TourDetails";
+import { UserSettings } from "./UserSettings";
 
 export class Tour {
     tourConfig: TourDetails;
     _localStorageKey: string;
+    _versionId: number;
     constructor(versionId:number, tourConfig:TourDetails) {
         //generate the local storage access key
-        this._localStorageKey = `TourLastViewed-${versionId}`
+        this._localStorageKey = `TourLastViewed`
+        this._versionId = versionId;
         this.tourConfig = tourConfig;
         //fix up the date
         if (this.tourConfig.updateDate !== null) {
@@ -109,27 +111,21 @@ export class Tour {
     }
 
     private getLastViewedTime(): Date { 
-        if (Util.Browser.storageAvailable('localStorage')) {
-            //check for storage item
-            if (localStorage.getItem(this._localStorageKey)) {
-                //attempt to convert the stored string into a real date
-                let lastViewedTimeAsString = localStorage.getItem(this._localStorageKey);
-                let lastViewedTime = DateTime.fromISO(lastViewedTimeAsString);
-                if (lastViewedTime.invalidReason === null) {
-                    return lastViewedTime.toJSDate();
-                } else {
-                    //delete the invalid iteam
-                    localStorage.removeItem(this._localStorageKey);
-                }
+        let lastViewedTimeSetting = UserSettings.getItem(this._localStorageKey, this._versionId);
+        if (lastViewedTimeSetting) {
+            //attempt to convert the stored string into a real date
+            let lastViewedTime = DateTime.fromISO(lastViewedTimeSetting);
+            if (lastViewedTime.invalidReason === null) {
+                return lastViewedTime.toJSDate();
+            } else {
+                //delete the invalid iteam
+                UserSettings.removeItem(this._localStorageKey, this._versionId)
             }
         }
         return null;
     }
 
     private setLastViewedTime(dateToSet: Date = new Date()): void {
-        if (Util.Browser.storageAvailable('localStorage')) {
-            //check for storage item
-            localStorage.setItem(this._localStorageKey,dateToSet.toISOString())
-        }
+        UserSettings.setItem(this._localStorageKey, dateToSet.toISOString(), this._versionId);
     }
 }
