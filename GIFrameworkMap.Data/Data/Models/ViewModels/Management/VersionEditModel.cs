@@ -16,6 +16,15 @@ namespace GIFrameworkMaps.Data.Models.ViewModels.Management
         public SelectList AvailableBounds { get; set; }
         public SelectList AvailableTours { get; set; }
         public SelectList AvailableWelcomeMessages { get; set; }
+
+        public List<int> SelectedBasemaps { get; set; }
+        [Display(Name = "Default basemap")]
+        public int DefaultBasemap { get; set; }
+        public List<Basemap> AvailableBasemaps { get; set; }
+
+        public List<int> SelectedCategories { get; set; }
+        public List<Category> AvailableCategories { get; set; }
+
         [Display(Name="Purge memory cache on save?")]
         public bool PurgeCache { get; set; }
     }

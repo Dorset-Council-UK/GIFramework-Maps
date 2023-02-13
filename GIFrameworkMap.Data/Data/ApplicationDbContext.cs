@@ -26,6 +26,7 @@ namespace GIFrameworkMaps.Data
         public DbSet<Models.Tour.TourDetails> TourDetails { get; set; }
         public DbSet<Models.Layer> Layer { get; set; }
         public DbSet<Models.Basemap> Basemap { get; set; }
+        public DbSet<Models.Category> Category { get; set; }
         public DbSet<Models.Authorization.ApplicationRole> ApplicationRoles { get; set; }
         public DbSet<Models.Authorization.ApplicationUserRole> ApplicationUserRoles { get; set; }
         public DbSet<Models.WebLayerServiceDefinition> WebLayerServiceDefinitions { get; set; }

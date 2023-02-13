@@ -1,0 +1,32 @@
+﻿@model List<GIFrameworkMaps.Data.Models.Category>
+
+@{
+    var allCategories = ViewData["AllCategories"] as List<GIFrameworkMaps.Data.Models.Category>;
+    var selectedCategories = ViewData["SelectedCategories"] as List<int>;
+}
+@foreach (var category in Model)
+{
+
+    bool IsCategoryChecked = selectedCategories != null && selectedCategories.Where(b => b == category.Id).Count() != 0;
+
+    <div class="form-check">
+        <input type="checkbox"
+            class="form-check-input"
+            name="SelectedCategories"
+           value="@category.Id"
+           id="SelectedCategories__@category.Id"
+           @(Html.Raw(IsCategoryChecked ? "checked=\"checked\"" : "")) />
+        <label class="form-check-label" for="SelectedCategories__@category.Id">@category.Name</label>
+    </div>
+
+    var children = allCategories.Where(c => c.ParentCategoryId == category.Id).ToList();
+    if (children.Count() != 0)
+    {
+        <div class="text-danger ms-4">
+            @Html.Partial("ManagementPartials/VersionCategory",children)
+        </div>
+    }
+
+
+
+}
