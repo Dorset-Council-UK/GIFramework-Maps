@@ -57,7 +57,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         //POST: Attribution/Create
         [HttpPost, ActionName("Create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(VersionEditModel editModel, int[] selectedBasemaps, int defaultBasemap, int[] selectedCategories)
+        public async Task<IActionResult> CreatePost(VersionEditModel editModel, 
+            int[] selectedBasemaps, 
+            int defaultBasemap, 
+            int[] selectedCategories,
+            bool purgeCache)
         {
             if (ModelState.IsValid)
             {
@@ -67,6 +71,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     UpdateVersionBasemaps(selectedBasemaps, defaultBasemap, editModel.Version);
                     UpdateVersionCategories(selectedCategories,editModel.Version);
                     await _context.SaveChangesAsync();
+                    if (purgeCache)
+                    {
+                        _repository.PurgeCache();
+                    }
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
@@ -105,7 +113,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // POST: Version/Edit/1
         [HttpPost, ActionName("Edit")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditPost(int id, int[] selectedBasemaps, int defaultBasemap, int[] selectedCategories)
+        public async Task<IActionResult> EditPost(int id, 
+            int[] selectedBasemaps, 
+            int defaultBasemap, 
+            int[] selectedCategories,
+            bool purgeCache)
         {
             var versionToUpdate = await _context.Versions
                 .Include(v => v.VersionBasemaps)
@@ -141,8 +153,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     UpdateVersionCategories(selectedCategories, versionToUpdate);
                     await _context.SaveChangesAsync();
 
-                    //TODO - ideally this would be something we can choose to do or not based on viewmodel
-                    _repository.PurgeCache();
+                    if (purgeCache)
+                    {
+                        _repository.PurgeCache();
+                    }
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex )

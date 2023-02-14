@@ -22,7 +22,7 @@
     var children = allCategories.Where(c => c.ParentCategoryId == category.Id).ToList();
     if (children.Count() != 0)
     {
-        <div class="text-danger ms-4">
+        <div class="ms-4">
             <partial name="ManagementPartials/VersionCategoryList" model="children" />
         </div>
     }
