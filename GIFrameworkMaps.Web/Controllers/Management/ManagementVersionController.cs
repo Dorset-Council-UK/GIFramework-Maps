@@ -240,6 +240,15 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                             DefaultSaturation = 100 
                         });
                     }
+                    else
+                    {
+                        //update the IsDefault value
+                        versionToUpdate.VersionBasemaps
+                            .Where(b => b.BasemapId == basemap.Id)
+                            .FirstOrDefault()
+                            .IsDefault = (basemap.Id == defaultBasemap);
+
+                    }
                 }
                 else
                 {
