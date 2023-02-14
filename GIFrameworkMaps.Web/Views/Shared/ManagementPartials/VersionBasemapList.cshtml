@@ -16,8 +16,8 @@
 
 <div class="mt-3">
 
-    <label name="DefaultBasemap" class="control-label"></label>
-    <select name="DefaultBasemap" class="form-select">
+    <label asp-for="DefaultBasemap" class="control-label"></label>
+    <select name="DefaultBasemap" class="form-select" id="DefaultBasemap">
     @foreach (var basemap in Model.AvailableBasemaps)
     {
         bool isSelected = Model.DefaultBasemap == basemap.Id;
