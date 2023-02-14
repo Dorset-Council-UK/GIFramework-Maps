@@ -1,0 +1,59 @@
+﻿@model GIFrameworkMaps.Data.Models.Bound
+@{
+    ViewData["Title"] = $"Create new bound";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row mt-2">
+    <div class="col-md-8">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <div class="mb-3">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="alert alert-info" role="alert">
+                The bounds are defined in Web Mercator format.
+            </div>
+            <div class="mb-3">
+                <label asp-for="BottomLeftX" class="control-label"></label>
+                <input asp-for="BottomLeftX" class="form-control" />
+                <span asp-validation-for="BottomLeftX" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="BottomLeftY" class="control-label"></label>
+                <input asp-for="BottomLeftY" class="form-control" />
+                <span asp-validation-for="BottomLeftY" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="TopRightX" class="control-label"></label>
+                <input asp-for="TopRightX" class="form-control" />
+                <span asp-validation-for="TopRightX" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="TopRightY" class="control-label"></label>
+                <input asp-for="TopRightY" class="form-control" />
+                <span asp-validation-for="TopRightY" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Cancel</a>
+</div>
+
+
+            
+
+

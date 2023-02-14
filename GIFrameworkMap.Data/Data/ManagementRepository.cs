@@ -1,10 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using GIFrameworkMaps.Data.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data
 {
@@ -20,6 +22,38 @@ namespace GIFrameworkMaps.Data
             _logger = logger;
             _context = context;
             _memoryCache = memoryCache;
+        }
+
+        public async Task<List<Attribution>> GetAttributions()
+        {
+            var attributions = await _context.Attribution
+                .AsNoTracking()
+                .ToListAsync();
+
+            return attributions;
+        }
+
+        public async Task<Attribution> GetAttribution(int id)
+        {
+            var attribution = await _context.Attribution.FirstOrDefaultAsync(a => a.Id == id);
+
+            return attribution;
+        }
+
+        public async Task<List<Bound>> GetBounds()
+        {
+            var bounds = await _context.Bound
+                .AsNoTracking()
+                .ToListAsync();
+
+            return bounds;
+        }
+
+        public async Task<Bound> GetBound(int id)
+        {
+            var bound = await _context.Bound.FirstOrDefaultAsync(a => a.Id == id);
+
+            return bound;
         }
 
         /// <summary>
