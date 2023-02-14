@@ -23,7 +23,7 @@
     if (children.Count() != 0)
     {
         <div class="text-danger ms-4">
-            @Html.Partial("ManagementPartials/VersionCategory",children)
+            <partial name="ManagementPartials/VersionCategoryList" model="children" />
         </div>
     }
 

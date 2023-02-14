@@ -1,0 +1,30 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.VersionEditModel
+
+@foreach (var basemap in Model.AvailableBasemaps)
+{
+    bool isChecked = Model.SelectedBasemaps != null && Model.SelectedBasemaps.Where(b => b == basemap.Id).Count() != 0;
+    <div class="form-check">
+        <input type="checkbox"
+        class="form-check-input"
+        name="SelectedBasemaps"
+        value="@basemap.Id"
+        id="SelectedBasemaps__@basemap.Id"
+        @(Html.Raw(isChecked ? "checked=\"checked\"" : "")) />
+        <label class="form-check-label" for="SelectedBasemaps__@basemap.Id">@basemap.Name</label>
+    </div>
+}
+
+<div class="mt-3">
+
+    <label name="DefaultBasemap" class="control-label"></label>
+    <select name="DefaultBasemap" class="form-select">
+    @foreach (var basemap in Model.AvailableBasemaps)
+    {
+        bool isSelected = Model.DefaultBasemap == basemap.Id;
+        <!option value="@basemap.Id" @(Html.Raw(isSelected ? "selected" : ""))>
+            @basemap.Name
+        </!option>
+    }
+    </select>
+    <span asp-validation-for="DefaultBasemap" class="text-danger"></span>
+</div>
