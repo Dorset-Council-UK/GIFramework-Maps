@@ -15,9 +15,5 @@ namespace GIFrameworkMaps.Web.Controllers
         {
             return View();
         }
-        public IActionResult Diagnostics()
-        {
-            return View();
-        }
     }
 }
