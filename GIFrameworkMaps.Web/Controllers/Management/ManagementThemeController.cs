@@ -1,4 +1,5 @@
-﻿using GIFrameworkMaps.Data;
+﻿using ExCSS;
+using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -74,6 +75,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         public async Task<IActionResult> Edit(int id)
         {
             var theme = await _repository.GetTheme(id);
+            theme.PrimaryColour = $"#{theme.PrimaryColour}";
 
             if (theme == null)
             {
@@ -93,7 +95,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             if (await TryUpdateModelAsync(
                 themeToUpdate,
                 "",
-                a => a.Name, a=> a.Description, a => a.PrimaryColour, a => a.LogoURL, a => a.CustomFaviconURL))
+                a => a.Name, 
+                a=> a.Description, 
+                a => a.PrimaryColour, 
+                a => a.LogoURL, 
+                a => a.CustomFaviconURL))
             {
 
                 try
