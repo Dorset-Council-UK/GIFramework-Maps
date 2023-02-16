@@ -40,6 +40,22 @@ namespace GIFrameworkMaps.Data
             return attribution;
         }
 
+        public async Task<List<Models.Version>> GetVersions()
+        {
+            var versions = await _context.Versions
+                .AsNoTracking()
+                .ToListAsync();
+
+            return versions;
+        }
+
+        public async Task<Models.Version> GetVersion(int id)
+        {
+            var version = await _context.Versions.FirstOrDefaultAsync(a => a.Id == id);
+
+            return version;
+        }
+
         public async Task<List<Bound>> GetBounds()
         {
             var bounds = await _context.Bound
@@ -70,6 +86,22 @@ namespace GIFrameworkMaps.Data
             var theme = await _context.Theme.FirstOrDefaultAsync(a => a.Id == id);
 
             return theme;
+        }
+
+        public async Task<List<WelcomeMessage>> GetWelcomeMessages()
+        {
+            var welcomeMessages = await _context.WelcomeMessages
+                .AsNoTracking()
+                .ToListAsync();
+
+            return welcomeMessages;
+        }
+
+        public async Task<WelcomeMessage> GetWelcomeMessage(int id)
+        {
+            var welcomeMessage = await _context.WelcomeMessages.FirstOrDefaultAsync(a => a.Id == id);
+
+            return welcomeMessage;
         }
 
         /// <summary>

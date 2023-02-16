@@ -1,11 +1,6 @@
 ﻿@using System.Security.Principal
-@{
-    ViewData["Title"] = "Account diagnostics";
-}
 
-<h1>@ViewData["Title"]</h1>
-
-<h2>Basic details</h2>
+<h3>Basic details</h3>
     <div class="table-responsive">
         <table class="table table-striped">
         <tr><th>User name</th><td>@User.Identity.Name</td></tr>
@@ -14,7 +9,7 @@
     </table>
 </div>
 
-<h2>Claims</h2>
+<h3>Claims</h3>
 <div class="table-responsive">
     <table class="table table-striped">
         @foreach (var claim in User.Claims)

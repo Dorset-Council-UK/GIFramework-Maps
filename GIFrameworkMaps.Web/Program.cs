@@ -65,40 +65,41 @@ builder.Services.AddDbContext<ApplicationDbContext>(
  Seems to be the only way to get AutoMapper set up in the Data Access project*/
 builder.Services.AddAutoMapper(typeof(GIFrameworkMaps.Data.ApplicationDbContext));
 
-builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+/*Simple check to see if the Azure AD ClientId is available, which is required for user auth*/
+if (!String.IsNullOrEmpty(builder.Configuration.GetSection("AzureAd")["ClientId"]))
+{
+    builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
 
-builder.Services.AddRazorPages()
-    .AddMicrosoftIdentityUI();
+    builder.Services.AddRazorPages()
+        .AddMicrosoftIdentityUI();
 
-builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+    builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+    {
+        //options.ResponseType = OpenIdConnectResponseType.CodeToken;
+        options.UsePkce = true;
+        options.SaveTokens = true;
+        options.Scope.Add("openid");
+        options.Scope.Add(options.ClientId);
+    });
+}
+else
 {
-    //options.ResponseType = OpenIdConnectResponseType.CodeToken;
-    options.UsePkce = true;
-    options.SaveTokens= true;
-    options.Scope.Add("openid");
-    options.Scope.Add(options.ClientId);
-});
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("CanAccessVersion", policy => policy.AddRequirements(new HasAccessToVersionRequirement()));
-    
-});
+    builder.Services.AddRazorPages();
+}
 
 builder.Services.AddTransient<IAuthorizationHandler, HasAccessToVersionAuthorizationHandler>();
 builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformer>();
-
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("CanAccessVersion", policy => policy.AddRequirements(new HasAccessToVersionRequirement()));
+});
 
 builder.Services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
 builder.Services.AddScoped<ICommonRepository, CommonRepository>();
 builder.Services.AddScoped<ISearchRepository, SearchRepository>();
 builder.Services.AddScoped<IPrintRepository, PrintRepository>();
 builder.Services.AddScoped<IManagementRepository, ManagementRepository>();
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("CanAccessVersion", policy => policy.AddRequirements(new HasAccessToVersionRequirement()));
-});
 
 builder.Services.AddHttpForwarder();
 
