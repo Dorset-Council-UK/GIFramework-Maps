@@ -72,6 +72,38 @@ namespace GIFrameworkMaps.Data
             return bound;
         }
 
+        public async Task<List<Theme>> GetThemes()
+        {
+            var themes = await _context.Theme
+                .AsNoTracking()
+                .ToListAsync();
+
+            return themes;
+        }
+
+        public async Task<Theme> GetTheme(int id)
+        {
+            var theme = await _context.Theme.FirstOrDefaultAsync(a => a.Id == id);
+
+            return theme;
+        }
+
+        public async Task<List<WelcomeMessage>> GetWelcomeMessages()
+        {
+            var welcomeMessages = await _context.WelcomeMessages
+                .AsNoTracking()
+                .ToListAsync();
+
+            return welcomeMessages;
+        }
+
+        public async Task<WelcomeMessage> GetWelcomeMessage(int id)
+        {
+            var welcomeMessage = await _context.WelcomeMessages.FirstOrDefaultAsync(a => a.Id == id);
+
+            return welcomeMessage;
+        }
+
         /// <summary>
         /// Purges the .NET memory cache
         /// </summary>

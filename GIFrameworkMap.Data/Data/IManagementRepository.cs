@@ -13,5 +13,9 @@ namespace GIFrameworkMaps.Data
         Task<List<Version>> GetVersions();
         Task<Bound> GetBound(int id);
         Task<List<Bound>> GetBounds();
+        Task<Theme> GetTheme(int id);
+        Task<List<Theme>> GetThemes();
+        Task<WelcomeMessage> GetWelcomeMessage(int id);
+        Task<List<WelcomeMessage>> GetWelcomeMessages();
     }
 }
