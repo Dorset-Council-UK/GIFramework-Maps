@@ -89,6 +89,7 @@ else
 }
 
 builder.Services.AddTransient<IAuthorizationHandler, HasAccessToVersionAuthorizationHandler>();
+builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformer>();
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("CanAccessVersion", policy => policy.AddRequirements(new HasAccessToVersionRequirement()));

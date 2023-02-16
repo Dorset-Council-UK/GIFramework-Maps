@@ -40,6 +40,22 @@ namespace GIFrameworkMaps.Data
             return attribution;
         }
 
+        public async Task<List<Models.Version>> GetVersions()
+        {
+            var versions = await _context.Versions
+                .AsNoTracking()
+                .ToListAsync();
+
+            return versions;
+        }
+
+        public async Task<Models.Version> GetVersion(int id)
+        {
+            var version = await _context.Versions.FirstOrDefaultAsync(a => a.Id == id);
+
+            return version;
+        }
+
         public async Task<List<Bound>> GetBounds()
         {
             var bounds = await _context.Bound

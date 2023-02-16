@@ -1,0 +1,55 @@
+﻿@model List<GIFrameworkMaps.Data.Models.Version>
+@{
+    ViewData["Title"] = "Versions";
+}
+
+<partial name="ManagementPartials/BackToManagementHome" />
+
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Create, edit and delete versions</p>
+
+<a href="@Url.Action("Create")" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Create new version</a>
+
+@if (Model != null)
+{
+    <table class="table table-bordered table-striped mt-2">
+        <thead>
+            <tr>
+                <th>ID</th><th>Name</th><th>Slug</th><th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (GIFrameworkMaps.Data.Models.Version version in Model.OrderBy(a => a.Name))
+            {
+                <tr>
+                    <td>@version.Id</td>
+                    <td>@Html.ActionLink(version.Name, "Edit", new { id = version.Id })</td>
+                    <td>@version.Slug</td>
+                    <td>
+                        @if (version.RequireLogin)
+                        {
+                            <i class="bi bi-lock-fill me-2" title="This version requires a login"></i>
+                        }
+                        @if (!version.Enabled)
+                        {
+                            <i class="bi bi-slash-circle me-2" title="This version has been switched off"></i>
+                        }
+                        @if (!String.IsNullOrEmpty(version.RedirectionURL))
+                        {
+                            <i class="bi bi-box-arrow-up-right me-2" title="This version redirects elsewhere"></i>
+                        }
+
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No versions have been created yet</div>
+}
+
+            
+
+
