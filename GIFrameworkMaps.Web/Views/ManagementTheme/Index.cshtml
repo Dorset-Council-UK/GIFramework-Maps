@@ -15,7 +15,7 @@
     <table class="table table-bordered table-striped mt-2">
         <thead>
             <tr>
-                <th>ID</th><th>Name</th>
+                <th>ID</th><th>Name</th><th>Primary colour</th>
             </tr>
         </thead>
         <tbody>
@@ -24,6 +24,7 @@
                 <tr>
                     <td>@theme.Id</td>
                     <td>@Html.ActionLink(theme.Name, "Edit", new { id = theme.Id })</td>
+                    <td><span class="badge rounded-pill" style="background-color:#@theme.PrimaryColour">#@theme.PrimaryColour</span></td>
                 </tr>
             }
         </tbody>
