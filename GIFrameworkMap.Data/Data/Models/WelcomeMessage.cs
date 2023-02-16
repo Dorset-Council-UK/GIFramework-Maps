@@ -25,7 +25,7 @@ namespace GIFrameworkMaps.Data.Models
         public int Frequency { get; set; }
 
         [DisplayName("Update date")]
-        public DateTime UpdateDate { get; set; }
+        public DateTimeOffset UpdateDate { get; set; }
 
         [DisplayName("Dismiss button text")]
         public string DismissText{ get; set; }
