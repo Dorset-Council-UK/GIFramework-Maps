@@ -104,6 +104,22 @@ namespace GIFrameworkMaps.Data
             return welcomeMessage;
         }
 
+        public async Task<List<WebLayerServiceDefinition>> GetWebLayerServiceDefinitions()
+        {
+            var webLayerServiceDefinitions = await _context.WebLayerServiceDefinitions
+                .AsNoTracking()
+                .ToListAsync();
+
+            return webLayerServiceDefinitions;
+        }
+
+        public async Task<WebLayerServiceDefinition> GetWebLayerServiceDefinition(int id)
+        {
+            var webLayerServiceDefinition = await _context.WebLayerServiceDefinitions.FirstOrDefaultAsync(a => a.Id == id);
+
+            return webLayerServiceDefinition;
+        }
+
         /// <summary>
         /// Purges the .NET memory cache
         /// </summary>
