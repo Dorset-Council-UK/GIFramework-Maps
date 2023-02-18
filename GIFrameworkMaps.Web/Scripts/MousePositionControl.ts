@@ -3,6 +3,7 @@ import * as olProj from "ol/proj";
 import { toStringHDMS } from 'ol/coordinate';
 import { Modal } from "bootstrap";
 import { Util } from "../Scripts/Util";
+import { UserSettings } from "./UserSettings";
 
 /**
   * A customised mouse position control that handles BNG Alphanumeric and setting decimal places
@@ -24,12 +25,28 @@ export class GIFWMousePositionControl {
     }
 
     public init():olControl.MousePosition {
-        let bng = olProj.get('EPSG:27700');
-
+        let mousePositionProjection = olProj.get('EPSG:27700');
+        let preferredProjectionEPSG = UserSettings.getItem('MousePositionProjection-Code');
+        if (preferredProjectionEPSG) {
+            
+            let preferredProjection = olProj.get(this.getProjectionString(preferredProjectionEPSG));
+            if (preferredProjection) {
+                mousePositionProjection = preferredProjection;
+                this.projection = preferredProjectionEPSG;
+                let preferredProjectionDecimals = UserSettings.getItem('MousePositionProjection-Decimals');
+                if (parseInt(preferredProjectionDecimals) > 0 && parseInt(preferredProjectionDecimals) <= 5) {
+                    this.decimals = parseInt(preferredProjectionDecimals);
+                } else {
+                    UserSettings.removeItem('MousePositionProjection-Decimals');
+                }
+            } else {
+                UserSettings.removeItem('MousePositionProjection-Code');
+            }            
+        }
         let mousePosition = new olControl.MousePosition({
-            projection: bng,
-            coordinateFormat: function (coord) {
-                return `<a href="#" class="stretched-link text-body text-decoration-none" title="Click to configure" id="coordinate-configurator">X: ${coord[0].toFixed(0)} Y: ${coord[1].toFixed(0)}</a>`;
+            projection: mousePositionProjection,
+            coordinateFormat: (coord) => {
+                return this.coordTemplate(this.formatCoordinates(this.projection, this.decimals, coord));
             }
         });
 
@@ -77,14 +94,15 @@ export class GIFWMousePositionControl {
     }
 
     public setDisplayProjection(code: string, decimals: number) {
-        let _this = this;
         let coordTemplate = this.coordTemplate;
         this.control.setProjection(this.getProjectionString(code));
-        this.control.setCoordinateFormat(function (coord) {
-            return coordTemplate(_this.formatCoordinates(code, decimals, coord));
+        this.control.setCoordinateFormat((coord) => {
+            return coordTemplate(this.formatCoordinates(code, decimals, coord));
         });
         this.projection = code;
         this.decimals = decimals;
+        UserSettings.setItem('MousePositionProjection-Code', code);
+        UserSettings.setItem('MousePositionProjection-Decimals', decimals.toString());
     }
 
     public getProjectionString(code: string) {

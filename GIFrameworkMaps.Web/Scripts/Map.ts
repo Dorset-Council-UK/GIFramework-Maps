@@ -75,6 +75,7 @@ export class GIFWMap {
             autoHide: false,
             tipLabel: 'Reset rotation (Alt-Shift and Drag to rotate)'
         })
+        //mouse position controls. TODO - alow DB setting of initial coord system
         let mousePosition = new GIFWMousePositionControl('27700', 0);
         let contextMenu = new GIFWContextMenu(mousePosition);
         //add measure
