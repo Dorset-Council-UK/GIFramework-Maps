@@ -39,7 +39,7 @@ namespace GIFrameworkMaps.Data
 
             return attribution;
         }
-
+        
         public async Task<List<Models.Version>> GetVersions()
         {
             var versions = await _context.Versions
@@ -119,7 +119,7 @@ namespace GIFrameworkMaps.Data
 
             return webLayerServiceDefinition;
         }
-
+        
         /// <summary>
         /// Purges the .NET memory cache
         /// </summary>
