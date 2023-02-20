@@ -12,10 +12,10 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_VersionUser_ApplicationUser_UserId",
-                schema: "giframeworkmaps",
-                table: "VersionUser");
+            //migrationBuilder.DropForeignKey(
+            //    name: "FK_VersionUser_ApplicationUser_UserId",
+            //    schema: "giframeworkmaps",
+            //    table: "VersionUser");
 
             migrationBuilder.AddColumn<int>(
                 name: "TourDetailsId",
@@ -113,43 +113,43 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                 schema: "giframeworkmaps",
                 table: "Versions");
 
-            migrationBuilder.CreateTable(
-                name: "ApplicationUser",
-                schema: "giframeworkmaps",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "text", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "integer", nullable: false),
-                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
-                    Email = table.Column<string>(type: "text", nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
-                    FirstName = table.Column<string>(type: "text", nullable: true),
-                    LastName = table.Column<string>(type: "text", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "text", nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "text", nullable: true),
-                    PasswordHash = table.Column<string>(type: "text", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
-                    SecurityStamp = table.Column<string>(type: "text", nullable: true),
-                    TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    UserName = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ApplicationUser", x => x.Id);
-                });
+        //    migrationBuilder.CreateTable(
+        //        name: "ApplicationUser",
+        //        schema: "giframeworkmaps",
+        //        columns: table => new
+        //        {
+        //            Id = table.Column<string>(type: "text", nullable: false),
+        //            AccessFailedCount = table.Column<int>(type: "integer", nullable: false),
+        //            ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
+        //            Email = table.Column<string>(type: "text", nullable: true),
+        //            EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+        //            FirstName = table.Column<string>(type: "text", nullable: true),
+        //            LastName = table.Column<string>(type: "text", nullable: true),
+        //            LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
+        //            LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+        //            NormalizedEmail = table.Column<string>(type: "text", nullable: true),
+        //            NormalizedUserName = table.Column<string>(type: "text", nullable: true),
+        //            PasswordHash = table.Column<string>(type: "text", nullable: true),
+        //            PhoneNumber = table.Column<string>(type: "text", nullable: true),
+        //            PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+        //            SecurityStamp = table.Column<string>(type: "text", nullable: true),
+        //            TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
+        //            UserName = table.Column<string>(type: "text", nullable: true)
+        //        },
+        //        constraints: table =>
+        //        {
+        //            table.PrimaryKey("PK_ApplicationUser", x => x.Id);
+        //        });
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_VersionUser_ApplicationUser_UserId",
-                schema: "giframeworkmaps",
-                table: "VersionUser",
-                column: "UserId",
-                principalSchema: "giframeworkmaps",
-                principalTable: "ApplicationUser",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+        //    migrationBuilder.AddForeignKey(
+        //        name: "FK_VersionUser_ApplicationUser_UserId",
+        //        schema: "giframeworkmaps",
+        //        table: "VersionUser",
+        //        column: "UserId",
+        //        principalSchema: "giframeworkmaps",
+        //        principalTable: "ApplicationUser",
+        //        principalColumn: "Id",
+        //        onDelete: ReferentialAction.Cascade);
         }
     }
 }
