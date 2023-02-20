@@ -1,6 +1,10 @@
 GIFrameworkMaps
 ============
 
+
+[![Development (.NET)](https://github.com/Dorset-Council-UK/GIFramework-Maps/actions/workflows/dev-build.yml/badge.svg)](https://github.com/Dorset-Council-UK/GIFramework-Maps/actions/workflows/dev-build.yml)
+[![Production (.NET)](https://github.com/Dorset-Council-UK/GIFramework-Maps/actions/workflows/prod-build.yml/badge.svg)](https://github.com/Dorset-Council-UK/GIFramework-Maps/actions/workflows/prod-build.yml)
+
 GIFrameworkMaps is a [.NET](https://dot.net) based web mapping application designed and developed by the Dorset Council GIS team.
 
 It is used by Dorset Council as their primary web mapping application for staff and the public. You can see it running live [here](https://gi.dorsetcouncil.gov.uk/dorsetexplorer).
