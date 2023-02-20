@@ -39,6 +39,22 @@ namespace GIFrameworkMaps.Data
 
             return attribution;
         }
+        
+        public async Task<List<Models.Version>> GetVersions()
+        {
+            var versions = await _context.Versions
+                .AsNoTracking()
+                .ToListAsync();
+
+            return versions;
+        }
+
+        public async Task<Models.Version> GetVersion(int id)
+        {
+            var version = await _context.Versions.FirstOrDefaultAsync(a => a.Id == id);
+
+            return version;
+        }
 
         public async Task<List<Bound>> GetBounds()
         {
@@ -56,6 +72,54 @@ namespace GIFrameworkMaps.Data
             return bound;
         }
 
+        public async Task<List<Theme>> GetThemes()
+        {
+            var themes = await _context.Theme
+                .AsNoTracking()
+                .ToListAsync();
+
+            return themes;
+        }
+
+        public async Task<Theme> GetTheme(int id)
+        {
+            var theme = await _context.Theme.FirstOrDefaultAsync(a => a.Id == id);
+
+            return theme;
+        }
+
+        public async Task<List<WelcomeMessage>> GetWelcomeMessages()
+        {
+            var welcomeMessages = await _context.WelcomeMessages
+                .AsNoTracking()
+                .ToListAsync();
+
+            return welcomeMessages;
+        }
+
+        public async Task<WelcomeMessage> GetWelcomeMessage(int id)
+        {
+            var welcomeMessage = await _context.WelcomeMessages.FirstOrDefaultAsync(a => a.Id == id);
+
+            return welcomeMessage;
+        }
+
+        public async Task<List<WebLayerServiceDefinition>> GetWebLayerServiceDefinitions()
+        {
+            var webLayerServiceDefinitions = await _context.WebLayerServiceDefinitions
+                .AsNoTracking()
+                .ToListAsync();
+
+            return webLayerServiceDefinitions;
+        }
+
+        public async Task<WebLayerServiceDefinition> GetWebLayerServiceDefinition(int id)
+        {
+            var webLayerServiceDefinition = await _context.WebLayerServiceDefinitions.FirstOrDefaultAsync(a => a.Id == id);
+
+            return webLayerServiceDefinition;
+        }
+        
         /// <summary>
         /// Purges the .NET memory cache
         /// </summary>

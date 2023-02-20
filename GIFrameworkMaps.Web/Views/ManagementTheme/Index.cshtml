@@ -1,0 +1,40 @@
+﻿@model List<GIFrameworkMaps.Data.Models.Theme>
+@{
+    ViewData["Title"] = "Themes";
+}
+
+<partial name="ManagementPartials/BackToManagementHome" />
+
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Create, edit and delete themes</p>
+
+<a href="@Url.Action("Create")" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add new theme</a>
+
+@if (Model != null)
+{
+    <table class="table table-bordered table-striped mt-2">
+        <thead>
+            <tr>
+                <th>ID</th><th>Name</th><th>Primary colour</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (GIFrameworkMaps.Data.Models.Theme theme in Model.OrderBy(a => a.Id))
+            {
+                <tr>
+                    <td>@theme.Id</td>
+                    <td>@Html.ActionLink(theme.Name, "Edit", new { id = theme.Id })</td>
+                    <td><span class="badge rounded-pill" style="background-color:#@theme.PrimaryColour">#@theme.PrimaryColour</span></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No themes have been created yet</div>
+}
+
+            
+
+
