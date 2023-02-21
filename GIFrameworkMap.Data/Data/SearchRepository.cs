@@ -110,23 +110,23 @@ namespace GIFrameworkMaps.Data
                 {
                     if (reqSearch.Enabled)
                     {
-                        var defs = searchDefs.Where(d => d.SearchDefinition.Name == reqSearch.SearchDefinition.Name);
+                        var defs = searchDefs.Where(d => d.SearchDefinitionId == reqSearch.SearchDefinitionId);
                         if (defs is not null & defs.Count() > 0)
                         {
-                            reqSearch.SearchDefinition = defs.First().SearchDefinition;
+                            var selectedDefinition = defs.First().SearchDefinition;
                                                        
-                            if(IsValidSearchTerm(reqSearch))
+                            if(IsValidSearchTerm(selectedDefinition))
                             {
                                 SearchResultCategory searchResultCategory = new SearchResultCategory
                                 {
-                                    CategoryName = reqSearch.SearchDefinition.Title,
+                                    CategoryName = selectedDefinition.Title,
                                     Ordering = reqSearch.Order,
-                                    AttributionHtml = reqSearch.SearchDefinition.AttributionHtml,
-                                    SupressGeom = reqSearch.SearchDefinition.SupressGeom
+                                    AttributionHtml = selectedDefinition.AttributionHtml,
+                                    SupressGeom = selectedDefinition.SupressGeom
                                 };
                                 try
                                 {
-                                    var results = SingleSearch(searchTerm, reqSearch.SearchDefinition);
+                                    var results = SingleSearch(searchTerm, selectedDefinition);
                                     if (results is not null && results.Count() > 0)
                                     {
                                         searchResultCategory.Results = results;
@@ -151,11 +151,11 @@ namespace GIFrameworkMaps.Data
 
 
             //A search term is valid if it's blank or it matches the Required Search's validation regular expression. 
-            bool IsValidSearchTerm(RequiredSearch reqSearch)
+            bool IsValidSearchTerm(SearchDefinition selectedDefinition)
             {
-                if (!string.IsNullOrEmpty(reqSearch.SearchDefinition.ValidationRegex))
+                if (!string.IsNullOrEmpty(selectedDefinition.ValidationRegex))
                 {
-                    var validationRegex = new Regex(reqSearch.SearchDefinition.ValidationRegex);
+                    var validationRegex = new Regex(selectedDefinition.ValidationRegex);
                     return validationRegex.IsMatch(searchTerm);
                 }
                 return true;
