@@ -1,0 +1,39 @@
+﻿@model List<GIFrameworkMaps.Data.Models.Layer>
+@{
+    ViewData["Title"] = "Layers";
+}
+
+<partial name="ManagementPartials/BackToManagementLayers" />
+
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Create, edit and delete layers</p>
+
+<a href="@Url.Action("Create")" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add new layer</a>
+
+@if (Model != null)
+{
+    <table class="table table-bordered table-striped mt-2">
+        <thead>
+            <tr>
+                <th>ID</th><th>Name</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (GIFrameworkMaps.Data.Models.Layer layer in Model.OrderBy(a => a.Name))
+        {
+            <tr>
+                <td>@layer.Id</td>
+                <td>@Html.ActionLink(layer.Name, "Edit", new { id = layer.Id })</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No layers have been created yet</div>
+}
+
+
+
+

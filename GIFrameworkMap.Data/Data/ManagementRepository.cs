@@ -113,13 +113,47 @@ namespace GIFrameworkMaps.Data
             return webLayerServiceDefinitions;
         }
 
+        public async Task<Layer> GetLayer(int id)
+        {
+            var layer = await _context.Layer
+                .Include(l => l.LayerSource)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            return layer;
+        }
+
+        public async Task<List<Layer>> GetLayers()
+        {
+            var layers = await _context.Layer
+                .AsNoTracking()
+                .ToListAsync();
+
+            return layers;
+        }
+
+        public async Task<LayerSource> GetLayerSource(int id)
+        {
+            var layerSource = await _context.LayerSource.FirstOrDefaultAsync(a => a.Id == id);
+
+            return layerSource;
+        }
+
+        public async Task<List<LayerSource>> GetLayerSources()
+        {
+            var layerSources = await _context.LayerSource
+                .AsNoTracking()
+                .ToListAsync();
+
+            return layerSources;
+        }
+
         public async Task<WebLayerServiceDefinition> GetWebLayerServiceDefinition(int id)
         {
             var webLayerServiceDefinition = await _context.WebLayerServiceDefinitions.FirstOrDefaultAsync(a => a.Id == id);
 
             return webLayerServiceDefinition;
         }
-        
+
         /// <summary>
         /// Purges the .NET memory cache
         /// </summary>

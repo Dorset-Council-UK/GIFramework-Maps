@@ -19,5 +19,9 @@ namespace GIFrameworkMaps.Data
         Task<List<WelcomeMessage>> GetWelcomeMessages();
         Task<WebLayerServiceDefinition> GetWebLayerServiceDefinition(int id);
         Task<List<WebLayerServiceDefinition>> GetWebLayerServiceDefinitions();
+        Task<Layer> GetLayer(int id);
+        Task<List<Layer>> GetLayers();
+        Task<LayerSource> GetLayerSource(int id);
+        Task<List<LayerSource>> GetLayerSources();
     }
 }

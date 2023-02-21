@@ -24,11 +24,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
          * however, write and update are done directly on the context based on the advice here
          * https://learn.microsoft.com/en-us/aspnet/mvc/overview/getting-started/getting-started-with-ef-using-mvc/advanced-entity-framework-scenarios-for-an-mvc-web-application#create-an-abstraction-layer
          * */
-        private readonly ILogger<ManagementAttributionController> _logger;
+        private readonly ILogger<ManagementVersionController> _logger;
         private readonly IManagementRepository _repository;
         private readonly ApplicationDbContext _context;
         public ManagementVersionController(
-            ILogger<ManagementAttributionController> logger,
+            ILogger<ManagementVersionController> logger,
             IManagementRepository repository,
             ApplicationDbContext context
             )
@@ -45,7 +45,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(attributions);
         }
 
-        // GET: Attribution/Create
+        // GET: Version/Create
         public IActionResult Create()
         {
             var version = new Data.Models.Version();
@@ -54,7 +54,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(editModel);
         }
 
-        //POST: Attribution/Create
+        //POST: Version/Create
         [HttpPost, ActionName("Create")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreatePost(VersionEditModel editModel, 

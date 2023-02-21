@@ -1,0 +1,46 @@
+﻿@using Microsoft.Extensions.Configuration;
+@inject IConfiguration configuration;
+@{
+    string appName = configuration.GetValue<string>("GIFrameworkMaps:appName");
+    ViewData["Title"] = "Layers";
+}
+
+<partial name="ManagementPartials/BackToManagementHome" />
+
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Manage the layers consumed by @appName</p>
+
+<div class="container">
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a href="#" class="stretched-link">
+                        <h4 class="card-title"><i class="bi bi-database-fill"></i> Layer Sources</h4>
+                    </a>
+                    <p class="card-text">Manage the sources of your layers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a asp-action="List" asp-controller="ManagementLayer" class="stretched-link">
+                        <h4 class="card-title"><i class="bi bi-geo"></i> Layer Details</h4>
+                    </a>
+                    <p class="card-text">Manage how your layers work in @appName</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a href="#" class="stretched-link">
+                        <h4 class="card-title"><i class="bi bi-folder-fill"></i> Layer Categories</h4>
+                    </a>
+                    <p class="card-text">Manage the categories that your layers are organised into</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
