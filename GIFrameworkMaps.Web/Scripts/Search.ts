@@ -217,9 +217,11 @@ export class Search {
     */
     private doSearch(searchTerm:string):Promise<SearchResults> {
 
+        let requiredSearches = this.availableSearchDefs.filter(d => { return d.enabled });
+        
         let searchQuery: SearchQuery = {
             query: searchTerm,
-            searches: this.availableSearchDefs.filter(d => { return d.enabled })
+            searches: requiredSearches
         };
 
         let promise = new Promise<SearchResults>((resolve, reject) =>{
@@ -446,9 +448,6 @@ export class Search {
 
                 this.drawSearchResultFeatureOnMap(g,popupContent,popupTitle, this._polyStyle,result.epsg)
             })
-            
-            
-            this._resultsLayer.getSource().addFeatures(geoJson);
         } else if(result.x && result.y) {            
             let resultIcon = new Feature({
                 geometry: new Point([result.x, result.y]),
@@ -565,13 +564,13 @@ export class Search {
             tableBody.innerHTML = '';
             this.availableSearchDefs.sort((a, b) => { return a.order - b.order }).forEach(def => {
                 let row = `<tr>
-                            <td>${def.searchDefinition.name}</td>
+                            <td>${def.name}</td>
                             <td>
-                                <label class="visually-hidden" for="Enabled_${def.searchDefinition.id}">Enable/Disable ${def.searchDefinition.name}</label>
-                                <input type="checkbox" class="form-check-input" name="Enabled_${def.searchDefinition.id}" ${def.enabled ? "checked" : ""} data-gifw-search-def-id="${def.searchDefinition.id}"/></td>
+                                <label class="visually-hidden" for="Enabled_${def.searchDefinitionId}">Enable/Disable ${def.name}</label>
+                                <input type="checkbox" class="form-check-input" name="Enabled_${def.searchDefinitionId}" ${def.enabled ? "checked" : ""} data-gifw-search-def-id="${def.searchDefinitionId}"/></td>
                             <td>
-                                <label class="visually-hidden" for="StopIfFound_${def.searchDefinition.id}">Set search to stop if ${def.searchDefinition.name} is found</label>
-                                <input type="checkbox" class="form-check-input" name="StopIfFound_${def.searchDefinition.id}"${def.stopIfFound ? "checked" : ""} data-gifw-search-def-id="${def.searchDefinition.id}"/>
+                                <label class="visually-hidden" for="StopIfFound_${def.searchDefinitionId}">Set search to stop if ${def.name} is found</label>
+                                <input type="checkbox" class="form-check-input" name="StopIfFound_${def.searchDefinitionId}"${def.stopIfFound ? "checked" : ""} data-gifw-search-def-id="${def.searchDefinitionId}"/>
                             </td>
                            </tr>`;
                 tableBody.insertAdjacentHTML('beforeend', row);
@@ -620,7 +619,7 @@ export class Search {
     private setEnabledSearchDef(searchDefID: number, newState: boolean): void {
         /*TODO could do with some optimization so it doesn't loop through the whole array unnecessarily*/
         this.availableSearchDefs.forEach((def, index, arr) => {
-            if (def.searchDefinition.id === searchDefID) {
+            if (def.searchDefinitionId === searchDefID) {
                 arr[index].enabled = newState;
             }
         })
@@ -629,7 +628,7 @@ export class Search {
     private setStopIfFoundSearchDef(searchDefID: number, newState: boolean): void {
         /*TODO could do with some optimization so it doesn't loop through the whole array unnecessarily*/
         this.availableSearchDefs.forEach((def, index, arr) => {
-            if (def.searchDefinition.id === searchDefID) {
+            if (def.searchDefinitionId === searchDefID) {
                 arr[index].stopIfFound = newState;
             }
         })

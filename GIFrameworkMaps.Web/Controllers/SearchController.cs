@@ -32,7 +32,24 @@ namespace GIFrameworkMaps.Web.Controllers
         public JsonResult Options(int id)
         {
             var searchOpts = _repository.GetSearchDefinitionsByVersion(id);
-            return Json(searchOpts);
+            //convert to smaller payload required for map
+            //This might be better converted with something like AutoMapper
+            //but for now this works
+            List<RequiredSearch> searches = new();
+            
+            foreach(var opt in searchOpts)
+            {
+                searches.Add(new RequiredSearch
+                {
+                    Enabled = opt.Enabled,
+                    Name = opt.SearchDefinition.Name,
+                    Order = opt.Order,
+                    SearchDefinitionId = opt.SearchDefinition.Id,
+                    StopIfFound = opt.StopIfFound
+                });
+            }
+
+            return Json(searches);
         }
     }
 }

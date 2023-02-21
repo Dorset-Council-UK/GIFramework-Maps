@@ -1,8 +1,7 @@
-﻿import { SearchDefinition } from "./SearchDefinition";
-
-export interface RequiredSearch {
+﻿export interface RequiredSearch {
     stopIfFound: boolean;
     enabled: boolean;
     order: number;
-    searchDefinition: SearchDefinition;
+    name: string;
+    searchDefinitionId: number;
 }
