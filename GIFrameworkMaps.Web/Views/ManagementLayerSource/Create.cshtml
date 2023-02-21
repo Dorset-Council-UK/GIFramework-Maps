@@ -1,0 +1,49 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.LayerSourceEditModel
+@{
+    ViewData["Title"] = "Create layer source";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row mt-2 mb-2">
+    <div class="col-md-8 col-lg-6">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <div class="mb-3">
+                <label asp-for="LayerSource.Name" class="control-label"></label>
+                <input asp-for="LayerSource.Name" class="form-control" />
+                <span asp-validation-for="LayerSource.Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LayerSource.Description" class="control-label"></label>
+                <textarea asp-for="LayerSource.Description" class="form-control"></textarea>
+                <span asp-validation-for="LayerSource.Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LayerSource.LayerSourceTypeId" class="control-label"></label>
+                <select asp-for="LayerSource.LayerSourceTypeId" asp-items="Model.AvailableLayerSourceTypes" class="form-select"></select>
+                <span asp-validation-for="LayerSource.LayerSourceTypeId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LayerSource.AttributionId" class="control-label"></label>
+                <select asp-for="LayerSource.AttributionId" asp-items="Model.AvailableAttributions" class="form-select"></select>
+                <span asp-validation-for="LayerSource.AttributionId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+            </div>
+        </form>
+
+    </div>
+
+</div>
+
+
+
+
+

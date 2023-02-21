@@ -1,0 +1,28 @@
+﻿@model GIFrameworkMaps.Data.Models.LayerSource
+@{
+    ViewData["Title"] = $"Delete layer source '{Model.Name}'";
+}
+
+<h1>@ViewData["Title"]</h1>
+<div class="row mt-2">
+    <h2>Are you sure you want to delete this layer source?</h2>
+    <p class="lead">This action cannot be undone.</p>
+    
+
+    <form asp-action="Delete">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+        <input type="hidden" asp-for="Id" />
+        <div class="mb-3">
+            <input type="submit" value="Delete" class="btn btn-danger" />
+        </div>
+    </form>
+
+</div>
+
+<div>
+    <a asp-action="List">Cancel</a>
+</div>
+
+            
+
+

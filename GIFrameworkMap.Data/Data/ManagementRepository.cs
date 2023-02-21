@@ -133,7 +133,9 @@ namespace GIFrameworkMaps.Data
 
         public async Task<LayerSource> GetLayerSource(int id)
         {
-            var layerSource = await _context.LayerSource.FirstOrDefaultAsync(a => a.Id == id);
+            var layerSource = await _context.LayerSource
+                .Include(s => s.LayerSourceOptions)
+                .FirstOrDefaultAsync(a => a.Id == id);
 
             return layerSource;
         }
