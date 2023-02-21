@@ -1,4 +1,5 @@
 ﻿using GIFrameworkMaps.Data.Models;
+using GIFrameworkMaps.Data.Models.Tour;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -118,6 +119,22 @@ namespace GIFrameworkMaps.Data
             var webLayerServiceDefinition = await _context.WebLayerServiceDefinitions.FirstOrDefaultAsync(a => a.Id == id);
 
             return webLayerServiceDefinition;
+        }
+
+        public async Task<List<TourDetails>> GetTours()
+        {
+            var tours = await _context.TourDetails
+                .AsNoTracking()
+                .ToListAsync();
+
+            return tours;
+        }
+
+        public async Task<TourDetails> GetTour(int id)
+        {
+            var tour = await _context.TourDetails.FirstOrDefaultAsync(a => a.Id == id);
+
+            return tour;
         }
 
         /// <summary>
