@@ -69,7 +69,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 LayerSource = layerSource
             };
             LayerEditModel editModel = new() { Layer = layer };
-
+            RebuildViewModel(ref editModel, layer);
             return View(editModel);
         }
 
@@ -84,7 +84,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Add(editModel.Layer);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(List));
                 }
                 catch (DbUpdateException ex)
                 {
