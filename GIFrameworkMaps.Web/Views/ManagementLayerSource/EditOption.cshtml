@@ -1,0 +1,43 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.LayerSourceOptionEditModel
+@{
+    ViewData["Title"] = "Edit layer source option";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row mt-2 mb-2">
+    <div class="col-md-8 col-lg-6">
+        <form asp-action="EditOption">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+
+            <input type="hidden" asp-for="LayerSourceOption.LayerSourceId" />
+
+            <div class="mb-3">
+                <label asp-for="LayerSourceOption.Name" class="control-label"></label>
+                <input asp-for="LayerSourceOption.Name" class="form-control" />
+                <span asp-validation-for="LayerSourceOption.Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LayerSourceOption.Value" class="control-label"></label>
+                <textarea asp-for="LayerSourceOption.Value" class="form-control" rows="5"></textarea>
+                <span asp-validation-for="LayerSourceOption.Value" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                <a asp-action="Edit" asp-route-id="@Model.LayerSourceOption.LayerSourceId" class="btn btn-link">Cancel</a>
+            </div>
+        </form>
+
+    </div>
+
+</div>
+
+<a asp-action="Delete" asp-route-id="@Model.LayerSourceOption.Id" class="btn btn-danger">Delete</a>
+
+
+
+
+
+

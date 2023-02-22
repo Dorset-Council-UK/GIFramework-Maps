@@ -28,5 +28,6 @@ namespace GIFrameworkMaps.Data
         DbSet<Models.Category> Category { get; set; }
         DbSet<Models.LayerSource> LayerSource { get; set; }
         DbSet<Models.LayerSourceType> LayerSourceType { get; set; }
+        DbSet<Models.LayerSourceOption> LayerSourceOption { get; set; }
     }
 }

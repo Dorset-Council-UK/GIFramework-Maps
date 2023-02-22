@@ -55,7 +55,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         //POST: LayerSource/Create
         [HttpPost, ActionName("Create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(LayerSourceEditModel editModel)
+        public async Task<IActionResult> CreatePost(LayerSourceEditModel editModel, bool AddOption)
         {
             if (ModelState.IsValid)
             {
@@ -63,7 +63,15 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Add(editModel.LayerSource);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                    if (AddOption)
+                    {
+                        return RedirectToAction(nameof(CreateOption), new {id= editModel.LayerSource.Id});
+                    }
+                    else
+                    {
+                        return RedirectToAction(nameof(Index));
+                    }
+                    
                 }
                 catch (DbUpdateException ex)
                 {
@@ -76,6 +84,57 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             RebuildViewModel(ref editModel, editModel.LayerSource);
             return View(editModel);
         }
+
+        //GET: LayerSource/CreateOption/1
+        public async Task<IActionResult> CreateOption(int id)
+        {
+            var layerSource = await _repository.GetLayerSource(id);
+
+            if (layerSource == null)
+            {
+                return NotFound();
+            }
+
+            LayerSourceOption opt = new LayerSourceOption { LayerSourceId = layerSource.Id};
+            var editModel = new LayerSourceOptionEditModel { LayerSourceOption=opt, LayerSource = layerSource };
+            return View(editModel);
+        }
+
+        //POST: LayerSource/CreateOption
+        [HttpPost, ActionName("CreateOption")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateOptionPost(LayerSourceOptionEditModel editModel, bool AddAnother)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Add(editModel.LayerSourceOption);
+                    await _context.SaveChangesAsync();
+                    if (AddAnother)
+                    {
+                        return RedirectToAction(nameof(CreateOption), new {id=editModel.LayerSourceOption.LayerSourceId});
+                    }
+                    else
+                    {
+                        return RedirectToAction(nameof(Edit), new { id = editModel.LayerSourceOption.LayerSourceId });
+                    }
+
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Layer source creation failed");
+                    ModelState.AddModelError("", "Unable to save changes. " +
+                        "Try again, and if the problem persists, " +
+                        "contact your system administrator.");
+                }
+            }
+            //RebuildViewModel(ref editModel, editModel.LayerSource);
+            return View(editModel);
+        }
+
+
+
 
         // GET: LayerSource/Edit/1
         public async Task<IActionResult> Edit(int id)
@@ -124,6 +183,51 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(sourceToUpdate);
         }
 
+        // GET: LayerSource/EditOption/1
+        public async Task<IActionResult> EditOption(int id)
+        {
+            var layerSourceOption = await _repository.GetLayerSourceOption(id);
+            var layerSource = await _repository.GetLayerSource(layerSourceOption.LayerSourceId);
+
+            if (layerSourceOption == null || layerSource == null)
+            {
+                return NotFound();
+            }
+
+            var editModel = new LayerSourceOptionEditModel { LayerSourceOption = layerSourceOption, LayerSource = layerSource };
+            return View(editModel);
+        }
+
+        // POST: LayerSource/EditOption/1
+        [HttpPost, ActionName("EditOption")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditOptionPost(int id)
+        {
+            var optionToUpdate = await _context.LayerSourceOption.FirstOrDefaultAsync(a => a.Id == id);
+
+            if (await TryUpdateModelAsync(
+                optionToUpdate,
+                "LayerSourceOption",
+                a => a.Name,
+                a => a.Value))
+            {
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Edit), new { id = optionToUpdate.LayerSourceId });
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Layer source option edit failed");
+                    ModelState.AddModelError("", "Unable to save changes. " +
+                        "Try again, and if the problem persists, " +
+                        "contact your system administrator.");
+                }
+            }
+            return View(optionToUpdate);
+        }
+
         // GET: LayerSource/Delete/1
         public async Task<IActionResult> Delete(int id)
         {
@@ -159,6 +263,45 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
 
             return View(sourceToDelete);
+        }
+
+        // GET: LayerSource/Delete/1
+        public async Task<IActionResult> DeleteOption(int id)
+        {
+            var layerSourceOption = await _repository.GetLayerSourceOption(id);
+            var layerSource = await _repository.GetLayerSource(layerSourceOption.LayerSourceId);
+
+            if (layerSourceOption == null || layerSource == null)
+            {
+                return NotFound();
+            }
+
+            var editModel = new LayerSourceOptionEditModel { LayerSourceOption = layerSourceOption, LayerSource = layerSource };
+            return View(editModel);
+        }
+
+        // POST: Layer/Delete/1
+        [HttpPost, ActionName("DeleteOption")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteOptionConfirm(int id)
+        {
+            var optionToDelete = await _context.LayerSourceOption.FirstOrDefaultAsync(a => a.Id == id);
+
+            try
+            {
+                _context.LayerSourceOption.Remove(optionToDelete);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Edit), new {id = optionToDelete.LayerSourceId});
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Layer source option delete failed");
+                ModelState.AddModelError("", "Unable to save changes. " +
+                    "Try again, and if the problem persists, " +
+                    "contact your system administrator.");
+            }
+
+            return View(optionToDelete);
         }
 
         private void RebuildViewModel(ref Data.Models.ViewModels.Management.LayerSourceEditModel model, Data.Models.LayerSource layerSource)

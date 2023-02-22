@@ -149,6 +149,13 @@ namespace GIFrameworkMaps.Data
             return layerSources;
         }
 
+        public async Task<LayerSourceOption> GetLayerSourceOption(int id)
+        {
+            var layerSource = await _context.LayerSourceOption
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            return layerSource;
+        }
         public async Task<WebLayerServiceDefinition> GetWebLayerServiceDefinition(int id)
         {
             var webLayerServiceDefinition = await _context.WebLayerServiceDefinitions.FirstOrDefaultAsync(a => a.Id == id);

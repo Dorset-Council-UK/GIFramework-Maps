@@ -43,14 +43,19 @@
     <div class="col-md-4 col-lg-6">
         <h2>Layer Source Options</h2>
         <div class="table-responsive">
-        <table class="table table-sm table-striped">
-            @foreach(var opt in Model.LayerSource.LayerSourceOptions)
-            {
-                    <tr><td><a href="#"><span class="bi bi-pencil"></span></a></td><th>@opt.Name</th><td>@opt.Value</td></tr>
-            }
+            <table class="table table-sm table-striped">
+                @foreach(var opt in Model.LayerSource.LayerSourceOptions)
+                {
+                        <tr>
+                            <td><a asp-action="EditOption" asp-route-id="@opt.Id"><span class="bi bi-pencil"></span></a></td>
+                            <th>@opt.Name</th>
+                            <td style="white-space:pre-line"><code>@opt.Value</code></td></tr>
+                }
             
-        </table>
+            </table>
         </div>
+        <a href="@Url.Action("CreateOption",new {id = Model.LayerSource.Id})" class="btn btn-outline-secondary">Add option</a>
+
     </div>
     
 </div>
