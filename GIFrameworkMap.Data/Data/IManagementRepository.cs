@@ -24,5 +24,7 @@ namespace GIFrameworkMaps.Data
         Task<LayerSource> GetLayerSource(int id);
         Task<List<LayerSource>> GetLayerSources();
         Task<LayerSourceOption> GetLayerSourceOption(int id);
+        Task<List<Category>> GetLayerCategories();
+        Task<Category> GetLayerCategory(int id);
     }
 }

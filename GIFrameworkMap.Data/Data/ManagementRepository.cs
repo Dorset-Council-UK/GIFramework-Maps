@@ -1,4 +1,5 @@
 ﻿using GIFrameworkMaps.Data.Models;
+using GIFrameworkMaps.Data.Models.ViewModels.Management;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -161,6 +162,27 @@ namespace GIFrameworkMaps.Data
             var webLayerServiceDefinition = await _context.WebLayerServiceDefinitions.FirstOrDefaultAsync(a => a.Id == id);
 
             return webLayerServiceDefinition;
+        }
+
+        public async Task<Category> GetLayerCategory(int id)
+        {
+            var layerCategory = await _context.Category
+                .Include(c => c.Layers)
+                .Include(c => c.ParentCategory)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            return layerCategory;
+        }
+
+        public async Task<List<Category>> GetLayerCategories()
+        {
+            var layerCategories = await _context.Category
+                .Include(c => c.Layers)
+                .Include(c => c.ParentCategory)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return layerCategories;
         }
 
         /// <summary>

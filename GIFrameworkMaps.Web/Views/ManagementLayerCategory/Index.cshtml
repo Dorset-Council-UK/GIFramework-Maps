@@ -1,0 +1,41 @@
+﻿@model List<GIFrameworkMaps.Data.Models.Category>
+@{
+    ViewData["Title"] = "Layer Categories";
+}
+
+<partial name="ManagementPartials/BackToManagementLayers" />
+
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Create, edit and delete layer categories</p>
+
+<a href="@Url.Action("Create")" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Create new category</a>
+
+@if (Model != null)
+{
+    <table class="table table-bordered table-striped mt-2">
+        <thead>
+            <tr>
+                <th>ID</th><th>Name</th><th>No. Layers</th><th>Parent category</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (GIFrameworkMaps.Data.Models.Category category in Model.OrderBy(a => a.Name))
+            {
+                <tr>
+                    <td>@category.Id</td>
+                    <td>@Html.ActionLink(category.Name, "Edit", new { id = category.Id })</td>
+                    <td>@category.Layers.Count</td>
+                    <td>@(category.ParentCategory == null ? "Not a child" : Html.ActionLink(category.ParentCategory.Name, "Edit", new { id = category.ParentCategory.Id }))</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No categories have been created yet</div>
+}
+
+            
+
+
