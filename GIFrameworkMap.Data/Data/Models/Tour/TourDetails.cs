@@ -25,5 +25,6 @@ namespace GIFrameworkMaps.Data.Models.Tour
         public DateTimeOffset UpdateDate { get; set; }
 
         public List<TourStep> Steps { get; set; }
+
     }
 }

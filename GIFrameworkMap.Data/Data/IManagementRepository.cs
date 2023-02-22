@@ -22,5 +22,7 @@ namespace GIFrameworkMaps.Data
         Task<List<WebLayerServiceDefinition>> GetWebLayerServiceDefinitions();
         Task<TourDetails> GetTour(int id);
         Task<List<TourDetails>> GetTours();
+        Task<TourStep> GetStep(int id);
+        Task<List<TourStep>> GetSteps();
     }
 }

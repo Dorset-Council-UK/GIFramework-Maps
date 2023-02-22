@@ -12,18 +12,18 @@ using System.Threading.Tasks;
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
     [Authorize(Roles = "GIFWAdmin")]
-    public class ManagementTourController : Controller
+    public class ManagementTourStepController : Controller
     {
         //dependancy injection
         /*NOTE: A repository pattern is used for much basic data access across the project
          * however, write and update are done directly on the context based on the advice here
          * https://learn.microsoft.com/en-us/aspnet/mvc/overview/getting-started/getting-started-with-ef-using-mvc/advanced-entity-framework-scenarios-for-an-mvc-web-application#create-an-abstraction-layer
          * */
-        private readonly ILogger<ManagementTourController> _logger;
+        private readonly ILogger<ManagementTourStepController> _logger;
         private readonly IManagementRepository _repository;
         private readonly ApplicationDbContext _context;
-        public ManagementTourController(
-            ILogger<ManagementTourController> logger,
+        public ManagementTourStepController(
+            ILogger<ManagementTourStepController> logger,
             IManagementRepository repository,
             ApplicationDbContext context
             )
@@ -33,70 +33,72 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             _context = context;
         }
 
-        // GET: Tour
+        // GET: TourStep
         public async Task<IActionResult> Index()
         {
-            var tours = await _repository.GetTours();
-            return View(tours);
+            var steps = await _repository.GetSteps();
+            return View(steps);
         }
 
-        // GET: Tour/Create
+        // GET: TourStep/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        //POST: Tour/Create
+        //POST: TourStep/Create
         [HttpPost, ActionName("Create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(TourDetails tour)
+        public async Task<IActionResult> CreatePost(TourStep step)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Add(tour);
+                    _context.Add(step);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
                 {
-                    _logger.LogError(ex, "Tour creation failed");
+                    _logger.LogError(ex, "Tour step creation failed");
                     ModelState.AddModelError("", "Unable to save changes. " +
                         "Try again, and if the problem persists, " +
                         "contact your system administrator.");
                 }
             }
-            return View(tour);
+            return View(step);
         }
 
-        // GET: Tour/Edit/1
+        // GET: TourStep/Edit/1
         public async Task<IActionResult> Edit(int id)
         {
-            var tour = await _repository.GetTour(id);
+            var step = await _repository.GetStep(id);
 
-            if (tour == null)
+            if (step == null)
             {
                 return NotFound();
             }
 
-            return View(tour);
+            return View(step);
         }
 
-        // POST: Tour/Edit/1
+        // POST: TourStep/Edit/1
         [HttpPost, ActionName("Edit")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id)
         {
-            var tourToUpdate = await _context.TourDetails.FirstOrDefaultAsync(a => a.Id == id);
+            var stepToUpdate = await _context.TourStep.FirstOrDefaultAsync(a => a.Id == id);
 
             if (await TryUpdateModelAsync(
-                tourToUpdate,
+                stepToUpdate,
                 "",
-                a => a.Name,
-                a => a.Frequency,
-                a => a.UpdateDate,
-                a => a.Steps))
+                a => a.Title, 
+                a => a.Content, 
+                a => a.AttachToSelector,
+                a => a.AttachToPosition,
+                a => a.StepNumber,
+                a => a.TourDetailsId))
             {
 
                 try
@@ -106,50 +108,50 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
                 catch (DbUpdateException ex )
                 {
-                    _logger.LogError(ex, "Tour edit failed");
+                    _logger.LogError(ex, "Tour step edit failed");
                     ModelState.AddModelError("", "Unable to save changes. " +
                         "Try again, and if the problem persists, " +
                         "contact your system administrator.");
                 }
             }
-            return View(tourToUpdate);
+            return View(stepToUpdate);
         }
 
-        // GET: Tour/Delete/1
+        // GET: TourStep/Delete/1
         public async Task<IActionResult> Delete(int id)
         {
-            var tour = await _repository.GetTour(id);
+            var step = await _repository.GetStep(id);
 
-            if (tour == null)
+            if (step == null)
             {
                 return NotFound();
             }
 
-            return View(tour);
+            return View(step);
         }
 
-        // POST: Tour/Delete/1
+        // POST: TourStep/Delete/1
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var tourToDelete = await _context.TourDetails.FirstOrDefaultAsync(a => a.Id == id);
+            var stepToDelete = await _context.TourStep.FirstOrDefaultAsync(a => a.Id == id);
 
                 try
                 {
-                    _context.TourDetails.Remove(tourToDelete);
+                    _context.TourStep.Remove(stepToDelete);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
                 {
-                    _logger.LogError(ex, "Tour delete failed");
+                    _logger.LogError(ex, "Tour step delete failed");
                     ModelState.AddModelError("", "Unable to save changes. " +
                         "Try again, and if the problem persists, " +
                         "contact your system administrator.");
                 }
 
-            return View(tourToDelete);
+            return View(stepToDelete);
         }
 
 

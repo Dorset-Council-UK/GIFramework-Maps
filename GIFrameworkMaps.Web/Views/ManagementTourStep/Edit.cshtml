@@ -1,0 +1,76 @@
+﻿@model GIFrameworkMaps.Data.Models.Tour.TourStep
+@{
+    ViewData["Title"] = $"Edit tour step '{Model.Title}'";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<a asp-action="Index" asp-controller="ManagementTour" class="btn btn-link">Cancel</a>
+
+<form asp-action="Edit">
+    <div class="row mt-4">
+        <div class="col-md-6">
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <div class="mb-3">
+                <label asp-for="Title" class="control-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <div class="form-text">This text will appear in bold at the top of your tour step</div>
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Content" class="control-label"></label>
+                <textarea asp-for="Content" class="form-control" rows="5"></textarea>
+                <div class="form-text">Please include HTML markup for any links</div>
+                <span asp-validation-for="Content" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="AttachToSelector" class="control-label"></label>
+                <input asp-for="AttachToSelector" class="form-control" />
+                <div class="form-text">For example .sidebar-button-share</div>
+                <span asp-validation-for="AttachToSelector" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="AttachToPosition" class="control-label"></label>
+                <select asp-for="AttachToPosition" class="form-select">
+                    <option value="">None</option>
+                    <option value="top">Top</option>
+                    <option value="bottom">Bottom</option>
+                    <option value="left">Left</option>
+                    <option value="right">Right</option>
+                </select>
+                <span asp-validation-for="AttachToPosition" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="StepNumber" class="control-label"></label>
+                <input asp-for="StepNumber" class="form-control" />
+                <span asp-validation-for="StepNumber" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TourDetailsId" class="control-label"></label>
+                <input asp-for="TourDetailsId" class="form-control" />
+                <span asp-validation-for="TourDetailsId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <input type="submit" value="Save changes" class="btn btn-lg btn-primary" />
+                <a asp-action="Index" asp-controller="ManagementTour" class="btn btn-link">Cancel</a>
+            </div>
+
+        </div>
+    </div>
+
+    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
+
+</form>
+
+
+
+            
+
+
