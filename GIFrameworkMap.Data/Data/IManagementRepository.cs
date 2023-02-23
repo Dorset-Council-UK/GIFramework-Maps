@@ -1,4 +1,5 @@
 ﻿using GIFrameworkMaps.Data.Models;
+using GIFrameworkMaps.Data.Models.Search;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -19,5 +20,7 @@ namespace GIFrameworkMaps.Data
         Task<List<WelcomeMessage>> GetWelcomeMessages();
         Task<WebLayerServiceDefinition> GetWebLayerServiceDefinition(int id);
         Task<List<WebLayerServiceDefinition>> GetWebLayerServiceDefinitions();
+        Task<SearchDefinition> GetSearchDefinition(int id);
+        Task<List<SearchDefinition>> GetSearchDefinitions();
     }
 }

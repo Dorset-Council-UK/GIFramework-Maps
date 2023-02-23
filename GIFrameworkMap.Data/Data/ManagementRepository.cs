@@ -1,4 +1,5 @@
 ﻿using GIFrameworkMaps.Data.Models;
+using GIFrameworkMaps.Data.Models.Search;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -119,7 +120,23 @@ namespace GIFrameworkMaps.Data
 
             return webLayerServiceDefinition;
         }
-        
+
+        public async Task<List<SearchDefinition>> GetSearchDefinitions()
+        {
+            var searchDefinitions = await _context.SearchDefinitions
+                .AsNoTracking()
+                .ToListAsync();
+
+            return searchDefinitions;
+        }
+
+        public async Task<SearchDefinition> GetSearchDefinition(int id)
+        {
+            var searchDefinition = await _context.SearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
+
+            return searchDefinition;
+        }
+
         /// <summary>
         /// Purges the .NET memory cache
         /// </summary>
