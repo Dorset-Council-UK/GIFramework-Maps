@@ -49,7 +49,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         //POST: Tour/Create
         [HttpPost, ActionName("Create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(TourDetails tour)
+        public async Task<IActionResult> CreatePost(TourDetails tour, bool AddStep)
         {
             if (ModelState.IsValid)
             {
@@ -57,6 +57,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Add(tour);
                     await _context.SaveChangesAsync();
+                    if(AddStep)
+                    {
+                        return RedirectToAction("Create", "ManagementTourStep", new { tourId = tour.Id });
+                    }
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)

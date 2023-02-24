@@ -52,6 +52,7 @@
                     Tour steps
                 </div>
                 <div class="card-body">
+                    <a asp-action="Create" asp-controller="ManagementTourStep" asp-route-tourId="@Model.Id" class="btn btn-primary mb-3"><i class="bi bi-plus-circle"></i> Create new tour step</a>
                     <partial name="ManagementPartials/TourStepsList" model="Model.Steps"/>
                 </div>
             </div>

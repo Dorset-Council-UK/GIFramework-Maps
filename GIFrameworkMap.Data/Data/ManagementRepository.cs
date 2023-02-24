@@ -124,6 +124,7 @@ namespace GIFrameworkMaps.Data
         public async Task<List<TourDetails>> GetTours()
         {
             var tours = await _context.TourDetails
+                .Include(t => t.Steps)
                 .AsNoTracking()
                 .ToListAsync();
 

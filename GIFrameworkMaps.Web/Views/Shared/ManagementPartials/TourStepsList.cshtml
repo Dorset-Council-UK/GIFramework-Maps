@@ -1,8 +1,5 @@
 ﻿@model List<GIFrameworkMaps.Data.Models.Tour.TourStep>
 
-<a asp-action="Create" asp-controller="ManagementTourStep" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Create new tour step</a>
-<br><br>
-
 <div class="accordion" id="accordionStep">
 
     @{
@@ -18,10 +15,10 @@
         </h2>
         <div id="collapseOne_@i" class="accordion-collapse collapse @(i == 0 ? "show" : "")" aria-labelledby="accordion_@i" data-bs-parent="#accordionStep">
             <div class="accordion-body">
-                  @step.Content
-                  <br><br>
-                    <a asp-action="Edit" asp-controller="ManagementTourStep" asp-route-id="@step.Id" class="btn btn-primary"><i class="bi"></i>Edit</a>
-                    <a asp-action="Delete" asp-controller="ManagementTourStep" asp-route-id="@step.Id" class="btn btn-danger">Delete</a>
+                @Html.Raw(step.Content)
+                <hr/>
+                <a asp-action="Edit" asp-controller="ManagementTourStep" asp-route-id="@step.Id" class="btn btn-primary btn-sm"><i class="bi"></i>Edit</a>
+                <a asp-action="Delete" asp-controller="ManagementTourStep" asp-route-id="@step.Id" class="btn btn-danger btn-sm">Delete</a>
             </div>
         </div>
         </div>

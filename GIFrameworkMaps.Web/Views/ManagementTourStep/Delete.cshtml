@@ -1,6 +1,6 @@
 ﻿@model GIFrameworkMaps.Data.Models.Tour.TourStep
 @{
-    ViewData["Title"] = $"Delete tour step'{Model.Title}'";
+    ViewData["Title"] = $"Delete tour step '{Model.Title}'";
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -18,7 +18,7 @@
 </div>
 
 <div>
-    <a asp-action="Index" asp-controller="ManagementTour" class="btn btn-link">Cancel</a>
+    <a asp-action="Edit" asp-controller="ManagementTour" asp-route-id="@Model.TourDetailsId" class="btn btn-link">Cancel</a>
 </div>
 
             

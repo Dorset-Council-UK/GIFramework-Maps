@@ -15,7 +15,7 @@
     <table class="table table-bordered table-striped mt-2">
         <thead>
             <tr>
-                <th>ID</th><th>Name</th>
+                <th>ID</th><th>Name</th><th>Updated</th><th>Num of steps</th>
             </tr>
         </thead>
         <tbody>
@@ -24,6 +24,8 @@
                 <tr>
                     <td>@tour.Id</td>
                     <td>@Html.ActionLink(tour.Name, "Edit", new { id = tour.Id })</td>
+                    <td>@tour.UpdateDate.ToString("f")</td>
+                    <td>@tour.Steps.Count</td>
                 </tr>
             }
         </tbody>

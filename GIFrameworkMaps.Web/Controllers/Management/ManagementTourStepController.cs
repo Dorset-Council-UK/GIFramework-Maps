@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -33,23 +34,23 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             _context = context;
         }
 
-        // GET: TourStep
-        public async Task<IActionResult> Index()
+        // GET: TourStep/Create?tourId=1
+        public IActionResult Create(int tourId)
         {
-            var steps = await _repository.GetSteps();
-            return View(steps);
-        }
+            var tourDetails = _context.TourDetails.Include(t => t.Steps).FirstOrDefault(t => t.Id == tourId);
+            if(tourDetails == null)
+            {
+                return NotFound();
+            }
 
-        // GET: TourStep/Create
-        public IActionResult Create()
-        {
-            return View();
+            var step = new TourStep { TourDetailsId = tourDetails.Id, StepNumber = tourDetails.Steps.Count + 1 };
+            return View(step);
         }
 
         //POST: TourStep/Create
         [HttpPost, ActionName("Create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(TourStep step)
+        public async Task<IActionResult> CreatePost(TourStep step, bool addAnother)
         {
             if (ModelState.IsValid)
             {
@@ -57,7 +58,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Add(step);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                    if(addAnother)
+                    {
+                        return RedirectToAction("Create", new { tourId = step.TourDetailsId });
+                    }
+                    return RedirectToAction("Edit","ManagementTour",new {id=step.TourDetailsId});
                 }
                 catch (DbUpdateException ex)
                 {
@@ -104,7 +109,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 try
                 {
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Edit", "ManagementTour",new {id=stepToUpdate.TourDetailsId});
                 }
                 catch (DbUpdateException ex )
                 {
@@ -136,12 +141,12 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         public async Task<IActionResult> DeleteConfirm(int id)
         {
             var stepToDelete = await _context.TourStep.FirstOrDefaultAsync(a => a.Id == id);
-
+            var redirectTo = stepToDelete.TourDetailsId;
                 try
                 {
                     _context.TourStep.Remove(stepToDelete);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Edit","ManagementTour",new {id=redirectTo});
                 }
                 catch (DbUpdateException ex)
                 {
