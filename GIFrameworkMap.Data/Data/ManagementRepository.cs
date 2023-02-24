@@ -1,5 +1,6 @@
 ﻿using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.ViewModels.Management;
+using GIFrameworkMaps.Data.Models.Tour;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -40,7 +41,7 @@ namespace GIFrameworkMaps.Data
 
             return attribution;
         }
-        
+
         public async Task<List<Models.Version>> GetVersions()
         {
             var versions = await _context.Versions
@@ -163,6 +164,40 @@ namespace GIFrameworkMaps.Data
 
             return webLayerServiceDefinition;
         }
+
+        public async Task<List<TourDetails>> GetTours()
+        {
+            var tours = await _context.TourDetails
+                .Include(t => t.Steps)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return tours;
+        }
+
+        public async Task<TourDetails> GetTour(int id)
+        {
+            var tour = await _context.TourDetails.Include(a => a.Steps).FirstOrDefaultAsync(a => a.Id == id);
+
+            return tour;
+        }
+
+        public async Task<List<TourStep>> GetSteps()
+        {
+            var steps = await _context.TourStep
+                .AsNoTracking()
+                .ToListAsync();
+
+            return steps;
+        }
+
+        public async Task<TourStep> GetStep(int id)
+        {
+            var step = await _context.TourStep.FirstOrDefaultAsync(a => a.Id == id);
+
+            return step;
+        }
+
 
         public async Task<Category> GetLayerCategory(int id)
         {

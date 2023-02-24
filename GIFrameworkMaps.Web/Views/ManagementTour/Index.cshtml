@@ -1,0 +1,41 @@
+﻿@model List<GIFrameworkMaps.Data.Models.Tour.TourDetails>
+@{
+    ViewData["Title"] = "Tours";
+}
+
+<partial name="ManagementPartials/BackToManagementHome" />
+
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Create, edit and delete tours</p>
+
+<a href="@Url.Action("Create")" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Create new tour</a>
+
+@if (Model != null)
+{
+    <table class="table table-bordered table-striped mt-2">
+        <thead>
+            <tr>
+                <th>ID</th><th>Name</th><th>Updated</th><th>Num of steps</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (GIFrameworkMaps.Data.Models.Tour.TourDetails tour in Model.OrderBy(a => a.Name))
+            {
+                <tr>
+                    <td>@tour.Id</td>
+                    <td>@Html.ActionLink(tour.Name, "Edit", new { id = tour.Id })</td>
+                    <td>@tour.UpdateDate.ToString("f")</td>
+                    <td>@tour.Steps.Count</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No tours have been created yet</div>
+}
+
+            
+
+

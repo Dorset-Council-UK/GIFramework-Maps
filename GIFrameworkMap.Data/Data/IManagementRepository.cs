@@ -1,4 +1,5 @@
 ﻿using GIFrameworkMaps.Data.Models;
+using GIFrameworkMaps.Data.Models.Tour;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -26,5 +27,9 @@ namespace GIFrameworkMaps.Data
         Task<LayerSourceOption> GetLayerSourceOption(int id);
         Task<List<Category>> GetLayerCategories();
         Task<Category> GetLayerCategory(int id);
+        Task<TourDetails> GetTour(int id);
+        Task<List<TourDetails>> GetTours();
+        Task<TourStep> GetStep(int id);
+        Task<List<TourStep>> GetSteps();
     }
 }
