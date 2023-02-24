@@ -1,0 +1,37 @@
+﻿@model List<GIFrameworkMaps.Data.Models.LayerSource>
+@{
+    ViewData["Title"] = $"Manage layer sources";
+}
+
+<partial name="ManagementPartials/BackToManagementLayers" />
+
+<h1>@ViewData["Title"]</h1>
+
+<a href="@Url.Action("Create")" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add new layer source</a>
+
+@if (Model != null)
+{
+    <table class="table table-bordered table-striped mt-2">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (GIFrameworkMaps.Data.Models.LayerSource layerSource in Model.OrderBy(a => a.Name))
+            {
+                <tr>
+                    <td>@layerSource.Id</td>
+                    <td>@Html.ActionLink(layerSource.Name, "Edit", new { id = layerSource.Id })</td>
+                    <td>@layerSource.Description.Substring(0,Math.Min(layerSource.Description.Length,100))@(layerSource.Description.Length > 100 ? "..." : "")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No layer sources have been created yet</div>
+}

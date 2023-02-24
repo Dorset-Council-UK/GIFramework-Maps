@@ -41,6 +41,7 @@ namespace GIFrameworkMaps.Web
             IWebHostEnvironment env, 
             IHttpForwarder forwarder)
         {
+
             app.UseForwardedHeaders();
             if (env.IsDevelopment())
             {
@@ -145,6 +146,21 @@ namespace GIFrameworkMaps.Web
                     name: "ManagementInterface-TourStep",
                     pattern: "Management/TourStep/{action=Index}/{id?}",
                     defaults: new { controller = "ManagementTourStep", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                   name: "ManagementInterface-Layer",
+                   pattern: "Management/Layer/{action=Index}/{id?}",
+                   defaults: new { controller = "ManagementLayer", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                   name: "ManagementInterface-LayerSource",
+                   pattern: "Management/LayerSource/{action=Index}/{id?}",
+                   defaults: new { controller = "ManagementLayerSource", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                   name: "ManagementInterface-LayerCategory",
+                   pattern: "Management/LayerCategory/{action=Index}/{id?}",
+                   defaults: new { controller = "ManagementLayerCategory", action = "Index" });
 
                 endpoints.MapControllerRoute("General_Map_Redirect", "Map", new { controller = "Map", action = "RedirectToGeneral" });
                 

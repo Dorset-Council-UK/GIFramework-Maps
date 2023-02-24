@@ -36,6 +36,8 @@ namespace GIFrameworkMaps.Data
         public DbSet<Models.Theme> Theme { get; set; }
         public DbSet<Models.Bound> Bound { get; set; }
         public DbSet<Models.LayerSource> LayerSource { get; set; }
+        public DbSet<Models.LayerSourceType> LayerSourceType { get; set; }
+        public DbSet<Models.LayerSourceOption> LayerSourceOption { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

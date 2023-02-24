@@ -34,6 +34,12 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Map" asp-action="Index">Map</a>
                         </li>
+                        @if (User.IsInRole("GIFWAdmin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Management" asp-action="Index">Manage application</a>
+                            </li>
+                        }
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>

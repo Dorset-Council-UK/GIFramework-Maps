@@ -1,4 +1,5 @@
 ﻿using GIFrameworkMaps.Data.Models;
+using GIFrameworkMaps.Data.Models.ViewModels.Management;
 using GIFrameworkMaps.Data.Models.Tour;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -114,6 +115,49 @@ namespace GIFrameworkMaps.Data
             return webLayerServiceDefinitions;
         }
 
+        public async Task<Layer> GetLayer(int id)
+        {
+            var layer = await _context.Layer
+                .Include(l => l.LayerSource)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            return layer;
+        }
+
+        public async Task<List<Layer>> GetLayers()
+        {
+            var layers = await _context.Layer
+                .AsNoTracking()
+                .ToListAsync();
+
+            return layers;
+        }
+
+        public async Task<LayerSource> GetLayerSource(int id)
+        {
+            var layerSource = await _context.LayerSource
+                .Include(s => s.LayerSourceOptions)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            return layerSource;
+        }
+
+        public async Task<List<LayerSource>> GetLayerSources()
+        {
+            var layerSources = await _context.LayerSource
+                .AsNoTracking()
+                .ToListAsync();
+
+            return layerSources;
+        }
+
+        public async Task<LayerSourceOption> GetLayerSourceOption(int id)
+        {
+            var layerSource = await _context.LayerSourceOption
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            return layerSource;
+        }
         public async Task<WebLayerServiceDefinition> GetWebLayerServiceDefinition(int id)
         {
             var webLayerServiceDefinition = await _context.WebLayerServiceDefinitions.FirstOrDefaultAsync(a => a.Id == id);
@@ -152,6 +196,28 @@ namespace GIFrameworkMaps.Data
             var step = await _context.TourStep.FirstOrDefaultAsync(a => a.Id == id);
 
             return step;
+        }
+
+
+        public async Task<Category> GetLayerCategory(int id)
+        {
+            var layerCategory = await _context.Category
+                .Include(c => c.Layers)
+                .Include(c => c.ParentCategory)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            return layerCategory;
+        }
+
+        public async Task<List<Category>> GetLayerCategories()
+        {
+            var layerCategories = await _context.Category
+                .Include(c => c.Layers)
+                .Include(c => c.ParentCategory)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return layerCategories;
         }
 
         /// <summary>
