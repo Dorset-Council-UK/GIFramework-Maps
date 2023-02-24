@@ -25,7 +25,7 @@
                     <td>@category.Id</td>
                     <td>@Html.ActionLink(category.Name, "Edit", new { id = category.Id })</td>
                     <td>@category.Layers.Count</td>
-                    <td>@(category.ParentCategory == null ? "Not a child" : Html.ActionLink(category.ParentCategory.Name, "Edit", new { id = category.ParentCategory.Id }))</td>
+                    <td>@(category.ParentCategory == null ? "" : Html.ActionLink(category.ParentCategory.Name, "Edit", new { id = category.ParentCategory.Id }))</td>
                 </tr>
             }
         </tbody>
