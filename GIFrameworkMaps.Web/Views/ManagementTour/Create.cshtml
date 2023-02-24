@@ -1,0 +1,68 @@
+﻿@model GIFrameworkMaps.Data.Models.Tour.TourDetails
+@{
+    ViewData["Title"] = $"Create new tour";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<a asp-action="Index">Cancel</a>
+
+<form asp-action="Create">
+    <div class="row mt-4">
+        <div class="col-md-6">
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <div class="mb-3">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Frequency" class="control-label"></label>
+                <select asp-for="Frequency" class="form-select">
+                    <option value="-1">Just once</option>
+                    <option value="0">Always</option>
+                    <option value="1">Once a day</option>
+                    <option value="7">Once a week</option>
+                    <option value="14">Once every fortnight</option>
+                    <option value="30">Once a month</option>
+                    <option value="182">Once every six months</option>
+                    <option value="365">Once a year</option>
+                </select>
+                <span asp-validation-for="Frequency" class="text-danger"></span>
+            </div>
+
+             <div class="mb-3">
+                <label asp-for="UpdateDate" class="control-label"></label>
+                <input asp-for="UpdateDate" type="datetime-local" class="form-control" />
+                <div class="form-text">A date when this tour has been updated enough to re-show it to the user.</div>
+                <span asp-validation-for="UpdateDate" class="text-danger"></span>
+            </div>
+            <div class="mb-3 form-check">
+                <input name="AddStep" id="AddStep" value="true" type="checkbox" class="form-check-input" />
+                <label for="AddStep" class="form-check-label">Add step on save</label>
+            </div>
+            <div class="mb-3">
+                <input type="submit" value="Create" class="btn btn-lg btn-primary" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+            </div>
+
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-2">
+                <div class="card-header">
+                    Tour steps
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">Steps can be added once you've added the basic details.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+            
+
+

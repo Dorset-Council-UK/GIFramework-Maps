@@ -136,6 +136,16 @@ namespace GIFrameworkMaps.Web
                    pattern: "Management/System/WebLayerServiceDefinition/{action=Index}/{id?}",
                    defaults: new { controller = "WebLayerServiceDefinition", action = "Index" });
 
+                endpoints.MapControllerRoute(
+                    name: "ManagementInterface-Tour",
+                    pattern: "Management/Tour/{action=Index}/{id?}",
+                    defaults: new { controller = "ManagementTour", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                    name: "ManagementInterface-TourStep",
+                    pattern: "Management/TourStep/{action=Index}/{id?}",
+                    defaults: new { controller = "ManagementTourStep", action = "Index" });
+
                 endpoints.MapControllerRoute("General_Map_Redirect", "Map", new { controller = "Map", action = "RedirectToGeneral" });
                 
                 endpoints.MapControllerRoute(

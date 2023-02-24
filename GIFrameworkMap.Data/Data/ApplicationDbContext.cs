@@ -24,6 +24,7 @@ namespace GIFrameworkMaps.Data
         public DbSet<Models.Print.PrintConfiguration> PrintConfigurations { get; set; }
         public DbSet<Models.WelcomeMessage> WelcomeMessages { get; set; }
         public DbSet<Models.Tour.TourDetails> TourDetails { get; set; }
+        public DbSet<Models.Tour.TourStep> TourStep { get; set; }
         public DbSet<Models.Layer> Layer { get; set; }
         public DbSet<Models.Basemap> Basemap { get; set; }
         public DbSet<Models.Category> Category { get; set; }
