@@ -9,6 +9,7 @@ namespace GIFrameworkMaps.Data.Models.Search
         public bool StopIfFound { get; set; }
         public bool Enabled { get; set; }
         public int Order { get; set; }
-        public SearchDefinition SearchDefinition { get; set; }
+        public string Name { get; set; }
+        public int SearchDefinitionId { get; set; }
     }
 }

@@ -4,10 +4,8 @@
 name: Development (.NET)
 
 on:
-  push:
-    branches: [ "develop" ]
   pull_request:
-    branches: [ "develop" ]
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -16,12 +14,23 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: 'npm'
+    - uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 7.0.x
     - name: Restore dependencies
       run: dotnet restore
+      
     - name: npm install
       run: npm install
       working-directory: 'GIFrameworkMaps.Web'

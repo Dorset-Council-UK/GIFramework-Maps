@@ -44,13 +44,13 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_VersionUser", x => new { x.UserId, x.VersionId });
-                    table.ForeignKey(
-                        name: "FK_VersionUser_ApplicationUser_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        principalSchema: "identity",
-                        onDelete: ReferentialAction.Cascade);
+                    //table.ForeignKey(
+                    //    name: "FK_VersionUser_ApplicationUser_UserId",
+                    //    column: x => x.UserId,
+                    //    principalTable: "AspNetUsers",
+                    //    principalColumn: "Id",
+                    //    principalSchema: "identity",
+                    //    onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_VersionUser_Versions_VersionId",
                         column: x => x.VersionId,
