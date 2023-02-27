@@ -1,0 +1,35 @@
+﻿@model Microsoft.Graph.User
+@{
+    ViewData["Title"] = $"Manage user '{Model.DisplayName}'";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<a asp-action="Index">Cancel</a>
+
+<form asp-action="Edit">
+    <div class="row mt-4 mb-2">
+        <div class="col-md-6">
+        
+            <h2>Roles</h2>
+
+            <h2>Versions</h2>
+            
+
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+            </div>
+
+        
+        </div>
+        
+    </div>
+
+</form>
+
+
+
+            
+
+

@@ -1,0 +1,38 @@
+﻿@model Microsoft.Graph.IGraphServiceUsersCollectionPage
+@{
+    ViewData["Title"] = "Users";
+}
+
+<partial name="ManagementPartials/BackToManagementHome" />
+
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Manage user permissions</p>
+
+
+@if (Model != null)
+{
+    <table class="table table-bordered table-striped mt-2">
+        <thead>
+            <tr>
+                <th>ID</th><th>Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model.CurrentPage.OrderBy(u => u.DisplayName))
+            {
+                <tr>
+                    <td>@user.Id</td>
+                    <td>@Html.ActionLink(user.DisplayName, "Edit", new { id = user.Id })</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No users could be found</div>
+}
+
+            
+
+
