@@ -1,0 +1,83 @@
+﻿@model GIFrameworkMaps.Data.Models.Search.APISearchDefinition
+@{
+    ViewData["Title"] = $"Edit search definition '{Model.Name}'";
+}
+
+<h1>@ViewData["Title"]</h1>
+<div class="row mt-2 mb-2">
+    <div class="col-md-8">
+        <form asp-action="EditAPISearchDefinition">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <input type="hidden" asp-for="Id" />
+            
+            <partial name="ManagementPartials/SearchDefinitionFormPartial" model="Model" />
+
+            <div class="mb-3">
+                <label asp-for="URLTemplate" class="control-label"></label>
+                <input asp-for="URLTemplate" class="form-control" />
+                <span asp-validation-for="URLTemplate" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="XFieldPath" class="control-label"></label>
+                <input asp-for="XFieldPath" class="form-control" />
+                <span asp-validation-for="XFieldPath" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="YFieldPath" class="control-label"></label>
+                <input asp-for="YFieldPath" class="form-control" />
+                <span asp-validation-for="YFieldPath" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TitleFieldPath" class="control-label"></label>
+                <input asp-for="TitleFieldPath" class="form-control" />
+                <span asp-validation-for="TitleFieldPath" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="GeomFieldPath" class="control-label"></label>
+                <input asp-for="GeomFieldPath" class="form-control" />
+                <span asp-validation-for="GeomFieldPath" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="MBRXMaxPath" class="control-label"></label>
+                <input asp-for="MBRXMaxPath" class="form-control" />
+                <span asp-validation-for="MBRXMaxPath" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="MBRXMinPath" class="control-label"></label>
+                <input asp-for="MBRXMinPath" class="form-control" />
+                <span asp-validation-for="MBRXMinPath" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="MBRYMaxPath" class="control-label"></label>
+                <input asp-for="MBRYMaxPath" class="form-control" />
+                <span asp-validation-for="MBRYMaxPath" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="MBRYMinPath" class="control-label"></label>
+                <input asp-for="MBRYMinPath" class="form-control" />
+                <span asp-validation-for="MBRYMinPath" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+            </div>
+        </form>
+        
+    </div>
+</div>
+<a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
+
+
+
+            
+
+

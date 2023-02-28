@@ -1,0 +1,38 @@
+﻿@model GIFrameworkMaps.Data.Models.Search.LocalSearchDefinition
+@{
+    ViewData["Title"] = $"Create new search definition";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="alert alert-warning" role="alert">
+    Local search definitions are hard-coded into the application. Only enter a local search definition if you know what you are doing!
+</div>
+
+<div class="row mt-2">
+    <div class="col-md-8">
+        <form asp-action="CreateLocalSearchDefinition">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            
+            <partial name="ManagementPartials/SearchDefinitionFormPartial" model="Model" />
+
+            <div class="mb-3">
+                <label asp-for="LocalSearchName" class="control-label"></label>
+                <input asp-for="LocalSearchName" class="form-control" />
+                <span asp-validation-for="LocalSearchName" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <input type="submit" value="Create" class="btn btn-lg btn-primary" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+            
+
+

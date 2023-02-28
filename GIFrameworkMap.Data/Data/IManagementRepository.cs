@@ -1,5 +1,6 @@
 ﻿using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Tour;
+using GIFrameworkMaps.Data.Models.Search;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -31,6 +32,14 @@ namespace GIFrameworkMaps.Data
         Task<List<TourDetails>> GetTours();
         Task<TourStep> GetStep(int id);
         Task<List<TourStep>> GetSteps();
+        Task<SearchDefinition> GetSearchDefinition(int id);
+        Task<List<SearchDefinition>> GetSearchDefinitions();
+        Task<APISearchDefinition> GetAPISearchDefinition(int id);
+        Task<List<APISearchDefinition>> GetAPISearchDefinitions();
+        Task<DatabaseSearchDefinition> GetDatabaseSearchDefinition(int id);
+        Task<List<DatabaseSearchDefinition>> GetDatabaseSearchDefinitions();
+        Task<LocalSearchDefinition> GetLocalSearchDefinition(int id);
+        Task<List<LocalSearchDefinition>> GetLocalSearchDefinitions();
         Task<Microsoft.Graph.Beta.Models.UserCollectionResponse> GetUsers();
         Task<Microsoft.Graph.Beta.Models.User> GetUser(string id);
     }
