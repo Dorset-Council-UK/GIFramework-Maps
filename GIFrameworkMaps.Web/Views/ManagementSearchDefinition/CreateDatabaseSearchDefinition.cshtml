@@ -1,4 +1,4 @@
-﻿@model GIFrameworkMaps.Data.Models.Search.SearchDefinition
+﻿@model GIFrameworkMaps.Data.Models.Search.DatabaseSearchDefinition
 @{
     ViewData["Title"] = $"Create new search definition";
 }
@@ -62,6 +62,36 @@
                 <input asp-for="SupressGeom" class="form-check-input" type="checkbox" />
                 <div class="form-text">This prevents a pin, line or polygon from being drawn on the map when a user clicks on a search result</div>
                 <span asp-validation-for="SupressGeom" class="text-danger"></span>
+            </div>
+
+             <div class="mb-3">
+                <label asp-for="TableName" class="control-label"></label>
+                <input asp-for="TableName" class="form-control" />
+                <span asp-validation-for="TableName" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="XField" class="control-label"></label>
+                <input asp-for="XField" class="form-control" />
+                <span asp-validation-for="XField" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="YField" class="control-label"></label>
+                <input asp-for="YField" class="form-control" />
+                <span asp-validation-for="YField" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="GeomField" class="control-label"></label>
+                <input asp-for="GeomField" class="form-control" />
+                <span asp-validation-for="GeomField" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="WhereClause" class="control-label"></label>
+                <input asp-for="WhereClause" class="form-control" />
+                <span asp-validation-for="WhereClause" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
