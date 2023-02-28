@@ -1,12 +1,9 @@
-﻿using ExCSS;
-using GIFrameworkMaps.Data;
+﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
@@ -138,9 +135,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         public async Task<IActionResult> DeleteConfirm(int id)
         {
             var themeToDelete = await _context.Theme.FirstOrDefaultAsync(a => a.Id == id);
-            //var linkedLayers = await _context.LayerSource.Where(l => l.Bound.Id == id).ToListAsync();
-            //if (linkedLayers.Count == 0)
-            //{
+
                 try
                 {
                     _context.Theme.Remove(themeToDelete);
@@ -154,11 +149,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         "Try again, and if the problem persists, " +
                         "contact your system administrator.");
                 }
-            //}
-            //else
-            //{
-            //    ModelState.AddModelError("", "There are layers in use that use this bound, so you cannot delete it.");
-            //}
             return View(themeToDelete);
         }
 

@@ -3,15 +3,11 @@ using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.ViewModels.Management;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
@@ -41,8 +37,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version
         public async Task<IActionResult> Index()
         {
-            var attributions = await _repository.GetVersions();
-            return View(attributions);
+            var versions = await _repository.GetVersions();
+            return View(versions);
         }
 
         // GET: Version/Create

@@ -6,9 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
