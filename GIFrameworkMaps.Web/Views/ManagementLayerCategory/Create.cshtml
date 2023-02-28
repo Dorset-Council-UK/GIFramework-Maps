@@ -1,0 +1,64 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.CategoryEditModel
+@{
+    ViewData["Title"] = $"Create new layer category";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<a asp-action="Index">Cancel</a>
+
+<form asp-action="Create">
+    <div class="row mt-4">
+        <div class="col-md-6">
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <div class="mb-3">
+                <label asp-for="Category.Name" class="control-label"></label>
+                <input asp-for="Category.Name" class="form-control" />
+                <span asp-validation-for="Category.Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Category.Description" class="control-label"></label>
+                <textarea asp-for="Category.Description" class="form-control"></textarea>
+                <span asp-validation-for="Category.Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Category.Order" class="control-label"></label>
+                <input asp-for="Category.Order" class="form-control" />
+                <span asp-validation-for="Category.Order" class="text-danger"></span>
+            </div>
+
+
+            <div class="mb-3">
+                <label asp-for="Category.ParentCategoryId" class="control-label"></label>
+                <select asp-for="Category.ParentCategoryId" asp-items="Model.AvailableParentCategories" class="form-select">
+                    <option value="">None</option>
+                </select>
+                <span asp-validation-for="Category.ParentCategoryId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <input type="submit" value="Create" class="btn btn-lg btn-primary" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+            </div>
+
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-2">
+                <div class="card-header">
+                    Layers
+                </div>
+                <div class="card-body">
+                    <partial name="ManagementPartials/CategoryLayerList" model="Model" view-data="ViewData" />
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+            
+
+

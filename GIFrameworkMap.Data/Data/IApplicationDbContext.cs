@@ -16,6 +16,7 @@ namespace GIFrameworkMaps.Data
         DbSet<Models.Print.PrintConfiguration> PrintConfigurations { get; set; }
         DbSet<Models.WelcomeMessage> WelcomeMessages { get; set; }
         DbSet<Models.Tour.TourDetails> TourDetails { get; set; }
+        DbSet<Models.Tour.TourStep> TourStep { get; set; }
         DbSet<Models.Layer> Layer { get; set; }
         DbSet<Models.Basemap> Basemap { get; set; }
         DbSet<Models.Authorization.ApplicationRole> ApplicationRoles { get; set; }
@@ -27,5 +28,7 @@ namespace GIFrameworkMaps.Data
         DbSet<Models.Bound> Bound { get; set; }
         DbSet<Models.Category> Category { get; set; }
         DbSet<Models.LayerSource> LayerSource { get; set; }
+        DbSet<Models.LayerSourceType> LayerSourceType { get; set; }
+        DbSet<Models.LayerSourceOption> LayerSourceOption { get; set; }
     }
 }

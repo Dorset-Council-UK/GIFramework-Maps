@@ -1,4 +1,5 @@
 ﻿using GIFrameworkMaps.Data.Models;
+using GIFrameworkMaps.Data.Models.Tour;
 using GIFrameworkMaps.Data.Models.Search;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -20,6 +21,17 @@ namespace GIFrameworkMaps.Data
         Task<List<WelcomeMessage>> GetWelcomeMessages();
         Task<WebLayerServiceDefinition> GetWebLayerServiceDefinition(int id);
         Task<List<WebLayerServiceDefinition>> GetWebLayerServiceDefinitions();
+        Task<Layer> GetLayer(int id);
+        Task<List<Layer>> GetLayers();
+        Task<LayerSource> GetLayerSource(int id);
+        Task<List<LayerSource>> GetLayerSources();
+        Task<LayerSourceOption> GetLayerSourceOption(int id);
+        Task<List<Category>> GetLayerCategories();
+        Task<Category> GetLayerCategory(int id);
+        Task<TourDetails> GetTour(int id);
+        Task<List<TourDetails>> GetTours();
+        Task<TourStep> GetStep(int id);
+        Task<List<TourStep>> GetSteps();
         Task<SearchDefinition> GetSearchDefinition(int id);
         Task<List<SearchDefinition>> GetSearchDefinitions();
         Task<APISearchDefinition> GetAPISearchDefinition(int id);

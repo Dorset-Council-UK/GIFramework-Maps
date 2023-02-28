@@ -1,0 +1,129 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.LayerEditModel
+@{
+    ViewData["Title"] = $"Create new layer";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row mt-2">
+    <div class="col-md-8 col-lg-6">
+        <form asp-action="CreateFromSource">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <input type="hidden" asp-for="Layer.Id" />
+            <input type="hidden" asp-for="Layer.LayerSourceId"/>
+            <div class="mb-3">
+                <label asp-for="Layer.Name" class="control-label"></label>
+                <input asp-for="Layer.Name" class="form-control" />
+                <span asp-validation-for="Layer.Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Layer.MinZoom" class="control-label"></label>
+                <input asp-for="Layer.MinZoom" class="form-control" />
+                <span asp-validation-for="Layer.MinZoom" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Layer.MaxZoom" class="control-label"></label>
+                <input asp-for="Layer.MaxZoom" class="form-control" />
+                <span asp-validation-for="Layer.MaxZoom" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Layer.ZIndex" class="control-label"></label>
+                <input asp-for="Layer.ZIndex" class="form-control" />
+                <span asp-validation-for="Layer.ZIndex" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Layer.InfoListTitleTemplate" class="control-label"></label>
+                <input asp-for="Layer.InfoListTitleTemplate" class="form-control" />
+                <span asp-validation-for="Layer.InfoListTitleTemplate" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Layer.InfoTemplate" class="control-label"></label>
+                <textarea asp-for="Layer.InfoTemplate" class="form-control" rows="5"></textarea>
+                <span asp-validation-for="Layer.InfoTemplate" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <input asp-for="Layer.Queryable" class="form-check-input" />
+                <label asp-for="Layer.Queryable" class="form-check-label"></label>
+                <span asp-validation-for="Layer.Queryable" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <input asp-for="Layer.Filterable" class="form-check-input" />
+                <label asp-for="Layer.Filterable" class="form-check-label"></label>
+                <span asp-validation-for="Layer.Filterable" class="text-danger"></span>
+            </div>
+
+
+            <!--Collapse-->
+
+            <a href="#advancedSettings" class="btn btn-outline-secondary my-3" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="advancedSettings">Advanced settings</a>
+
+            <div class="collapse border-start border-bottom border-5 ps-3 mb-3" id="advancedSettings">
+
+                <div class="mb-3">
+                    <label asp-for="Layer.BoundId" class="control-label"></label>
+                    <select asp-for="Layer.BoundId" asp-items="Model.AvailableBounds" class="form-select">
+                        <option value="">Not bounded</option>
+                    </select>
+                    <span class="form-text">Restricts map rendering and querying outside of these bounds. </span>
+                    <span asp-validation-for="Layer.BoundId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Layer.DefaultOpacity" class="control-label"></label>
+                    <input asp-for="Layer.DefaultOpacity" type="range" class="form-range" min="0" max="100" />
+                    <span asp-validation-for="Layer.DefaultOpacity" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Layer.DefaultSaturation" class="control-label"></label>
+                    <input asp-for="Layer.DefaultSaturation" type="range" class="form-range" min="0" max="100" />
+                    <span asp-validation-for="Layer.DefaultSaturation" class="text-danger"></span>
+                </div>
+
+
+                <div class="mb-3">
+                    <input asp-for="Layer.DefaultFilterEditable" class="form-check-input" />
+                    <label asp-for="Layer.DefaultFilterEditable" class="form-check-label"></label>
+                    <p class="form-text">Whether any default filters applied to the layer source are editable by end users. </p>
+
+                    <span asp-validation-for="Layer.DefaultFilterEditable" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <input asp-for="Layer.ProxyMapRequests" class="form-check-input" />
+                    <label asp-for="Layer.ProxyMapRequests" class="form-check-label"></label>
+                    <span asp-validation-for="Layer.ProxyMapRequests" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <input asp-for="Layer.ProxyMetaRequests" class="form-check-input" />
+                    <label asp-for="Layer.ProxyMetaRequests" class="form-check-label"></label>
+                    <span asp-validation-for="Layer.ProxyMetaRequests" class="text-danger"></span>
+                </div>
+
+            </div>
+
+            <div class="mb-3">
+                <input type="submit" value="Create" class="btn btn-primary btn-lg" />
+                <a asp-action="List" class="btn btn-link">Cancel</a>
+            </div>
+        </form>
+    </div>
+    <div class="col-md-4 col-lg-6">
+        <h2>Source details</h2>
+        <table class="table table-sm table-striped">
+            <tbody>
+                <tr><th>ID</th><td>@Model.Layer.LayerSource.Id</td></tr>
+                <tr><th>Name</th><td>@Model.Layer.LayerSource.Name</td></tr>
+                <tr><th>Description</th><td>@Model.Layer.LayerSource.Description</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>

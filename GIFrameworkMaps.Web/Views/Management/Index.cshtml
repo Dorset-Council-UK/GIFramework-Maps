@@ -1,5 +1,4 @@
-﻿@model List<GIFrameworkMaps.Data.Models.Version>
-@using Microsoft.Extensions.Configuration;
+﻿@using Microsoft.Extensions.Configuration;
 @inject IConfiguration configuration;
 @{
     string appName = configuration.GetValue<string>("GIFrameworkMaps:appName");
@@ -24,7 +23,7 @@
         <div class="col">
             <div class="card link-card h-100">
                 <div class="card-body">
-                    <a href="#" class="stretched-link">
+                    <a asp-action="Index" asp-controller="ManagementLayer" class="stretched-link">
                         <h4 class="card-title"><i class="bi bi-geo"></i> Layers</h4>
                         <p class="card-text">Manage layers consumed by @appName</p>
                     </a>
@@ -90,7 +89,7 @@
         <div class="col">
             <div class="card link-card h-100">
                 <div class="card-body">
-                    <a href="#" class="stretched-link">
+                    <a asp-action="Index" asp-controller="ManagementTour" class="stretched-link">
                         <h4 class="card-title"><i class="bi bi-binoculars-fill"></i> Tours</h4>
                         <p class="card-text">Manage the tours available in @appName</p>
                     </a>
