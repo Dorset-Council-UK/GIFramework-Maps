@@ -73,7 +73,32 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: SearchDefinition/Edit/1
         public async Task<IActionResult> Edit(int id)
         {
-            var searchDefinition = await _repository.GetSearchDefinition(id);
+            var APISearchDefinition = await _repository.GetAPISearchDefinition(id);
+            var databaseSearchDefinition = await _repository.GetDatabaseSearchDefinition(id);
+            var localSearchDefinition = await _repository.GetLocalSearchDefinition(id);
+
+            if (APISearchDefinition != null)
+            {
+                return RedirectToAction("EditAPISearchDefinition", new {id});
+            }
+
+            if (databaseSearchDefinition != null) 
+            {
+                return RedirectToAction("EditDatabaseSearchDefinition", new { id });
+            }
+
+            if (localSearchDefinition != null)
+            {
+                return RedirectToAction("EditLocalSearchDefinition", new { id });
+            }
+
+            return NotFound();
+        }
+
+        // GET: APISearchDefinition/Edit/1
+        public async Task<IActionResult> EditAPISearchDefinition(int id)
+        {
+            var searchDefinition = await _repository.GetAPISearchDefinition(id);
 
             if (searchDefinition == null)
             {
@@ -83,41 +108,112 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(searchDefinition);
         }
 
-        // POST: SearchDefinition/Edit/1
-        [HttpPost, ActionName("Edit")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditPost(int id)
+        // GET: DatabaseSearchDefinition/Edit/1
+        public async Task<IActionResult> EditDatabaseSearchDefinition(int id)
         {
-            var searchDefinitionToUpdate = await _context.SearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
+            var searchDefinition = await _repository.GetDatabaseSearchDefinition(id);
+
+            if (searchDefinition == null)
+            {
+                return NotFound();
+            }
+
+            return View(searchDefinition);
+        }
+
+        // GET: LocalSearchDefinition/Edit/1
+        public async Task<IActionResult> EditLocalSearchDefinition(int id)
+        {
+            var searchDefinition = await _repository.GetLocalSearchDefinition(id);
+
+            if (searchDefinition == null)
+            {
+                return NotFound();
+            }
+
+            return View(searchDefinition);
+        }
+
+        //// POST: SearchDefinition/Edit/1
+        //[HttpPost, ActionName("Edit")]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> EditPost(int id)
+        //{
+        //    var searchDefinitionToUpdate = await _context.SearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
+
+        //    if (await TryUpdateModelAsync(
+        //        searchDefinitionToUpdate,
+        //        "",
+        //        a => a.Name, 
+        //        a => a.Title, 
+        //        a => a.AttributionHtml, 
+        //        a => a.MaxResults, 
+        //        a => a.ZoomLevel, 
+        //        a => a.EPSG, 
+        //        a => a.ValidationRegex,
+        //        a => a.SupressGeom))
+        //        a => a.Discriminator,
+        //        a => a.URLTemplate,
+        //        a => a.XFieldPath,
+        //        a => a.YFieldPath,
+        //        a => a.TitleFieldPath,
+        //        a => a.GeomFieldPath,
+        //        a => a.TableName,
+        //        a => a.XField,
+        //        a => a.YField,
+        //        a => a.GeomField,
+        //        a => a.WhereClause,
+        //        a => a.OrderbyClause,
+        //        a => a.MBRXMaxPath,
+        //        a => a.MBRXMinPath,
+        //        a => a.MBRYMaxPath,
+        //        a => a.MBRYMinPath,
+        //        a => a.LocalSearchName))
+        //    {
+
+        //        try
+        //        {
+        //            await _context.SaveChangesAsync();
+        //            return RedirectToAction(nameof(Index));
+        //        }
+        //        catch (DbUpdateException ex )
+        //        {
+        //            _logger.LogError(ex, "Serah definition edit failed");
+        //            ModelState.AddModelError("", "Unable to save changes. " +
+        //                "Try again, and if the problem persists, " +
+        //                "contact your system administrator.");
+        //        }
+        //    }
+        //    return View(searchDefinitionToUpdate);
+        //}
+
+        // POST: APISearchDefinition/Edit/1
+        [HttpPost, ActionName("EditAPISearchDefinition")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditAPISearchDefinitionPost(int id)
+        {
+            var searchDefinitionToUpdate = await _context.APISearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
 
             if (await TryUpdateModelAsync(
                 searchDefinitionToUpdate,
                 "",
-                a => a.Name, 
-                a => a.Title, 
-                a => a.AttributionHtml, 
-                a => a.MaxResults, 
-                a => a.ZoomLevel, 
-                a => a.EPSG, 
+                a => a.Name,
+                a => a.Title,
+                a => a.AttributionHtml,
+                a => a.MaxResults,
+                a => a.ZoomLevel,
+                a => a.EPSG,
                 a => a.ValidationRegex,
-                a => a.SupressGeom))
-                //a => a.Discriminator,
-                //a => a.URLTemplate,
-                //a => a.XFieldPath,
-                //a => a.YFieldPath,
-                //a => a.TitleFieldPath,
-                //a => a.GeomFieldPath,
-                //a => a.TableName,
-                //a => a.XField,
-                //a => a.YField,
-                //a => a.GeomField,
-                //a => a.WhereClause,
-                //a => a.OrderbyClause,
-                //a => a.MBRXMaxPath,
-                //a => a.MBRXMinPath,
-                //a => a.MBRYMaxPath,
-                //a => a.MBRYMinPath,
-                //a => a.LocalSearchName))
+                a => a.SupressGeom,
+                a => a.URLTemplate,
+                a => a.XFieldPath,
+                a => a.YFieldPath,
+                a => a.TitleFieldPath,
+                a => a.GeomFieldPath,
+                a => a.MBRXMaxPath,
+                a => a.MBRXMinPath,
+                a => a.MBRYMaxPath,
+                a => a.MBRYMinPath))
             {
 
                 try
@@ -125,7 +221,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateException ex )
+                catch (DbUpdateException ex)
                 {
                     _logger.LogError(ex, "Serah definition edit failed");
                     ModelState.AddModelError("", "Unable to save changes. " +
@@ -135,6 +231,85 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
             return View(searchDefinitionToUpdate);
         }
+
+        // POST: DatabaseSearchDefinition/Edit/1
+        [HttpPost, ActionName("EditDatabaseSearchDefinition")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditDatabaseSearchDefinitionPost(int id)
+        {
+            var searchDefinitionToUpdate = await _context.DatabaseSearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
+
+            if (await TryUpdateModelAsync(
+                searchDefinitionToUpdate,
+                "",
+                a => a.Name,
+                a => a.Title,
+                a => a.AttributionHtml,
+                a => a.MaxResults,
+                a => a.ZoomLevel,
+                a => a.EPSG,
+                a => a.ValidationRegex,
+                a => a.SupressGeom,
+                a => a.TableName,
+                a => a.XField,
+                a => a.YField,
+                a => a.GeomField,
+                a => a.WhereClause))
+            {
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Serah definition edit failed");
+                    ModelState.AddModelError("", "Unable to save changes. " +
+                        "Try again, and if the problem persists, " +
+                        "contact your system administrator.");
+                }
+            }
+            return View(searchDefinitionToUpdate);
+        }
+
+        // POST: LocalSearchDefinition/Edit/1
+        [HttpPost, ActionName("EditLocalSearchDefinition")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditLocalSearchDefinitionPost(int id)
+        {
+            var searchDefinitionToUpdate = await _context.LocalSearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
+
+            if (await TryUpdateModelAsync(
+                searchDefinitionToUpdate,
+                "",
+                a => a.Name,
+                a => a.Title,
+                a => a.AttributionHtml,
+                a => a.MaxResults,
+                a => a.ZoomLevel,
+                a => a.EPSG,
+                a => a.ValidationRegex,
+                a => a.SupressGeom,
+                a => a.LocalSearchName))
+            {
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Serah definition edit failed");
+                    ModelState.AddModelError("", "Unable to save changes. " +
+                        "Try again, and if the problem persists, " +
+                        "contact your system administrator.");
+                }
+            }
+            return View(searchDefinitionToUpdate);
+        }
+
 
         // GET: SearchDefinition/Delete/1
         public async Task<IActionResult> Delete(int id)

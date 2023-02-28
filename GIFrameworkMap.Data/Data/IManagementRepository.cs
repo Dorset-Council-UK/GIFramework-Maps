@@ -22,5 +22,11 @@ namespace GIFrameworkMaps.Data
         Task<List<WebLayerServiceDefinition>> GetWebLayerServiceDefinitions();
         Task<SearchDefinition> GetSearchDefinition(int id);
         Task<List<SearchDefinition>> GetSearchDefinitions();
+        Task<APISearchDefinition> GetAPISearchDefinition(int id);
+        Task<List<APISearchDefinition>> GetAPISearchDefinitions();
+        Task<DatabaseSearchDefinition> GetDatabaseSearchDefinition(int id);
+        Task<List<DatabaseSearchDefinition>> GetDatabaseSearchDefinitions();
+        Task<LocalSearchDefinition> GetLocalSearchDefinition(int id);
+        Task<List<LocalSearchDefinition>> GetLocalSearchDefinitions();
     }
 }
