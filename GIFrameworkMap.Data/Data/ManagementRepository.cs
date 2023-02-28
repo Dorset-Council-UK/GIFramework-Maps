@@ -1,6 +1,7 @@
 ﻿using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.ViewModels.Management;
 using GIFrameworkMaps.Data.Models.Tour;
+using GIFrameworkMaps.Data.Models.Search;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -218,6 +219,71 @@ namespace GIFrameworkMaps.Data
                 .ToListAsync();
 
             return layerCategories;
+        }
+
+
+        public async Task<List<SearchDefinition>> GetSearchDefinitions()
+        {
+            var searchDefinitions = await _context.SearchDefinitions
+                .AsNoTracking()
+                .ToListAsync();
+
+            return searchDefinitions;
+        }
+
+        public async Task<SearchDefinition> GetSearchDefinition(int id)
+        {
+            var searchDefinition = await _context.SearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
+
+            return searchDefinition;
+        }
+
+        public async Task<List<APISearchDefinition>> GetAPISearchDefinitions()
+        {
+            var APISearchDefinitions = await _context.APISearchDefinitions
+                .AsNoTracking()
+                .ToListAsync();
+
+            return APISearchDefinitions;
+        }
+
+        public async Task<APISearchDefinition> GetAPISearchDefinition(int id)
+        {
+            var APISearchDefinition = await _context.APISearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
+
+            return APISearchDefinition;
+        }
+
+        public async Task<List<DatabaseSearchDefinition>> GetDatabaseSearchDefinitions()
+        {
+            var databaseSearchDefinitions = await _context.DatabaseSearchDefinitions
+                .AsNoTracking()
+                .ToListAsync();
+
+            return databaseSearchDefinitions;
+        }
+
+        public async Task<DatabaseSearchDefinition> GetDatabaseSearchDefinition(int id)
+        {
+            var databaseSearchDefinition = await _context.DatabaseSearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
+
+            return databaseSearchDefinition;
+        }
+
+        public async Task<List<LocalSearchDefinition>> GetLocalSearchDefinitions()
+        {
+            var localSearchDefinitions = await _context.LocalSearchDefinitions
+                .AsNoTracking()
+                .ToListAsync();
+
+            return localSearchDefinitions;
+        }
+
+        public async Task<LocalSearchDefinition> GetLocalSearchDefinition(int id)
+        {
+            var localSearchDefinition = await _context.LocalSearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
+
+            return localSearchDefinition;
         }
 
         /// <summary>

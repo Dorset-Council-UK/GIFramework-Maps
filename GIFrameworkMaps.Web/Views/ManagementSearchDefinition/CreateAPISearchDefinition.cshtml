@@ -1,0 +1,120 @@
+﻿@model GIFrameworkMaps.Data.Models.Search.APISearchDefinition
+@{
+    ViewData["Title"] = $"Create new search definition";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row mt-2">
+    <div class="col-md-8">
+        <form asp-action="CreateAPISearchDefinition">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            
+            <partial name="ManagementPartials/SearchDefinitionFormPartial" model="Model" />
+
+            <div class="mb-3">
+                <label asp-for="URLTemplate" class="control-label"></label>
+                <input asp-for="URLTemplate" class="form-control" />
+                <div class="form-text">The full URL to do the search, with the placeholder {{search}} where the search query would go</div>
+                <span asp-validation-for="URLTemplate" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TitleFieldPath" class="control-label"></label>
+                <input asp-for="TitleFieldPath" class="form-control" />
+                <div class="form-text">A JSONPath expression to an appropriate 'Title' field, used for displaying the search result</div>
+                <span asp-validation-for="TitleFieldPath" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <h2>Fill in one of the following sections</h2>
+            </div>
+
+            <div class="mb-3">
+
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="xp-path-tab" data-bs-toggle="tab" data-bs-target="#xy-path-tab-pane" type="button" role="tab" aria-controls="xy-path-tab-pane" aria-selected="true">X and Y paths</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="geom-tab" data-bs-toggle="tab" data-bs-target="#geom-tab-pane" type="button" role="tab" aria-controls="geom-tab-pane" aria-selected="false">Geometry path</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="mbr-tab" data-bs-toggle="tab" data-bs-target="#mbr-tab-pane" type="button" role="tab" aria-controls="mbr-tab-pane" aria-selected="false">Bounding rectangle fields</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="xy-path-tab-pane" role="tabpanel" aria-labelledby="xy-path-tab" tabindex="0">
+                        <div class="mb-3">
+                            <label asp-for="XFieldPath" class="control-label"></label>
+                            <input asp-for="XFieldPath" class="form-control" />
+                            <div class="form-text">A JSONPath expression to an appropriate 'X' field in the JSON</div>
+                            <span asp-validation-for="XFieldPath" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="YFieldPath" class="control-label"></label>
+                            <input asp-for="YFieldPath" class="form-control" />
+                            <div class="form-text">A JSONPath expression to an appropriate 'Y' field in the JSON</div>
+                            <span asp-validation-for="YFieldPath" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="geom-tab-pane" role="tabpanel" aria-labelledby="geom-tab" tabindex="0">
+                        <div class="mb-3">
+                            <label asp-for="GeomFieldPath" class="control-label"></label>
+                            <input asp-for="GeomFieldPath" class="form-control" />
+                            <div class="form-text">JSONPath expression to appopriate 'Geometry' field. The geometry must be valid GeoJSON</div>
+                            <span asp-validation-for="GeomFieldPath" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="mbr-tab-pane" role="tabpanel" aria-labelledby="mbr-tab" tabindex="0">
+                        <div class="mb-3">
+                            <label asp-for="MBRXMaxPath" class="control-label"></label>
+                            <input asp-for="MBRXMaxPath" class="form-control" />
+                            <div class="form-text">A JSONPath expression to an appropriate top right X coordinate minimum bounding rectangle field</div>
+                            <span asp-validation-for="MBRXMaxPath" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="MBRXMinPath" class="control-label"></label>
+                            <input asp-for="MBRXMinPath" class="form-control" />
+                            <div class="form-text">A JSONPath expression to an appropriate bottom left X coordinate minimum bounding rectangle field</div>
+                            <span asp-validation-for="MBRXMinPath" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="MBRYMaxPath" class="control-label"></label>
+                            <input asp-for="MBRYMaxPath" class="form-control" />
+                            <div class="form-text">A JSONPath expression to an appropriate top right Y coordinate minimum bounding rectangle field</div>
+                            <span asp-validation-for="MBRYMaxPath" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="MBRYMinPath" class="control-label"></label>
+                            <input asp-for="MBRYMinPath" class="form-control" />
+                            <div class="form-text">A JSONPath expression to an appropriate bottom left Y coordinate minimum bounding rectangle field</div>
+                            <span asp-validation-for="MBRYMinPath" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="mb-3">
+                <input type="submit" value="Create" class="btn btn-lg btn-primary" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+            
+
+
