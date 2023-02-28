@@ -1,4 +1,4 @@
-﻿@model Microsoft.Graph.IGraphServiceUsersCollectionPage
+﻿@model Microsoft.Graph.Beta.Models.UserCollectionResponse
 @{
     ViewData["Title"] = "Users";
 }
@@ -14,15 +14,23 @@
     <table class="table table-bordered table-striped mt-2">
         <thead>
             <tr>
-                <th>ID</th><th>Name</th>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email(s)</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var user in Model.CurrentPage.OrderBy(u => u.DisplayName))
+            @foreach (var user in Model.Value.OrderBy(u => u.DisplayName))
             {
                 <tr>
                     <td>@user.Id</td>
                     <td>@Html.ActionLink(user.DisplayName, "Edit", new { id = user.Id })</td>
+                    <td>
+                        @foreach(var mail in user.OtherMails)
+                        {
+                            @mail<br />
+                        }
+                    </td>
                 </tr>
             }
         </tbody>

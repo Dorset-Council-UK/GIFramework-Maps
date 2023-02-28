@@ -1,6 +1,6 @@
-﻿@model Microsoft.Graph.User
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.UserEditModel
 @{
-    ViewData["Title"] = $"Manage user '{Model.DisplayName}'";
+    ViewData["Title"] = $"Manage user '{Model.User.DisplayName}'";
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -10,22 +10,58 @@
 <form asp-action="Edit">
     <div class="row mt-4 mb-2">
         <div class="col-md-6">
-        
-            <h2>Roles</h2>
+            <p>User details are managed through the external identity provider</p>
+            <table class="table table-striped">
+                <tr><th>User ID</th><td>@Model.User.Id</td></tr>
+                <tr><th>Display Name</th><td>@Model.User.DisplayName </td></tr>
+                <tr>
+                    <th>Email(s)</th>
+                    <td>
+                        @foreach (var mail in Model.User.OtherMails)
+                        {
+                            @mail
 
-            <h2>Versions</h2>
+                            <br />
+                        }
+                    </td>
+                </tr>
+
+            </table>
+        </div>
+    </div>
+    <div class="row mt-4 mb-2">
+        <div class="col-md-6">
+            <div class="card mb-2">
+                <div class="card-header">
+                    Assigned Roles
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">Roles can give users powerful permissions. Assign with caution.</div>
+                    <partial name="ManagementPartials/UserRoleList" model="Model" />
+                </div>
+            </div>
             
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-2">
+                <div class="card-header">
+                    Versions
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">Only versions that require a login are shown.</div>
 
-            <div class="mb-3">
-                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
-                <a asp-action="Index" class="btn btn-link">Cancel</a>
+                    <partial name="ManagementPartials/UserVersionList" model="Model" />
+                </div>
             </div>
 
         
         </div>
         
     </div>
-
+    <div class="mb-3">
+        <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+        <a asp-action="Index" class="btn btn-link">Cancel</a>
+    </div>
 </form>
 
 

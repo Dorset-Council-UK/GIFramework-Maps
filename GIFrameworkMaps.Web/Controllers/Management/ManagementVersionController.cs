@@ -333,6 +333,5 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             ViewData["SelectedCategories"] = model.SelectedCategories;
             ViewData["AllCategories"] = model.AvailableCategories;
         }
-
     }
 }

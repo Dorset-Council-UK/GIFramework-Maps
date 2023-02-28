@@ -31,5 +31,7 @@ namespace GIFrameworkMaps.Data
         Task<List<TourDetails>> GetTours();
         Task<TourStep> GetStep(int id);
         Task<List<TourStep>> GetSteps();
+        Task<Microsoft.Graph.Beta.Models.UserCollectionResponse> GetUsers();
+        Task<Microsoft.Graph.Beta.Models.User> GetUser(string id);
     }
 }

@@ -9,6 +9,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Graph.Beta;
+using Azure.Identity;
+using Microsoft.Extensions.Configuration;
 
 namespace GIFrameworkMaps.Data
 {
@@ -18,12 +21,17 @@ namespace GIFrameworkMaps.Data
         private readonly ILogger<ManagementRepository> _logger;
         private readonly IApplicationDbContext _context;
         private readonly IMemoryCache _memoryCache;
+        private readonly IConfiguration _configuration;
 
-        public ManagementRepository(ILogger<ManagementRepository> logger, IApplicationDbContext context, IMemoryCache memoryCache)
+        public ManagementRepository(ILogger<ManagementRepository> logger, 
+            IApplicationDbContext context, 
+            IMemoryCache memoryCache,
+            IConfiguration configuration)
         {
             _logger = logger;
             _context = context;
             _memoryCache = memoryCache;
+            _configuration = configuration;
         }
 
         public async Task<List<Attribution>> GetAttributions()
@@ -218,6 +226,54 @@ namespace GIFrameworkMaps.Data
                 .ToListAsync();
 
             return layerCategories;
+        }
+
+        public async Task<Microsoft.Graph.Beta.Models.UserCollectionResponse> GetUsers()
+        {
+            var graphClient = GetGraphClient();
+            if (graphClient != null)
+            {
+                var users = await graphClient.Users.GetAsync();
+                return users;
+            }
+            return null;
+        }
+
+        public async Task<Microsoft.Graph.Beta.Models.User> GetUser(string id)
+        {
+            var graphClient = GetGraphClient();
+            if (graphClient != null)
+            {
+                var user = await graphClient.Users[id].GetAsync();
+                return user;
+            }
+            return null;
+        }
+
+        private GraphServiceClient GetGraphClient()
+        {
+            if (!string.IsNullOrEmpty(_configuration.GetSection("AzureAd")["ClientId"]))
+            {
+                var scopes = new[] { "https://graph.microsoft.com/.default" };
+
+
+                var tenantId = _configuration.GetSection("AzureAd")["TenantId"];
+                var clientId = _configuration.GetSection("AzureAd")["ClientId"];
+                var clientSecret = _configuration.GetSection("AzureAd")["ClientSecret"];
+
+                var options = new TokenCredentialOptions
+                {
+                    AuthorityHost = AzureAuthorityHosts.AzurePublicCloud
+                };
+
+                // https://learn.microsoft.com/dotnet/api/azure.identity.clientsecretcredential
+                var clientSecretCredential = new ClientSecretCredential(
+                    tenantId, clientId, clientSecret, options);
+
+                var graphClient = new GraphServiceClient(clientSecretCredential, scopes);
+                return graphClient;
+            }
+            return null;
         }
 
         /// <summary>
