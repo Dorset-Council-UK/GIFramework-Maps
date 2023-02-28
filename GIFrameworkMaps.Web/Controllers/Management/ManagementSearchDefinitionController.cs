@@ -40,16 +40,76 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(searchDefinitions);
         }
 
-        // GET: SearchDefinition/Create
-        public IActionResult Create()
+        // GET: APISearchDefinition/Create
+        public IActionResult CreateAPISearchDefinition()
         {
             return View();
         }
 
-        //POST: SearchDefinition/Create
-        [HttpPost, ActionName("Create")]
+        // GET: DatabaseSearchDefinition/Create
+        public IActionResult CreateDatabaseSearchDefinition()
+        {
+            return View();
+        }
+
+        // GET: LocalSearchDefinition/Create
+        public IActionResult CreateLocalSearchDefinition()
+        {
+            return View();
+        }
+
+        //POST: APISearchDefinition/Create
+        [HttpPost, ActionName("CreateAPISearchDefinition")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(SearchDefinition searchDefinition)
+        public async Task<IActionResult> CreateAPISearchDefinitionPost(APISearchDefinition searchDefinition)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Add(searchDefinition);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Search definition creation failed");
+                    ModelState.AddModelError("", "Unable to save changes. " +
+                        "Try again, and if the problem persists, " +
+                        "contact your system administrator.");
+                }
+            }
+            return View(searchDefinition);
+        }
+
+        //POST: DatabaseSearchDefinition/Create
+        [HttpPost, ActionName("CreateDatabaseSearchDefinition")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateDatabaseSearchDefinitionPost(DatabaseSearchDefinition searchDefinition)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Add(searchDefinition);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Search definition creation failed");
+                    ModelState.AddModelError("", "Unable to save changes. " +
+                        "Try again, and if the problem persists, " +
+                        "contact your system administrator.");
+                }
+            }
+            return View(searchDefinition);
+        }
+
+        //POST: LocalSearchDefinition/Create
+        [HttpPost, ActionName("CreateLocalSearchDefinition")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateLocalSearchDefinitionPost(LocalSearchDefinition searchDefinition)
         {
             if (ModelState.IsValid)
             {
@@ -134,59 +194,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(searchDefinition);
         }
 
-        //// POST: SearchDefinition/Edit/1
-        //[HttpPost, ActionName("Edit")]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> EditPost(int id)
-        //{
-        //    var searchDefinitionToUpdate = await _context.SearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
-
-        //    if (await TryUpdateModelAsync(
-        //        searchDefinitionToUpdate,
-        //        "",
-        //        a => a.Name, 
-        //        a => a.Title, 
-        //        a => a.AttributionHtml, 
-        //        a => a.MaxResults, 
-        //        a => a.ZoomLevel, 
-        //        a => a.EPSG, 
-        //        a => a.ValidationRegex,
-        //        a => a.SupressGeom))
-        //        a => a.Discriminator,
-        //        a => a.URLTemplate,
-        //        a => a.XFieldPath,
-        //        a => a.YFieldPath,
-        //        a => a.TitleFieldPath,
-        //        a => a.GeomFieldPath,
-        //        a => a.TableName,
-        //        a => a.XField,
-        //        a => a.YField,
-        //        a => a.GeomField,
-        //        a => a.WhereClause,
-        //        a => a.OrderbyClause,
-        //        a => a.MBRXMaxPath,
-        //        a => a.MBRXMinPath,
-        //        a => a.MBRYMaxPath,
-        //        a => a.MBRYMinPath,
-        //        a => a.LocalSearchName))
-        //    {
-
-        //        try
-        //        {
-        //            await _context.SaveChangesAsync();
-        //            return RedirectToAction(nameof(Index));
-        //        }
-        //        catch (DbUpdateException ex )
-        //        {
-        //            _logger.LogError(ex, "Serah definition edit failed");
-        //            ModelState.AddModelError("", "Unable to save changes. " +
-        //                "Try again, and if the problem persists, " +
-        //                "contact your system administrator.");
-        //        }
-        //    }
-        //    return View(searchDefinitionToUpdate);
-        //}
-
         // POST: APISearchDefinition/Edit/1
         [HttpPost, ActionName("EditAPISearchDefinition")]
         [ValidateAntiForgeryToken]
@@ -254,7 +261,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.XField,
                 a => a.YField,
                 a => a.GeomField,
-                a => a.WhereClause))
+                a => a.WhereClause,
+                a => a.OrderByClause))
             {
 
                 try

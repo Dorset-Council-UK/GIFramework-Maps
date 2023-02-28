@@ -8,7 +8,9 @@
 <h1>@ViewData["Title"]</h1>
 <p class="lead">Create, edit and delete search definitions</p>
 
-<a href="@Url.Action("Create")" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add new search definition</a>
+<a href="@Url.Action("CreateAPISearchDefinition")" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add new API search definition</a>
+<a href="@Url.Action("CreateDatabaseSearchDefinition")" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add new database search definition</a>
+<a href="@Url.Action("CreateLocalSearchDefinition")" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add new local search definition</a>
 
 @if (Model != null)
 {
