@@ -13,60 +13,8 @@
     <div class="col-md-8">
         <form asp-action="CreateLocalSearchDefinition">
             <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
-            <div class="mb-3">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <div class="form-text">A friendly name for administrators</div>
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Title" class="control-label"></label>
-                <input asp-for="Title" class="form-control" />
-                <div class="form-text">The name that will appear in the search results list</div>
-                <span asp-validation-for="Title" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="AttributionHtml" class="control-label"></label>
-                <input asp-for="AttributionHtml" class="form-control" />
-                <span asp-validation-for="AttributionHtml" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="MaxResults" class="control-label"></label>
-                <input asp-for="MaxResults" class="form-control" />
-                <span asp-validation-for="MaxResults" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="ZoomLevel" class="control-label"></label>
-                <input asp-for="ZoomLevel" class="form-control" />
-                <span asp-validation-for="ZoomLevel" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="EPSG" class="control-label"></label>
-                <select asp-for="EPSG" class="form-select">
-                    <option value="27700">27700 - British National Grid</option>
-                    <option value="4326">4326 - WGS 84 World Geodetic System</option>
-                    <option value="3857">3857 - WGS 84 Pseudo-Mercator</option>
-                </select>
-                <span asp-validation-for="EPSG" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="ValidationRegex" class="control-label"></label>
-                <input asp-for="ValidationRegex" class="form-control" />
-                <span asp-validation-for="ValidationRegex" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="SupressGeom" class="control-label">Supress geometry?</label>
-                <input asp-for="SupressGeom" class="form-check-input" type="checkbox" />
-                <div class="form-text">This prevents a pin, line or polygon from being drawn on the map when a user clicks on a search result</div>
-                <span asp-validation-for="SupressGeom" class="text-danger"></span>
-            </div>
+            
+            <partial name="ManagementPartials/SearchDefinitionFormPartial" model="Model" />
 
             <div class="mb-3">
                 <label asp-for="LocalSearchName" class="control-label"></label>
