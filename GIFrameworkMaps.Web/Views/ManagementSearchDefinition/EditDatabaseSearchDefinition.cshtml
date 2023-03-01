@@ -37,6 +37,12 @@
             </div>
 
             <div class="mb-3">
+                <label asp-for="TitleField" class="control-label"></label>
+                <input asp-for="TitleField" class="form-control" />
+                <span asp-validation-for="TitleField" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
                 <label asp-for="WhereClause" class="control-label"></label>
                 <input asp-for="WhereClause" class="form-control" />
                 <span asp-validation-for="WhereClause" class="text-danger"></span>
