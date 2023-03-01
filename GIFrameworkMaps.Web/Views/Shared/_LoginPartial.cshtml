@@ -23,9 +23,10 @@
         }
         else
         {
-        <li class="nav-item">
-            <a class="nav-link" id="login" asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="SignIn">Login/Register</a>
-        </li>
+            string redirectUrl = Context.Request.Path;
+            <li class="nav-item">
+                <a class="nav-link" id="login" asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="SignIn" asp-route-redirectUri="@redirectUrl">Login/Register</a>
+            </li>
         }
     </ul>
 }
