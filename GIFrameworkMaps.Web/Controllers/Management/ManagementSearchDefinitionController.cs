@@ -261,6 +261,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.XField,
                 a => a.YField,
                 a => a.GeomField,
+                a => a.TitleField,
                 a => a.WhereClause,
                 a => a.OrderByClause))
             {
