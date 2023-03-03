@@ -46,10 +46,12 @@ export class Search {
     static mapLockedFromSearch: boolean = false;
     curSearchResultExtent: olExtent.Extent;
     curSearchResultMaxZoom: number;
+    enableMultipleSearchResultsOnMap: boolean = false;
     _resultsLayer: VectorLayer<any>;
     _vectorSource: VectorSource<any>;
     _iconStyle: Style;
     _polyStyle: Style;
+    _localStorageKey: string = 'enableMultipleSearchResultsOnMap';
 
     constructor(container: string, gifwMapInstance: GIFWMap, searchOptionsURL: string, searchEndpointURL:string) {
         this.container = container;
@@ -101,6 +103,13 @@ export class Search {
                 this.close();
                 this.hideSearchControl();
             });
+        }
+        //get multiple search results preference
+        if (Util.Browser.storageAvailable('localStorage')) {
+            //check for storage item
+            if (localStorage.getItem(this._localStorageKey) === 'true') {
+                this.enableMultipleSearchResultsOnMap = true;
+            }
         }
         //add event listener for closure
         document.getElementById(this.gifwMapInstance.id).addEventListener(
@@ -307,7 +316,9 @@ export class Search {
                     resultItem.innerText = r.displayText;
                     resultItem.addEventListener('click', e => {
                         e.preventDefault();
-                        this.removeSearchResultsFromMap();
+                        if (!this.enableMultipleSearchResultsOnMap) {
+                            this.removeSearchResultsFromMap();
+                        }
                         this.zoomToResult(r);
                         if (!c.supressGeom) {
                             this.drawResultOnMap(r, c);
@@ -464,10 +475,14 @@ export class Search {
 
     private drawSearchResultFeatureOnMap(feature: Feature, popupContent: string | Element, popupTitle: string, style: Style, epsg:number = 3857) {
         let removeAction = new GIFWPopupAction("Remove search result", () => {
+            this.removeSearchResultFromMap(feature);
+        }, true, true);
+
+        let removeAllAction = new GIFWPopupAction("Remove all search results", () => {
             this.removeSearchResultsFromMap();
         }, true, true);
 
-        let popupOpts = new GIFWPopupOptions(popupContent, [removeAction]);
+        let popupOpts = new GIFWPopupOptions(popupContent, [removeAction, removeAllAction]);
 
         feature.set('gifw-popup-opts', popupOpts);
         feature.set('gifw-popup-title', popupTitle);
@@ -481,6 +496,11 @@ export class Search {
 
     private removeSearchResultsFromMap(): void {
         this._resultsLayer.getSource().clear();
+        document.getElementById(this.gifwMapInstance.id).dispatchEvent(new CustomEvent('gifw-update-permalink'));
+    }
+
+    private removeSearchResultFromMap(feature: Feature): void {
+        this._resultsLayer.getSource().removeFeature(feature);
         document.getElementById(this.gifwMapInstance.id).dispatchEvent(new CustomEvent('gifw-update-permalink'));
     }
 
@@ -574,7 +594,8 @@ export class Search {
                             </td>
                            </tr>`;
                 tableBody.insertAdjacentHTML('beforeend', row);
-            })
+            });
+            (searchDefsForm.querySelector('#enableMultipleSearchResults') as HTMLInputElement).checked = this.enableMultipleSearchResultsOnMap;
         }
     }
 
@@ -600,7 +621,7 @@ export class Search {
         let searchDefsForm = document.getElementById('gifw-search-configurator-form');
         let enabledCheckboxes: NodeListOf<HTMLInputElement> = searchDefsForm.querySelectorAll('input[type=checkbox][name^=Enabled]');
         let stopIfFoundCheckboxes: NodeListOf<HTMLInputElement> = searchDefsForm.querySelectorAll('input[type=checkbox][name^=StopIfFound]');
-
+        let enableMultipleSearchResultsCheckbox: HTMLInputElement = searchDefsForm.querySelector('#enableMultipleSearchResults')
         enabledCheckboxes.forEach(cb => {
             let searchDefID = cb.dataset.gifwSearchDefId;
             this.setEnabledSearchDef(parseInt(searchDefID), cb.checked);
@@ -610,6 +631,12 @@ export class Search {
             let searchDefID = cb.dataset.gifwSearchDefId;
             this.setStopIfFoundSearchDef(parseInt(searchDefID), cb.checked);
         })
+
+        this.enableMultipleSearchResultsOnMap = enableMultipleSearchResultsCheckbox.checked;
+        if (Util.Browser.storageAvailable('localStorage')) {
+            //check for storage item
+            localStorage.setItem(this._localStorageKey, this.enableMultipleSearchResultsOnMap ? 'true' : 'false')
+        }
 
         let searchConfiguratorModal = Modal.getInstance(document.getElementById('search-configurator-modal'));
         searchConfiguratorModal.hide();
