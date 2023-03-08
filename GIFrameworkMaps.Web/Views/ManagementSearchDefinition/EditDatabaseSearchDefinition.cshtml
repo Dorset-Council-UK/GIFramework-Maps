@@ -1,0 +1,65 @@
+﻿@model GIFrameworkMaps.Data.Models.Search.DatabaseSearchDefinition
+@{
+    ViewData["Title"] = $"Edit search definition '{Model.Name}'";
+}
+
+<h1>@ViewData["Title"]</h1>
+<div class="row mt-2 mb-2">
+    <div class="col-md-8">
+        <form asp-action="EditDatabaseSearchDefinition">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <partial name="ManagementPartials/SearchDefinitionFormPartial" model="Model" />
+
+            <div class="mb-3">
+                <label asp-for="TableName" class="control-label"></label>
+                <input asp-for="TableName" class="form-control" />
+                <span asp-validation-for="TableName" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="XField" class="control-label"></label>
+                <input asp-for="XField" class="form-control" />
+                <span asp-validation-for="XField" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="YField" class="control-label"></label>
+                <input asp-for="YField" class="form-control" />
+                <span asp-validation-for="YField" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="GeomField" class="control-label"></label>
+                <input asp-for="GeomField" class="form-control" />
+                <span asp-validation-for="GeomField" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TitleField" class="control-label"></label>
+                <input asp-for="TitleField" class="form-control" />
+                <span asp-validation-for="TitleField" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="WhereClause" class="control-label"></label>
+                <input asp-for="WhereClause" class="form-control" />
+                <span asp-validation-for="WhereClause" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+            </div>
+        </form>
+        
+    </div>
+</div>
+<a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
+
+
+
+            
+
+

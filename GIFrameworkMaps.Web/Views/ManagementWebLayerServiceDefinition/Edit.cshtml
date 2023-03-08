@@ -1,0 +1,84 @@
+﻿@model GIFrameworkMaps.Data.Models.WebLayerServiceDefinition
+@{
+    ViewData["Title"] = $"Edit web service layer definition '{Model.Name}'";
+}
+
+<h1>@ViewData["Title"]</h1>
+<div class="row mt-2 mb-2">
+    <div class="col-md-8">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="mb-3">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Url" class="control-label"></label>
+                <input asp-for="Url" class="form-control" type="url" />
+                <span asp-validation-for="Url" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Type" class="control-label"></label>
+                <select asp-for="Type" class="form-select">
+                    <option value="WMS">WMS</option>
+                    <option value="WFS">WFS</option>
+                    <option value="OWS">OWS</option>
+                    <option value="WMTS">WMTS</option>
+                </select>
+                <span asp-validation-for="Type" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Version" class="control-label"></label>
+                <input asp-for="Version" class="form-control" />
+                <span asp-validation-for="Version" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Category" class="control-label"></label>
+                <input asp-for="Category" class="form-control" />
+                <span asp-validation-for="Category" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="SortOrder" class="control-label"></label>
+                <input asp-for="SortOrder" class="form-control" />
+                <span asp-validation-for="SortOrder" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <input asp-for="ProxyMapRequests" class="form-check-input" type="checkbox" />
+                <label asp-for="ProxyMapRequests" class="control-label"> Enable proxy map requests?</label>
+                <span asp-validation-for="ProxyMapRequests" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <input asp-for="ProxyMetaRequests" class="form-check-input" type="checkbox" />
+                <label asp-for="ProxyMetaRequests" class="control-label"> Enable proxy metadata requests?</label>
+                <span asp-validation-for="ProxyMetaRequests" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+            </div>
+        </form>
+        
+    </div>
+</div>
+<a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
+
+
+
+            
+
+

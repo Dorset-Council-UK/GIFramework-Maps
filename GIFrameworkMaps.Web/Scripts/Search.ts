@@ -46,10 +46,12 @@ export class Search {
     static mapLockedFromSearch: boolean = false;
     curSearchResultExtent: olExtent.Extent;
     curSearchResultMaxZoom: number;
+    enableMultipleSearchResultsOnMap: boolean = false;
     _resultsLayer: VectorLayer<any>;
     _vectorSource: VectorSource<any>;
     _iconStyle: Style;
     _polyStyle: Style;
+    _localStorageKey: string = 'enableMultipleSearchResultsOnMap';
 
     constructor(container: string, gifwMapInstance: GIFWMap, searchOptionsURL: string, searchEndpointURL:string) {
         this.container = container;
@@ -101,6 +103,13 @@ export class Search {
                 this.close();
                 this.hideSearchControl();
             });
+        }
+        //get multiple search results preference
+        if (Util.Browser.storageAvailable('localStorage')) {
+            //check for storage item
+            if (localStorage.getItem(this._localStorageKey) === 'true') {
+                this.enableMultipleSearchResultsOnMap = true;
+            }
         }
         //add event listener for closure
         document.getElementById(this.gifwMapInstance.id).addEventListener(
@@ -217,9 +226,11 @@ export class Search {
     */
     private doSearch(searchTerm:string):Promise<SearchResults> {
 
+        let requiredSearches = this.availableSearchDefs.filter(d => { return d.enabled });
+        
         let searchQuery: SearchQuery = {
             query: searchTerm,
-            searches: this.availableSearchDefs.filter(d => { return d.enabled })
+            searches: requiredSearches
         };
 
         let promise = new Promise<SearchResults>((resolve, reject) =>{
@@ -305,7 +316,9 @@ export class Search {
                     resultItem.innerText = r.displayText;
                     resultItem.addEventListener('click', e => {
                         e.preventDefault();
-                        this.removeSearchResultsFromMap();
+                        if (!this.enableMultipleSearchResultsOnMap) {
+                            this.removeSearchResultsFromMap();
+                        }
                         this.zoomToResult(r);
                         if (!c.supressGeom) {
                             this.drawResultOnMap(r, c);
@@ -446,9 +459,6 @@ export class Search {
 
                 this.drawSearchResultFeatureOnMap(g,popupContent,popupTitle, this._polyStyle,result.epsg)
             })
-            
-            
-            this._resultsLayer.getSource().addFeatures(geoJson);
         } else if(result.x && result.y) {            
             let resultIcon = new Feature({
                 geometry: new Point([result.x, result.y]),
@@ -465,10 +475,14 @@ export class Search {
 
     private drawSearchResultFeatureOnMap(feature: Feature, popupContent: string | Element, popupTitle: string, style: Style, epsg:number = 3857) {
         let removeAction = new GIFWPopupAction("Remove search result", () => {
+            this.removeSearchResultFromMap(feature);
+        }, true, true);
+
+        let removeAllAction = new GIFWPopupAction("Remove all search results", () => {
             this.removeSearchResultsFromMap();
         }, true, true);
 
-        let popupOpts = new GIFWPopupOptions(popupContent, [removeAction]);
+        let popupOpts = new GIFWPopupOptions(popupContent, [removeAction, removeAllAction]);
 
         feature.set('gifw-popup-opts', popupOpts);
         feature.set('gifw-popup-title', popupTitle);
@@ -482,6 +496,11 @@ export class Search {
 
     private removeSearchResultsFromMap(): void {
         this._resultsLayer.getSource().clear();
+        document.getElementById(this.gifwMapInstance.id).dispatchEvent(new CustomEvent('gifw-update-permalink'));
+    }
+
+    private removeSearchResultFromMap(feature: Feature): void {
+        this._resultsLayer.getSource().removeFeature(feature);
         document.getElementById(this.gifwMapInstance.id).dispatchEvent(new CustomEvent('gifw-update-permalink'));
     }
 
@@ -565,17 +584,18 @@ export class Search {
             tableBody.innerHTML = '';
             this.availableSearchDefs.sort((a, b) => { return a.order - b.order }).forEach(def => {
                 let row = `<tr>
-                            <td>${def.searchDefinition.name}</td>
+                            <td>${def.name}</td>
                             <td>
-                                <label class="visually-hidden" for="Enabled_${def.searchDefinition.id}">Enable/Disable ${def.searchDefinition.name}</label>
-                                <input type="checkbox" class="form-check-input" name="Enabled_${def.searchDefinition.id}" ${def.enabled ? "checked" : ""} data-gifw-search-def-id="${def.searchDefinition.id}"/></td>
+                                <label class="visually-hidden" for="Enabled_${def.searchDefinitionId}">Enable/Disable ${def.name}</label>
+                                <input type="checkbox" class="form-check-input" name="Enabled_${def.searchDefinitionId}" ${def.enabled ? "checked" : ""} data-gifw-search-def-id="${def.searchDefinitionId}"/></td>
                             <td>
-                                <label class="visually-hidden" for="StopIfFound_${def.searchDefinition.id}">Set search to stop if ${def.searchDefinition.name} is found</label>
-                                <input type="checkbox" class="form-check-input" name="StopIfFound_${def.searchDefinition.id}"${def.stopIfFound ? "checked" : ""} data-gifw-search-def-id="${def.searchDefinition.id}"/>
+                                <label class="visually-hidden" for="StopIfFound_${def.searchDefinitionId}">Set search to stop if ${def.name} is found</label>
+                                <input type="checkbox" class="form-check-input" name="StopIfFound_${def.searchDefinitionId}"${def.stopIfFound ? "checked" : ""} data-gifw-search-def-id="${def.searchDefinitionId}"/>
                             </td>
                            </tr>`;
                 tableBody.insertAdjacentHTML('beforeend', row);
-            })
+            });
+            (searchDefsForm.querySelector('#enableMultipleSearchResults') as HTMLInputElement).checked = this.enableMultipleSearchResultsOnMap;
         }
     }
 
@@ -601,7 +621,7 @@ export class Search {
         let searchDefsForm = document.getElementById('gifw-search-configurator-form');
         let enabledCheckboxes: NodeListOf<HTMLInputElement> = searchDefsForm.querySelectorAll('input[type=checkbox][name^=Enabled]');
         let stopIfFoundCheckboxes: NodeListOf<HTMLInputElement> = searchDefsForm.querySelectorAll('input[type=checkbox][name^=StopIfFound]');
-
+        let enableMultipleSearchResultsCheckbox: HTMLInputElement = searchDefsForm.querySelector('#enableMultipleSearchResults')
         enabledCheckboxes.forEach(cb => {
             let searchDefID = cb.dataset.gifwSearchDefId;
             this.setEnabledSearchDef(parseInt(searchDefID), cb.checked);
@@ -612,6 +632,12 @@ export class Search {
             this.setStopIfFoundSearchDef(parseInt(searchDefID), cb.checked);
         })
 
+        this.enableMultipleSearchResultsOnMap = enableMultipleSearchResultsCheckbox.checked;
+        if (Util.Browser.storageAvailable('localStorage')) {
+            //check for storage item
+            localStorage.setItem(this._localStorageKey, this.enableMultipleSearchResultsOnMap ? 'true' : 'false')
+        }
+
         let searchConfiguratorModal = Modal.getInstance(document.getElementById('search-configurator-modal'));
         searchConfiguratorModal.hide();
         event.preventDefault();
@@ -620,7 +646,7 @@ export class Search {
     private setEnabledSearchDef(searchDefID: number, newState: boolean): void {
         /*TODO could do with some optimization so it doesn't loop through the whole array unnecessarily*/
         this.availableSearchDefs.forEach((def, index, arr) => {
-            if (def.searchDefinition.id === searchDefID) {
+            if (def.searchDefinitionId === searchDefID) {
                 arr[index].enabled = newState;
             }
         })
@@ -629,7 +655,7 @@ export class Search {
     private setStopIfFoundSearchDef(searchDefID: number, newState: boolean): void {
         /*TODO could do with some optimization so it doesn't loop through the whole array unnecessarily*/
         this.availableSearchDefs.forEach((def, index, arr) => {
-            if (def.searchDefinition.id === searchDefID) {
+            if (def.searchDefinitionId === searchDefID) {
                 arr[index].stopIfFound = newState;
             }
         })

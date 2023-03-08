@@ -59,7 +59,10 @@ builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDbContext<ApplicationDbContext>(
-    options => options.UseNpgsql("name=ConnectionStrings:GIFrameworkMaps", x => x.MigrationsHistoryTable("__EFMigrationsHistory", "giframeworkmaps")));
+    options => {
+        options.UseNpgsql("name=ConnectionStrings:GIFrameworkMaps", x => x.MigrationsHistoryTable("__EFMigrationsHistory", "giframeworkmaps"));
+        options.EnableSensitiveDataLogging(true);
+    });
 
 /*TODO Not sure about this line. Is this correct?
  Seems to be the only way to get AutoMapper set up in the Data Access project*/
@@ -89,6 +92,8 @@ else
 }
 
 builder.Services.AddTransient<IAuthorizationHandler, HasAccessToVersionAuthorizationHandler>();
+builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformer>();
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("CanAccessVersion", policy => policy.AddRequirements(new HasAccessToVersionRequirement()));

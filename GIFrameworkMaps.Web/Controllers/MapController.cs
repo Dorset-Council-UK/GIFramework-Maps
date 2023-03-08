@@ -1,18 +1,10 @@
 ﻿using GIFrameworkMaps.Data;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Authentication;
-using NuGet.Protocol;
 using Microsoft.Extensions.Configuration;
 
 namespace GIFrameworkMaps.Web.Controllers

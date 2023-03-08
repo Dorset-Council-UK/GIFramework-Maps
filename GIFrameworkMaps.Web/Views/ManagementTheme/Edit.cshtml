@@ -1,0 +1,53 @@
+﻿@model GIFrameworkMaps.Data.Models.Theme
+@{
+    ViewData["Title"] = $"Edit theme '{Model.Name}'";
+}
+
+<h1>@ViewData["Title"]</h1>
+<div class="row mt-2 mb-2">
+    <div class="col-md-8">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="mb-3">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Description" class="control-label"></label>
+                <textarea asp-for="Description" class="form-control"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="PrimaryColour" class="control-label"></label>
+                <input asp-for="PrimaryColour" class="form-control form-control-color" type="color" />
+                <span asp-validation-for="PrimaryColour" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="LogoURL" class="control-label"></label>
+                <input asp-for="LogoURL" class="form-control" type="url" />
+                <div class="form-text">The logo in the top left. Leave this blank to not include a logo</div>
+                <span asp-validation-for="LogoURL" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="CustomFaviconURL" class="control-label"></label>
+                <input asp-for="CustomFaviconURL" class="form-control" type="url" />
+                <div class="form-text">If you want a custom favicon, link to your files here. Leave this blank to use the default favicon</div>
+                <span asp-validation-for="CustomFaviconURL" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+            </div>
+        </form>
+        
+    </div>
+</div>
+<a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
+
+
+
+            
+
+

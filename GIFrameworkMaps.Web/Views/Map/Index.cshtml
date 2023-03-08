@@ -70,9 +70,6 @@
         <div id="gifw-popup-content" class="ol-popup-content">No content here yet</div>
     </div>
 
-
-
-
     <section id="broadcast-notifications-container">
         <partial name="Partials/BroadcastNotifications" />
     </section>
@@ -103,9 +100,6 @@
     <partial name="Partials/Modals/WelcomeMessageModal" model="Model.WelcomeMessage" />
 }
 @section Scripts{
-    @*TODO - This is nasty, should be converted to a single call to retrieve a JSON block rather than
-        shoving the data into the view
-    *@
     <script>
         var gifw_appinsights_key = "@(configuration.GetValue<string>("ApplicationInsights:ConnectionString"))";
         var gifw_version_config_url = "@Url.Action("VersionConfiguration","API",new {id=Model.Id})";

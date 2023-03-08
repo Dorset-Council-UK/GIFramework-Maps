@@ -1,0 +1,15 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.UserEditModel
+
+@foreach (var version in Model.AvailableVersions)
+{
+    bool isChecked = Model.AvailableVersions != null && Model.SelectedVersions.Where(b => b == version.Id).Count() != 0;
+    <div class="form-check">
+        <input type="checkbox"
+               class="form-check-input"
+               name="SelectedVersions"
+               value="@version.Id"
+               id="SelectedVersions__@version.Id"
+        @(Html.Raw(isChecked ? "checked=\"checked\"" : "")) />
+        <label class="form-check-label" for="SelectedVersions__@version.Id">@version.Name <span class="text-muted fst-italic">/@version.Slug</span></label>
+    </div>
+}

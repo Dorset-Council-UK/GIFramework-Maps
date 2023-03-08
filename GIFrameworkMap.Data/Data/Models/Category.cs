@@ -14,7 +14,9 @@ namespace GIFrameworkMaps.Data.Models
         public string Name { get; set; }
         public string Description { get; set; }
         public int Order { get; set; }
-        public virtual List<CategoryLayer> Layers { get; set; }
+        [Display(Name="Parent Category (optional)")]
+        public int? ParentCategoryId { get; set; }
+        public List<CategoryLayer> Layers { get; set; }
         public Category ParentCategory { get; set; }
     }
 }

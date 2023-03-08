@@ -1,14 +1,27 @@
-﻿@{
+﻿@using System.Security.Principal
+
+@{
     ViewData["Title"] = "My account";
 }
 
 <h1>@ViewData["Title"]</h1>
 
-<h2>Details</h2>
-<p>Your email address and password is managed by your external identity provider. </p>
+<p>Your account details are managed by the identity provider you logged in with. </p>
 
-<p>You can update the details you give us using the Edit Profile button below</p>
-<p>
-    <a class="btn btn-primary" id="login" asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="EditProfile">Edit Profile</a>
-</p>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <tr><th>User name</th><td>@User.Identity.Name</td></tr>
+        <tr><th>Email address</th><td>@User.Claims.FirstOrDefault(c => c.Type.Contains("email")).Value </td></tr>
+        <tr><th>User ID</th><td>@User.Claims.FirstOrDefault(c => c.Type.Contains("nameidentifier")).Value</td></tr>
 
+    </table>
+</div>
+
+<h2 class="my-4">Full details</h2>
+
+<a class="btn btn-primary" data-bs-toggle="collapse" href="#diagnostics-collapse" role="button" aria-expanded="false" aria-controls="diagnostics-collapse">
+    View full account information
+</a>
+<div class="collapse my-4" id="diagnostics-collapse">
+    <partial name="Diagnostics" />
+</div>

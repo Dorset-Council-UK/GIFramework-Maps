@@ -1,0 +1,29 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.LayerSourceOptionEditModel
+@{
+    ViewData["Title"] = $"Delete layer source option";
+}
+
+<h1>@ViewData["Title"]</h1>
+<div class="row mt-2">
+    <h2>Are you sure you want to delete this layer source option?</h2>
+    <p class="lead">This action cannot be undone.</p>
+    
+    <p>Deleting option '@Model.LayerSourceOption.Name' from source '@Model.LayerSource.Name'</p>
+
+    <form asp-action="DeleteOption">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+        <input type="hidden" asp-for="LayerSourceOption.Id" />
+        <div class="mb-3">
+            <input type="submit" value="Delete" class="btn btn-danger" />
+        </div>
+    </form>
+
+</div>
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.LayerSourceOption.LayerSourceId">Cancel</a>
+</div>
+
+            
+
+

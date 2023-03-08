@@ -13,8 +13,16 @@
     <p>Click the big red button below to clear the in memory cache for the application.</p>
     <p>All cached objects will be purged and will need to be retrieved from storage again.</p>
     <form asp-controller="ManagementSystem" asp-action="PurgeCache" method="post">
-        <input type="submit" class="btn btn-danger" value="Purge Memory Cache"/>
+        <input type="submit" class="btn btn-danger" value="Purge Memory Cache" />
     </form>
+</div>
+<br>
+<div class="row">
+    <h2>Web layer service definitions</h2>
+    <p>Create, edit and delete web layer service definitions</p>
+    <p>
+        <a href="@Url.Action("Index","ManagementWebLayerServiceDefinition")" class="btn btn-primary"><i class="bi"></i> Manage web layer service definitions</a>
+    </p>
 </div>
 
             

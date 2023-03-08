@@ -1,5 +1,4 @@
-﻿@model List<GIFrameworkMaps.Data.Models.Version>
-@using Microsoft.Extensions.Configuration;
+﻿@using Microsoft.Extensions.Configuration;
 @inject IConfiguration configuration;
 @{
     string appName = configuration.GetValue<string>("GIFrameworkMaps:appName");
@@ -13,7 +12,7 @@
         <div class="col">
             <div class="card link-card h-100">
                 <div class="card-body">
-                    <a href="#" class="stretched-link">
+                    <a asp-action="Index" asp-controller="ManagementVersion" class="stretched-link">
                         <h4 class="card-title"><i class="bi bi-map"></i> Versions</h4>
                     </a>
                     <p class="card-text">Create, update and delete @appName versions</p>
@@ -24,7 +23,7 @@
         <div class="col">
             <div class="card link-card h-100">
                 <div class="card-body">
-                    <a href="#">
+                    <a asp-action="Index" asp-controller="ManagementLayer" class="stretched-link">
                         <h4 class="card-title"><i class="bi bi-geo"></i> Layers</h4>
                         <p class="card-text">Manage layers consumed by @appName</p>
                     </a>
@@ -35,7 +34,7 @@
         <div class="col">
             <div class="card link-card h-100">
                 <div class="card-body">
-                    <a href="#">
+                    <a asp-action="Index" asp-controller="ManagementUser" class="stretched-link">
                         <h4 class="card-title"><i class="bi bi-people"></i> Users</h4>
                         <p class="card-text">Manage user permissions</p>
                     </a>
@@ -46,7 +45,7 @@
         <div class="col">
             <div class="card link-card h-100">
                 <div class="card-body">
-                    <a href="#">
+                    <a asp-action="Index" asp-controller="ManagementSearchDefinition" class="stretched-link">
                         <h4 class="card-title"><i class="bi bi-search"></i> Search definitions</h4>
                         <p class="card-text">Manage searches available in @appName</p>
                     </a>
@@ -57,7 +56,62 @@
         <div class="col">
             <div class="card link-card h-100">
                 <div class="card-body">
-                    <a href="@Url.Action("Index","ManagementSystem")">
+                    <a asp-action="Index" asp-controller="ManagementTheme" class="stretched-link">
+                        <h4 class="card-title"><i class="bi bi-palette"></i> Themes</h4>
+                        <p class="card-text">Manage themes available in @appName</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a asp-action="Index" asp-controller="ManagementAttribution" class="stretched-link">
+                        <h4 class="card-title"><i class="bi bi-c-circle"></i> Attributions</h4>
+                        <p class="card-text">Manage attributions available in @appName</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a asp-action="Index" asp-controller="ManagementBound" class="stretched-link">
+                        <h4 class="card-title"><i class="bi bi-bounding-box-circles"></i> Bounds</h4>
+                        <p class="card-text">Manage the bounds available in @appName</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a asp-action="Index" asp-controller="ManagementTour" class="stretched-link">
+                        <h4 class="card-title"><i class="bi bi-binoculars-fill"></i> Tours</h4>
+                        <p class="card-text">Manage the tours available in @appName</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a asp-action="Index" asp-controller="ManagementWelcomeMessage" class="stretched-link">
+                        <h4 class="card-title"><i class="bi bi-laptop"></i> Welcome messages</h4>
+                        <p class="card-text">Manage the welcome messages available in @appName</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a asp-action="Index" asp-controller="ManagementSystem" class="stretched-link">
                         <h4 class="card-title"><i class="bi bi-gear"></i> System</h4>
                         <p class="card-text">Check and update system settings and cache</p>
                     </a>
@@ -68,7 +122,7 @@
         <div class="col">
             <div class="card link-card h-100">
                 <div class="card-body">
-                    <a href="@Url.Action("BroadcastMessage","Management")">
+                    <a asp-action="BroadcastMessage" asp-controller="Management" class="stretched-link">
                         <h4 class="card-title"><i class="bi bi-broadcast-pin"></i> Broadcast</h4>
                         <p class="card-text">Broadcast a message to @appName users</p>
                     </a>

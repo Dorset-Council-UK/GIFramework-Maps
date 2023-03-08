@@ -24,12 +24,20 @@ namespace GIFrameworkMaps.Data
         public DbSet<Models.Print.PrintConfiguration> PrintConfigurations { get; set; }
         public DbSet<Models.WelcomeMessage> WelcomeMessages { get; set; }
         public DbSet<Models.Tour.TourDetails> TourDetails { get; set; }
+        public DbSet<Models.Tour.TourStep> TourStep { get; set; }
         public DbSet<Models.Layer> Layer { get; set; }
         public DbSet<Models.Basemap> Basemap { get; set; }
+        public DbSet<Models.Category> Category { get; set; }
         public DbSet<Models.Authorization.ApplicationRole> ApplicationRoles { get; set; }
         public DbSet<Models.Authorization.ApplicationUserRole> ApplicationUserRoles { get; set; }
         public DbSet<Models.WebLayerServiceDefinition> WebLayerServiceDefinitions { get; set; }
         public DbSet<Models.ProxyAllowedHost> ProxyAllowedHosts{get;set;}
+        public DbSet<Models.Attribution> Attribution { get; set; }
+        public DbSet<Models.Theme> Theme { get; set; }
+        public DbSet<Models.Bound> Bound { get; set; }
+        public DbSet<Models.LayerSource> LayerSource { get; set; }
+        public DbSet<Models.LayerSourceType> LayerSourceType { get; set; }
+        public DbSet<Models.LayerSourceOption> LayerSourceOption { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

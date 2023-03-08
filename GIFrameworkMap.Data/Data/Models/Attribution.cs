@@ -1,19 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace GIFrameworkMaps.Data.Models
 {
     public class Attribution
     {
-        private string _attributionHtml;
-
         public int Id { get; set; }
+        [Required]
         public string Name { get; set; }
-        public string AttributionHTML
+        [Display(Name="Attribution HTML")]
+        [Required]
+        public string AttributionHTML { get; set; }
+        [NotMapped]
+        public string RenderedAttributionHTML
         {
-            get => _attributionHtml;
-            set => _attributionHtml = value.Replace("{{CURRENT_YEAR}}",DateTime.Now.Year.ToString());
+            get => AttributionHTML?.Replace("{{CURRENT_YEAR}}", DateTime.Now.Year.ToString());
         }
     }
 }

@@ -41,6 +41,7 @@ namespace GIFrameworkMaps.Web
             IWebHostEnvironment env, 
             IHttpForwarder forwarder)
         {
+
             app.UseForwardedHeaders();
             if (env.IsDevelopment())
             {
@@ -105,6 +106,71 @@ namespace GIFrameworkMaps.Web
                     name: "ManagementInterface-System",
                     pattern: "Management/System/{action=Index}/{id?}",
                     defaults: new {controller="ManagementSystem",action="Index"});
+
+                endpoints.MapControllerRoute(
+                    name: "ManagementInterface-Attribution",
+                    pattern: "Management/Attribution/{action=Index}/{id?}",
+                    defaults: new { controller = "ManagementAttribution", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                    name: "ManagementInterface-Version",
+                    pattern: "Management/Version/{action=Index}/{id?}",
+                    defaults: new { controller = "ManagementVersion", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                   name: "ManagementInterface-Bound",
+                   pattern: "Management/Bound/{action=Index}/{id?}",
+                   defaults: new { controller = "ManagementBound", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                   name: "ManagementInterface-Theme",
+                   pattern: "Management/Theme/{action=Index}/{id?}",
+                   defaults: new { controller = "ManagementTheme", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                   name: "ManagementInterface-WelcomeMessage",
+                   pattern: "Management/WelcomeMessage/{action=Index}/{id?}",
+                   defaults: new { controller = "ManagementWelcomeMessage", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                   name: "ManagementInterface-WebLayerServiceDefinition",
+                   pattern: "Management/System/WebLayerServiceDefinition/{action=Index}/{id?}",
+                   defaults: new { controller = "ManagementWebLayerServiceDefinition", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                   name: "ManagementInterface-SearchDefinition",
+                   pattern: "Management/SearchDefinition/{action=Index}/{id?}",
+                   defaults: new { controller = "ManagementSearchDefinition", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                    name: "ManagementInterface-Tour",
+                    pattern: "Management/Tour/{action=Index}/{id?}",
+                    defaults: new { controller = "ManagementTour", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                    name: "ManagementInterface-TourStep",
+                    pattern: "Management/TourStep/{action=Index}/{id?}",
+                    defaults: new { controller = "ManagementTourStep", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                   name: "ManagementInterface-Layer",
+                   pattern: "Management/Layer/{action=Index}/{id?}",
+                   defaults: new { controller = "ManagementLayer", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                   name: "ManagementInterface-LayerSource",
+                   pattern: "Management/LayerSource/{action=Index}/{id?}",
+                   defaults: new { controller = "ManagementLayerSource", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                   name: "ManagementInterface-LayerCategory",
+                   pattern: "Management/LayerCategory/{action=Index}/{id?}",
+                   defaults: new { controller = "ManagementLayerCategory", action = "Index" });
+
+                endpoints.MapControllerRoute(
+                    name: "ManagementInterface-User",
+                    pattern: "Management/User/{action=Index}/{id?}",
+                    defaults: new { controller = "ManagementUser", action = "Index" });
 
                 endpoints.MapControllerRoute("General_Map_Redirect", "Map", new { controller = "Map", action = "RedirectToGeneral" });
                 

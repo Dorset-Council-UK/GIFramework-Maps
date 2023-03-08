@@ -1,0 +1,36 @@
+﻿@model GIFrameworkMaps.Data.Models.Attribution
+@{
+    ViewData["Title"] = $"Create new attribution";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row mt-2">
+    <div class="col-md-8">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <div class="mb-3">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="AttributionHTML" class="control-label"></label>
+                <textarea asp-for="AttributionHTML" class="form-control"></textarea>
+                <div class="form-text">Use the placeholder {{CURRENT_YEAR}} to add the current year automatically</div>
+                <span asp-validation-for="AttributionHTML" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <input type="submit" value="Create" class="btn btn-lg btn-primary" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+
+            
+
+
+

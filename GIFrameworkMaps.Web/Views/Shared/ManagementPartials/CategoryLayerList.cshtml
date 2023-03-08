@@ -1,0 +1,15 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.CategoryEditModel
+
+@foreach (var layer in Model.AvailableLayers)
+{
+    bool isChecked = Model.SelectedLayers != null && Model.SelectedLayers.Where(b => b == layer.Id).Count() != 0;
+    <div class="form-check">
+        <input type="checkbox"
+            class="form-check-input"
+           name="SelectedLayers"
+            value="@layer.Id"
+            id="SelectedLayers__@layer.Id"
+        @(Html.Raw(isChecked ? "checked=\"checked\"" : "")) />
+        <label class="form-check-label" for="SelectedLayers__@layer.Id">@layer.Name</label>
+    </div>
+}

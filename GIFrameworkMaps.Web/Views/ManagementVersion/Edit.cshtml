@@ -1,0 +1,140 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.VersionEditModel
+@{
+    ViewData["Title"] = $"Edit version '{Model.Version.Name}'";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<a asp-action="Index">Cancel</a>
+
+<form asp-action="Edit">
+    <div class="row mt-4 mb-2">
+        <div class="col-md-6">
+        
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <input type="hidden" asp-for="Version.Id" />
+            <div class="mb-3">
+                <label asp-for="Version.Name" class="control-label"></label>
+                <input asp-for="Version.Name" class="form-control" />
+                <span asp-validation-for="Version.Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Version.Slug" class="control-label"></label>
+                <input asp-for="Version.Slug" class="form-control" />
+                <span asp-validation-for="Version.Slug" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Version.Description" class="control-label"></label>
+                <textarea asp-for="Version.Description" class="form-control"></textarea>
+                <div class="form-text">This is put in the metadata of the version and is read by search engines</div>
+                <span asp-validation-for="Version.Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Version.ThemeId" class="control-label"></label>
+                <select asp-for="Version.ThemeId" asp-items="Model.AvailableThemes" class="form-select"></select>
+                <span asp-validation-for="Version.ThemeId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Version.BoundId" class="control-label"></label>
+                <select asp-for="Version.BoundId" asp-items="Model.AvailableBounds" class="form-select"></select>
+                <span asp-validation-for="Version.BoundId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <input asp-for="Version.Enabled" class="form-check-input" />
+                <label asp-for="Version.Enabled" class="form-check-label"></label>
+                <span asp-validation-for="Version.Enabled" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <input asp-for="Version.RequireLogin" class="form-check-input" />
+                <label asp-for="Version.RequireLogin" class="form-check-label"></label>
+                <span asp-validation-for="Version.RequireLogin" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Version.WelcomeMessageId" class="control-label"></label>
+                <select asp-for="Version.WelcomeMessageId" asp-items="Model.AvailableWelcomeMessages" class="form-select">
+                    <option value="">No welcome message</option>
+                </select>
+                <span asp-validation-for="Version.WelcomeMessageId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Version.TourDetailsId" class="control-label"></label>
+                <select asp-for="Version.TourDetailsId" asp-items="Model.AvailableTours" class="form-select">
+                    <option value="">No tour</option>
+                </select>
+                <span asp-validation-for="Version.TourDetailsId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <input asp-for="Version.ShowLogin" class="form-check-input" />
+                <label asp-for="Version.ShowLogin" class="form-check-label"></label>
+                <span asp-validation-for="Version.ShowLogin" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Version.HelpURL" class="control-label"></label>
+                <input asp-for="Version.HelpURL" class="form-control" />
+                <span asp-validation-for="Version.HelpURL" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Version.FeedbackURL" class="control-label"></label>
+                <input asp-for="Version.FeedbackURL" class="form-control" />
+                <span asp-validation-for="Version.FeedbackURL" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Version.RedirectionURL" class="control-label"></label>
+                <input asp-for="Version.RedirectionURL" class="form-control" />
+                <span asp-validation-for="Version.RedirectionURL" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <input asp-for="PurgeCache" class="form-check-input" />
+                <label asp-for="PurgeCache" class="form-check-label"></label>
+                <span asp-validation-for="PurgeCache" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+            </div>
+
+        
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-2">
+                <div class="card-header">
+                    Basemaps
+                </div>
+                <div class="card-body">
+                    <partial name="ManagementPartials/VersionBasemapList" model="Model" view-data="ViewData" />
+                </div>
+            </div>
+
+            <div class="card mb-2">
+                <div class="card-header">
+                    Categories
+                </div>
+                <div class="card-body">
+                    <partial name="ManagementPartials/VersionCategoryList" model="Model.AvailableCategories.Where(c => c.ParentCategoryId == null).ToList()" view-data="ViewData" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <a asp-action="Delete" asp-route-id="@Model.Version.Id" class="btn btn-danger">Delete</a>
+
+</form>
+
+
+
+            
+
+

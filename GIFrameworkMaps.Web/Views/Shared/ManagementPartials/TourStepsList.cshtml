@@ -1,0 +1,29 @@
+﻿@model List<GIFrameworkMaps.Data.Models.Tour.TourStep>
+
+<div class="accordion" id="accordionStep">
+
+    @{
+        int i = 0;
+    }
+    @foreach (GIFrameworkMaps.Data.Models.Tour.TourStep step in Model.OrderBy(a => a.StepNumber))
+{
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="accordion_@i">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne_@i" aria-expanded="true" aria-controls="collapseOne_@i">
+                @step.Title
+            </button>
+        </h2>
+        <div id="collapseOne_@i" class="accordion-collapse collapse @(i == 0 ? "show" : "")" aria-labelledby="accordion_@i" data-bs-parent="#accordionStep">
+            <div class="accordion-body">
+                @Html.Raw(step.Content)
+                <hr/>
+                <a asp-action="Edit" asp-controller="ManagementTourStep" asp-route-id="@step.Id" class="btn btn-primary btn-sm"><i class="bi"></i>Edit</a>
+                <a asp-action="Delete" asp-controller="ManagementTourStep" asp-route-id="@step.Id" class="btn btn-danger btn-sm">Delete</a>
+            </div>
+        </div>
+        </div>
+        
+        i++;
+    }
+
+</div>
