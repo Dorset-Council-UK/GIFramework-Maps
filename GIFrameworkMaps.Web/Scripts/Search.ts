@@ -16,6 +16,7 @@ import { SearchQuery } from './Interfaces/Search/SearchQuery';
 import { RequiredSearch } from './Interfaces/Search/RequiredSearch';
 import Geometry from 'ol/geom/Geometry';
 import { LayerGroupType } from './Interfaces/LayerGroupType';
+import { UserSettings } from './UserSettings';
 
 export class Search {
 
@@ -105,12 +106,10 @@ export class Search {
             });
         }
         //get multiple search results preference
-        if (Util.Browser.storageAvailable('localStorage')) {
-            //check for storage item
-            if (localStorage.getItem(this._localStorageKey) === 'true') {
-                this.enableMultipleSearchResultsOnMap = true;
-            }
+        if (UserSettings.getItem(this._localStorageKey) === 'true') {
+            this.enableMultipleSearchResultsOnMap = true;
         }
+        
         //add event listener for closure
         document.getElementById(this.gifwMapInstance.id).addEventListener(
             'gifw-search-sidebar-close',
@@ -633,10 +632,7 @@ export class Search {
         })
 
         this.enableMultipleSearchResultsOnMap = enableMultipleSearchResultsCheckbox.checked;
-        if (Util.Browser.storageAvailable('localStorage')) {
-            //check for storage item
-            localStorage.setItem(this._localStorageKey, this.enableMultipleSearchResultsOnMap ? 'true' : 'false')
-        }
+        UserSettings.setItem(this._localStorageKey, this.enableMultipleSearchResultsOnMap ? 'true' : 'false');
 
         let searchConfiguratorModal = Modal.getInstance(document.getElementById('search-configurator-modal'));
         searchConfiguratorModal.hide();

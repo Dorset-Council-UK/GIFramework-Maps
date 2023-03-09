@@ -24,6 +24,7 @@ import { Metadata } from "../Metadata/Metadata";
 import { Style } from "../Interfaces/OGCMetadata/Style";
 import ImageLayer from "ol/layer/Image";
 import { LayerFilter } from "../LayerFilter";
+import { UserSettings } from "../UserSettings";
 
 export class LayersPanel implements SidebarPanel {
     container: string;
@@ -46,6 +47,12 @@ export class LayersPanel implements SidebarPanel {
     }
     init() {
         this.previousZoom = Math.ceil(this.gifwMapInstance.olMap.getView().getZoom());
+        /*validate user sort order to make sure its not invalid, revert to default if it is*/
+        let userSortOrder = UserSettings.getItem("LayerControlSortOrderPreference") as LayerListSortingOption;
+        if (!userSortOrder || !(userSortOrder === LayerListSortingOption.Alphabetical)) {
+            userSortOrder = LayerListSortingOption.Default;
+        }
+        this.listSortOrder = userSortOrder;
         this.attachCloseButton();
         this.attachControls();
         this.attachLayerEventListeners();
@@ -199,12 +206,14 @@ export class LayersPanel implements SidebarPanel {
 
         /*SORT*/
         let sortSelect: HTMLSelectElement = container.querySelector('#gifw-layer-switcher-sort');
+        sortSelect.value = this.listSortOrder;
         sortSelect.addEventListener('change', (e) => {
             if (sortSelect.value === 'default') {
                 this.listSortOrder = LayerListSortingOption.Default;
             } else {
                 this.listSortOrder = LayerListSortingOption.Alphabetical;
             }
+            this.updateSortOrderPreference();
             this.renderLayerList();
             this.setLayerVisibilityState();
         })
@@ -1147,6 +1156,10 @@ export class LayersPanel implements SidebarPanel {
             }
         }
 
+    }
+
+    private updateSortOrderPreference() {
+        UserSettings.setItem("LayerControlSortOrderPreference", this.listSortOrder);
     }
 
     /**
