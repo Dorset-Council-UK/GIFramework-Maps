@@ -40,7 +40,7 @@ Security issues should be reported privately, via email, to the Dorset Council G
 GIFrameworkMaps is a Dorset Council Open Source project.
 
 - [Paul Wittle](https://github.com/paul-dorsetcouncil) - Dorset Council
-- [Rob Quincey](https://github.com/RobQuincey-DC) - Dorset Council
+- [Rob Quincey](https://github.com/RobQuincey)
 - [Lucy Bishop](https://github.com/VulpesFerrilata) - Dorset Council
 
 ## Alternatives
