@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.ObjectPool;
 using Npgsql.TypeMapping;
 using System;
 using System.Collections.Generic;
@@ -21,13 +23,15 @@ namespace GIFrameworkMaps.Data
         private readonly IApplicationDbContext _context;
         private readonly IMemoryCache _memoryCache;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CommonRepository(ILogger<CommonRepository> logger, IApplicationDbContext context, IMemoryCache memoryCache, IMapper mapper)
+        public CommonRepository(ILogger<CommonRepository> logger, IApplicationDbContext context, IMemoryCache memoryCache, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _logger = logger;
             _context = context;
             _memoryCache = memoryCache;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
         public Models.Version GetVersionBySlug(string slug1, string slug2, string slug3)
         {            
@@ -250,6 +254,57 @@ namespace GIFrameworkMaps.Data
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(12)
             });
             return allowedHosts;
+        }
+
+        public async Task<string> GenerateShortURL(string url)
+        {
+            string cacheKey = $"ShortURL/{url}";
+            if (_memoryCache.TryGetValue(cacheKey, out string cacheValue))
+            {
+                return cacheValue;
+            }
+
+            var shortURL = await _shortener.Shorten(url);
+
+            _memoryCache.Set(cacheKey, shortURL, new MemoryCacheEntryOptions
+            {
+                Priority = CacheItemPriority.Low,
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+            });
+            return shortURL;
+        }
+
+        string GenerateShortCode()
+        {
+            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var stringChars = new char[6];
+            var random = new Random();
+
+            for (int i = 0; i < stringChars.Length; i++)
+            {
+                stringChars[i] = chars[random.Next(chars.Length)];
+            }
+
+            var finalString = new String(stringChars);
+            return finalString;
+        }
+
+        bool IsURLCurrentApplication(string url)
+        {
+            var uri = new Uri(url);
+            var host = uri.Host;
+            var port = uri.Port;
+            var scheme = uri.Scheme;
+
+            var currentHost = _httpContextAccessor.HttpContext.Request.Host.Host;
+            var currentPort = _httpContextAccessor.HttpContext.Request.Host.Port;
+            var currentScheme = _httpContextAccessor.HttpContext.Request.Scheme;
+
+            if (host == currentHost && port == currentPort && scheme == currentScheme)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

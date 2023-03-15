@@ -212,6 +212,16 @@ namespace GIFrameworkMaps.Web.Controllers
             return Json(services);
         }
 
+        public string GenerateShortUrl(string url)
+        {
+            string shortUrl = "";
+            if (Uri.IsWellFormedUriString(url, UriKind.Absolute))
+            {
+                shortUrl = _repository.GenerateShortUrl(url);
+            }
+            return shortUrl;
+        }
+
     }
 
  }
