@@ -434,14 +434,13 @@
 }
 /*Specialist reverse timeout bar for the layer out of range messages*/
 /*Tranistion timing should match bs toast delay timing on the element itself*/
-#gifw-layer-range-toast .progress-bar {
+#gifw-timed-toast .progress-bar {
     background-color: #e9ecef;
     transition: width 4s linear;
 }
-#gifw-layer-range-toast .progress {
-    
+#gifw-timed-toast .progress {
     background-color: var(--primary-color);
-    height:2px;
+    height: 2px;
 }
 /*dragover effects*/
 .giframeworkMap.dragover::after {

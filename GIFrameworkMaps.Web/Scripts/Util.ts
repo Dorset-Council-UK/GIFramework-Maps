@@ -595,6 +595,22 @@ export namespace Util {
             )
             alert.show();
         }
+
+        static showTimedToast(title: string, content: string, severity: AlertSeverity = AlertSeverity.Info) {
+            let alert = new Util.Alert(
+                Util.AlertType.Toast,
+                severity,
+                title,
+                content,
+                "#gifw-timed-toast"
+            );
+            (document.querySelector('#gifw-timed-toast .progress-bar') as HTMLElement).style.transition = 'none';
+            (document.querySelector('#gifw-timed-toast .progress-bar') as HTMLElement).style.width = '0%';
+            alert.show();
+            (document.querySelector('#gifw-timed-toast .progress-bar') as HTMLElement).style.transition = 'width 4s linear';
+            (document.querySelector('#gifw-timed-toast .progress-bar') as HTMLElement).style.width = '100%';
+
+        }
     }
 
     export class Mapping {
