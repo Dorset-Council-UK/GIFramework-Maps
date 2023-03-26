@@ -91,9 +91,10 @@ export class FeatureQueryResultRenderer {
             }
             if (feature.get('gifw-popup-opts') !== undefined) {
                 popupOptions = (feature.get('gifw-popup-opts') as GIFWPopupOptions);
-
-                popupOptions.actions = [...popupOptions.actions.filter(a => a.fixed), ...popupActions]
-                /*popupOptions.actions.push(...popupActions);*/
+                if (popupOptions.actions) {
+                    popupOptions.actions = [...popupOptions.actions.filter(a => a.fixed), ...popupActions];
+                }
+                
             } else {
                 let content = this.getPopupContentFromFeature(feature, null, layer);
                 popupOptions = new GIFWPopupOptions(content, popupActions, [0, 0]);
