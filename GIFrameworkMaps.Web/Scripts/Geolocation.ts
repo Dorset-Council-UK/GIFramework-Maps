@@ -9,6 +9,8 @@ import { Fill, Stroke, Style } from "ol/style";
 import CircleStyle from "ol/style/Circle";
 import { Util } from "./Util";
 import { Polygon, Point, LineString} from "ol/geom";
+import { GIFWPopupOptions } from "./Popups/PopupOptions";
+import Spinner from "./Spinner";
 
 export class GIFWGeolocation extends olControl {
     gifwMapInstance: GIFWMap;
@@ -19,6 +21,9 @@ export class GIFWGeolocation extends olControl {
     _accuracyFeature: Feature<Polygon>;
     _locationFeature: Feature<Point>;
     _pathFeature: Feature<LineString>;
+    _firstLocation: boolean = true;
+    _minAccuracyThreshold: number = 50;
+    _accuracyWarningInterval: number;
     constructor(gifwMapInstance: GIFWMap) {
 
         let geolocationControlElement = document.createElement('div');
@@ -42,29 +47,57 @@ export class GIFWGeolocation extends olControl {
             // enableHighAccuracy must be set to true to have the heading value.
             trackingOptions: {
                 enableHighAccuracy: true,
+                timeout: 120_000 //2 minutes
             },
             projection: this.gifwMapInstance.olMap.getView().getProjection(),
         });
         // handle geolocation error.
         this._geolocation.on('error', (error) => {
             console.error(error);
+            if (error.code === 1) {
+                this.deactivateGeolocation();
+                Util.Alert.showPopupError("Geolocation error", "You have denied access to your location. Please enable location services in your browser settings and refresh the page.");
+            }
         });
         this._geolocation.on('change:accuracyGeometry', () => {
-            console.log('change:accuracyGeometry');
-            if (!this._accuracyFeature) {
-                this._accuracyFeature = new Feature();
-                this._vectorSource.addFeature(this._accuracyFeature);
-            }
-            this._accuracyFeature.setGeometry(this._geolocation.getAccuracyGeometry());
+            this.renderPositionIndicatorOnMap();
 
         });
         this._geolocation.on('change:position', () => {
-            if (!this._locationFeature) {
-                this._locationFeature = new Feature();
-                this._vectorSource.addFeature(this._locationFeature);
-            }
-            this._locationFeature.setGeometry(new Point(this._geolocation.getPosition()))
+            this.renderPositionIndicatorOnMap();
         });
+    }
+
+    private renderPositionIndicatorOnMap() {
+        
+        if (this._geolocation.getAccuracy() > this._minAccuracyThreshold) {
+            if (!this._accuracyWarningInterval) {
+                this._accuracyWarningInterval = window.setInterval(() => {
+                    Util.Alert.showTimedToast("Waiting for better accuracy", "Your location accuracy is too low. Waiting for a better signal.", Util.AlertSeverity.Warning)
+                }, 10000);
+            }
+            return;
+        }
+        if (!this._accuracyFeature) {
+            this._accuracyFeature = new Feature();
+            this._vectorSource.addFeature(this._accuracyFeature);
+        }
+        if (!this._locationFeature) {
+            this._locationFeature = new Feature();
+            this._vectorSource.addFeature(this._locationFeature);
+        }
+        let popupOpts = new GIFWPopupOptions(`Your location accurate to ${this._geolocation.getAccuracy()}m`);
+        this._locationFeature.set('gifw-popup-opts', popupOpts)
+        this._locationFeature.set('gifw-popup-title', `Your location`)
+        this._locationFeature.setGeometry(new Point(this._geolocation.getPosition()))
+        this.gifwMapInstance.olMap.getView().setCenter(this._geolocation.getPosition());
+        if (this._firstLocation) {
+            this._trackControlElement.querySelector('button .spinner')?.remove();
+            this._trackControlElement.querySelector('i.bi').classList.remove('d-none');
+            this._firstLocation = false;
+            window.clearInterval(this._accuracyWarningInterval);
+            this._accuracyWarningInterval = null;
+        }
     }
 
     private renderGeolocationControls() {
@@ -82,27 +115,45 @@ export class GIFWGeolocation extends olControl {
     private addUIEvents() {
         this._trackControlElement.addEventListener('click', e => {
             if (this._trackControlElement.classList.contains('ol-control-active')) {
-                //deactivate
-                this._trackControlElement.classList.remove('ol-control-active');
-                this._trackControlElement.querySelector('i.bi').className = 'bi bi-cursor';
-                this.gifwMapInstance.resetInteractionsToDefault();
-                this._trackControlElement.querySelector('button').blur();
-                this._geolocation.setTracking(false);
+                this.deactivateGeolocation();
+                
             } else {
-                //switch layer if it isn't on already
-                if (!this._locationLayer.getVisible()) {
-                    this._locationLayer.setVisible(true);
-                }
-                this._trackControlElement.classList.add('ol-control-active');
-                this._trackControlElement.querySelector('i.bi').className =  'bi bi-cursor-fill';
-                document.getElementById(this.gifwMapInstance.id).dispatchEvent(new Event('gifw-geolocation-start'));
-                this._geolocation.setTracking(true);
+                this.activateGeolocation();
             }
 
         })
 
         
     }
+
+    private deactivateGeolocation() {
+        this._trackControlElement.classList.remove('ol-control-active');
+        this._trackControlElement.querySelector('button .spinner')?.remove();
+        this._trackControlElement.querySelector('i.bi').className = 'bi bi-cursor';
+        this.gifwMapInstance.resetInteractionsToDefault();
+        this._trackControlElement.querySelector('button').blur();
+        this._geolocation.setTracking(false);
+        this._locationLayer.setVisible(false);
+        this._vectorSource.clear();
+        this._locationFeature = null;
+        this._accuracyFeature = null;
+        window.clearInterval(this._accuracyWarningInterval);
+        this._accuracyWarningInterval = null;
+    }
+
+    private activateGeolocation() {
+        this._firstLocation = true;
+        //switch layer on if it isn't on already
+        if (!this._locationLayer.getVisible()) {
+            this._locationLayer.setVisible(true);
+        }
+        this._trackControlElement.classList.add('ol-control-active');
+        this._trackControlElement.querySelector('i.bi').className = 'bi bi-cursor-fill d-none';
+        this._trackControlElement.querySelector('button').append(Spinner.create(['spinner-border-sm', 'text-white']));
+        document.getElementById(this.gifwMapInstance.id).dispatchEvent(new Event('gifw-geolocation-start'));
+        this._geolocation.setTracking(true);
+    }
+
     private getStyleForGeolocationFeature(feature: Feature<any>) {
         //const geometry = feature.getGeometry();
         //const type = geometry.getType();
@@ -121,11 +172,7 @@ export class GIFWGeolocation extends olControl {
 
         return new Style({
             fill: new Fill({
-                color: `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, 0.2)`
-            }),
-            stroke: new Stroke({
-                color: `rgb(${rgbColor.r},${rgbColor.g},${rgbColor.b})`,
-                width: 2,
+                color: `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, 0.1)`
             }),
             image: new CircleStyle({
                 radius: 5,
