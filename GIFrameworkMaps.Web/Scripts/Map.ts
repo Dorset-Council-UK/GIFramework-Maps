@@ -29,7 +29,7 @@ import proj4 from 'proj4';
 import { FeatureQuery } from "./FeatureQuery/FeatureQuery";
 import AnnotationStylePanel from "./Panels/AnnotationStylePanel";
 import { Search } from "./Search";
-import { Streetview } from "./streetview";
+import { Streetview } from "./Streetview";
 import { VersionViewModel } from "./Interfaces/VersionViewModel";
 import { WebLayerService } from "./WebLayerService";
 
