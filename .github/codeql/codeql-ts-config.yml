@@ -1,0 +1,6 @@
+name : CodeQL TypeScript Configuration
+
+paths:
+  - GIFrameworkMaps.Web/Scripts
+paths-ignore:
+  - GIFrameworkMaps.Web/wwwroot
