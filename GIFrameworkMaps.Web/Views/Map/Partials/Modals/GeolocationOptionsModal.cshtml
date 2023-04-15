@@ -1,0 +1,38 @@
+﻿<div class="modal" tabindex="-1" id="geolocation-options-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tracking options</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="col-12 mb-2">
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" checked id="geolocationScreenLock">
+                        <label class="form-check-label" for="geolocationScreenLock">
+                            Keep screen awake
+                        </label>
+                        <div id="geolocationScreenLockHelpText" class="form-text">
+                            Applies to mobile devices only. Prevents the screen from going to sleep.
+                        </div>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" checked id="geolocationDrawTrack">
+                        <label class="form-check-label" for="geolocationDrawTrack">
+                            Draw track
+                        </label>
+                        <div id="geolocationDrawTrackHelpText" class="form-text">
+                            Draws a line on the map showing the path you have travelled which you can save as a GPX file when finished.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Start tracking</button>
+            </div>
+        </div>
+    </div>
+</div>
