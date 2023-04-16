@@ -29,7 +29,8 @@ export class GIFWGeolocation extends olControl {
     _simulationMode: boolean = true;
     _drawTrack: boolean = true;
     _wakeLockAvailable: boolean = false;
-    _screenLock: boolean = false;
+    _useWakeLock: boolean = false;
+    wakeLock: WakeLockSentinel = null;
     constructor(gifwMapInstance: GIFWMap) {
 
         let geolocationControlElement = document.createElement('div');
@@ -41,7 +42,7 @@ export class GIFWGeolocation extends olControl {
         this.gifwMapInstance = gifwMapInstance;
         if ('wakeLock' in navigator) {
             this._wakeLockAvailable = true;
-            this._screenLock = true;
+            this._useWakeLock = true;
         }
         this.renderGeolocationControls();
         this.addUIEvents();
@@ -132,7 +133,7 @@ export class GIFWGeolocation extends olControl {
         this.element.appendChild(trackElement);
 
         //set up the options modal
-        (document.querySelector('#geolocation-options-modal #geolocationScreenLock') as HTMLInputElement).checked = this._screenLock;
+        (document.querySelector('#geolocation-options-modal #geolocationScreenLock') as HTMLInputElement).checked = this._useWakeLock;
         if (!this._wakeLockAvailable) {
             document.querySelector('#geolocation-options-modal #geolocationScreenLock').setAttribute('disabled', '');
             document.querySelector('#geolocation-options-modal #geolocationScreenLockHelpText').textContent = `This feature is not available in your browser`;
@@ -155,7 +156,7 @@ export class GIFWGeolocation extends olControl {
 
         document.querySelector('#geolocation-options-modal .btn-primary').addEventListener('click', e => {
             this._drawTrack = (document.querySelector('#geolocation-options-modal #geolocationDrawTrack') as HTMLInputElement).checked;
-            this._screenLock = (document.querySelector('#geolocation-options-modal #geolocationScreenLock') as HTMLInputElement).checked;
+            this._useWakeLock = (document.querySelector('#geolocation-options-modal #geolocationScreenLock') as HTMLInputElement).checked;
             this.activateGeolocation();
         });
 
@@ -175,6 +176,12 @@ export class GIFWGeolocation extends olControl {
         this._accuracyFeature = null;
         window.clearInterval(this._accuracyWarningInterval);
         this._accuracyWarningInterval = null;
+
+        if (this.wakeLock && !this.wakeLock?.released) {
+            this.wakeLock.release();
+            this.wakeLock = null;
+        }
+        document.removeEventListener('visibilitychange', this.handleVisibilityChange);
     }
 
     private activateGeolocation() {
@@ -189,22 +196,34 @@ export class GIFWGeolocation extends olControl {
         this._trackControlElement.querySelector('button').append(Spinner.create(['spinner-border-sm', 'text-white']));
         document.getElementById(this.gifwMapInstance.id).dispatchEvent(new Event('gifw-geolocation-start'));
         this.olGeolocation.setTracking(true);
+
+        if (this._useWakeLock) {
+            this.requestWakeLock();
+            document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
+        }
+
+    }
+
+    private async requestWakeLock() {
+        if (this._wakeLockAvailable) {
+            try {
+                this.wakeLock = await navigator.wakeLock.request("screen");
+                console.log("Wake Lock is active!");
+            } catch (err) {
+                // The Wake Lock request has failed - usually system related, such as battery.
+                console.error(`${err.name}, ${err.message}`);
+            }
+        }
+    }
+
+    private handleVisibilityChange() {
+        if (this.wakeLock !== null && document.visibilityState === 'visible') {
+            this.requestWakeLock();
+        }
     }
 
     private getStyleForGeolocationFeature(feature: Feature<any>) {
-        //const geometry = feature.getGeometry();
-        //const type = geometry.getType();
-        //switch (type) {
-        //    case "Polygon":
-        //    case "MultiPolygon":
-        //        break;
-        //    case "Point":
-        //    case "MultiPoint":
-        //        break;
-        //    case "LineString":
-        //    case "MultiLineString":
-        //        break;
-        //}
+
         let rgbColor = Util.Color.hexToRgb(this.gifwMapInstance.config.theme.primaryColour);
 
         return new Style({
