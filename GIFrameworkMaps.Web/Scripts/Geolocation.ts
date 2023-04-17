@@ -5,32 +5,37 @@ import VectorSource from "ol/source/Vector";
 import Feature from "ol/Feature";
 import { LayerGroupType } from "./Interfaces/LayerGroupType";
 import VectorLayer from "ol/layer/Vector";
-import { Fill, Stroke, Style } from "ol/style";
+import { Fill, RegularShape, Stroke, Style } from "ol/style";
 import CircleStyle from "ol/style/Circle";
 import { Util } from "./Util";
-import { Polygon, Point, LineString} from "ol/geom";
-import { GIFWPopupOptions } from "./Popups/PopupOptions";
+import { Point, LineString} from "ol/geom";
 import Spinner from "./Spinner";
 import { Modal } from "bootstrap";
+import { transform } from "ol/proj";
+import { GPX } from "ol/format";
 
 export class GIFWGeolocation extends olControl {
     gifwMapInstance: GIFWMap;
     olGeolocation: Geolocation;
     optionsModal: Modal;
+    exportModal: Modal;
+    firstLocation: boolean = true;
+    minAccuracyThreshold: number = 150;
+    accuracyWarningInterval: number;
+    drawPath: boolean = true;
+    wakeLockAvailable: boolean = false;
+    useWakeLock: boolean = false;
+    wakeLock: WakeLockSentinel = null;
     _trackControlElement: HTMLElement;
-    _vectorSource: VectorSource;
+    _locationVectorSource: VectorSource;
+    _pathVectorSource: VectorSource;
     _locationLayer: VectorLayer<any>;
-    _accuracyFeature: Feature<Polygon>;
+    _pathLayer: VectorLayer<any>;
     _locationFeature: Feature<Point>;
     _pathFeature: Feature<LineString>;
-    _firstLocation: boolean = true;
-    _minAccuracyThreshold: number = 150;
-    _accuracyWarningInterval: number;
     _simulationMode: boolean = true;
-    _drawTrack: boolean = true;
-    _wakeLockAvailable: boolean = false;
-    _useWakeLock: boolean = false;
-    wakeLock: WakeLockSentinel = null;
+    _simModeIndex: number = 0;
+    _simModeIntervalTimer: number;
     constructor(gifwMapInstance: GIFWMap) {
 
         let geolocationControlElement = document.createElement('div');
@@ -41,8 +46,8 @@ export class GIFWGeolocation extends olControl {
 
         this.gifwMapInstance = gifwMapInstance;
         if ('wakeLock' in navigator) {
-            this._wakeLockAvailable = true;
-            this._useWakeLock = true;
+            this.wakeLockAvailable = true;
+            this.useWakeLock = true;
         }
         this.renderGeolocationControls();
         this.addUIEvents();
@@ -50,11 +55,13 @@ export class GIFWGeolocation extends olControl {
 
     public init() {
         this.optionsModal = Modal.getOrCreateInstance('#geolocation-options-modal');
-        this._vectorSource = new VectorSource();
-
-        this._locationLayer = this.gifwMapInstance.addNativeLayerToMap(this._vectorSource, "Geolocation", (feature: Feature<any>) => {
+        this.exportModal = Modal.getOrCreateInstance('#geolocation-export-modal');
+        this._locationVectorSource = new VectorSource();
+        this._pathVectorSource = new VectorSource();
+        this._locationLayer = this.gifwMapInstance.addNativeLayerToMap(this._locationVectorSource, "Geolocation", (feature: Feature<any>) => {
             return this.getStyleForGeolocationFeature(feature);
-        }, false, LayerGroupType.SystemNative, undefined, undefined, "__geolocation__");
+        }, false, LayerGroupType.SystemNative, undefined, false, "__geolocation__");
+        this._pathLayer = this.gifwMapInstance.addNativeLayerToMap(this._pathVectorSource, "Geolocation - Path", undefined, false, LayerGroupType.SystemNative, undefined, true, "__geolocation_path__");
         this.olGeolocation = new Geolocation({
             // enableHighAccuracy must be set to true to have the heading value.
             trackingOptions: {
@@ -66,10 +73,17 @@ export class GIFWGeolocation extends olControl {
         // handle geolocation error.
         this.olGeolocation.on('error', (error) => {
             console.error(error);
-            if (error.code === 1) {
-                this.deactivateGeolocation();
-                Util.Alert.showPopupError("Geolocation error", "You have denied access to your location. Please enable location services in your browser settings and refresh the page.");
+            this.deactivateGeolocation();
+            let msg = "An error occurred while trying to get your location.";
+            switch (error.code) {
+                case 1:
+                    msg = "You have denied access to your location. Please enable location services in your browser settings and refresh the page.";
+                case 3:
+                    msg = "It took too long to get your location. Make sure you are in an area with a clear view of the sky for best results."
+                    
             }
+            Util.Alert.showPopupError("Geolocation error", msg);
+
         });
         this.olGeolocation.on('change:accuracyGeometry', () => {
             this.renderPositionIndicatorOnMap();
@@ -79,50 +93,62 @@ export class GIFWGeolocation extends olControl {
             this.renderPositionIndicatorOnMap();
         });
         if (this._simulationMode) {
-            this.olGeolocation.getAccuracy = () => { return Math.round(Math.random() * 10); }
-            this.olGeolocation.getHeading = () => { return Math.round(Math.random() * 360); }
-            this.olGeolocation.getSpeed = () => { return Math.round(Math.random() * 100); }
-            this.olGeolocation.getPosition = () => { return [-271864.46041533275, 6570278.568219016]; }
+            
+            this.olGeolocation.getAccuracy = () => { return this.simulatedAccuracy[Math.floor(Math.random() * (this.simulatedAccuracy.length - 0 + 1) + 0)];}
+            this.olGeolocation.getHeading = () => { return this.simulatedHeading[Math.floor(Math.random() * (this.simulatedHeading.length - 0 + 1) + 0)];}
+            this.olGeolocation.getPosition = () => {return transform(this.simulatedCoordinates[this._simModeIndex],'EPSG:4326','EPSG:3857');}
+
         }
     }
 
     private renderPositionIndicatorOnMap() {
-        console.debug('Accuracy:', this.olGeolocation.getAccuracy());
-        console.debug('Location:', this.olGeolocation.getPosition());
-        console.debug('Heading:', this.olGeolocation.getHeading())
-        console.debug('Speed:', this.olGeolocation.getSpeed())
-        if (this.olGeolocation.getAccuracy() > this._minAccuracyThreshold) {
-            if (!this._accuracyWarningInterval) {
-                this._accuracyWarningInterval = window.setInterval(() => {
+        let position = this.olGeolocation.getPosition();
+        let heading = this.olGeolocation.getHeading();
+        let accuracy = this.olGeolocation.getAccuracy();
+        console.debug('Accuracy', accuracy);
+        console.debug('Location', position);
+        console.debug('Heading', heading);
+        if (accuracy > this.minAccuracyThreshold) {
+            if (!this.accuracyWarningInterval) {
+                this.accuracyWarningInterval = window.setInterval(() => {
                     Util.Alert.showTimedToast("Waiting for better accuracy", "Your location accuracy is too low. Waiting for a better signal.", Util.AlertSeverity.Warning)
                 }, 10000);
             }
             return;
         }
-        if (!this._accuracyFeature) {
-            this._accuracyFeature = new Feature();
-            this._vectorSource.addFeature(this._accuracyFeature);
-        }
         if (!this._locationFeature) {
             this._locationFeature = new Feature();
-            this._vectorSource.addFeature(this._locationFeature);
+            this._locationVectorSource.addFeature(this._locationFeature);
         }
-        let popupOpts = new GIFWPopupOptions(`Your location accurate to ${this.olGeolocation.getAccuracy()}m`);
-        this._locationFeature.set('gifw-popup-opts', popupOpts)
-        this._locationFeature.set('gifw-popup-title', `Your location`)
-        this._locationFeature.setGeometry(new Point(this.olGeolocation.getPosition()))
-        this.gifwMapInstance.olMap.getView().setCenter(this.olGeolocation.getPosition());
-        if (this._firstLocation) {
+        if (this.drawPath) {
+            if (!this._pathFeature) {
+                this._pathFeature = new Feature();
+                this._pathVectorSource.addFeature(this._pathFeature);
+            }
+        }
+        this._locationFeature.set('heading', heading);
+        this._locationFeature.setGeometry(new Point(position));
+
+        this.gifwMapInstance.olMap.getView().animate({ center: position, duration: 500 });
+        if (this.firstLocation) {
             this._trackControlElement.querySelector('button .spinner')?.remove();
             this._trackControlElement.querySelector('i.bi').classList.remove('d-none');
-            this._firstLocation = false;
-            window.clearInterval(this._accuracyWarningInterval);
-            this._accuracyWarningInterval = null;
+            this.firstLocation = false;
+            window.clearInterval(this.accuracyWarningInterval);
+            this.accuracyWarningInterval = null;
+            if (this.drawPath) {
+                //This is a bit of a hack as LineString requires 2 coordinates, but at this point, we only have one.
+                //we could keep a reference to the first coordinate until we get the second one, but this seemed simpler
+                this._pathFeature.setGeometry(new LineString([position,position]))
+            }
+        } else {
+            if (this.drawPath) {
+                this._pathFeature.getGeometry().appendCoordinate(position);
+            }
         }
     }
 
     private renderGeolocationControls() {
-
         let trackButton = document.createElement('button');
         trackButton.innerHTML = '<i class="bi bi-cursor"></i>';
         trackButton.setAttribute('title', 'Track my location');
@@ -133,13 +159,13 @@ export class GIFWGeolocation extends olControl {
         this.element.appendChild(trackElement);
 
         //set up the options modal
-        (document.querySelector('#geolocation-options-modal #geolocationScreenLock') as HTMLInputElement).checked = this._useWakeLock;
-        if (!this._wakeLockAvailable) {
+        (document.querySelector('#geolocation-options-modal #geolocationScreenLock') as HTMLInputElement).checked = this.useWakeLock;
+        if (!this.wakeLockAvailable) {
             document.querySelector('#geolocation-options-modal #geolocationScreenLock').setAttribute('disabled', '');
             document.querySelector('#geolocation-options-modal #geolocationScreenLockHelpText').textContent = `This feature is not available in your browser`;
             document.querySelector('#geolocation-options-modal #geolocationScreenLockHelpText').classList.add('text-danger');
         }
-        (document.querySelector('#geolocation-options-modal #geolocationDrawTrack') as HTMLInputElement).checked = this._drawTrack;
+        (document.querySelector('#geolocation-options-modal #geolocationDrawTrack') as HTMLInputElement).checked = this.drawPath;
         
     }
 
@@ -147,7 +173,6 @@ export class GIFWGeolocation extends olControl {
         this._trackControlElement.addEventListener('click', e => {
             if (this._trackControlElement.classList.contains('ol-control-active')) {
                 this.deactivateGeolocation();
-                
             } else {
                 this.optionsModal.show();
             }
@@ -155,9 +180,24 @@ export class GIFWGeolocation extends olControl {
         })
 
         document.querySelector('#geolocation-options-modal .btn-primary').addEventListener('click', e => {
-            this._drawTrack = (document.querySelector('#geolocation-options-modal #geolocationDrawTrack') as HTMLInputElement).checked;
-            this._useWakeLock = (document.querySelector('#geolocation-options-modal #geolocationScreenLock') as HTMLInputElement).checked;
+            this.drawPath = (document.querySelector('#geolocation-options-modal #geolocationDrawTrack') as HTMLInputElement).checked;
+            this.useWakeLock = (document.querySelector('#geolocation-options-modal #geolocationScreenLock') as HTMLInputElement).checked;
             this.activateGeolocation();
+        });
+
+        document.querySelector('#geolocation-export-modal .btn-primary').addEventListener('click', e => {
+            //download feature
+            let formatter = new GPX();
+            let gpx = formatter.writeFeatures(this._pathVectorSource.getFeatures(), {
+                featureProjection: this.gifwMapInstance.olMap.getView().getProjection()
+            });
+            let blob = new Blob([gpx], {
+                type: 'application/gpx+xml' });
+            let url = URL.createObjectURL(blob);
+            let downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = `GPXTrack_date.gpx`;
+            downloadLink.click();
         });
 
         
@@ -171,25 +211,42 @@ export class GIFWGeolocation extends olControl {
         this._trackControlElement.querySelector('button').blur();
         this.olGeolocation.setTracking(false);
         this._locationLayer.setVisible(false);
-        this._vectorSource.clear();
+        this._locationVectorSource.clear();
         this._locationFeature = null;
-        this._accuracyFeature = null;
-        window.clearInterval(this._accuracyWarningInterval);
-        this._accuracyWarningInterval = null;
+
+        if (this.drawPath) {
+            if (this._pathFeature.getGeometry().getCoordinates().length > 2) {
+                //show modal with download GPX link
+                let length = this._pathFeature.getGeometry().getLength();
+                document.querySelector('#geolocation-export-modal #geolocation-export-track-length').textContent = `${Math.round(length)}m`
+                this.exportModal.show();
+            }
+        }
+
+        window.clearInterval(this.accuracyWarningInterval);
+        this.accuracyWarningInterval = null;
 
         if (this.wakeLock && !this.wakeLock?.released) {
             this.wakeLock.release();
             this.wakeLock = null;
         }
         document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+        if (this._simulationMode) {
+            window.clearInterval(this._simModeIntervalTimer);
+        }
     }
 
     private activateGeolocation() {
 
-        this._firstLocation = true;
+        this.firstLocation = true;
         //switch layer on if it isn't on already
         if (!this._locationLayer.getVisible()) {
             this._locationLayer.setVisible(true);
+        }
+        if (this.drawPath) {
+            if (!this._pathLayer.getVisible()) {
+                this._pathLayer.setVisible(true);
+            }
         }
         this._trackControlElement.classList.add('ol-control-active');
         this._trackControlElement.querySelector('i.bi').className = 'bi bi-cursor-fill d-none';
@@ -197,15 +254,24 @@ export class GIFWGeolocation extends olControl {
         document.getElementById(this.gifwMapInstance.id).dispatchEvent(new Event('gifw-geolocation-start'));
         this.olGeolocation.setTracking(true);
 
-        if (this._useWakeLock) {
+        if (this.useWakeLock) {
             this.requestWakeLock();
             document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
+        }
+        if (this._simulationMode) {
+            this._simModeIntervalTimer = window.setInterval(() => {
+                this._simModeIndex += 1;
+                if (this._simModeIndex == this.simulatedCoordinates.length) {
+                    this._simModeIndex = 0;
+                }
+                this.olGeolocation.dispatchEvent('change:position')
+            }, 2000);
         }
 
     }
 
     private async requestWakeLock() {
-        if (this._wakeLockAvailable) {
+        if (this.wakeLockAvailable) {
             try {
                 this.wakeLock = await navigator.wakeLock.request("screen");
                 console.log("Wake Lock is active!");
@@ -226,20 +292,205 @@ export class GIFWGeolocation extends olControl {
 
         let rgbColor = Util.Color.hexToRgb(this.gifwMapInstance.config.theme.primaryColour);
 
-        return new Style({
-            fill: new Fill({
-                color: `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, 0.1)`
-            }),
-            image: new CircleStyle({
-                radius: 5,
-                stroke: new Stroke({
-                    color: 'rgba(255, 255, 255, 1)',
-                    width: 2
-                }),
-                fill: new Fill({
-                    color: `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, 1)`
-                }),
-            }),
+        let fill = new Fill({
+            color: `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, 1)`
         });
+        let stroke = new Stroke({
+            color: 'rgba(255, 255, 255, 1)',
+            width: 2
+        });
+        let circle = new Style({
+            image: new CircleStyle({
+                radius: 7,
+                stroke: stroke,
+                fill: fill,
+            }),
+        })
+
+        let arrow = new Style({
+            image: new RegularShape({
+                fill: fill,
+                stroke: stroke,
+                points: 3,
+                radius: (feature.get('heading') === undefined ? 0 : 7),
+                displacement: [0, 12],
+                rotation: feature.get('heading'),
+                
+            })
+        });
+
+
+        return [circle,arrow];
     }
+
+    private simulatedCoordinates: number[][] = [[
+        -2.441370637422439,
+        50.71416976895679
+    ],
+    [
+        -2.441376001840468,
+        50.71411542183668
+    ],
+    [
+        -2.4413652730044086,
+        50.71406786805488
+    ],
+    [
+        -2.4413652730044086,
+        50.71401691752084
+    ],
+    [
+        -2.441418132147921,
+        50.71397508004904
+    ],
+    [
+        -2.4414189171847065,
+        50.71391841299797
+    ],
+    [
+        -2.441451103692885,
+        50.71380632139255
+    ],
+    [
+        -2.4414993834551537,
+        50.713731593506736
+    ],
+    [
+        -2.441601307397719,
+        50.71365007204085
+    ],
+    [
+        -2.4417890620287617,
+        50.71361270798823
+    ],
+    [
+        -2.441892969926586,
+        50.713596443757694
+    ],
+    [
+        -2.4420197320040424,
+        50.7135923275834
+    ],
+    [
+        -2.4419499945696552,
+        50.71354817000909
+    ],
+    [
+        -2.4420411896761616,
+        50.713507409134365
+    ],
+    [
+        -2.4420626473482807,
+        50.71344626775584
+    ],
+    [
+        -2.4420572829302514,
+        50.71338512629751
+    ],
+    [
+        -2.4420143675860126,
+        50.71330700098474
+    ],
+    [
+        -2.4419017148073876,
+        50.713228875541716
+    ],
+    [
+        -2.4417515111025536,
+        50.713126972594324
+    ],
+    [
+        -2.4416978669222558,
+        50.71307262426512
+    ],
+    [
+        -2.4416495871599873,
+        50.712889198188805
+    ],
+    [
+        -2.441558392053481,
+        50.712838246373536
+    ],
+    [
+        -2.4414618325289448,
+        50.712760120149284
+    ],
+    [
+        -2.4413974595125874,
+        50.71273294577989
+    ],
+    [
+        -2.441268713479873,
+        50.712729548982594
+    ],
+    [
+        -2.441172153955337,
+        50.712770310533756
+    ],
+    [
+        -2.4411292386110985,
+        50.712838246373536
+    ],
+    [
+        -2.4411131453570087,
+        50.712892594974534
+    ],
+    [
+        -2.4410863232668603,
+        50.71296732419793
+    ],
+    [
+        -2.44108095884883,
+        50.713038656527345
+    ],
+    [
+        -2.4411238741930683,
+        50.71308960812476
+    ],
+    [
+        -2.4412257981356347,
+        50.71315754350181
+    ],
+    [
+        -2.4413491797503193,
+        50.7131949079172
+    ],
+    [
+        -2.4413545441683495,
+        50.713303604229054
+    ],
+    [
+        -2.441392095094558,
+        50.713422490531514
+    ],
+    [
+        -2.4413169932421406,
+        50.713537979793756
+    ],
+    [
+        -2.4412284536801754,
+        50.7136139327813
+    ],
+    [
+        -2.4412043404635155,
+        50.71369762624653
+    ],
+    [
+        -2.441247255807754,
+        50.71383349513971
+    ],
+    [
+        -2.4413169932421406,
+        50.71395238009822
+    ],
+    [
+        -2.441376001840468,
+        50.71411542183668
+    ],
+    [
+        -2.4413384509142597,
+        50.71422411601392
+    ]];
+    private simulatedHeading: number[] = [0.08726646, 0.2617994, undefined, 3.316126, 3.141593, 5.061455];
+    private simulatedAccuracy: number[] = [4, 3, 1, 8, 7, 5];
 }
