@@ -13,6 +13,9 @@ import Spinner from "./Spinner";
 import { Modal } from "bootstrap";
 import { transform } from "ol/proj";
 import { GPX } from "ol/format";
+import { GIFWPopupOptions } from "./Popups/PopupOptions";
+import { GIFWPopupAction } from "./Popups/PopupAction";
+import { getLength } from "ol/sphere";
 
 export class GIFWGeolocation extends olControl {
     gifwMapInstance: GIFWMap;
@@ -124,9 +127,19 @@ export class GIFWGeolocation extends olControl {
             if (!this._pathFeature) {
                 this._pathFeature = new Feature();
                 this._pathVectorSource.addFeature(this._pathFeature);
+                let popupDownloadAction = new GIFWPopupAction("Download this path as a GPX file", this.downloadGPX.bind(this), false, true);
+                let popupClearPathAction = new GIFWPopupAction("Remove path from map", () => {
+                    this._pathVectorSource.clear();
+                    this._pathFeature = null;
+                    this._pathLayer.setVisible(false)
+                }, true, true);
+                let timestamp = new Date().toLocaleTimeString();
+                let popupOpts = new GIFWPopupOptions(`<h1>Your path</h1><p><strong>Started:</strong> ${timestamp}</p>`,[popupDownloadAction,popupClearPathAction]);
+                this._pathFeature.set('gifw-popup-opts', popupOpts)
+                this._pathFeature.set('gifw-popup-title', `Your path`)
             }
         }
-        this._locationFeature.set('heading', heading);
+        this._locationFeature.set('gifw-heading', heading);
         this._locationFeature.setGeometry(new Point(position));
 
         this.gifwMapInstance.olMap.getView().animate({ center: position, duration: 500 });
@@ -186,21 +199,30 @@ export class GIFWGeolocation extends olControl {
         });
 
         document.querySelector('#geolocation-export-modal .btn-primary').addEventListener('click', e => {
+            (e.currentTarget as HTMLButtonElement).disabled = true;
             //download feature
-            let formatter = new GPX();
-            let gpx = formatter.writeFeatures(this._pathVectorSource.getFeatures(), {
-                featureProjection: this.gifwMapInstance.olMap.getView().getProjection()
-            });
-            let blob = new Blob([gpx], {
-                type: 'application/gpx+xml' });
-            let url = URL.createObjectURL(blob);
-            let downloadLink = document.createElement('a');
-            downloadLink.href = url;
-            downloadLink.download = `GPXTrack_date.gpx`;
-            downloadLink.click();
+            this.downloadGPX();
+            (e.currentTarget as HTMLButtonElement).disabled = false;
+            this.exportModal.hide();
         });
 
         
+    }
+
+    private downloadGPX() {
+        let formatter = new GPX();
+        let gpx = formatter.writeFeatures(this._pathVectorSource.getFeatures(), {
+            featureProjection: this.gifwMapInstance.olMap.getView().getProjection()
+        });
+        let blob = new Blob([gpx], {
+            type: 'application/gpx+xml'
+        });
+        let url = URL.createObjectURL(blob);
+        let downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        let timestamp = new Date().toISOString();
+        downloadLink.download = `GPXTrack_${timestamp}.gpx`;
+        downloadLink.click();
     }
 
     private deactivateGeolocation() {
@@ -217,8 +239,15 @@ export class GIFWGeolocation extends olControl {
         if (this.drawPath) {
             if (this._pathFeature.getGeometry().getCoordinates().length > 2) {
                 //show modal with download GPX link
-                let length = this._pathFeature.getGeometry().getLength();
-                document.querySelector('#geolocation-export-modal #geolocation-export-track-length').textContent = `${Math.round(length)}m`
+                let length = Math.round(getLength(this._pathFeature.getGeometry()));
+                let lengthStr = length.toString();
+                let unit = "m"
+                if (length > 1000) {
+                    length = (length / 100);
+                    lengthStr = length.toFixed(2);
+                    unit = "km";
+                }
+                document.querySelector('#geolocation-export-modal #geolocation-export-track-length').textContent = `${lengthStr}${unit}`
                 this.exportModal.show();
             }
         }
@@ -312,9 +341,9 @@ export class GIFWGeolocation extends olControl {
                 fill: fill,
                 stroke: stroke,
                 points: 3,
-                radius: (feature.get('heading') === undefined ? 0 : 7),
+                radius: (feature.get('gifw-heading') === undefined ? 0 : 7), //make the pointer disappear if no heading defined
                 displacement: [0, 12],
-                rotation: feature.get('heading'),
+                rotation: feature.get('gifw-heading'),
                 
             })
         });
