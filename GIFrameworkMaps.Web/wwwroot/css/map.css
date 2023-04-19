@@ -108,12 +108,18 @@
     left: .5rem;
     top: 20.5em;
 }
+.giframeworkMap .gifw-geolocation-control.gifw-geolocation-recentre-control {
+    left: 2.75rem;
+}
 
 .giframeworkMap .ol-control button {
     background-color: var(--primary-color-transparent-50);
-    color:white;
-    width:2rem;
-    height:2rem;
+    color: white;
+    width: 2rem;
+    height: 2rem;
+}
+.giframeworkMap .gifw-geolocation-recentre-control button {
+    width: 100%;
 }
 .giframeworkMap .ol-control button:disabled {
     filter:grayscale(1);

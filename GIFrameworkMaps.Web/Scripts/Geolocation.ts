@@ -16,6 +16,8 @@ import { GPX } from "ol/format";
 import { GIFWPopupOptions } from "./Popups/PopupOptions";
 import { GIFWPopupAction } from "./Popups/PopupAction";
 import { getLength } from "ol/sphere";
+import { containsCoordinate } from "ol/extent";
+import { AnimationOptions } from "ol/View";
 
 export class GIFWGeolocation extends olControl {
     gifwMapInstance: GIFWMap;
@@ -29,7 +31,9 @@ export class GIFWGeolocation extends olControl {
     wakeLockAvailable: boolean = false;
     useWakeLock: boolean = false;
     wakeLock: WakeLockSentinel = null;
+    mapLockedOnGeolocation: boolean = false;
     _trackControlElement: HTMLElement;
+    _recentreControlElement: HTMLElement;
     _locationVectorSource: VectorSource;
     _pathVectorSource: VectorSource;
     _locationLayer: VectorLayer<any>;
@@ -54,6 +58,8 @@ export class GIFWGeolocation extends olControl {
         }
         this.renderGeolocationControls();
         this.addUIEvents();
+        //bind the unlock handler to this so we can remove and add it properly. Bit of a hack!
+        this.unlockMapIfNotAnimating = this.unlockMapIfNotAnimating.bind(this);
     }
 
     public init() {
@@ -141,11 +147,27 @@ export class GIFWGeolocation extends olControl {
         }
         this._locationFeature.set('gifw-heading', heading);
         this._locationFeature.setGeometry(new Point(position));
-
-        this.gifwMapInstance.olMap.getView().animate({ center: position, duration: 500 });
+        if (this.firstLocation || this.mapLockedOnGeolocation) {
+            let _firstLocation = this.firstLocation;
+            let opts:AnimationOptions = {
+                center: position, duration: 500
+            };
+            if (this.firstLocation) {
+                opts.zoom = 18;
+            }
+            this.gifwMapInstance.olMap.getView().animate(opts, (success) => {
+                if (success) {
+                    if (_firstLocation) {
+                        this.gifwMapInstance.olMap.on('movestart', this.unlockMapIfNotAnimating)
+                        this.lockMap();
+                    }
+                }
+            });
+        }
         if (this.firstLocation) {
             this._trackControlElement.querySelector('button .spinner')?.remove();
             this._trackControlElement.querySelector('i.bi').classList.remove('d-none');
+
             this.firstLocation = false;
             window.clearInterval(this.accuracyWarningInterval);
             this.accuracyWarningInterval = null;
@@ -165,11 +187,20 @@ export class GIFWGeolocation extends olControl {
         let trackButton = document.createElement('button');
         trackButton.innerHTML = '<i class="bi bi-cursor"></i>';
         trackButton.setAttribute('title', 'Track my location');
+        let recentreButton = document.createElement('button');
+        recentreButton.innerHTML = 'Recentre';
+        recentreButton.setAttribute('title', 'Recentre map on my location');
         let trackElement = document.createElement('div');
         trackElement.className = 'gifw-geolocation-control ol-control';
         trackElement.appendChild(trackButton);
+        let recentreElement = document.createElement('div');
+        recentreElement.className = 'gifw-geolocation-control gifw-geolocation-recentre-control ol-control';
+        recentreElement.appendChild(recentreButton);
+        recentreElement.style.display = 'none';
         this._trackControlElement = trackElement;
+        this._recentreControlElement = recentreElement;
         this.element.appendChild(trackElement);
+        this.element.appendChild(recentreElement);
 
         //set up the options modal
         (document.querySelector('#geolocation-options-modal #geolocationScreenLock') as HTMLInputElement).checked = this.useWakeLock;
@@ -192,6 +223,22 @@ export class GIFWGeolocation extends olControl {
 
         })
 
+        this._recentreControlElement.addEventListener('click', e => {
+            let position = this.olGeolocation.getPosition();
+            let curExtent = this.gifwMapInstance.olMap.getView().calculateExtent();
+            if (!Util.Browser.PrefersReducedMotion() && containsCoordinate(curExtent, position)) {
+                this.gifwMapInstance.olMap.getView().animate({ center: this.olGeolocation.getPosition(), duration: 500, zoom: 18 });
+            } else {
+                this.gifwMapInstance.olMap.getView().setCenter(position);
+                this.gifwMapInstance.olMap.getView().setZoom(18);
+            }
+            //small timeout prevents the case where setCenter and setZoom trigger the unlock of the map
+            window.setTimeout(() => {
+                this.lockMap();
+            }, 500)
+            
+        });
+
         document.querySelector('#geolocation-options-modal .btn-primary').addEventListener('click', e => {
             this.drawPath = (document.querySelector('#geolocation-options-modal #geolocationDrawTrack') as HTMLInputElement).checked;
             this.useWakeLock = (document.querySelector('#geolocation-options-modal #geolocationScreenLock') as HTMLInputElement).checked;
@@ -207,6 +254,24 @@ export class GIFWGeolocation extends olControl {
         });
 
         
+    }
+
+    private lockMap() {
+        console.log('Locking Map');
+        this._recentreControlElement.style.display = 'none';
+        this.mapLockedOnGeolocation = true;
+    }
+
+    private unlockMapIfNotAnimating() {
+        if (!this.gifwMapInstance.olMap.getView().getAnimating()) {
+            this.unlockMap();
+        }
+    }
+
+    private unlockMap() {
+        console.log('Unlocking Map');
+        this._recentreControlElement.style.display = '';
+        this.mapLockedOnGeolocation = false;
     }
 
     private downloadGPX() {
@@ -260,6 +325,9 @@ export class GIFWGeolocation extends olControl {
             this.wakeLock = null;
         }
         document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+        this.unlockMap();
+        this.gifwMapInstance.olMap.un('movestart', this.unlockMapIfNotAnimating)
+        this._recentreControlElement.style.display = 'none';
         if (this._simulationMode) {
             window.clearInterval(this._simModeIntervalTimer);
         }
