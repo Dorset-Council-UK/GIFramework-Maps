@@ -1,23 +1,24 @@
-import { GIFWMap } from "./Map";
+import { Modal } from "bootstrap";
 import { Control as olControl } from "ol/control";
-import Geolocation from "ol/Geolocation";
-import VectorSource from "ol/source/Vector";
+import { containsCoordinate } from "ol/extent";
 import Feature from "ol/Feature";
-import { LayerGroupType } from "./Interfaces/LayerGroupType";
+import { GPX } from "ol/format";
+import Geolocation, { GeolocationError } from "ol/Geolocation";
+import { LineString, Point } from "ol/geom";
 import VectorLayer from "ol/layer/Vector";
+import { transform } from "ol/proj";
+import VectorSource from "ol/source/Vector";
+import { getLength } from "ol/sphere";
 import { Fill, RegularShape, Stroke, Style } from "ol/style";
 import CircleStyle from "ol/style/Circle";
-import { Util } from "./Util";
-import { Point, LineString} from "ol/geom";
-import Spinner from "./Spinner";
-import { Modal } from "bootstrap";
-import { transform } from "ol/proj";
-import { GPX } from "ol/format";
-import { GIFWPopupOptions } from "./Popups/PopupOptions";
-import { GIFWPopupAction } from "./Popups/PopupAction";
-import { getLength } from "ol/sphere";
-import { containsCoordinate } from "ol/extent";
 import { AnimationOptions } from "ol/View";
+import { LayerGroupType } from "./Interfaces/LayerGroupType";
+import { GIFWMap } from "./Map";
+import { GIFWPopupAction } from "./Popups/PopupAction";
+import { GIFWPopupOptions } from "./Popups/PopupOptions";
+import Spinner from "./Spinner";
+import { UserSettings } from "./UserSettings";
+import { Util } from "./Util";
 
 export class GIFWGeolocation extends olControl {
     gifwMapInstance: GIFWMap;
@@ -25,7 +26,9 @@ export class GIFWGeolocation extends olControl {
     optionsModal: Modal;
     exportModal: Modal;
     firstLocation: boolean = true;
-    minAccuracyThreshold: number = 150;
+    /*minAccuracyThreshold should be one of 10,20 or 50 to match with select options. 
+    Could use the type def `10 | 20 | 50` but this makes retrieving the value from the select box a bit harder*/
+    minAccuracyThreshold: number = 20; 
     accuracyWarningInterval: number;
     drawPath: boolean = true;
     wakeLockAvailable: boolean = false;
@@ -40,7 +43,10 @@ export class GIFWGeolocation extends olControl {
     _pathLayer: VectorLayer<any>;
     _locationFeature: Feature<Point>;
     _pathFeature: Feature<LineString>;
-    _simulationMode: boolean = true;
+    /*Simulation mode can be used to test the geolocation functionality without having to go outside.*/
+    /*Set the below variable to true to enable simulation mode.*/
+    /*When simulation mode is enabled, the geolocation will be simulated using the coordinates in the simulatedCoordinates array.*/
+    _simulationMode: boolean = false;
     _simModeIndex: number = 0;
     _simModeIntervalTimer: number;
     constructor(gifwMapInstance: GIFWMap) {
@@ -52,25 +58,39 @@ export class GIFWGeolocation extends olControl {
         })
 
         this.gifwMapInstance = gifwMapInstance;
+
+        /*TODO - Yuck, nasty way of validating it as an acceptable value*/
+        this.minAccuracyThreshold = parseInt(UserSettings.getItem('geolocationMinAccuracyThreshold')) || 20;
+        if (!(this.minAccuracyThreshold === 10 || this.minAccuracyThreshold === 20 || this.minAccuracyThreshold === 50)) {
+            this.minAccuracyThreshold = 20;
+        }
+        this.drawPath = UserSettings.getItem('geolocationDrawPath') === null ? true : UserSettings.getItem('geolocationDrawPath') === 'true';
+        this.useWakeLock = UserSettings.getItem('geolocationUseWakeLock') === null ? true : UserSettings.getItem('geolocationUseWakeLock') === 'true' ;
+
         if ('wakeLock' in navigator) {
             this.wakeLockAvailable = true;
-            this.useWakeLock = true;
         }
         this.renderGeolocationControls();
         this.addUIEvents();
-        //bind the unlock handler to this so we can remove and add it properly. Bit of a hack!
+        //bind the unlock and visibility handlers to 'this'' so we can remove and add it properly. Bit of a hack!
         this.unlockMapIfNotAnimating = this.unlockMapIfNotAnimating.bind(this);
+        this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
     }
 
+    /**
+     * Initialize the geolocation functionality.
+     */
     public init() {
         this.optionsModal = Modal.getOrCreateInstance('#geolocation-options-modal');
         this.exportModal = Modal.getOrCreateInstance('#geolocation-export-modal');
+
         this._locationVectorSource = new VectorSource();
         this._pathVectorSource = new VectorSource();
         this._locationLayer = this.gifwMapInstance.addNativeLayerToMap(this._locationVectorSource, "Geolocation", (feature: Feature<any>) => {
             return this.getStyleForGeolocationFeature(feature);
-        }, false, LayerGroupType.SystemNative, undefined, false, "__geolocation__");
-        this._pathLayer = this.gifwMapInstance.addNativeLayerToMap(this._pathVectorSource, "Geolocation - Path", undefined, false, LayerGroupType.SystemNative, undefined, true, "__geolocation_path__");
+        }, false, LayerGroupType.SystemNative, 501, false, "__geolocation__");
+        this._pathLayer = this.gifwMapInstance.addNativeLayerToMap(this._pathVectorSource, "Geolocation - Path", undefined, false, LayerGroupType.SystemNative, 500, true, "__geolocation_path__");
+
         this.olGeolocation = new Geolocation({
             // enableHighAccuracy must be set to true to have the heading value.
             trackingOptions: {
@@ -79,21 +99,9 @@ export class GIFWGeolocation extends olControl {
             },
             projection: this.gifwMapInstance.olMap.getView().getProjection(),
         });
-        // handle geolocation error.
-        this.olGeolocation.on('error', (error) => {
-            console.error(error);
-            this.deactivateGeolocation();
-            let msg = "An error occurred while trying to get your location.";
-            switch (error.code) {
-                case 1:
-                    msg = "You have denied access to your location. Please enable location services in your browser settings and refresh the page.";
-                case 3:
-                    msg = "It took too long to get your location. Make sure you are in an area with a clear view of the sky for best results."
-                    
-            }
-            Util.Alert.showPopupError("Geolocation error", msg);
 
-        });
+        // handle geolocation error.
+        this.olGeolocation.on('error', this.handleGeolocationError.bind(this));
         this.olGeolocation.on('change:accuracyGeometry', () => {
             this.renderPositionIndicatorOnMap();
 
@@ -110,13 +118,90 @@ export class GIFWGeolocation extends olControl {
         }
     }
 
+    /**
+     * Renders the geolocation controls on the UI
+     */
+
+    private renderGeolocationControls() {
+        let trackButton = document.createElement('button');
+        trackButton.innerHTML = '<i class="bi bi-cursor"></i>';
+        trackButton.setAttribute('title', 'Track my location');
+        let recentreButton = document.createElement('button');
+        recentreButton.innerHTML = 'Recentre';
+        recentreButton.setAttribute('title', 'Recentre map on my location');
+        let trackElement = document.createElement('div');
+        trackElement.className = 'gifw-geolocation-control ol-control';
+        trackElement.appendChild(trackButton);
+        let recentreElement = document.createElement('div');
+        recentreElement.className = 'gifw-geolocation-control gifw-geolocation-recentre-control ol-control';
+        recentreElement.appendChild(recentreButton);
+        recentreElement.style.display = 'none';
+        this._trackControlElement = trackElement;
+        this._recentreControlElement = recentreElement;
+        this.element.appendChild(trackElement);
+        this.element.appendChild(recentreElement);
+
+        //set up the options modal
+        (document.querySelector('#geolocation-options-modal #geolocationScreenLock') as HTMLInputElement).checked = this.useWakeLock;
+        if (!this.wakeLockAvailable) {
+            document.querySelector('#geolocation-options-modal #geolocationScreenLock').setAttribute('disabled', '');
+            document.querySelector('#geolocation-options-modal #geolocationScreenLockHelpText').textContent = `This feature is not available in your browser`;
+            document.querySelector('#geolocation-options-modal #geolocationScreenLockHelpText').classList.add('text-danger');
+        }
+        (document.querySelector('#geolocation-options-modal #geolocationDrawTrack') as HTMLInputElement).checked = this.drawPath;
+        const accuracySelectList = (document.querySelector('#geolocation-options-modal #geolocationAccuracyThreshold') as HTMLSelectElement);
+        accuracySelectList.value = this.minAccuracyThreshold.toString();
+
+    }
+
+    /**
+     * Adds the event listeners for the geolocation controls
+     */
+    private addUIEvents() {
+        this._trackControlElement.addEventListener('click', e => {
+            if (this._trackControlElement.classList.contains('ol-control-active')) {
+                this.deactivateGeolocation();
+            } else {
+                this.optionsModal.show();
+            }
+        })
+
+        this._recentreControlElement.addEventListener('click', e => {
+            this.recentreMapOnLocation();
+        });
+            
+
+        document.querySelector('#geolocation-options-modal .btn-primary').addEventListener('click', e => {
+            this.drawPath = (document.querySelector('#geolocation-options-modal #geolocationDrawTrack') as HTMLInputElement).checked;
+            this.useWakeLock = (document.querySelector('#geolocation-options-modal #geolocationScreenLock') as HTMLInputElement).checked;
+            this.minAccuracyThreshold = parseInt((document.querySelector('#geolocation-options-modal #geolocationAccuracyThreshold') as HTMLSelectElement).selectedOptions[0].value);
+            UserSettings.setItem('geolocationMinAccuracyThreshold', this.minAccuracyThreshold.toString());
+            UserSettings.setItem('geolocationDrawPath', this.drawPath.toString());
+            UserSettings.setItem('geolocationUseWakeLock',this.useWakeLock.toString())
+
+            this.activateGeolocation();
+        });
+
+        document.querySelector('#geolocation-export-modal .btn-primary').addEventListener('click', e => {
+            (e.currentTarget as HTMLButtonElement).disabled = true;
+            //download feature
+            this.downloadGPX();
+            (e.currentTarget as HTMLButtonElement).disabled = false;
+            this.exportModal.hide();
+        });
+
+
+    }
+
+    /**
+     * Renders the users location on the map if the accuracy is good enough. 
+     * @returns void
+     */
+
     private renderPositionIndicatorOnMap() {
         let position = this.olGeolocation.getPosition();
         let heading = this.olGeolocation.getHeading();
         let accuracy = this.olGeolocation.getAccuracy();
-        console.debug('Accuracy', accuracy);
-        console.debug('Location', position);
-        console.debug('Heading', heading);
         if (accuracy > this.minAccuracyThreshold) {
             if (!this.accuracyWarningInterval) {
                 this.accuracyWarningInterval = window.setInterval(() => {
@@ -124,6 +209,9 @@ export class GIFWGeolocation extends olControl {
                 }, 10000);
             }
             return;
+        } else {
+            window.clearInterval(this.accuracyWarningInterval);
+            this.accuracyWarningInterval = null;
         }
         if (!this._locationFeature) {
             this._locationFeature = new Feature();
@@ -153,7 +241,10 @@ export class GIFWGeolocation extends olControl {
                 center: position, duration: 500
             };
             if (this.firstLocation) {
-                opts.zoom = 18;
+                if (this.gifwMapInstance.olMap.getView().getZoom() < 18) {
+                    opts.zoom = 18;
+                }
+                
             }
             this.gifwMapInstance.olMap.getView().animate(opts, (success) => {
                 if (success) {
@@ -169,8 +260,6 @@ export class GIFWGeolocation extends olControl {
             this._trackControlElement.querySelector('i.bi').classList.remove('d-none');
 
             this.firstLocation = false;
-            window.clearInterval(this.accuracyWarningInterval);
-            this.accuracyWarningInterval = null;
             if (this.drawPath) {
                 //This is a bit of a hack as LineString requires 2 coordinates, but at this point, we only have one.
                 //we could keep a reference to the first coordinate until we get the second one, but this seemed simpler
@@ -183,113 +272,9 @@ export class GIFWGeolocation extends olControl {
         }
     }
 
-    private renderGeolocationControls() {
-        let trackButton = document.createElement('button');
-        trackButton.innerHTML = '<i class="bi bi-cursor"></i>';
-        trackButton.setAttribute('title', 'Track my location');
-        let recentreButton = document.createElement('button');
-        recentreButton.innerHTML = 'Recentre';
-        recentreButton.setAttribute('title', 'Recentre map on my location');
-        let trackElement = document.createElement('div');
-        trackElement.className = 'gifw-geolocation-control ol-control';
-        trackElement.appendChild(trackButton);
-        let recentreElement = document.createElement('div');
-        recentreElement.className = 'gifw-geolocation-control gifw-geolocation-recentre-control ol-control';
-        recentreElement.appendChild(recentreButton);
-        recentreElement.style.display = 'none';
-        this._trackControlElement = trackElement;
-        this._recentreControlElement = recentreElement;
-        this.element.appendChild(trackElement);
-        this.element.appendChild(recentreElement);
-
-        //set up the options modal
-        (document.querySelector('#geolocation-options-modal #geolocationScreenLock') as HTMLInputElement).checked = this.useWakeLock;
-        if (!this.wakeLockAvailable) {
-            document.querySelector('#geolocation-options-modal #geolocationScreenLock').setAttribute('disabled', '');
-            document.querySelector('#geolocation-options-modal #geolocationScreenLockHelpText').textContent = `This feature is not available in your browser`;
-            document.querySelector('#geolocation-options-modal #geolocationScreenLockHelpText').classList.add('text-danger');
-        }
-        (document.querySelector('#geolocation-options-modal #geolocationDrawTrack') as HTMLInputElement).checked = this.drawPath;
-        
-    }
-
-    private addUIEvents() {
-        this._trackControlElement.addEventListener('click', e => {
-            if (this._trackControlElement.classList.contains('ol-control-active')) {
-                this.deactivateGeolocation();
-            } else {
-                this.optionsModal.show();
-            }
-
-        })
-
-        this._recentreControlElement.addEventListener('click', e => {
-            let position = this.olGeolocation.getPosition();
-            let curExtent = this.gifwMapInstance.olMap.getView().calculateExtent();
-            if (!Util.Browser.PrefersReducedMotion() && containsCoordinate(curExtent, position)) {
-                this.gifwMapInstance.olMap.getView().animate({ center: this.olGeolocation.getPosition(), duration: 500, zoom: 18 });
-            } else {
-                this.gifwMapInstance.olMap.getView().setCenter(position);
-                this.gifwMapInstance.olMap.getView().setZoom(18);
-            }
-            //small timeout prevents the case where setCenter and setZoom trigger the unlock of the map
-            window.setTimeout(() => {
-                this.lockMap();
-            }, 500)
-            
-        });
-
-        document.querySelector('#geolocation-options-modal .btn-primary').addEventListener('click', e => {
-            this.drawPath = (document.querySelector('#geolocation-options-modal #geolocationDrawTrack') as HTMLInputElement).checked;
-            this.useWakeLock = (document.querySelector('#geolocation-options-modal #geolocationScreenLock') as HTMLInputElement).checked;
-            this.activateGeolocation();
-        });
-
-        document.querySelector('#geolocation-export-modal .btn-primary').addEventListener('click', e => {
-            (e.currentTarget as HTMLButtonElement).disabled = true;
-            //download feature
-            this.downloadGPX();
-            (e.currentTarget as HTMLButtonElement).disabled = false;
-            this.exportModal.hide();
-        });
-
-        
-    }
-
-    private lockMap() {
-        console.log('Locking Map');
-        this._recentreControlElement.style.display = 'none';
-        this.mapLockedOnGeolocation = true;
-    }
-
-    private unlockMapIfNotAnimating() {
-        if (!this.gifwMapInstance.olMap.getView().getAnimating()) {
-            this.unlockMap();
-        }
-    }
-
-    private unlockMap() {
-        console.log('Unlocking Map');
-        this._recentreControlElement.style.display = '';
-        this.mapLockedOnGeolocation = false;
-    }
-
-    private downloadGPX() {
-        let formatter = new GPX();
-        let gpx = formatter.writeFeatures(this._pathVectorSource.getFeatures(), {
-            featureProjection: this.gifwMapInstance.olMap.getView().getProjection()
-        });
-        let blob = new Blob([gpx], {
-            type: 'application/gpx+xml'
-        });
-        let url = URL.createObjectURL(blob);
-        let downloadLink = document.createElement('a');
-        downloadLink.href = url;
-        let timestamp = new Date().toISOString();
-        downloadLink.download = `GPXTrack_${timestamp}.gpx`;
-        downloadLink.click();
-    }
-
+    /**
+     * Deactivates the geolocation functionality
+     */
     private deactivateGeolocation() {
         this._trackControlElement.classList.remove('ol-control-active');
         this._trackControlElement.querySelector('button .spinner')?.remove();
@@ -302,7 +287,7 @@ export class GIFWGeolocation extends olControl {
         this._locationFeature = null;
 
         if (this.drawPath) {
-            if (this._pathFeature.getGeometry().getCoordinates().length > 2) {
+            if (this._pathFeature?.getGeometry().getCoordinates().length > 2) {
                 //show modal with download GPX link
                 let length = Math.round(getLength(this._pathFeature.getGeometry()));
                 let lengthStr = length.toString();
@@ -319,11 +304,8 @@ export class GIFWGeolocation extends olControl {
 
         window.clearInterval(this.accuracyWarningInterval);
         this.accuracyWarningInterval = null;
+        this.releaseWakeLock();
 
-        if (this.wakeLock && !this.wakeLock?.released) {
-            this.wakeLock.release();
-            this.wakeLock = null;
-        }
         document.removeEventListener('visibilitychange', this.handleVisibilityChange);
         this.unlockMap();
         this.gifwMapInstance.olMap.un('movestart', this.unlockMapIfNotAnimating)
@@ -333,6 +315,9 @@ export class GIFWGeolocation extends olControl {
         }
     }
 
+    /**
+     * Activates the geolocation functionality
+     */
     private activateGeolocation() {
 
         this.firstLocation = true;
@@ -353,7 +338,7 @@ export class GIFWGeolocation extends olControl {
 
         if (this.useWakeLock) {
             this.requestWakeLock();
-            document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
+            document.addEventListener('visibilitychange', this.handleVisibilityChange);
         }
         if (this._simulationMode) {
             this._simModeIntervalTimer = window.setInterval(() => {
@@ -367,11 +352,56 @@ export class GIFWGeolocation extends olControl {
 
     }
 
+    private recentreMapOnLocation() {
+        let position = this.olGeolocation.getPosition();
+        let curExtent = this.gifwMapInstance.olMap.getView().calculateExtent();
+        if (!Util.Browser.PrefersReducedMotion() && containsCoordinate(curExtent, position)) {
+            let opts: AnimationOptions = {
+                center: position, duration: 500
+            };
+            if (this.gifwMapInstance.olMap.getView().getZoom() < 18) {
+                opts.zoom = 18;
+            }
+            this.gifwMapInstance.olMap.getView().animate(opts);
+        } else {
+            this.gifwMapInstance.olMap.getView().setCenter(position);
+            if (this.gifwMapInstance.olMap.getView().getZoom() < 18) {
+                this.gifwMapInstance.olMap.getView().setZoom(18);
+            }
+        }
+        //small timeout prevents the case where setCenter and setZoom trigger the unlock of the map
+        window.setTimeout(() => {
+            this.lockMap();
+        }, 500)
+
+    }
+
+    /**
+     * Downloads the current path as a GPX file
+     */
+    private downloadGPX() {
+        let formatter = new GPX();
+        let gpx = formatter.writeFeatures(this._pathVectorSource.getFeatures(), {
+            featureProjection: this.gifwMapInstance.olMap.getView().getProjection()
+        });
+        let blob = new Blob([gpx], {
+            type: 'application/gpx+xml'
+        });
+        let url = URL.createObjectURL(blob);
+        let downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        let timestamp = new Date().toISOString();
+        downloadLink.download = `GPXTrack_${timestamp}.gpx`;
+        downloadLink.click();
+    }
+
+    /**
+     * Requests access to the screen wake lock API if available
+     */
     private async requestWakeLock() {
         if (this.wakeLockAvailable) {
             try {
                 this.wakeLock = await navigator.wakeLock.request("screen");
-                console.log("Wake Lock is active!");
             } catch (err) {
                 // The Wake Lock request has failed - usually system related, such as battery.
                 console.error(`${err.name}, ${err.message}`);
@@ -379,12 +409,77 @@ export class GIFWGeolocation extends olControl {
         }
     }
 
+    /**
+     * Releases any active screen wake lock
+     */
+    private releaseWakeLock() {
+        if (this.wakeLock && !this.wakeLock?.released) {
+            this.wakeLock.release();
+            this.wakeLock = null;
+        }
+    }
+
+    /**
+     * Locks the map to the current geolocation, meaning the map automatically follows the user's location
+     */
+    private lockMap() {
+        this._recentreControlElement.style.display = 'none';
+        this.mapLockedOnGeolocation = true;
+    }
+
+    /**
+     * Unlocks the map from the current geolocation if the view is not currently animating
+     */
+    private unlockMapIfNotAnimating() {
+        if (!this.gifwMapInstance.olMap.getView().getAnimating()) {
+            this.unlockMap();
+        }
+    }
+
+    /**
+    * Unlocks the map from the current geolocation, meaning the user can pan around freely
+    */
+    private unlockMap() {
+        this._recentreControlElement.style.display = '';
+        this.mapLockedOnGeolocation = false;
+    }
+
+    /**
+     * Re-requests the screen wake lock if the user has switched back to the tab
+     */
     private handleVisibilityChange() {
         if (this.wakeLock !== null && document.visibilityState === 'visible') {
             this.requestWakeLock();
         }
     }
 
+    /**
+     * Handles a location error
+     * @param error the OpenLayers GeolocationError object
+     */
+    private handleGeolocationError(error:GeolocationError) {
+
+            console.error(error);
+            this.deactivateGeolocation();
+            let msg = "An error occurred while trying to get your location.";
+            switch (error.code) {
+                case 1:
+                    msg = "You have denied access to your location. Please enable location services in your browser settings and refresh the page.";
+                    break;
+                case 3:
+                    msg = "It took too long to get your location. Make sure you are in an area with a clear view of the sky for best results."
+                    break;
+
+            }
+            Util.Alert.showPopupError("Geolocation error", msg);
+
+    }
+
+    /**
+     * Returns the style for the marker used to show the users location
+     * @param feature - The OpenLayers feature to style
+     * @returns Style[] Array of OpenLayers Style objects
+     */
     private getStyleForGeolocationFeature(feature: Feature<any>) {
 
         let rgbColor = Util.Color.hexToRgb(this.gifwMapInstance.config.theme.primaryColour);
@@ -420,6 +515,9 @@ export class GIFWGeolocation extends olControl {
         return [circle,arrow];
     }
 
+    /**
+     * Simulated coordinates for testing. These are the coordinates for a walk around Borough Gardens, Dorchester, Dorset, UK
+     */
     private simulatedCoordinates: number[][] = [[
         -2.441370637422439,
         50.71416976895679
@@ -587,7 +685,13 @@ export class GIFWGeolocation extends olControl {
     [
         -2.4413384509142597,
         50.71422411601392
-    ]];
+        ]];
+    /**
+     * Simulated heading for testing. These are random headings and don't tie with the coordinates above, so don't expect the pointer to point in the right direction
+     */
     private simulatedHeading: number[] = [0.08726646, 0.2617994, undefined, 3.316126, 3.141593, 5.061455];
-    private simulatedAccuracy: number[] = [4, 3, 1, 8, 7, 5];
+    /**
+     * Simulated accuracy values for testing. 
+     */
+    private simulatedAccuracy: number[] = [4, 3, 12, 8, 7, 5];
 }

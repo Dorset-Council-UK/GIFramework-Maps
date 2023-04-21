@@ -9,7 +9,7 @@
                 <div class="col-12 mb-2">
 
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" checked id="geolocationScreenLock">
+                        <input class="form-check-input" type="checkbox" value="" id="geolocationScreenLock">
                         <label class="form-check-label" for="geolocationScreenLock">
                             Keep screen awake
                         </label>
@@ -19,12 +19,28 @@
                     </div>
 
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" checked id="geolocationDrawTrack">
+                        <input class="form-check-input" type="checkbox" value="" id="geolocationDrawTrack">
                         <label class="form-check-label" for="geolocationDrawTrack">
                             Draw track
                         </label>
                         <div id="geolocationDrawTrackHelpText" class="form-text">
                             Draws a line on the map showing the path you have travelled which you can save as a GPX file when finished.
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="geolocationAccuracyThreshold" class="form-label">Location accuracy threshold</label>
+                        <div class="row">
+                            <div class="col-sm-8 col-md-6">
+                                <select class="form-select form-select-sm" id="geolocationAccuracyThreshold">
+                                    <option value="10">High (10m)</option>
+                                    <option value="20">Medium (20m)</option>
+                                    <option value="50">Low (50m)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="geolocationAccuracyThresholdHelpText" class="form-text">
+                            Accuracy threshold in metres. If the accuracy of your location is worse than this, we'll keep trying until we have a better signal.
                         </div>
                     </div>
                 </div>
