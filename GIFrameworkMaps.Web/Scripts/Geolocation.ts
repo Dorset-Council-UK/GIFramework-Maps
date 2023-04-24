@@ -292,8 +292,8 @@ export class GIFWGeolocation extends olControl {
                 let length = Math.round(getLength(this._pathFeature.getGeometry()));
                 let lengthStr = length.toString();
                 let unit = "m"
-                if (length > 1000) {
-                    length = (length / 100);
+                if (length >= 1000) {
+                    length = (length / 1000);
                     lengthStr = length.toFixed(2);
                     unit = "km";
                 }
@@ -347,7 +347,7 @@ export class GIFWGeolocation extends olControl {
                     this._simModeIndex = 0;
                 }
                 this.olGeolocation.dispatchEvent('change:position')
-            }, 2000);
+            }, 750);
         }
 
     }
