@@ -1,12 +1,14 @@
 import { Modal } from "bootstrap";
 import { Control as olControl } from "ol/control";
+import { Coordinate } from "ol/coordinate";
 import { containsCoordinate } from "ol/extent";
 import Feature from "ol/Feature";
 import { GPX } from "ol/format";
 import Geolocation, { GeolocationError } from "ol/Geolocation";
 import { LineString, Point } from "ol/geom";
 import VectorLayer from "ol/layer/Vector";
-import { transform } from "ol/proj";
+/*SIM MODE, UNCOMMENT TO TEST*/
+/*import { transform } from "ol/proj";*/
 import VectorSource from "ol/source/Vector";
 import { getLength } from "ol/sphere";
 import { Fill, RegularShape, Stroke, Style } from "ol/style";
@@ -46,12 +48,13 @@ export class GIFWGeolocation extends olControl {
     /*Simulation mode can be used to test the geolocation functionality without having to go outside.*/
     /*Set the below variable to true to enable simulation mode.*/
     /*When simulation mode is enabled, the geolocation will be simulated using the coordinates in the simulatedCoordinates array.*/
-    _simulationMode: boolean = false;
-    _simModeIndex: number = 0;
-    _simModeIntervalTimer: number;
+    /*Uncomment this and any other areas where 'SIM MODE, UNCOMMENT TO TEST' can be found */
+    //_simulationMode: boolean = true;
+    //_simModeIndex: number = 0;
+    //_simModeIntervalTimer: number;
     constructor(gifwMapInstance: GIFWMap) {
 
-        let geolocationControlElement = document.createElement('div');
+        const geolocationControlElement = document.createElement('div');
 
         super({
             element: geolocationControlElement
@@ -59,13 +62,11 @@ export class GIFWGeolocation extends olControl {
 
         this.gifwMapInstance = gifwMapInstance;
 
-        /*TODO - Yuck, nasty way of validating it as an acceptable value*/
-        this.minAccuracyThreshold = parseInt(UserSettings.getItem('geolocationMinAccuracyThreshold')) || 20;
-        if (!(this.minAccuracyThreshold === 10 || this.minAccuracyThreshold === 20 || this.minAccuracyThreshold === 50)) {
-            this.minAccuracyThreshold = 20;
-        }
-        this.drawPath = UserSettings.getItem('geolocationDrawPath') === null ? true : UserSettings.getItem('geolocationDrawPath') === 'true';
-        this.useWakeLock = UserSettings.getItem('geolocationUseWakeLock') === null ? true : UserSettings.getItem('geolocationUseWakeLock') === 'true' ;
+        /*We only want the values 10,20 and 50 to be acceptable. Default to 20*/
+        this.minAccuracyThreshold = parseInt(UserSettings.getItem('geolocationMinAccuracyThreshold', undefined , ["10","20","50"])) || 20;
+
+        this.drawPath = UserSettings.getItem('geolocationDrawPath',undefined,["true","false"]) === null ? true : UserSettings.getItem('geolocationDrawPath') === 'true';
+        this.useWakeLock = UserSettings.getItem('geolocationUseWakeLock', undefined, ["true", "false"]) === null ? true : UserSettings.getItem('geolocationUseWakeLock') === 'true' ;
 
         if ('wakeLock' in navigator) {
             this.wakeLockAvailable = true;
@@ -109,13 +110,14 @@ export class GIFWGeolocation extends olControl {
         this.olGeolocation.on('change:position', () => {
             this.renderPositionIndicatorOnMap();
         });
-        if (this._simulationMode) {
+        /*SIM MODE, UNCOMMENT TO TEST*/
+        //if (this._simulationMode) {
             
-            this.olGeolocation.getAccuracy = () => { return this.simulatedAccuracy[Math.floor(Math.random() * (this.simulatedAccuracy.length - 0 + 1) + 0)];}
-            this.olGeolocation.getHeading = () => { return this.simulatedHeading[Math.floor(Math.random() * (this.simulatedHeading.length - 0 + 1) + 0)];}
-            this.olGeolocation.getPosition = () => {return transform(this.simulatedCoordinates[this._simModeIndex],'EPSG:4326','EPSG:3857');}
+        //    this.olGeolocation.getAccuracy = () => { return this.simulatedAccuracy[Math.floor(Math.random() * (this.simulatedAccuracy.length - 0 + 1) + 0)];}
+        //    this.olGeolocation.getHeading = () => { return this.simulatedHeading[Math.floor(Math.random() * (this.simulatedHeading.length - 0 + 1) + 0)];}
+        //    this.olGeolocation.getPosition = () => {return transform(this.simulatedCoordinates[this._simModeIndex],'EPSG:4326','EPSG:3857');}
 
-        }
+        //}
     }
 
     /**
@@ -123,16 +125,16 @@ export class GIFWGeolocation extends olControl {
      */
 
     private renderGeolocationControls() {
-        let trackButton = document.createElement('button');
+        const trackButton = document.createElement('button');
         trackButton.innerHTML = '<i class="bi bi-cursor"></i>';
         trackButton.setAttribute('title', 'Track my location');
-        let recentreButton = document.createElement('button');
+        const recentreButton = document.createElement('button');
         recentreButton.innerHTML = 'Recentre';
         recentreButton.setAttribute('title', 'Recentre map on my location');
-        let trackElement = document.createElement('div');
+        const trackElement = document.createElement('div');
         trackElement.className = 'gifw-geolocation-control ol-control';
         trackElement.appendChild(trackButton);
-        let recentreElement = document.createElement('div');
+        const recentreElement = document.createElement('div');
         recentreElement.className = 'gifw-geolocation-control gifw-geolocation-recentre-control ol-control';
         recentreElement.appendChild(recentreButton);
         recentreElement.style.display = 'none';
@@ -168,8 +170,7 @@ export class GIFWGeolocation extends olControl {
 
         this._recentreControlElement.addEventListener('click', e => {
             this.recentreMapOnLocation();
-        });
-            
+        });  
 
         document.querySelector('#geolocation-options-modal .btn-primary').addEventListener('click', e => {
             this.drawPath = (document.querySelector('#geolocation-options-modal #geolocationDrawTrack') as HTMLInputElement).checked;
@@ -189,19 +190,16 @@ export class GIFWGeolocation extends olControl {
             (e.currentTarget as HTMLButtonElement).disabled = false;
             this.exportModal.hide();
         });
-
-
     }
 
     /**
      * Renders the users location on the map if the accuracy is good enough. 
      * @returns void
      */
-
     private renderPositionIndicatorOnMap() {
-        let position = this.olGeolocation.getPosition();
-        let heading = this.olGeolocation.getHeading();
-        let accuracy = this.olGeolocation.getAccuracy();
+        const position = this.olGeolocation.getPosition();
+        const heading = this.olGeolocation.getHeading();
+        const accuracy = this.olGeolocation.getAccuracy();
         if (accuracy > this.minAccuracyThreshold) {
             if (!this.accuracyWarningInterval) {
                 this.accuracyWarningInterval = window.setInterval(() => {
@@ -213,62 +211,20 @@ export class GIFWGeolocation extends olControl {
             window.clearInterval(this.accuracyWarningInterval);
             this.accuracyWarningInterval = null;
         }
-        if (!this._locationFeature) {
-            this._locationFeature = new Feature();
-            this._locationVectorSource.addFeature(this._locationFeature);
-        }
+
+        this.drawLocationMarker(position, heading);
+        
         if (this.drawPath) {
             if (!this._pathFeature) {
-                this._pathFeature = new Feature();
-                this._pathVectorSource.addFeature(this._pathFeature);
-                let popupDownloadAction = new GIFWPopupAction("Download this path as a GPX file", this.downloadGPX.bind(this), false, true);
-                let popupClearPathAction = new GIFWPopupAction("Remove path from map", () => {
-                    this._pathVectorSource.clear();
-                    this._pathFeature = null;
-                    this._pathLayer.setVisible(false)
-                }, true, true);
-                let timestamp = new Date().toLocaleTimeString();
-                let popupOpts = new GIFWPopupOptions(`<h1>Your path</h1><p><strong>Started:</strong> ${timestamp}</p>`,[popupDownloadAction,popupClearPathAction]);
-                this._pathFeature.set('gifw-popup-opts', popupOpts)
-                this._pathFeature.set('gifw-popup-title', `Your path`)
+                this.createPathFeature();
             }
+            this.updatePathFeature(position, this.firstLocation);
         }
-        this._locationFeature.set('gifw-heading', heading);
-        this._locationFeature.setGeometry(new Point(position));
-        if (this.firstLocation || this.mapLockedOnGeolocation) {
-            let _firstLocation = this.firstLocation;
-            let opts:AnimationOptions = {
-                center: position, duration: 500
-            };
-            if (this.firstLocation) {
-                if (this.gifwMapInstance.olMap.getView().getZoom() < 18) {
-                    opts.zoom = 18;
-                }
-                
-            }
-            this.gifwMapInstance.olMap.getView().animate(opts, (success) => {
-                if (success) {
-                    if (_firstLocation) {
-                        this.gifwMapInstance.olMap.on('movestart', this.unlockMapIfNotAnimating)
-                        this.lockMap();
-                    }
-                }
-            });
-        }
+        
         if (this.firstLocation) {
             this._trackControlElement.querySelector('button .spinner')?.remove();
             this._trackControlElement.querySelector('i.bi').classList.remove('d-none');
-
             this.firstLocation = false;
-            if (this.drawPath) {
-                //This is a bit of a hack as LineString requires 2 coordinates, but at this point, we only have one.
-                //we could keep a reference to the first coordinate until we get the second one, but this seemed simpler
-                this._pathFeature.setGeometry(new LineString([position,position]))
-            }
-        } else {
-            if (this.drawPath) {
-                this._pathFeature.getGeometry().appendCoordinate(position);
-            }
         }
     }
 
@@ -310,9 +266,10 @@ export class GIFWGeolocation extends olControl {
         this.unlockMap();
         this.gifwMapInstance.olMap.un('movestart', this.unlockMapIfNotAnimating)
         this._recentreControlElement.style.display = 'none';
-        if (this._simulationMode) {
-            window.clearInterval(this._simModeIntervalTimer);
-        }
+        /*SIM MODE, UNCOMMENT TO TEST*/
+        //if (this._simulationMode) {
+        //    window.clearInterval(this._simModeIntervalTimer);
+        //}
     }
 
     /**
@@ -340,23 +297,78 @@ export class GIFWGeolocation extends olControl {
             this.requestWakeLock();
             document.addEventListener('visibilitychange', this.handleVisibilityChange);
         }
-        if (this._simulationMode) {
-            this._simModeIntervalTimer = window.setInterval(() => {
-                this._simModeIndex += 1;
-                if (this._simModeIndex == this.simulatedCoordinates.length) {
-                    this._simModeIndex = 0;
+        /*SIM MODE, UNCOMMENT TO TEST*/
+        //if (this._simulationMode) {
+        //    this._simModeIntervalTimer = window.setInterval(() => {
+        //        this._simModeIndex += 1;
+        //        if (this._simModeIndex == this.simulatedCoordinates.length) {
+        //            this._simModeIndex = 0;
+        //        }
+        //        this.olGeolocation.dispatchEvent('change:position')
+        //    }, 1500);
+        //}
+
+    }
+
+    private drawLocationMarker(position:Coordinate, heading:number) {
+        if (!this._locationFeature) {
+            this._locationFeature = new Feature();
+            this._locationVectorSource.addFeature(this._locationFeature);
+        }
+
+        this._locationFeature.set('gifw-heading', heading);
+        this._locationFeature.setGeometry(new Point(position));
+        if (this.firstLocation || this.mapLockedOnGeolocation) {
+            const _firstLocation = this.firstLocation;
+            const opts: AnimationOptions = {
+                center: position, duration: 500
+            };
+            if (this.firstLocation) {
+                if (this.gifwMapInstance.olMap.getView().getZoom() < 18) {
+                    opts.zoom = 18;
                 }
-                this.olGeolocation.dispatchEvent('change:position')
-            }, 750);
+
+            }
+            this.gifwMapInstance.olMap.getView().animate(opts, (success) => {
+                if (success) {
+                    if (_firstLocation) {
+                        this.gifwMapInstance.olMap.on('movestart', this.unlockMapIfNotAnimating)
+                        this.lockMap();
+                    }
+                }
+            });
         }
 
     }
 
+    private createPathFeature() {
+        this._pathFeature = new Feature();
+        this._pathVectorSource.addFeature(this._pathFeature);
+        const popupDownloadAction = new GIFWPopupAction("Download this path as a GPX file", this.downloadGPX.bind(this), false, true);
+        const popupClearPathAction = new GIFWPopupAction("Remove path from map", () => {
+            this._pathVectorSource.clear();
+            this._pathFeature = null;
+            this._pathLayer.setVisible(false)
+        }, true, true);
+        const timestamp = new Date().toLocaleTimeString();
+        const popupOpts = new GIFWPopupOptions(`<h1>Your path</h1><p><strong>Started:</strong> ${timestamp}</p>`, [popupDownloadAction, popupClearPathAction]);
+        this._pathFeature.set('gifw-popup-opts', popupOpts)
+        this._pathFeature.set('gifw-popup-title', `Your path`)
+    }
+
+    private updatePathFeature(position: Coordinate, isFirstLocation: boolean) {
+        if (isFirstLocation) {
+            this._pathFeature.setGeometry(new LineString([position, position]))
+        } else {
+            this._pathFeature.getGeometry().appendCoordinate(position);
+        }
+    }
+
     private recentreMapOnLocation() {
-        let position = this.olGeolocation.getPosition();
-        let curExtent = this.gifwMapInstance.olMap.getView().calculateExtent();
+        const position = this.olGeolocation.getPosition();
+        const curExtent = this.gifwMapInstance.olMap.getView().calculateExtent();
         if (!Util.Browser.PrefersReducedMotion() && containsCoordinate(curExtent, position)) {
-            let opts: AnimationOptions = {
+            const opts: AnimationOptions = {
                 center: position, duration: 500
             };
             if (this.gifwMapInstance.olMap.getView().getZoom() < 18) {
@@ -380,17 +392,17 @@ export class GIFWGeolocation extends olControl {
      * Downloads the current path as a GPX file
      */
     private downloadGPX() {
-        let formatter = new GPX();
-        let gpx = formatter.writeFeatures(this._pathVectorSource.getFeatures(), {
+        const formatter = new GPX();
+        const gpx = formatter.writeFeatures(this._pathVectorSource.getFeatures(), {
             featureProjection: this.gifwMapInstance.olMap.getView().getProjection()
         });
-        let blob = new Blob([gpx], {
+        const blob = new Blob([gpx], {
             type: 'application/gpx+xml'
         });
-        let url = URL.createObjectURL(blob);
-        let downloadLink = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        const downloadLink = document.createElement('a');
         downloadLink.href = url;
-        let timestamp = new Date().toISOString();
+        const timestamp = new Date().toISOString();
         downloadLink.download = `GPXTrack_${timestamp}.gpx`;
         downloadLink.click();
     }
@@ -482,16 +494,16 @@ export class GIFWGeolocation extends olControl {
      */
     private getStyleForGeolocationFeature(feature: Feature<any>) {
 
-        let rgbColor = Util.Color.hexToRgb(this.gifwMapInstance.config.theme.primaryColour);
+        const rgbColor = Util.Color.hexToRgb(this.gifwMapInstance.config.theme.primaryColour);
 
-        let fill = new Fill({
+        const fill = new Fill({
             color: `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, 1)`
         });
-        let stroke = new Stroke({
+        const stroke = new Stroke({
             color: 'rgba(255, 255, 255, 1)',
             width: 2
         });
-        let circle = new Style({
+        const circle = new Style({
             image: new CircleStyle({
                 radius: 7,
                 stroke: stroke,
@@ -499,7 +511,7 @@ export class GIFWGeolocation extends olControl {
             }),
         })
 
-        let arrow = new Style({
+        const arrow = new Style({
             image: new RegularShape({
                 fill: fill,
                 stroke: stroke,
@@ -518,180 +530,181 @@ export class GIFWGeolocation extends olControl {
     /**
      * Simulated coordinates for testing. These are the coordinates for a walk around Borough Gardens, Dorchester, Dorset, UK
      */
-    private simulatedCoordinates: number[][] = [[
-        -2.441370637422439,
-        50.71416976895679
-    ],
-    [
-        -2.441376001840468,
-        50.71411542183668
-    ],
-    [
-        -2.4413652730044086,
-        50.71406786805488
-    ],
-    [
-        -2.4413652730044086,
-        50.71401691752084
-    ],
-    [
-        -2.441418132147921,
-        50.71397508004904
-    ],
-    [
-        -2.4414189171847065,
-        50.71391841299797
-    ],
-    [
-        -2.441451103692885,
-        50.71380632139255
-    ],
-    [
-        -2.4414993834551537,
-        50.713731593506736
-    ],
-    [
-        -2.441601307397719,
-        50.71365007204085
-    ],
-    [
-        -2.4417890620287617,
-        50.71361270798823
-    ],
-    [
-        -2.441892969926586,
-        50.713596443757694
-    ],
-    [
-        -2.4420197320040424,
-        50.7135923275834
-    ],
-    [
-        -2.4419499945696552,
-        50.71354817000909
-    ],
-    [
-        -2.4420411896761616,
-        50.713507409134365
-    ],
-    [
-        -2.4420626473482807,
-        50.71344626775584
-    ],
-    [
-        -2.4420572829302514,
-        50.71338512629751
-    ],
-    [
-        -2.4420143675860126,
-        50.71330700098474
-    ],
-    [
-        -2.4419017148073876,
-        50.713228875541716
-    ],
-    [
-        -2.4417515111025536,
-        50.713126972594324
-    ],
-    [
-        -2.4416978669222558,
-        50.71307262426512
-    ],
-    [
-        -2.4416495871599873,
-        50.712889198188805
-    ],
-    [
-        -2.441558392053481,
-        50.712838246373536
-    ],
-    [
-        -2.4414618325289448,
-        50.712760120149284
-    ],
-    [
-        -2.4413974595125874,
-        50.71273294577989
-    ],
-    [
-        -2.441268713479873,
-        50.712729548982594
-    ],
-    [
-        -2.441172153955337,
-        50.712770310533756
-    ],
-    [
-        -2.4411292386110985,
-        50.712838246373536
-    ],
-    [
-        -2.4411131453570087,
-        50.712892594974534
-    ],
-    [
-        -2.4410863232668603,
-        50.71296732419793
-    ],
-    [
-        -2.44108095884883,
-        50.713038656527345
-    ],
-    [
-        -2.4411238741930683,
-        50.71308960812476
-    ],
-    [
-        -2.4412257981356347,
-        50.71315754350181
-    ],
-    [
-        -2.4413491797503193,
-        50.7131949079172
-    ],
-    [
-        -2.4413545441683495,
-        50.713303604229054
-    ],
-    [
-        -2.441392095094558,
-        50.713422490531514
-    ],
-    [
-        -2.4413169932421406,
-        50.713537979793756
-    ],
-    [
-        -2.4412284536801754,
-        50.7136139327813
-    ],
-    [
-        -2.4412043404635155,
-        50.71369762624653
-    ],
-    [
-        -2.441247255807754,
-        50.71383349513971
-    ],
-    [
-        -2.4413169932421406,
-        50.71395238009822
-    ],
-    [
-        -2.441376001840468,
-        50.71411542183668
-    ],
-    [
-        -2.4413384509142597,
-        50.71422411601392
-        ]];
-    /**
-     * Simulated heading for testing. These are random headings and don't tie with the coordinates above, so don't expect the pointer to point in the right direction
-     */
-    private simulatedHeading: number[] = [0.08726646, 0.2617994, undefined, 3.316126, 3.141593, 5.061455];
-    /**
-     * Simulated accuracy values for testing. 
-     */
-    private simulatedAccuracy: number[] = [4, 3, 12, 8, 7, 5];
+    /*SIM MODE, UNCOMMENT TO TEST*/
+    //private simulatedCoordinates: number[][] = [[
+    //    -2.441370637422439,
+    //    50.71416976895679
+    //],
+    //[
+    //    -2.441376001840468,
+    //    50.71411542183668
+    //],
+    //[
+    //    -2.4413652730044086,
+    //    50.71406786805488
+    //],
+    //[
+    //    -2.4413652730044086,
+    //    50.71401691752084
+    //],
+    //[
+    //    -2.441418132147921,
+    //    50.71397508004904
+    //],
+    //[
+    //    -2.4414189171847065,
+    //    50.71391841299797
+    //],
+    //[
+    //    -2.441451103692885,
+    //    50.71380632139255
+    //],
+    //[
+    //    -2.4414993834551537,
+    //    50.713731593506736
+    //],
+    //[
+    //    -2.441601307397719,
+    //    50.71365007204085
+    //],
+    //[
+    //    -2.4417890620287617,
+    //    50.71361270798823
+    //],
+    //[
+    //    -2.441892969926586,
+    //    50.713596443757694
+    //],
+    //[
+    //    -2.4420197320040424,
+    //    50.7135923275834
+    //],
+    //[
+    //    -2.4419499945696552,
+    //    50.71354817000909
+    //],
+    //[
+    //    -2.4420411896761616,
+    //    50.713507409134365
+    //],
+    //[
+    //    -2.4420626473482807,
+    //    50.71344626775584
+    //],
+    //[
+    //    -2.4420572829302514,
+    //    50.71338512629751
+    //],
+    //[
+    //    -2.4420143675860126,
+    //    50.71330700098474
+    //],
+    //[
+    //    -2.4419017148073876,
+    //    50.713228875541716
+    //],
+    //[
+    //    -2.4417515111025536,
+    //    50.713126972594324
+    //],
+    //[
+    //    -2.4416978669222558,
+    //    50.71307262426512
+    //],
+    //[
+    //    -2.4416495871599873,
+    //    50.712889198188805
+    //],
+    //[
+    //    -2.441558392053481,
+    //    50.712838246373536
+    //],
+    //[
+    //    -2.4414618325289448,
+    //    50.712760120149284
+    //],
+    //[
+    //    -2.4413974595125874,
+    //    50.71273294577989
+    //],
+    //[
+    //    -2.441268713479873,
+    //    50.712729548982594
+    //],
+    //[
+    //    -2.441172153955337,
+    //    50.712770310533756
+    //],
+    //[
+    //    -2.4411292386110985,
+    //    50.712838246373536
+    //],
+    //[
+    //    -2.4411131453570087,
+    //    50.712892594974534
+    //],
+    //[
+    //    -2.4410863232668603,
+    //    50.71296732419793
+    //],
+    //[
+    //    -2.44108095884883,
+    //    50.713038656527345
+    //],
+    //[
+    //    -2.4411238741930683,
+    //    50.71308960812476
+    //],
+    //[
+    //    -2.4412257981356347,
+    //    50.71315754350181
+    //],
+    //[
+    //    -2.4413491797503193,
+    //    50.7131949079172
+    //],
+    //[
+    //    -2.4413545441683495,
+    //    50.713303604229054
+    //],
+    //[
+    //    -2.441392095094558,
+    //    50.713422490531514
+    //],
+    //[
+    //    -2.4413169932421406,
+    //    50.713537979793756
+    //],
+    //[
+    //    -2.4412284536801754,
+    //    50.7136139327813
+    //],
+    //[
+    //    -2.4412043404635155,
+    //    50.71369762624653
+    //],
+    //[
+    //    -2.441247255807754,
+    //    50.71383349513971
+    //],
+    //[
+    //    -2.4413169932421406,
+    //    50.71395238009822
+    //],
+    //[
+    //    -2.441376001840468,
+    //    50.71411542183668
+    //],
+    //[
+    //    -2.4413384509142597,
+    //    50.71422411601392
+    //    ]];
+    ///**
+    // * Simulated heading for testing. These are random headings and don't tie with the coordinates above, so don't expect the pointer to point in the right direction
+    // */
+    //private simulatedHeading: number[] = [0.08726646, 0.2617994, undefined, 3.316126, 3.141593, 5.061455];
+    ///**
+    // * Simulated accuracy values for testing. 
+    // */
+    //private simulatedAccuracy: number[] = [4, 3, 12, 8, 7, 5];
 }
