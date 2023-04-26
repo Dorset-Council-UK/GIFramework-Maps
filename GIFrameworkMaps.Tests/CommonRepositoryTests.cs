@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.Extensions.Caching.Memory;
 using GIFrameworkMaps.Data.Models.Authorization;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 
 namespace GIFrameworkMaps.Tests
 {
@@ -88,11 +89,15 @@ namespace GIFrameworkMaps.Tests
             var mockMemoryCache = new MemoryCache(new MemoryCacheOptions());
             /* TO DO: Add some parameters to the mockMemoryCache? */
 
+            //Mock IHttpContextAccessor
+            var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+            var context = new DefaultHttpContext();
+            mockHttpContextAccessor.Setup(_ => _.HttpContext).Returns(context);
             var profile = new AutoMapping();
             var config = new MapperConfiguration(cfg => cfg.AddProfile(profile));
             var mapper = new Mapper(config);
 
-            sut = new CommonRepository(_logger, mockApplicationDbContext.Object, mockMemoryCache, mapper);
+            sut = new CommonRepository(_logger, mockApplicationDbContext.Object, mockMemoryCache, mapper, mockHttpContextAccessor.Object);
         }
 
         [SetUp]
