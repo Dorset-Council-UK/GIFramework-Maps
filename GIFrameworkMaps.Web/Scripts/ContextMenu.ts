@@ -1,6 +1,6 @@
 ﻿import * as olProj from "ol/proj";
 import { GIFWMousePositionControl } from "../Scripts/MousePositionControl";
-import { Streetview } from "./streetview";
+import { Streetview } from "./Streetview";
 const ContextMenu = require("ol-contextmenu");
 
 export class GIFWContextMenu {

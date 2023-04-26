@@ -361,7 +361,7 @@ export class Measure extends olControl {
                 imperialOutput = Math.round((metric * 0.000621371192) * 1000) / 1000;
                 imperialUnit = "mi"
             } else {
-                imperialOutput = Math.round(metric * 100) / 100;
+                imperialOutput = Math.round(imperial * 100) / 100;
             }
             measurementName = "Length"
 
