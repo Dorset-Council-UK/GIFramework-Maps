@@ -13,6 +13,8 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using shortid;
+using System.Reflection.Metadata;
 
 namespace GIFrameworkMaps.Data
 {
@@ -256,40 +258,42 @@ namespace GIFrameworkMaps.Data
             return allowedHosts;
         }
 
-        public async Task<string> GenerateShortURL(string url)
+        public async Task<string> GenerateShortId(string url)
         {
-            string cacheKey = $"ShortURL/{url}";
-            if (_memoryCache.TryGetValue(cacheKey, out string cacheValue))
-            {
-                return cacheValue;
+            string shortId = ShortId.Generate();
+
+            var existing = await _context.ShortLink.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
+            var iterations = 0;
+            var maxIterations = 100;
+            while (existing != null && iterations < maxIterations) {
+                shortId = ShortId.Generate();
+                existing = await _context.ShortLink.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
+                iterations++;
             }
-
-            var shortURL = await _shortener.Shorten(url);
-
-            _memoryCache.Set(cacheKey, shortURL, new MemoryCacheEntryOptions
+            
+            if(existing == null)
             {
-                Priority = CacheItemPriority.Low,
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
-            });
-            return shortURL;
+                return shortId;
+            }
+            else
+            {
+                //we couldn't get a unique short id in 100 tries
+                _logger.LogError("Could not generate a unique short id for url {url} after {maxIterations} tries", url, maxIterations);
+                return null;
+            }
         }
 
-        string GenerateShortCode()
+        public async Task<string> GetFullUrlFromShortId(string shortId)
         {
-            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            var stringChars = new char[6];
-            var random = new Random();
-
-            for (int i = 0; i < stringChars.Length; i++)
+            var shortLink = await _context.ShortLink.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
+            if(shortLink == null)
             {
-                stringChars[i] = chars[random.Next(chars.Length)];
+                return null;
             }
-
-            var finalString = new String(stringChars);
-            return finalString;
+            return shortLink.FullUrl;
         }
 
-        bool IsURLCurrentApplication(string url)
+        public bool IsURLCurrentApplication(string url)
         {
             var uri = new Uri(url);
             var host = uri.Host;

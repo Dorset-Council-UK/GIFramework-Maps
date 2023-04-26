@@ -110,6 +110,12 @@
         "resolved": "2.1.1",
         "contentHash": "9sMrkSNS3pR72WLjhWycPAv9f/prnRF4VlSdpAi3HXjoz6F/Ijs9gcuWcsy1R/8I0ffMrwdutjUlpg2sKA2N0A=="
       },
+      "shortid": {
+        "type": "Direct",
+        "requested": "[4.0.0, )",
+        "resolved": "4.0.0",
+        "contentHash": "iiOsFHiZLfmUxViNKWAmLYi6xCJanKBYlxe163pkK4C+k9vnkWdCNCPouNWukn/F147k3bLq0tEFEQhlGMLqjA=="
+      },
       "System.Data.SqlClient": {
         "type": "Direct",
         "requested": "[4.8.5, )",
