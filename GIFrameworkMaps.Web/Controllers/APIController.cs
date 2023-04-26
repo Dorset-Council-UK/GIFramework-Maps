@@ -28,19 +28,22 @@ namespace GIFrameworkMaps.Web.Controllers
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IConfiguration _configuration;
         private readonly IAuthorizationService _authorization;
+        private readonly ApplicationDbContext _context;
 
         public APIController(
             ILogger<APIController> logger,
             ICommonRepository repository,
             IWebHostEnvironment webHostEnvironment,
             IAuthorizationService authorization,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ApplicationDbContext context)
         {
             _logger = logger;
             _repository = repository;
             _webHostEnvironment = webHostEnvironment;
             _authorization = authorization;
             _configuration = configuration;
+            _context = context;
         }
         public IActionResult SVGIcon(string shape, string colour, string border_colour = "", string label = "", int height = 50, int width = 50)
         {
@@ -212,14 +215,27 @@ namespace GIFrameworkMaps.Web.Controllers
             return Json(services);
         }
 
-        public string GenerateShortUrl(string url)
+        [HttpPost]
+        public async Task<IActionResult> GenerateShortUrl(string url)
         {
-            string shortUrl = "";
-            if (Uri.IsWellFormedUriString(url, UriKind.Absolute))
+            if (Uri.IsWellFormedUriString(url, UriKind.Absolute) && _repository.IsURLCurrentApplication(url))
             {
-                shortUrl = _repository.GenerateShortUrl(url);
+                string shortId = await _repository.GenerateShortId(url);
+                if(shortId == null)
+                {
+                    return StatusCode(500);
+                }
+                await _context.ShortLink.AddAsync(new ShortLink { 
+                    ShortId = shortId,
+                    FullUrl = url
+                });
+                await _context.SaveChangesAsync();
+                return Ok(Url.Action("UserShortLink", "Home", new { id = shortId }));
             }
-            return shortUrl;
+            else
+            {
+                return BadRequest();
+            }
         }
 
     }
