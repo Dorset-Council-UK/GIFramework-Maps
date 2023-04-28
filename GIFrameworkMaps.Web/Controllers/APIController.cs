@@ -230,7 +230,9 @@ namespace GIFrameworkMaps.Web.Controllers
                     FullUrl = url
                 });
                 await _context.SaveChangesAsync();
-                return Ok(Url.Action("UserShortLink", "Home", new { id = shortId }));
+
+                string shortLink = Url.RouteUrl("UserShortLink", new { id = shortId }, Request.Scheme);
+                return Created(shortLink, shortLink);
             }
             else
             {
