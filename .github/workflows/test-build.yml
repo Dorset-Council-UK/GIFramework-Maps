@@ -1,0 +1,52 @@
+# This workflow will build the .NET project, run npm and webpack, and upload the artifact
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Test (.NET)
+
+on:
+  push:
+    branches: [ "Test-site" ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: 'npm'
+    - uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: npm install
+      run: npm install
+      working-directory: 'GIFrameworkMaps.Web'
+    - name: Install webpack
+      run: npm i -g webpack webpack-cli
+      working-directory: 'GIFrameworkMaps.Web'
+    - name: webpack
+      run: webpack --config webpack.prod.js
+      working-directory: 'GIFrameworkMaps.Web'
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+    - name: Publish
+      run: dotnet publish -o '../release'
+      working-directory: 'GIFrameworkMaps.Web'
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        path: 'release'
