@@ -624,15 +624,7 @@ export class LayersPanel implements SidebarPanel {
                 }
             }
 
-            let visibilityNotification = new Util.Alert(1, Util.AlertSeverity.Info, 'Layer visibility', notificationText, '#gifw-layer-range-toast');
-            /*NOTE: This is the only way I could get the progress bar to reset consistently on show of toast*/
-            /*Main issue was when toast is hidden automatically due to 'atomic' setting, no events are fired*/
-            (document.querySelector('#gifw-layer-range-toast .progress-bar') as HTMLElement).style.transition = 'none';
-            (document.querySelector('#gifw-layer-range-toast .progress-bar') as HTMLElement).style.width = '0%';
-            visibilityNotification.show();
-            (document.querySelector('#gifw-layer-range-toast .progress-bar') as HTMLElement).style.transition = 'width 4s linear';
-            (document.querySelector('#gifw-layer-range-toast .progress-bar') as HTMLElement).style.width = '100%';
-            
+            Util.Alert.showTimedToast('Layer out of range', notificationText, Util.AlertSeverity.Warning);            
             
         }
     }
