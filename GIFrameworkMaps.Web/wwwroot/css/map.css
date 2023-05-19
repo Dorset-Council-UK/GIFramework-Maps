@@ -103,11 +103,23 @@
     left: 7.25rem;
 }
 
+.giframeworkMap .gifw-geolocation-control {
+    right: unset;
+    left: .5rem;
+    top: 20.5em;
+}
+.giframeworkMap .gifw-geolocation-control.gifw-geolocation-recentre-control {
+    left: 2.75rem;
+}
+
 .giframeworkMap .ol-control button {
     background-color: var(--primary-color-transparent-50);
-    color:white;
-    width:2rem;
-    height:2rem;
+    color: white;
+    width: 2rem;
+    height: 2rem;
+}
+.giframeworkMap .gifw-geolocation-recentre-control button {
+    width: 100%;
 }
 .giframeworkMap .ol-control button:disabled {
     filter:grayscale(1);
@@ -428,14 +440,13 @@
 }
 /*Specialist reverse timeout bar for the layer out of range messages*/
 /*Tranistion timing should match bs toast delay timing on the element itself*/
-#gifw-layer-range-toast .progress-bar {
+#gifw-timed-toast .progress-bar {
     background-color: #e9ecef;
     transition: width 4s linear;
 }
-#gifw-layer-range-toast .progress {
-    
+#gifw-timed-toast .progress {
     background-color: var(--primary-color);
-    height:2px;
+    height: 2px;
 }
 /*dragover effects*/
 .giframeworkMap.dragover::after {

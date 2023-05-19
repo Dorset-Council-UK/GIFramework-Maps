@@ -12,6 +12,7 @@ import { Layer } from "./Interfaces/Layer";
 import { GIFWPopupOverlay } from "./Popups/PopupOverlay";
 import { GIFWLayerGroup } from "./LayerGroup/GIFWLayerGroup";
 import { GIFWContextMenu } from "./ContextMenu";
+import { GIFWGeolocation } from "./Geolocation";
 import Geometry from "ol/geom/Geometry";
 import { v4 as uuidv4 } from 'uuid';
 import { LayerGroupType } from "./Interfaces/LayerGroupType";
@@ -84,9 +85,11 @@ export class GIFWMap {
         let annotateControl = new Annotate(this);
         // add info click
         let infoControl = new FeatureQuery(this)
+        //add geolocation
+        let geolocationControl = new GIFWGeolocation(this);
 
-        this.customControls.push(mousePosition, contextMenu, measureControl, annotateControl, infoControl);
-        let controls: olControl.Control[] = [attribution, scaleline, mousePosition.control, contextMenu.control, measureControl, rotateControl, annotateControl, infoControl];
+        this.customControls.push(mousePosition, contextMenu, measureControl, annotateControl, infoControl, geolocationControl);
+        let controls: olControl.Control[] = [attribution, scaleline, mousePosition.control, contextMenu.control, measureControl, rotateControl, annotateControl, infoControl, geolocationControl];
         //TODO - MESSY!
         var sidebarCollection = new gifwSidebarCollection.SidebarCollection(this.sidebars);
         sidebarCollection.initSidebarCollection();
@@ -311,6 +314,7 @@ export class GIFWMap {
 
         measureControl.init();
         infoControl.init();
+        geolocationControl.init();
 
         let search = new Search('#search-container', this, `${document.location.protocol}//${this.config.appRoot}search/options/${this.config.id}`, `${document.location.protocol}//${this.config.appRoot}search`);
 
