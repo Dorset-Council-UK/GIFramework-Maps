@@ -38,7 +38,12 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark border-bottom box-shadow">
             <div class="container-fluid gx-0">
-                <span class="navbar-brand"><img src="@ViewData["LogoURL"]" class="d-inline-block align-top" height="30" alt="Logo" />@ViewData["VersionName"]</span>
+                <span class="navbar-brand">
+                    @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["LogoURL"])))
+                    {
+                        <img src="@ViewData["LogoURL"]" class="d-inline-block align-top" height="30" alt="Logo" />
+                    }
+                    @ViewData["VersionName"]</span>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
