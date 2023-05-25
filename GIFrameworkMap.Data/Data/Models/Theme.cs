@@ -20,7 +20,7 @@ namespace GIFrameworkMaps.Data.Models
 
         [RegularExpression("(https?:\\/\\/)([\\w\\-])+\\.{1}([a-zA-Z]{2,63})([\\/\\w-]*)*\\/?\\??([^#\\n\\r]*)?#?([^\\n\\r]*)")]
         [DisplayName("URL for your logo")]
-        public string LogoURL { get; set; }
+        public string? LogoURL { get; set; }
 
         [RegularExpression("(https?:\\/\\/)([\\w\\-])+\\.{1}([a-zA-Z]{2,63})([\\/\\w-]*)*\\/?\\??([^#\\n\\r]*)?#?([^\\n\\r]*)")]
         [DisplayName("URL for your custom favicon (this is optional)")]
