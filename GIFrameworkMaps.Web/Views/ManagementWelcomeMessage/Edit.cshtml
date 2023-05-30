@@ -41,6 +41,14 @@
                 <span asp-validation-for="Frequency" class="text-danger"></span>
             </div>
             <div class="mb-3">
+                <label asp-for="ModalSize" class="control-label"></label>
+                <select asp-for="ModalSize" class="form-select">
+                    <option value="modal-lg">Pop-up window</option>
+                    <option value="modal-fullscreen">Full screen</option>
+                </select>
+                <span asp-validation-for="ModalSize" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
                 <label asp-for="UpdateDate" class="control-label"></label>
                 <input asp-for="UpdateDate" type="datetime-local" class="form-control" />
                 <div class="form-text">A date when this message has been updated enough to re-show it to the user.</div>
