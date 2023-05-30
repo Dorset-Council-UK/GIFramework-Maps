@@ -95,6 +95,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.Content, 
                 a => a.Frequency, 
                 a => a.UpdateDate, 
+                a => a.ModalSize,
                 a => a.DismissOnButtonOnly, 
                 a => a.DismissText))
             {

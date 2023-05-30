@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
+using Microsoft.Graph.Beta.Models;
 
 namespace GIFrameworkMaps.Data.Models
 {
@@ -26,6 +27,10 @@ namespace GIFrameworkMaps.Data.Models
 
         [DisplayName("Update date")]
         public DateTimeOffset UpdateDate { get; set; }
+
+        [DefaultValue("modal-lg")]
+        [DisplayName("How large do you want your welcome message to be?")]
+        public string ModalSize { get; set; }
 
         [DisplayName("Dismiss button text")]
         public string DismissText{ get; set; }

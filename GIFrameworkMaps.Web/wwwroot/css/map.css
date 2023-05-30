@@ -604,6 +604,23 @@
     background-color: var(--primary-color) !important;
     border-color: var(--primary-color) !important;
 }
+
+/*Welcome modal on mobile devices 576px and under*/
+@media (max-width: 576px) {
+    #welcome-modal .modal-dialog {
+        width: 100%;
+        max-width: none;
+        height: 100%;
+        margin: 0;
+    }
+
+    #welcome-modal .modal-content {
+        border-radius: 0;
+        height: 100%;
+    }
+}
+
+
 /*Helpers*/
 .giframeworkMap .text-pre-line {
     white-space: pre-line;
