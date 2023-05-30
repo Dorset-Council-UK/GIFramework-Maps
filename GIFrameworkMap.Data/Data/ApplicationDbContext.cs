@@ -2,7 +2,6 @@
 using GIFrameworkMaps.Data.Models.Authorization;
 using GIFrameworkMaps.Data.Models.Tour;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Graph.Beta.Models;
 
 namespace GIFrameworkMaps.Data
 {

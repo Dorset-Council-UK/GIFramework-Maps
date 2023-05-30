@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
-using Microsoft.Graph.Beta.Models;
 
 namespace GIFrameworkMaps.Data.Models
 {
