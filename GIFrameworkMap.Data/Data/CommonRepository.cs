@@ -299,12 +299,11 @@ namespace GIFrameworkMaps.Data
             var host = uri.Host;
             var port = uri.Port;
             var scheme = uri.Scheme;
-
             var currentHost = _httpContextAccessor.HttpContext.Request.Host.Host;
             var currentPort = _httpContextAccessor.HttpContext.Request.Host.Port;
             var currentScheme = _httpContextAccessor.HttpContext.Request.Scheme;
-
-            if (host == currentHost && port == currentPort && scheme == currentScheme)
+            //port is ignored if not specified in the http context
+            if (host == currentHost && (currentPort == null || port == currentPort) && scheme == currentScheme)
             {
                 return true;
             }
