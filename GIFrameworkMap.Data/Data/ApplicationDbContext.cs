@@ -51,6 +51,7 @@ namespace GIFrameworkMaps.Data
             modelBuilder.Entity<VersionPrintConfiguration>().HasKey(v => new { v.PrintConfigurationId, v.VersionId });
             modelBuilder.Entity<ApplicationUserRole>().HasKey(u => new { u.UserId, u.ApplicationRoleId });
             modelBuilder.Entity<WelcomeMessage>().Property(w => w.Frequency).HasDefaultValue(-1);
+            modelBuilder.Entity<WelcomeMessage>().Property(w => w.ModalSize).HasDefaultValue("modal-lg");
             modelBuilder.Entity<WelcomeMessage>().Property(w => w.DismissOnButtonOnly).HasDefaultValue(false);
             modelBuilder.Entity<TourDetails>().Property(w => w.Frequency).HasDefaultValue(-1);
             modelBuilder.Entity<WebLayerServiceDefinition>().Property(w => w.Type).HasConversion<string>();

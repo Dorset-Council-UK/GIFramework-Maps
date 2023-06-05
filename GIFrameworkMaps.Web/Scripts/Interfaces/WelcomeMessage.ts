@@ -4,5 +4,6 @@ export interface WelcomeMessage {
     name: string;
     content: string;
     frequency: number;
+    modalSize: number;
     updateDate: Date;
 }

@@ -27,6 +27,10 @@ namespace GIFrameworkMaps.Data.Models
         [DisplayName("Update date")]
         public DateTimeOffset UpdateDate { get; set; }
 
+        [DefaultValue("modal-lg")]
+        [DisplayName("How large do you want your welcome message to be?")]
+        public string ModalSize { get; set; }
+
         [DisplayName("Dismiss button text")]
         public string DismissText{ get; set; }
 
