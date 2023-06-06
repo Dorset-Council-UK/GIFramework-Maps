@@ -835,6 +835,11 @@
         "resolved": "4.4.0",
         "contentHash": "YhEdSQUsTx+C8m8Bw7ar5/VesXvCFMItyZF7G1AUY+OM0VPZUOeAVpJ4Wl6fydBGUYZxojTDR3I6Bj/+BPkJNA=="
       },
+      "shortid": {
+        "type": "Transitive",
+        "resolved": "4.0.0",
+        "contentHash": "iiOsFHiZLfmUxViNKWAmLYi6xCJanKBYlxe163pkK4C+k9vnkWdCNCPouNWukn/F147k3bLq0tEFEQhlGMLqjA=="
+      },
       "System.AppContext": {
         "type": "Transitive",
         "resolved": "4.1.0",
@@ -1319,7 +1324,8 @@
           "Newtonsoft.Json": "[13.0.2, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[7.0.3, )",
           "OpenLocationCode": "[2.1.1, )",
-          "System.Data.SqlClient": "[4.8.5, )"
+          "System.Data.SqlClient": "[4.8.5, )",
+          "shortid": "[4.0.0, )"
         }
       }
     }

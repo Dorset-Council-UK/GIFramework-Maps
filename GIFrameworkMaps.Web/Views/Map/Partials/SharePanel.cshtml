@@ -6,6 +6,7 @@
     
     @*<h6 class="card-subtitle mb-2 text-muted">Share a link to the map or get an embed code</h6>*@
     <div id="gifw-share-container">
+        <div class="alert alert-info small"><span class="bi bi-info-circle"></span> These links do not include any annotations, measurements or custom layers you have added to the map</div>
         <h6>Share a direct link to the map</h6>
         <div class="my-2">
             <label for="gifw-share-link" class="visually-hidden">Direct link</label>
@@ -16,11 +17,10 @@
                 </button>
             </div>
 
-            <div class="border-start pt-2 ps-2">
-                <p>This link does not include any annotations, measurements or custom layers you have added to the map</p>
-            </div>
-
         </div>
+        <h6>Generate a short link</h6>
+        <p>Generate a shorter link that does everything the link above does, but shorter!</p>
+        <button id="gifw-generate-short-link" class="btn btn-outline-primary">Generate short link</button>
         <h6 class="mt-2">Embed the map in your own page</h6>
         <p>Copy the code below and paste into your webpage to embed the map</p>
         <div class="my-2">
@@ -29,9 +29,6 @@
             <button class="btn btn-outline-primary my-2" type="button" data-gifw-copy-target="#gifw-share-embed-code" data-bs-toggle="tooltip" data-bs-title="Copied to clipboard!" data-bs-trigger="manual">
                 <i class="bi bi-clipboard"></i> Copy<span class="visually-hidden"> the embed code to the clipboard</span>
             </button>
-            <div class="border-start pt-2 ps-2">
-                <p>This embed code does not include any annotations, measurements or custom layers you have added to the map</p>
-            </div>
         </div>
     </div>
 

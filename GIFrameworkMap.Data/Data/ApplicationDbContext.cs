@@ -38,6 +38,7 @@ namespace GIFrameworkMaps.Data
         public DbSet<Models.LayerSource> LayerSource { get; set; }
         public DbSet<Models.LayerSourceType> LayerSourceType { get; set; }
         public DbSet<Models.LayerSourceOption> LayerSourceOption { get; set; }
+        public DbSet<Models.ShortLink> ShortLink { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -56,6 +57,8 @@ namespace GIFrameworkMaps.Data
             modelBuilder.Entity<WebLayerServiceDefinition>().Property(w => w.Type).HasConversion<string>();
             modelBuilder.Entity<Layer>().Property(l => l.ProxyMetaRequests).HasDefaultValue(false);
             modelBuilder.Entity<Layer>().Property(l => l.ProxyMapRequests).HasDefaultValue(false);
+            modelBuilder.Entity<ShortLink>().HasKey(s => new { s.ShortId });
+            modelBuilder.Entity<ShortLink>().Property(s => s.Created).HasDefaultValueSql("CURRENT_TIMESTAMP");
             /*Exclude DB search results from EF Migrations - https://stackoverflow.com/a/65151839/863487 */
             modelBuilder.Entity<Models.Search.DatabaseSearchResult>().HasNoKey().ToTable(nameof(DatabaseSearchResults), t => t.ExcludeFromMigrations());
         }

@@ -178,6 +178,8 @@ namespace GIFrameworkMaps.Web
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
                 
+                endpoints.MapControllerRoute("UserShortLink","u/{id}",new { controller = "Map", action = "UserShortLink" });
+
                 endpoints.MapControllerRoute("Default_Slug", "{slug1}/{slug2?}/{slug3?}", new { controller = "Map", action = "Index", slug1 = default_version_slug });
                 
                 endpoints.Map("/proxy", async httpContext =>

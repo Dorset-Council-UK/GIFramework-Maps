@@ -17,5 +17,8 @@ namespace GIFrameworkMaps.Data
         List<Models.ProxyAllowedHost> GetProxyAllowedHosts();
 
         Task<List<Models.ProxyAllowedHost>> GetProxyAllowedHostsAsync();
+        Task<string> GenerateShortId(string url);
+        Task<string> GetFullUrlFromShortId(string shortId);
+        bool IsURLCurrentApplication(string url);
     }
 }
