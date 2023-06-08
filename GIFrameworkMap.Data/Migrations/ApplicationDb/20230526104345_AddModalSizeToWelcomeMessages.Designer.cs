@@ -3,6 +3,7 @@ using System;
 using GIFrameworkMaps.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230526104345_AddModalSizeToWelcomeMessages")]
+    partial class AddModalSizeToWelcomeMessages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -437,24 +440,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.HasDiscriminator<string>("Discriminator").HasValue("SearchDefinition");
 
                     b.UseTphMappingStrategy();
-                });
-
-            modelBuilder.Entity("GIFrameworkMaps.Data.Models.ShortLink", b =>
-                {
-                    b.Property<string>("ShortId")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("Created")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<string>("FullUrl")
-                        .HasColumnType("text");
-
-                    b.HasKey("ShortId");
-
-                    b.ToTable("ShortLink", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.Theme", b =>

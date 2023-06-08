@@ -2,14 +2,17 @@
 import { Sidebar } from "../Sidebar";
 import { GIFWMap } from "../Map";
 import { Util } from "../Util";
-import { Tooltip } from "bootstrap";
+import { Modal, Tooltip } from "bootstrap";
+import Spinner from "../Spinner";
 
 export class SharePanel implements SidebarPanel {
     container: string;
     gifwMapInstance: GIFWMap;
+    shareLinkModal: Modal;
 
     constructor(container: string) {
         this.container = container;
+        this.shareLinkModal = Modal.getOrCreateInstance('#short-link-modal');
     }
     init() {
         this.attachCloseButton();
@@ -51,8 +54,8 @@ export class SharePanel implements SidebarPanel {
     }
 
     private attachCopyButtons(): void {
-        let container = document.querySelector(this.container);
-        let copyButtons: NodeListOf<HTMLButtonElement> = container.querySelectorAll('button[data-gifw-copy-target]');
+        const container = document.querySelector(this.container);
+        const copyButtons: NodeListOf<HTMLButtonElement> = container.querySelectorAll('button[data-gifw-copy-target]');
         if (copyButtons) {
             copyButtons.forEach(b => {
                 b.addEventListener('click', e => {
@@ -78,9 +81,57 @@ export class SharePanel implements SidebarPanel {
                 })
             })
         }
+        //since the short link copy button is in a modal, we need to attach a slightly different event handler
+        const copyShortLinkButton = document.querySelector('#short-link-modal button[data-gifw-copy-target]') as HTMLButtonElement;
+        copyShortLinkButton.addEventListener('click', e => {
+            let targetSelector = copyShortLinkButton.dataset.gifwCopyTarget;
+            if (targetSelector) {
+                let copyTarget: HTMLInputElement = document.querySelector(targetSelector);
+                if (copyTarget) {
+                    navigator.clipboard.writeText(copyTarget.value).then(() => {
+                        /* clipboard successfully set */
+                        let tooltip = Tooltip.getOrCreateInstance(copyShortLinkButton);
+                        tooltip.show();
+                        window.setTimeout(() => { tooltip.hide() }, 3000);
+                    }, () => {
+                        /* clipboard write failed */
+                        alert(`We couldn't automatically copy your link to the clipboard.</p><p>You can copy it manually by selecting the text and hitting Ctrl - C on Windows or Cmd - C on a Mac. For mobiles and touch screen devices, long tap and hold on the link, then choose Select All, then Copy.`);
+                    });
+                }
+            }
+        });
 
+        const shortLinkButton: HTMLButtonElement = container.querySelector('#gifw-generate-short-link');
+        shortLinkButton.addEventListener('click', async e => {
+            shortLinkButton.insertAdjacentElement('afterbegin', Spinner.create(['spinner-border-sm','me-2']));
+            shortLinkButton.disabled = true;
+            const shortLink = await this.generateShortLink();
+            if (shortLink) {
+                this.shareLinkModal.show();
+                (document.querySelector('#gifw-share-short-link') as HTMLInputElement).value = shortLink;
+            }
+            shortLinkButton.querySelector('.spinner').remove();
+            shortLinkButton.disabled = false;
+        })
 
     }
+
+    private async generateShortLink() {
+        const permalink = encodeURIComponent(Util.Mapping.generatePermalinkForMap(this.gifwMapInstance));
+        const fetchUrl = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}api/GenerateShortUrl?url=${permalink}`;
+        let response = await fetch(fetchUrl, {
+            method: "POST"
+        });
+        if (!response.ok) {
+            this.shareLinkModal.hide();
+            Util.Alert.showPopupError('An error occurred', 'There was a problem generating a short link. Please try again later, or use the standard links.')
+            console.error(`HTTP error: ${response.status}`);
+            return;
+        }
+        let data = await response.text();
+        return data;
+    }
+
     public setGIFWMapInstance(map: GIFWMap) {
         this.gifwMapInstance = map;
     }

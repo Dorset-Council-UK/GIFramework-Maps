@@ -1,16 +1,16 @@
 ﻿using AutoMapper;
 using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Npgsql.TypeMapping;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using shortid;
 
 namespace GIFrameworkMaps.Data
 {
@@ -21,13 +21,15 @@ namespace GIFrameworkMaps.Data
         private readonly IApplicationDbContext _context;
         private readonly IMemoryCache _memoryCache;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CommonRepository(ILogger<CommonRepository> logger, IApplicationDbContext context, IMemoryCache memoryCache, IMapper mapper)
+        public CommonRepository(ILogger<CommonRepository> logger, IApplicationDbContext context, IMemoryCache memoryCache, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _logger = logger;
             _context = context;
             _memoryCache = memoryCache;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
         public Models.Version GetVersionBySlug(string slug1, string slug2, string slug3)
         {            
@@ -250,6 +252,58 @@ namespace GIFrameworkMaps.Data
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(12)
             });
             return allowedHosts;
+        }
+
+        public async Task<string> GenerateShortId(string url)
+        {
+            string shortId = ShortId.Generate();
+
+            var existing = await _context.ShortLink.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
+            var iterations = 0;
+            var maxIterations = 100;
+            while (existing != null && iterations < maxIterations) {
+                shortId = ShortId.Generate();
+                existing = await _context.ShortLink.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
+                iterations++;
+            }
+            
+            if(existing == null)
+            {
+                return shortId;
+            }
+            else
+            {
+                //we couldn't get a unique short id in 100 tries
+                _logger.LogError("Could not generate a unique short id for url {url} after {maxIterations} tries", url, maxIterations);
+                return null;
+            }
+        }
+
+        public async Task<string> GetFullUrlFromShortId(string shortId)
+        {
+            var shortLink = await _context.ShortLink.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
+            if(shortLink == null)
+            {
+                return null;
+            }
+            return shortLink.FullUrl;
+        }
+
+        public bool IsURLCurrentApplication(string url)
+        {
+            var uri = new Uri(url);
+            var host = uri.Host;
+            var port = uri.Port;
+            var scheme = uri.Scheme;
+            var currentHost = _httpContextAccessor.HttpContext.Request.Host.Host;
+            var currentPort = _httpContextAccessor.HttpContext.Request.Host.Port;
+            var currentScheme = _httpContextAccessor.HttpContext.Request.Scheme;
+            //port is ignored if not specified in the http context
+            if (host == currentHost && (currentPort == null || port == currentPort) && scheme == currentScheme)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
+using GIFrameworkMaps.Data.Models;
 
 namespace GIFrameworkMaps.Web.Controllers
 {
@@ -96,6 +97,16 @@ namespace GIFrameworkMaps.Web.Controllers
                 return View("VersionNotFound");
             }
 
+        }
+
+        public async Task<IActionResult> UserShortLink(string id)
+        {
+            string redirectUrl = await _repository.GetFullUrlFromShortId(id);
+            if(redirectUrl == null || !Uri.IsWellFormedUriString(redirectUrl,UriKind.Absolute))
+            {
+                return View("ShortLinkNotFound");
+            }
+            return Redirect(redirectUrl);
         }
     }
 }
