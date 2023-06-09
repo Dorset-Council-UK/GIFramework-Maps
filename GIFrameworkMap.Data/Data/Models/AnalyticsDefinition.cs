@@ -12,7 +12,6 @@ namespace GIFrameworkMaps.Data.Models
         public int Id { get; set; }
         public string ProductName { get; set; }
         public string ProductKey { get; set; }
-        public string ProductTag { get; set; }
         public DateTime DateModified { get; set; }
         public bool Enabled { get; set; }
     }

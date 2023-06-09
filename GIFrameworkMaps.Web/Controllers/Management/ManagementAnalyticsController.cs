@@ -96,7 +96,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 var analyticRecord = _context.AnalyticsDefinitions.Where(a => a.Id == editModel.analyticDefinition.Id).FirstOrDefault();
                 if (analyticRecord != null)
                 {
-                    analyticRecord = editModel.analyticDefinition;
+                    analyticRecord.DateModified = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
+                    analyticRecord.ProductKey = editModel.analyticDefinition.ProductKey;
+                    analyticRecord.ProductName = editModel.analyticDefinition.ProductName;
+                    analyticRecord.Enabled = editModel.analyticDefinition.Enabled;
+
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
@@ -120,8 +124,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(viewModel);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
         public IActionResult RemoveAnalytic(int id)
         {
             try
