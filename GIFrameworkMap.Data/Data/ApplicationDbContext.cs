@@ -39,6 +39,8 @@ namespace GIFrameworkMaps.Data
         public DbSet<Models.LayerSourceType> LayerSourceType { get; set; }
         public DbSet<Models.LayerSourceOption> LayerSourceOption { get; set; }
         public DbSet<Models.ShortLink> ShortLink { get; set; }
+        public DbSet<Models.AnalyticsDefinition> AnalyticsDefinitions { get; set; }
+        public DbSet<Models.CookieControlDefinition> CookieControlDefinitions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

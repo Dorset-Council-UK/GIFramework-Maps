@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GIFrameworkMaps.Data.Models.ViewModels.Management;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;

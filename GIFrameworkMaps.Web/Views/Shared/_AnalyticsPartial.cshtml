@@ -1,21 +1,37 @@
-﻿@using Microsoft.Extensions.Configuration;
-@inject IConfiguration configuration;
+﻿@using GIFrameworkMaps.Data.Models;
+@model GIFrameworkMaps.Data.Models.ViewModels.Management.AnalyticsAndCookieModel
 
 @*
-    TODO - Add other analytics providers as additional options
+    This page adds analytics and cookie controls as required. 
 *@
 @{
-    string cfToken = configuration.GetValue<string>("GIFrameworkMaps:CloudflareWebAnalyticsToken");
+    foreach (AnalyticsDefinition analytic in Model.AvailableAnalytics) {
+        if (analytic.Enabled)
+        {
+            if (analytic.ProductName == "Cloudflare")
+            {
+                <!-- Cloudflare Web Analytics -->
 
-    if (!string.IsNullOrEmpty(cfToken))
-    {
-        <!-- Cloudflare Web Analytics -->
+                <script defer
+                        src='https://static.cloudflareinsights.com/beacon.min.js'
+                        data-cf-beacon='{"token": "@analytic.ProductKey"}'></script>
 
-        <script 
-            defer 
-            src='https://static.cloudflareinsights.com/beacon.min.js'
-            data-cf-beacon='{"token": "@cfToken"}'></script>
+                <!-- End Cloudflare Web Analytics -->
+            }
+            else if (analytic.ProductName == "Google Analytics (GA4)")
+            {
+                <!-- Google Analytics (GA4) -->
 
-        <!-- End Cloudflare Web Analytics -->
+                <noscript><iframe src=@Url.Content("https://www.googletagmanager.com/ns.html?id=" + analytic.ProductKey) height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+                <!-- End Google Analytics (GA4) -->
+            }
+            else if (analytic.ProductName == "Mirosoft Clarity")
+            {
+                <!-- Microsoft Clarity Analytics -->
+                <!-- Nothing in body -->
+                <!-- End Microsoft Clarity Analytics -->
+            }
+        }
     }
 }

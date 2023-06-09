@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
 using GIFrameworkMaps.Data.Models;
+using GIFrameworkMaps.Data.Models.ViewModels.Management;
 
 namespace GIFrameworkMaps.Web.Controllers
 {
@@ -16,17 +17,20 @@ namespace GIFrameworkMaps.Web.Controllers
         private readonly ILogger<MapController> _logger;
         private readonly IAuthorizationService _authorization;
         private readonly ICommonRepository _repository;
+        private readonly IManagementRepository _adminRepository;
         private readonly IConfiguration _configuration;
 
         public MapController(
             ILogger<MapController> logger, 
             IAuthorizationService authorization,
             ICommonRepository repository,
+            IManagementRepository adminRepository,
             IConfiguration configuration)
         {
             _logger = logger;
             _authorization = authorization;
             _repository = repository;
+            _adminRepository = adminRepository;
             _configuration = configuration;
         }
         /// <summary>
@@ -62,6 +66,7 @@ namespace GIFrameworkMaps.Web.Controllers
                 { 
                     //now we get the full details
                     var viewModel = _repository.GetVersionViewModel(version.Id);
+                    ViewData["AnalyticsModel"] = _adminRepository.GetAnalyticsAndCookieModel();
 
                     var host = Request.Host.ToUriComponent();
                     var pathBase = Request.PathBase.ToUriComponent();

@@ -356,5 +356,22 @@ namespace GIFrameworkMaps.Data
             }
             return false;
         }
+
+        public AnalyticsAndCookieModel GetAnalyticsAndCookieModel()
+        {
+            AnalyticsAndCookieModel viewModel = new AnalyticsAndCookieModel();
+            viewModel.AvailableAnalytics = _context.AnalyticsDefinitions.ToList();
+            viewModel.AvailableCookieControl = _context.CookieControlDefinitions.ToList();
+            //viewModel.AvailableAnalytics.Add(new Data.Models.AnalyticsDefinition
+            //{
+            //    Id = 1,
+            //    ProductName = "Google Analytics (GA4)",
+            //    ProductKey = "GTM-TCZD7XP",
+            //    DateModified = System.DateTime.Now,
+            //    Enabled = true
+            //});
+
+            return viewModel;
+        }
     }
 }

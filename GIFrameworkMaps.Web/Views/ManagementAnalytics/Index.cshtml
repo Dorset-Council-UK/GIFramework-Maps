@@ -1,0 +1,114 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.AnalyticsAndCookieModel
+@{
+    ViewData["Title"] = "System management - analytics";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p class="lead">
+    Add, remove and manage analytics tracking and cookie controls.
+</p>
+
+<p>
+    To help with understanding how users are interacting with this site you may want to add a variety of analytic tools. 
+    These often capture information about which pages are visited and how users interact with the application.
+</p>
+<p>
+    There is also a requirement to control how much personally identifiable data is captured to meeting your regional data protection rules.
+    This page will therefore let you manage both analytics trackers but also cookie controls to allow your users to decide how much information you may access. 
+</p>
+
+<h2>
+    Analytics Trackers
+</h2>
+
+<a href="@Url.Action("AddAnalytic")" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add a new analytics tracker</a>
+
+@if (Model != null && Model.AvailableAnalytics.Count > 0)
+{
+    <table class="table table-bordered table-striped mt-2">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Product Name</th>
+                <th>Product Key</th>
+                <th>Last Modified</th>
+                <th>Active</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (GIFrameworkMaps.Data.Models.AnalyticsDefinition analyticsDefinition in Model.AvailableAnalytics.OrderBy(a => a.Id))
+            {
+                <tr>
+                    <td>@analyticsDefinition.Id</td>
+                    <td>@Html.ActionLink(analyticsDefinition.ProductName, "EditAnalytic", new { id = analyticsDefinition.Id })</td>
+                    <td>@analyticsDefinition.ProductKey</td>
+                    <td>@analyticsDefinition.DateModified</td>
+                    <td>
+                        @if (!analyticsDefinition.Enabled)
+                        {
+                            <i class="bi bi-slash-circle me-2" title="Disabled"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-check2-circle me-2" title="Enabled"></i>
+                        }
+                    </td>
+                    <td>@Html.ActionLink("Remove", "RemoveAnalytic", new { id = analyticsDefinition.Id })</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No analytics have been configured yet</div>
+}
+
+<h2>
+    Cookie controls
+</h2>
+
+<a href="@Url.Action("AddCookieControl")" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add a new cookie controls</a>
+
+@if (Model != null && Model.AvailableCookieControl.Count > 0)
+{
+    <table class="table table-bordered table-striped mt-2">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Product Name</th>
+                <th>Product Key</th>
+                <th>Last Modified</th>
+                <th>Active</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (GIFrameworkMaps.Data.Models.CookieControlDefinition cookieControlDefinition in Model.AvailableCookieControl.OrderBy(a => a.Id))
+            {
+                <tr>
+                    <td>@cookieControlDefinition.Id</td>
+                    <td>@Html.ActionLink(cookieControlDefinition.ProductName, "EditCookieControl", new { id = cookieControlDefinition.Id })</td>
+                    <td>@cookieControlDefinition.ProductKey</td>
+                    <td>@cookieControlDefinition.DateModified</td>
+                    <td>
+                        @if (!cookieControlDefinition.Enabled)
+                        {
+                            <i class="bi bi-slash-circle me-2" title="Disabled"></i>
+                        } else
+                        {
+                            <i class="bi bi-check2-circle me-2" title="Enabled"></i>
+                        }
+                    </td>
+                    <td>@Html.ActionLink("Remove", "DeleteCookieControl", new { id = cookieControlDefinition.Id })</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No cookie controls have been configured yet</div>
+}

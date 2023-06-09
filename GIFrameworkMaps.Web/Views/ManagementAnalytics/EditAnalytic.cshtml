@@ -1,0 +1,43 @@
+﻿@model GIFrameworkMaps.Data.Models.AnalyticsEditModel
+@{
+    ViewData["Title"] = "System management - edit analytic";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row mt-2">
+    <div class="col-md-8">
+        @using (Html.BeginForm("EditAnalytic", "ManagementAnalytics",null, FormMethod.Post, true, null))
+        {
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <div class="mb-3">
+                <label asp-for="analyticDefinition.ProductName" class="control-label"></label>
+                <select asp-for="analyticDefinition.ProductName" asp-items="Model.availableProducts" class="form-select">
+                    <option value="">Please select</option>
+                </select>
+                <span asp-validation-for="analyticDefinition.ProductName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="analyticDefinition.ProductKey" class="control-label"></label>
+                <input asp-for="analyticDefinition.ProductKey" class="form-control" />
+                <span asp-validation-for="analyticDefinition.ProductKey" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="analyticDefinition.Enabled" class="control-label"></label>
+                <input asp-for="analyticDefinition.Enabled" class="form-check-input" type="checkbox" />
+                <span asp-validation-for="analyticDefinition.Enabled" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <input type="hidden" asp-for="analyticDefinition.Id" />
+                <input type="hidden" asp-for="analyticDefinition.DateModified" />
+                <div class="mb-3">
+                    <input type="submit" value="Edit Record" class="btn btn-primary" />
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Cancel</a>
+</div>

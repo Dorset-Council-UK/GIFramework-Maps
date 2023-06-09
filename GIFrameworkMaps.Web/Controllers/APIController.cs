@@ -198,7 +198,7 @@ namespace GIFrameworkMaps.Web.Controllers
                     var pathBase = Request.PathBase.ToUriComponent();
                     versionViewModel.AppRoot = $"{host}{pathBase}/";
                     versionViewModel.GoogleMapsAPIKey = _configuration.GetValue<string>("ApiKeys:Google:MapsAPIKey");
-                    versionViewModel.AppInsightsKey = _configuration.GetValue<string>("ApplicationInsights:ConnectionString");
+                    //versionViewModel.AppInsightsKey = _configuration.GetValue<string>("ApplicationInsights:ConnectionString");
                     return Json(versionViewModel);
                 }
                 else
