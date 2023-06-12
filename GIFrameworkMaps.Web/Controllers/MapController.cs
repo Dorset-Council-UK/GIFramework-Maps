@@ -66,7 +66,7 @@ namespace GIFrameworkMaps.Web.Controllers
                 { 
                     //now we get the full details
                     var viewModel = _repository.GetVersionViewModel(version.Id);
-                    ViewData["AnalyticsModel"] = _adminRepository.GetAnalyticsAndCookieModel();
+                    ViewData["AnalyticsModel"] = _adminRepository.GetAnalyticsModel();
 
                     var host = Request.Host.ToUriComponent();
                     var pathBase = Request.PathBase.ToUriComponent();

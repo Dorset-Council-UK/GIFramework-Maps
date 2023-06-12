@@ -5,7 +5,8 @@
     string appName = configuration.GetValue<string>("GIFrameworkMaps:appName");
     string tosLink = configuration.GetValue<string>("GIFrameworkMaps:ToSLink");
     string privacyLink = configuration.GetValue<string>("GIFrameworkMaps:PrivacyLink");
-    AnalyticsAndCookieModel analyticsModel = (ViewData["AnalyticsModel"] != null? (AnalyticsAndCookieModel)ViewData["AnalyticsModel"] :new AnalyticsAndCookieModel());
+    AnalyticsViewModel analyticsModel = (ViewData["AnalyticsModel"] != null? (AnalyticsViewModel)ViewData["AnalyticsModel"] :new AnalyticsViewModel());
+    analyticsModel.VersionID = -1;
 }
 <!DOCTYPE html>
 <html lang="en">

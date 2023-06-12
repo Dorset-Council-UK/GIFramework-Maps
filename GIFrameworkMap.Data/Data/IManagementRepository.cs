@@ -43,6 +43,6 @@ namespace GIFrameworkMaps.Data
         Task<List<LocalSearchDefinition>> GetLocalSearchDefinitions();
         Task<Microsoft.Graph.Beta.Models.UserCollectionResponse> GetUsers();
         Task<Microsoft.Graph.Beta.Models.User> GetUser(string id);
-        AnalyticsAndCookieModel GetAnalyticsAndCookieModel();
+        AnalyticsViewModel GetAnalyticsModel();
     }
 }

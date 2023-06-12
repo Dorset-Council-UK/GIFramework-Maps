@@ -1,5 +1,5 @@
 ﻿@using GIFrameworkMaps.Data.Models;
-@model GIFrameworkMaps.Data.Models.ViewModels.Management.AnalyticsAndCookieModel
+@model GIFrameworkMaps.Data.Models.ViewModels.Management.AnalyticsViewModel
 
 @*
     This page adds analytics and cookie controls as required.
@@ -7,7 +7,7 @@
 @{
     foreach (AnalyticsDefinition analytic in Model.AvailableAnalytics)
     {
-        if (analytic.Enabled)
+        if ((Model.VersionID == -1 || analytic.VersionAnalytics.Count == 0 || analytic.VersionAnalytics.Where(v => v.VersionId == Model.VersionID).FirstOrDefault() != null) && analytic.Enabled)
         {
             if (analytic.ProductName == "Cloudflare")
             {

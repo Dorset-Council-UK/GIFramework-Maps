@@ -1,14 +1,14 @@
-﻿@model GIFrameworkMaps.Data.Models.AnalyticsEditModel
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.AnalyticsEditModel
 @{
     ViewData["Title"] = "System management - edit analytic";
 }
 
 <h1>@ViewData["Title"]</h1>
 
-<div class="row mt-2">
-    <div class="col-md-8">
-        @using (Html.BeginForm("EditAnalytic", "ManagementAnalytics",null, FormMethod.Post, true, null))
-        {
+@using (Html.BeginForm("Edit", "ManagementAnalytics", null, FormMethod.Post, true, null))
+{
+    <div class="row mt-4">
+        <div class="col-md-6">
             <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
             <div class="mb-3">
                 <label asp-for="analyticDefinition.ProductName" class="control-label"></label>
@@ -27,6 +27,24 @@
                 <input asp-for="analyticDefinition.Enabled" class="form-check-input" type="checkbox" />
                 <span asp-validation-for="analyticDefinition.Enabled" class="text-danger"></span>
             </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-2">
+                <div class="card-header">
+                    Versions
+                </div>
+                <div class="card-body">
+                    @if (Model.SelectedVersions.Count == 0)
+                    {
+                        <p class="card-text">Will apply to all versions unless you select from the list below.</p>
+                    } 
+                    <partial name="ManagementPartials/VersionAnalyticList" model="Model.AvailableVersions.ToList()" view-data="ViewData" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-6">
             <div class="mb-3">
                 <input type="hidden" asp-for="analyticDefinition.Id" />
                 <input type="hidden" asp-for="analyticDefinition.DateModified" />
@@ -34,10 +52,11 @@
                     <input type="submit" value="Edit Record" class="btn btn-primary" />
                 </div>
             </div>
-        }
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <a asp-action="Index">Cancel</a>
+            </div>
+        </div>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Cancel</a>
-</div>
+}

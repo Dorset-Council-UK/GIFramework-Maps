@@ -32,6 +32,5 @@ namespace GIFrameworkMaps.Data
         DbSet<Models.LayerSourceOption> LayerSourceOption { get; set; }
         DbSet<Models.ShortLink> ShortLink { get; set; }
         DbSet<Models.AnalyticsDefinition> AnalyticsDefinitions { get; set; }
-        DbSet<Models.CookieControlDefinition> CookieControlDefinitions { get; set; }
     }
 }
