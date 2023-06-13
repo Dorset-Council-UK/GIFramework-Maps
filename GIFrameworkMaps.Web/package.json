@@ -25,7 +25,7 @@
     "@turf/line-intersect": "6.5.0",
     "@turf/points-within-polygon": "6.5.0",
     "@turf/unkink-polygon": "6.5.0",
-    "bootstrap": "5.2.3",
+    "bootstrap": "5.3.0",
     "fontoxpath": "3.29.1",
     "fuse.js": "6.6.2",
     "jspdf": "2.5.1",
