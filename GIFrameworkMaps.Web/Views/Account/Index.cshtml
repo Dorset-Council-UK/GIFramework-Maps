@@ -11,8 +11,8 @@
 <div class="table-responsive">
     <table class="table table-striped">
         <tr><th>User name</th><td>@User.Identity.Name</td></tr>
-        <tr><th>Email address</th><td>@User.Claims.FirstOrDefault(c => c.Type.Contains("email")).Value </td></tr>
-        <tr><th>User ID</th><td>@User.Claims.FirstOrDefault(c => c.Type.Contains("nameidentifier")).Value</td></tr>
+        <tr><th>Email address</th><td>@(User.Claims.FirstOrDefault(c => c.Type.Contains("email")) != null ? User.Claims.FirstOrDefault(c => c.Type.Contains("email")).Value : "Not provided") </td></tr>
+        <tr><th>User ID</th><td>@(User.Claims.FirstOrDefault(c => c.Type.Contains("nameidentifier")) != null ? User.Claims.FirstOrDefault(c => c.Type.Contains("nameidentifier")).Value : "Not provided")</td></tr>
 
     </table>
 </div>
