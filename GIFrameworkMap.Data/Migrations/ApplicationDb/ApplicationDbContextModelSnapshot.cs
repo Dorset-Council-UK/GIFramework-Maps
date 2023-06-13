@@ -23,31 +23,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("GIFrameworkMaps.Data.Models.AnalyticsDefinition", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DateModified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("Enabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("ProductKey")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProductName")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AnalyticsDefinitions", "giframeworkmaps");
-                });
-
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.Attribution", b =>
                 {
                     b.Property<int>("Id")
@@ -464,24 +439,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.UseTphMappingStrategy();
                 });
 
-            modelBuilder.Entity("GIFrameworkMaps.Data.Models.ShortLink", b =>
-                {
-                    b.Property<string>("ShortId")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("Created")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<string>("FullUrl")
-                        .HasColumnType("text");
-
-                    b.HasKey("ShortId");
-
-                    b.ToTable("ShortLink", "giframeworkmaps");
-                });
-
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.Theme", b =>
                 {
                     b.Property<int>("Id")
@@ -636,21 +593,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.HasIndex("WelcomeMessageId");
 
                     b.ToTable("Versions", "giframeworkmaps");
-                });
-
-            modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionAnalytic", b =>
-                {
-                    b.Property<int>("AnalyticsDefinitionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("VersionId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("AnalyticsDefinitionId", "VersionId");
-
-                    b.HasIndex("VersionId");
-
-                    b.ToTable("VersionAnalytic", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionBasemap", b =>
@@ -1050,23 +992,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.Navigation("WelcomeMessage");
                 });
 
-            modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionAnalytic", b =>
-                {
-                    b.HasOne("GIFrameworkMaps.Data.Models.AnalyticsDefinition", "AnalyticsDefinition")
-                        .WithMany()
-                        .HasForeignKey("AnalyticsDefinitionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("GIFrameworkMaps.Data.Models.Version", null)
-                        .WithMany("VersionAnalytics")
-                        .HasForeignKey("VersionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AnalyticsDefinition");
-                });
-
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionBasemap", b =>
                 {
                     b.HasOne("GIFrameworkMaps.Data.Models.Basemap", "Basemap")
@@ -1172,8 +1097,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.Version", b =>
                 {
-                    b.Navigation("VersionAnalytics");
-
                     b.Navigation("VersionBasemaps");
 
                     b.Navigation("VersionCategories");
