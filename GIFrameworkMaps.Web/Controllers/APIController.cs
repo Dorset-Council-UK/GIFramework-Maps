@@ -240,6 +240,45 @@ namespace GIFrameworkMaps.Web.Controllers
             }
         }
 
+        public IActionResult UserBookmarks()
+        {
+            if(User.Identity.IsAuthenticated)
+            {
+                //var bookmarks = _repository.GetUserBookmarks(User.Identity.Name);
+                var bookmark1 = 
+                    new
+                    {
+                        id = 1,
+                        name = "Cerne Giant",
+                        x = 366646,
+                        y = 101677,
+                        zoom = 15
+                    };
+
+                var bookmark2 =
+                    new
+                    {
+                        id = 2,
+                        name = "Dorchester",
+                        x = 368810,
+                        y = 90420,
+                        zoom = 13
+                    };
+
+                //var bookmarks = new List<object>
+                //{
+                //    bookmark1,
+                //    bookmark2
+                //};
+                var bookmarks = new List<object>();
+                return Json(bookmarks);
+            }
+            else
+            {
+                return Unauthorized();
+            }
+        }
+
     }
 
  }

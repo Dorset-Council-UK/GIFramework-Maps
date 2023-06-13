@@ -76,7 +76,11 @@
                         }
                         
                     </ul>
-                            <partial name="_LoginPartial" />
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <partial name="~/Views/Map/Partials/Bookmarks.cshtml" />
+                    }
+                    <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>

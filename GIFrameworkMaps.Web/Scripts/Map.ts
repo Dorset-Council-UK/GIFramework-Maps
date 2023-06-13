@@ -33,6 +33,7 @@ import { Search } from "./Search";
 import { Streetview } from "./Streetview";
 import { VersionViewModel } from "./Interfaces/VersionViewModel";
 import { WebLayerService } from "./WebLayerService";
+import { Bookmark } from "./Bookmark";
 
 export class GIFWMap {
     id: string;
@@ -90,6 +91,7 @@ export class GIFWMap {
 
         this.customControls.push(mousePosition, contextMenu, measureControl, annotateControl, infoControl, geolocationControl);
         let controls: olControl.Control[] = [attribution, scaleline, mousePosition.control, contextMenu.control, measureControl, rotateControl, annotateControl, infoControl, geolocationControl];
+
         //TODO - MESSY!
         var sidebarCollection = new gifwSidebarCollection.SidebarCollection(this.sidebars);
         sidebarCollection.initSidebarCollection();
@@ -311,6 +313,10 @@ export class GIFWMap {
         //add remote layer adder
         let webLayerService = new WebLayerService(this);
         webLayerService.init();
+
+        //add bookmark control
+        let bookmarkControl = new Bookmark(this);
+        bookmarkControl.init();
 
         measureControl.init();
         infoControl.init();
