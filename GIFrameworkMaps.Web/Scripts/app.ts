@@ -19,7 +19,7 @@ declare var gifw_version_config_url: string;
 declare var gifw_map_services_access_token: string;
 declare var gifw_map_services_access_url: string;
 
-if (gifw_appinsights_key) {
+if (typeof gifw_appinsights_key != "undefined" && gifw_appinsights_key!) {
     const appInsights = new ApplicationInsights({
         config: {
             connectionString: gifw_appinsights_key,

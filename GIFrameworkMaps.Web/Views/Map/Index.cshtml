@@ -107,7 +107,6 @@
 }
 @section Scripts{
     <script>
-        var gifw_appinsights_key = "@(configuration.GetValue<string>("ApplicationInsights:ConnectionString"))";
         var gifw_version_config_url = "@Url.Action("VersionConfiguration","API",new {id=Model.Id})";
         var gifw_map_services_access_token = "@ViewData["MapServicesAccessToken"]";
         var gifw_map_services_access_url = "@Html.Raw(ViewData["MapServicesAccessURL"])";

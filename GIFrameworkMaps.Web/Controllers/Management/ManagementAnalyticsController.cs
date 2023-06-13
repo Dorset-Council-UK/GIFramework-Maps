@@ -177,7 +177,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         private AnalyticsEditModel RebuildEditModel(AnalyticsEditModel model)
         {
             var versions = _context.Versions.OrderBy(b => b.Name).ToList();
-            string[] supportedProducts = { "Cloudflare", "Google Analytics (GA4)", "Mirosoft Application Insights", "Microsoft Clarity" };
+            string[] supportedProducts = { "Cloudflare", "Google Analytics (GA4)", "Microsoft Application Insights", "Microsoft Clarity" };
             
             model.availableProducts = new SelectList(supportedProducts);
             model.AvailableVersions = versions;

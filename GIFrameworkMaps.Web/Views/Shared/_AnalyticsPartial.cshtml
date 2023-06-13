@@ -26,7 +26,17 @@
 
                 <!-- End Google Analytics (GA4) -->
             }
-            else if (analytic.ProductName == "Mirosoft Clarity")
+            else if (analytic.ProductName == "Microsoft Application Insights")
+            {
+                <!-- Microsoft Application Insights (client function) -->
+                @section Scripts{
+                    <script>
+                        var gifw_appinsights_key = @analytic.ProductKey;
+                    </script>
+                }
+                <!-- End Microsoft Application Insights -->
+            }
+            else if (analytic.ProductName == "Microsoft Clarity")
             {
                 <!-- Microsoft Clarity Analytics -->
                 <!-- Nothing in body -->
