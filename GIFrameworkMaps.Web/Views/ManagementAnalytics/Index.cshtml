@@ -1,0 +1,66 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.AnalyticsViewModel
+@{
+    ViewData["Title"] = "System management - analytics";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p class="lead">
+    Add, remove and manage analytics tracking and cookie controls.
+</p>
+
+<p>
+    To help with understanding how users are interacting with this site you may want to add a variety of analytic tools. 
+    These often capture information about which pages are visited and how users interact with the application.
+</p>
+<p>
+    There may also be cookie control tools but we have assumed these will be packaged within your analytic tool choice. 
+</p>
+
+<h2>
+    Analytics Trackers
+</h2>
+
+<a href="@Url.Action("Create")" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add a new analytics tracker</a>
+
+@if (Model != null && Model.AvailableAnalytics.Count > 0)
+{
+    <table class="table table-bordered table-striped mt-2">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Product Name</th>
+                <th>Product Key</th>
+                <th>Last Modified</th>
+                <th>Active</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (GIFrameworkMaps.Data.Models.AnalyticsDefinition analyticsDefinition in Model.AvailableAnalytics.OrderBy(a => a.Id))
+            {
+                <tr>
+                    <td>@analyticsDefinition.Id</td>
+                    <td>@Html.ActionLink(analyticsDefinition.ProductName, "Edit", new { id = analyticsDefinition.Id })</td>
+                    <td>@analyticsDefinition.ProductKey</td>
+                    <td>@analyticsDefinition.DateModified</td>
+                    <td>
+                        @if (!analyticsDefinition.Enabled)
+                        {
+                            <i class="bi bi-slash-circle me-2" title="Disabled"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-check2-circle me-2" title="Enabled"></i>
+                        }
+                    </td>
+                    <td>@Html.ActionLink("Remove", "Remove", new { id = analyticsDefinition.Id })</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No analytics have been configured yet</div>
+}

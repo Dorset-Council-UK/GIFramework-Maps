@@ -1,4 +1,9 @@
-﻿<!DOCTYPE html>
+﻿@using GIFrameworkMaps.Data.Models.ViewModels.Management;
+@{
+    AnalyticsViewModel analyticsModel = (ViewData["AnalyticsModel"] != null ? (AnalyticsViewModel)ViewData["AnalyticsModel"] : new AnalyticsViewModel());
+    analyticsModel.VersionID = int.Parse(ViewData["VersionID"].ToString());
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -32,9 +37,10 @@
     
     <link rel="manifest" href="@Url.Action("WebManifest","API",new{id=ViewData["VersionID"]})">
     @await RenderSectionAsync("Styles", required: false)
-
+    <partial name="_AnalyticsHeadPartial" model=@analyticsModel />
 </head>
 <body class="d-flex flex-column giframeworkMap">
+    <partial name="_AnalyticsPartial" model=@analyticsModel />
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark border-bottom box-shadow">
             <div class="container-fluid gx-0">
@@ -87,7 +93,5 @@
     <script src="~/js/bundle.js" type="module" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
-
-    <partial name="_AnalyticsPartial" />
 </body>
 </html>
