@@ -31,6 +31,7 @@
                 <th>ID</th>
                 <th>Product Name</th>
                 <th>Product Key</th>
+                <th>Cookie Control</th>
                 <th>Last Modified</th>
                 <th>Active</th>
                 <th></th>
@@ -43,6 +44,7 @@
                     <td>@analyticsDefinition.Id</td>
                     <td>@Html.ActionLink(analyticsDefinition.ProductName, "Edit", new { id = analyticsDefinition.Id })</td>
                     <td>@analyticsDefinition.ProductKey</td>
+                    <td>@analyticsDefinition.CookieControl</td>
                     <td>@analyticsDefinition.DateModified</td>
                     <td>
                         @if (!analyticsDefinition.Enabled)

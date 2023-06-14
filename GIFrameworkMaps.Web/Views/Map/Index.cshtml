@@ -21,15 +21,21 @@
     AnalyticsViewModel analyticsModel = (ViewData["AnalyticsModel"] != null ? (AnalyticsViewModel)ViewData["AnalyticsModel"] : new AnalyticsViewModel());
     analyticsModel.VersionID = int.Parse(ViewData["VersionID"].ToString());
     string applicationInsightsKey = "";
+    string cookieControl = "None";
     foreach (AnalyticsDefinition analytic in analyticsModel.AvailableAnalytics)
     {
         if ((analyticsModel.VersionID == -1 || analytic.VersionAnalytics.Count == 0 || analytic.VersionAnalytics.Where(v => v.VersionId == analyticsModel.VersionID).FirstOrDefault() != null) && analytic.Enabled)
         {
             {
                 applicationInsightsKey = analytic.ProductKey;
+                if (!string.IsNullOrEmpty(analytic.CookieControl) && analytic.CookieControl != "None")
+                {
+                    cookieControl = analytic.CookieControl;
+                }
             }
         }
     }
+    ViewData["IncludeCookieControl"] = cookieControl; //Can have only one
 }
 <main id="giframeworkMapContainer" class="giframeworkMapContainer">
     <section id="giframeworkMap" class="giframeworkMap"></section>
@@ -125,6 +131,7 @@
         var gifw_map_services_access_token = "@ViewData["MapServicesAccessToken"]";
         var gifw_map_services_access_url = "@Html.Raw(ViewData["MapServicesAccessURL"])";
         var gifw_appinsights_key = "@Html.Raw(applicationInsightsKey)";
+        var configure_cookie_control = "@Html.Raw(cookieControl)";
     </script>
 }
 
