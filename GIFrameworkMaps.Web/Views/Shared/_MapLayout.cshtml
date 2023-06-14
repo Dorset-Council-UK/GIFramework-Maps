@@ -86,6 +86,12 @@
                                 <a class="nav-link" target="_blank" rel="noopener" href="@ViewData["FeedbackURL"]">Give feedback</a>
                             </li>
                         }
+                        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["IncludeCookieControl"])) && Convert.ToString(ViewData["IncludeCookieControl"]) != "None")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" id="CookieControlLink" rel="noopener" href="#">Cookie preferences</a>
+                            </li>
+                        }
                         
                     </ul>
                             <partial name="_LoginPartial" />
