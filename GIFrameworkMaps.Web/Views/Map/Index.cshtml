@@ -1,4 +1,6 @@
 ﻿@model GIFrameworkMaps.Data.Models.ViewModels.VersionViewModel
+@using GIFrameworkMaps.Data.Models.ViewModels.Management;
+@using GIFrameworkMaps.Data.Models;
 @using Microsoft.Extensions.Configuration;
 @inject IConfiguration configuration;
 @{
@@ -16,6 +18,18 @@
     ViewData["PrivacyLink"] = configuration.GetValue<string>("GIFrameworkMaps:PrivacyLink");
     ViewData["ShowLogin"] = Model.ShowLogin;
     Layout = "_MapLayout";
+    AnalyticsViewModel analyticsModel = (ViewData["AnalyticsModel"] != null ? (AnalyticsViewModel)ViewData["AnalyticsModel"] : new AnalyticsViewModel());
+    analyticsModel.VersionID = int.Parse(ViewData["VersionID"].ToString());
+    string applicationInsightsKey = "";
+    foreach (AnalyticsDefinition analytic in analyticsModel.AvailableAnalytics)
+    {
+        if ((analyticsModel.VersionID == -1 || analytic.VersionAnalytics.Count == 0 || analytic.VersionAnalytics.Where(v => v.VersionId == analyticsModel.VersionID).FirstOrDefault() != null) && analytic.Enabled)
+        {
+            {
+                applicationInsightsKey = analytic.ProductKey;
+            }
+        }
+    }
 }
 <main id="giframeworkMapContainer" class="giframeworkMapContainer">
     <section id="giframeworkMap" class="giframeworkMap"></section>
@@ -110,6 +124,7 @@
         var gifw_version_config_url = "@Url.Action("VersionConfiguration","API",new {id=Model.Id})";
         var gifw_map_services_access_token = "@ViewData["MapServicesAccessToken"]";
         var gifw_map_services_access_url = "@Html.Raw(ViewData["MapServicesAccessURL"])";
+        var gifw_appinsights_key = "@Html.Raw(applicationInsightsKey)";
     </script>
 }
 
