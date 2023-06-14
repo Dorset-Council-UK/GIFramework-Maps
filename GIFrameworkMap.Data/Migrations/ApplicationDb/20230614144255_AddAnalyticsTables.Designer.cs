@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230613145423_AddAnalyticsTables")]
+    [Migration("20230614144255_AddAnalyticsTables")]
     partial class AddAnalyticsTables
     {
         /// <inheritdoc />
@@ -33,6 +33,9 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CookieControl")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("DateModified")
                         .HasColumnType("timestamp with time zone");

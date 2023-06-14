@@ -16,6 +16,8 @@ namespace GIFrameworkMaps.Data.Models
         public string ProductName { get; set; }
         [Display(Name = "Product Key or token")]
         public string ProductKey { get; set; }
+        [Display(Name = "Linked Cookie Control")]
+        public string CookieControl { get; set; }
         [Display(Name = "Date of last modification")]
         public DateTime DateModified { get; set; }
         [Display(Name = "Is analytic enabled?")]

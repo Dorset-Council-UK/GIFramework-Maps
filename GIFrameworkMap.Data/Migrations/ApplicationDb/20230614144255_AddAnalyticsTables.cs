@@ -21,6 +21,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ProductName = table.Column<string>(type: "text", nullable: true),
                     ProductKey = table.Column<string>(type: "text", nullable: true),
+                    CookieControl = table.Column<string>(type: "text", nullable: true),
                     DateModified = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Enabled = table.Column<bool>(type: "boolean", nullable: false)
                 },

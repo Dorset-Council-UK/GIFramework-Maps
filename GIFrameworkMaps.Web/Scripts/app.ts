@@ -15,6 +15,8 @@ import { Tour } from "./Tour";
 
 /*variables passed from index.cshtml. Use sparingly*/
 declare var gifw_appinsights_key: string;
+declare var configure_cookie_control: string;
+declare var CookieControl: any;
 declare var gifw_version_config_url: string;
 declare var gifw_map_services_access_token: string;
 declare var gifw_map_services_access_url: string;
@@ -27,6 +29,11 @@ if (gifw_appinsights_key != "") {
         }
     });
     appInsights.loadAppInsights();
+}
+
+//This allows the use of a cookie control
+if (configure_cookie_control=="Civica Cookie Control") {
+    document.getElementById("CookieControlLink").addEventListener("click", CookieControl.open);
 }
 
 document.addEventListener('DOMContentLoaded', function () {

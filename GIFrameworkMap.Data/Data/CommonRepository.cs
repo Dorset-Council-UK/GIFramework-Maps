@@ -11,7 +11,6 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using shortid;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
 
 namespace GIFrameworkMaps.Data
 {
@@ -32,7 +31,6 @@ namespace GIFrameworkMaps.Data
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
-
         public Models.Version GetVersionBySlug(string slug1, string slug2, string slug3)
         {            
             string slug = CreateSlug(slug1, slug2, slug3);

@@ -22,6 +22,13 @@
                 <span asp-validation-for="analyticDefinition.ProductKey" class="text-danger"></span>
             </div>
             <div class="mb-3">
+                <label asp-for="analyticDefinition.CookieControl" class="control-label"></label>
+                <select asp-for="analyticDefinition.CookieControl" asp-items="Model.availableCookieControl" class="form-select">
+                    <option value="">None</option>
+                </select>
+                <span asp-validation-for="analyticDefinition.CookieControl" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
                 <label asp-for="analyticDefinition.Enabled" class="control-label"></label>
                 <input asp-for="analyticDefinition.Enabled" class="form-check-input" type="checkbox" />
                 <span asp-validation-for="analyticDefinition.Enabled" class="text-danger"></span>

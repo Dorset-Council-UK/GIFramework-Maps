@@ -117,6 +117,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     analyticRecord.DateModified = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
                     analyticRecord.ProductKey = editModel.analyticDefinition.ProductKey;
                     analyticRecord.ProductName = editModel.analyticDefinition.ProductName;
+                    analyticRecord.CookieControl = editModel.analyticDefinition.CookieControl;
                     analyticRecord.Enabled = editModel.analyticDefinition.Enabled;
                     UpdateVersionAnalytics(editModel, analyticRecord);
                     await _context.SaveChangesAsync();
@@ -178,8 +179,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         {
             var versions = _context.Versions.OrderBy(b => b.Name).ToList();
             string[] supportedProducts = { "Cloudflare", "Google Analytics (GA4)", "Microsoft Application Insights", "Microsoft Clarity" };
-            
+            string[] supportedCookieControls = { "Civica Cookie Control" };
+
             model.availableProducts = new SelectList(supportedProducts);
+            model.availableCookieControl = new SelectList(supportedCookieControls);
             model.AvailableVersions = versions;
             if (model.analyticDefinition.VersionAnalytics != null)
             {

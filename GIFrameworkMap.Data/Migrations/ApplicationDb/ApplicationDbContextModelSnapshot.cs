@@ -31,6 +31,9 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CookieControl")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("DateModified")
                         .HasColumnType("timestamp with time zone");
 
