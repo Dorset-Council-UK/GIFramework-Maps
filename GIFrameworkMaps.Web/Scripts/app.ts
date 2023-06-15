@@ -31,12 +31,13 @@ if (gifw_appinsights_key != "") {
     appInsights.loadAppInsights();
 }
 
-//This allows the use of a cookie control
-if (configure_cookie_control=="Civica Cookie Control") {
-    document.getElementById("CookieControlLink").addEventListener("click", CookieControl.open);
-}
-
 document.addEventListener('DOMContentLoaded', function () {
+
+    //This allows the use of a cookie control
+    if (configure_cookie_control == "Civica Cookie Control" && typeof CookieControl != "undefined") {
+        document.getElementById("CookieControlLink").addEventListener("click", CookieControl.open);
+    }
+
 
     let mapId = 'giframeworkMap';
 
