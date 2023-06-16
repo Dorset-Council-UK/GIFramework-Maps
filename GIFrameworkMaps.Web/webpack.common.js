@@ -1,7 +1,7 @@
 ﻿const path = require('path');
 
 module.exports = {
-    entry: './Scripts/app.ts',
+    entry: ['./Scripts/app.ts','./Scripts/CookieControls.ts'],
     module: {
         rules: [
             {
