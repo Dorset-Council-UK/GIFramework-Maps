@@ -2,6 +2,7 @@
 using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.ViewModels;
 using GIFrameworkMaps.Data.Models.ViewModels.Management;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
+    [Authorize(Roles = "GIFWAdmin")]
     public class ManagementAnalyticsController : Controller
     {
         private readonly ILogger<ManagementVersionController> _logger;
