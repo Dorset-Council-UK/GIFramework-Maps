@@ -16,6 +16,7 @@
     ViewData["CustomFaviconURL"] = Model.Theme.CustomFaviconURL;
     ViewData["ToSLink"] = configuration.GetValue<string>("GIFrameworkMaps:ToSLink");
     ViewData["PrivacyLink"] = configuration.GetValue<string>("GIFrameworkMaps:PrivacyLink");
+    ViewData["AdminDocsLink"] = configuration.GetValue<string>("GIFrameworkMaps:AdminDocsLink");
     ViewData["ShowLogin"] = Model.ShowLogin;
     Layout = "_MapLayout";
     AnalyticsViewModel analyticsModel = (ViewData["AnalyticsModel"] != null ? (AnalyticsViewModel)ViewData["AnalyticsModel"] : new AnalyticsViewModel());
