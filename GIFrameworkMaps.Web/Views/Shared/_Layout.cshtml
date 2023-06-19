@@ -47,7 +47,7 @@
                             @if (!String.IsNullOrEmpty(adminDocsLink) && Uri.IsWellFormedUriString(adminDocsLink, UriKind.Absolute))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link" href="@adminDocsLink">Admin Help</a>
+                                    <a class="nav-link" target="_blank" rel="noopener" href="@adminDocsLink">Admin Help</a>
                                 </li>
                             }
                         }
