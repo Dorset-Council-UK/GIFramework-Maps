@@ -44,7 +44,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         {
             AnalyticsEditModel viewModel = new AnalyticsEditModel();
             viewModel.analyticDefinition =  new AnalyticsDefinition();
-            viewModel = RebuildEditModel(viewModel);
+            RebuildEditModel(ref viewModel);
             return View(viewModel);
         }
 
@@ -58,11 +58,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     editModel.SelectedVersions = selectedVersions.ToList();
                     editModel.analyticDefinition.DateModified = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
-                    var analyticDefinitions = _context.AnalyticsDefinitions;
-                    analyticDefinitions.Add(editModel.analyticDefinition);
                     //Update the versions this analytic will apply to
                     editModel.analyticDefinition.VersionAnalytics = new List<VersionAnalytic>();
-                    foreach ( int version in editModel.SelectedVersions )
+                    foreach (int version in editModel.SelectedVersions)
                     {
                         editModel.analyticDefinition.VersionAnalytics.Add(new VersionAnalytic
                         {
@@ -70,6 +68,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                             AnalyticsDefinitionId = editModel.analyticDefinition.Id
                         });
                     }
+                    _context.Add(editModel.analyticDefinition);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
@@ -84,7 +83,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             
             AnalyticsEditModel viewModel = new AnalyticsEditModel();
             viewModel.analyticDefinition = editModel.analyticDefinition;
-            viewModel = RebuildEditModel(viewModel);
+            RebuildEditModel(ref viewModel);
             return View(viewModel);
         }
         public IActionResult Edit(int id)
@@ -94,7 +93,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             {
                 AnalyticsEditModel viewModel = new AnalyticsEditModel();
                 viewModel.analyticDefinition = analyticRecord;
-                viewModel = RebuildEditModel(viewModel);
+                RebuildEditModel(ref viewModel);
                 return View(viewModel);
             }
             else
@@ -113,7 +112,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             try
             {
                 editModel.SelectedVersions = selectedVersions.ToList();
-                var analyticRecord = _context.AnalyticsDefinitions.Include(ad => ad.VersionAnalytics).Where(a => a.Id == editModel.analyticDefinition.Id).FirstOrDefault();
+                var analyticRecord = _context.AnalyticsDefinitions.Where(a => a.Id == editModel.analyticDefinition.Id).FirstOrDefault();
                 if (analyticRecord != null)
                 {
                     analyticRecord.DateModified = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
@@ -142,7 +141,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
             AnalyticsEditModel viewModel = new AnalyticsEditModel();
             viewModel.analyticDefinition = editModel.analyticDefinition;
-            viewModel = RebuildEditModel(viewModel);
+            RebuildEditModel(ref viewModel);
             return View(viewModel);
         }
 
@@ -177,7 +176,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return RedirectToAction(nameof(Index));
         }
 
-        private AnalyticsEditModel RebuildEditModel(AnalyticsEditModel model)
+        private void RebuildEditModel(ref AnalyticsEditModel model)
         {
             var versions = _context.Versions.OrderBy(b => b.Name).ToList();
             string[] supportedProducts = { "Cloudflare", "Google Analytics (GA4)", "Microsoft Application Insights", "Microsoft Clarity" };
@@ -192,47 +191,59 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
             ViewData["AllVersions"] = model.AvailableVersions;
             ViewData["SelectedVersions"] = model.SelectedVersions;
-
-            return model;
         }
         private void UpdateVersionAnalytics(AnalyticsEditModel editModel, AnalyticsDefinition _contextRecord)
         {
             //Update the versions this analytic will apply to
-            List<int> toRemove = new List<int>();
-            List<int> toIgnore = new List<int>();
-            foreach (VersionAnalytic s in _contextRecord.VersionAnalytics)
+            if (editModel.SelectedVersions == null)
             {
-                if (editModel.SelectedVersions != null && editModel.SelectedVersions.ToArray().Contains(s.VersionId))
-                {
-                    //Do nothing
-                    toIgnore.Add(s.VersionId);
-                }
-                else
-                {
-                    //Must have been removed
-                    toRemove.Add(s.VersionId);
-                }
-            }
-            if (editModel.SelectedVersions != null)
-            {
-                foreach (int v in editModel.SelectedVersions)
-                {
-                    if (!toIgnore.Contains(v))
-                    {
-                        _contextRecord.VersionAnalytics.Add(new VersionAnalytic
-                        {
-                            VersionId = v,
-                            AnalyticsDefinitionId = editModel.analyticDefinition.Id
-                        });
-                    }
-                }
-            }
-            foreach (int v in toRemove)
-            {
-                var record = _contextRecord.VersionAnalytics.Where(a => a.VersionId == v).FirstOrDefault();
-                _contextRecord.VersionAnalytics.Remove(record);
+                editModel.AvailableVersions = new List<Data.Models.Version>();
+                return;
             }
 
+            //Create a HashSet of all the selected integers
+            var selectedVersionsHS = new HashSet<int>(editModel.SelectedVersions);
+            //Create a HashSet of the existing list from the database
+            var analyticVersions = new HashSet<int>();
+            var currentDefinition = _context.AnalyticsDefinitions.Include(ad => ad.VersionAnalytics).FirstOrDefault(a => a.Id == editModel.analyticDefinition.Id);
+            if (currentDefinition.VersionAnalytics != null)
+            {
+                analyticVersions = new HashSet<int>(currentDefinition.VersionAnalytics.Select(c => c.VersionId));
+            }
+            //Generate a list of all versions that can be selected
+            List<int> AvailableVersions = _context.Versions.OrderBy(b => b.Name).Select(c => c.Id).ToList();
+            if (AvailableVersions != null)
+            {
+                //Loop through each version and check if it is selected
+                foreach (int id in AvailableVersions)
+                {
+                    if (selectedVersionsHS.Contains(id))
+                    {
+                        //If it is selected but not in the database we add it
+                        if (!analyticVersions.Contains(id))
+                        {
+                            if (_contextRecord.VersionAnalytics == null)
+                            {
+                                _contextRecord.VersionAnalytics = new List<VersionAnalytic>();
+                            }
+                            _contextRecord.VersionAnalytics.Add(new VersionAnalytic
+                            {
+                                VersionId = id,
+                                AnalyticsDefinitionId = editModel.analyticDefinition.Id
+                            });
+                        }
+                    }
+                    else
+                    {
+                        //If it is not selected but is in the database we remove it
+                        if (analyticVersions.Contains(id))
+                        {
+                            VersionAnalytic versionAnalyticToRemove = currentDefinition.VersionAnalytics.FirstOrDefault(i => i.VersionId == id && i.AnalyticsDefinitionId == editModel.analyticDefinition.Id);
+                            _context.Remove(versionAnalyticToRemove);
+                        }
+                    }
+                } //Everything else is just left alone
+            }
         }
     }
 }

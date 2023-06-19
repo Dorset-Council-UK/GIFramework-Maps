@@ -26,7 +26,11 @@ if (gifw_appinsights_key != "") {
             disableCookiesUsage: true
         }
     });
-    appInsights.loadAppInsights();
+    try {
+        appInsights.loadAppInsights();
+    } catch (ex) {
+        console.error("Failed to get load application insights", ex);
+    };
 }
 
 document.addEventListener('DOMContentLoaded', function () {
