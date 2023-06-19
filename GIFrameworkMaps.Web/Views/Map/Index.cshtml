@@ -26,12 +26,13 @@
     {
         if ((analyticsModel.VersionID == -1 || analytic.VersionAnalytics.Count == 0 || analytic.VersionAnalytics.Where(v => v.VersionId == analyticsModel.VersionID).FirstOrDefault() != null) && analytic.Enabled)
         {
+            if (analytic.ProductName == "Microsoft Application Insights")
             {
                 applicationInsightsKey = analytic.ProductKey;
-                if (!string.IsNullOrEmpty(analytic.CookieControl) && analytic.CookieControl != "None")
-                {
-                    cookieControl = analytic.CookieControl;
-                }
+            }
+            if (!string.IsNullOrEmpty(analytic.CookieControl) && analytic.CookieControl != "None")
+            {
+                cookieControl = analytic.CookieControl;
             }
         }
     }
