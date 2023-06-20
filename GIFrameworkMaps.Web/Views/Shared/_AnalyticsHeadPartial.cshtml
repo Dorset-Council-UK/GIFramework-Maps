@@ -1,0 +1,52 @@
+﻿@using GIFrameworkMaps.Data.Models;
+@model GIFrameworkMaps.Data.Models.ViewModels.Management.AnalyticsViewModel
+
+@*
+    This page adds analytics and cookie controls as required.
+*@
+@{
+    foreach (AnalyticsDefinition analytic in Model.AvailableAnalytics)
+    {
+        if ((Model.VersionID == -1 || analytic.VersionAnalytics.Count == 0 || analytic.VersionAnalytics.Where(v => v.VersionId == Model.VersionID).FirstOrDefault() != null) && analytic.Enabled)
+        {
+            if (analytic.ProductName == "Cloudflare")
+            {
+                <!-- Cloudflare Web Analytics -->
+                <!-- Nothing in head -->
+                <!-- End Cloudflare Web Analytics -->
+            }
+            else if (analytic.ProductName == "Google Analytics (GA4)")
+            {
+                <!-- Google Analytics (GA4) -->
+                <script type="text/javascript">
+                    (function (w, d, s, l, i) {
+                        w[l] = w[l] || []; w[l].push({
+                            'gtm.start':
+                                new Date().getTime(), event: 'gtm.js'
+                        }); var f = d.getElementsByTagName(s)[0],
+                            j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                                'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+                    })(window, document, 'script', 'dataLayer', '@analytic.ProductKey');
+                </script>
+
+                <!-- End Google Analytics (GA4) -->
+            }
+            else if (analytic.ProductName == "Microsoft Application Insights")
+            {
+                <!-- Microsoft Application Insights (client function) -->
+                <!-- Nothing in head -->
+                <!-- End Microsoft Application Insights -->
+            }
+            else if (analytic.ProductName == "Mirosoft Clarity")
+            {
+                <!-- Microsoft Clarity Analytics -->
+
+                <script async="" src="https://www.clarity.ms/s/0.7.8/clarity.js"></script>
+
+                <script async="" src=@Url.Content("https://www.clarity.ms/tag/" + analytic.ProductKey + "?ref=gtm2")></script>
+
+                <!-- End Microsoft Clarity Analytics -->
+            }
+        }
+    }
+}

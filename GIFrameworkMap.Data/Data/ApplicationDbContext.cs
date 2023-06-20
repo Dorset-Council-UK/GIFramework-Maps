@@ -39,6 +39,7 @@ namespace GIFrameworkMaps.Data
         public DbSet<Models.LayerSourceType> LayerSourceType { get; set; }
         public DbSet<Models.LayerSourceOption> LayerSourceOption { get; set; }
         public DbSet<Models.ShortLink> ShortLink { get; set; }
+        public DbSet<Models.AnalyticsDefinition> AnalyticsDefinitions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -46,6 +47,7 @@ namespace GIFrameworkMaps.Data
             modelBuilder.Entity<VersionUser>().HasKey(v => new { v.UserId, v.VersionId });
             modelBuilder.Entity<VersionBasemap>().HasKey(v => new { v.BasemapId, v.VersionId });
             modelBuilder.Entity<VersionCategory>().HasKey(v => new { v.CategoryId, v.VersionId });
+            modelBuilder.Entity<VersionAnalytic>().HasKey(v => new { v.AnalyticsDefinitionId, v.VersionId });
             modelBuilder.Entity<CategoryLayer>().HasKey(c => new { c.CategoryId, c.LayerId });
             modelBuilder.Entity<VersionSearchDefinition>().HasKey(v => new { v.SearchDefinitionId, v.VersionId });
             modelBuilder.Entity<VersionPrintConfiguration>().HasKey(v => new { v.PrintConfigurationId, v.VersionId });

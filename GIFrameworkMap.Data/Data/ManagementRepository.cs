@@ -356,5 +356,13 @@ namespace GIFrameworkMaps.Data
             }
             return false;
         }
+
+        public AnalyticsViewModel GetAnalyticsModel()
+        {
+            AnalyticsViewModel viewModel = new AnalyticsViewModel();
+            viewModel.AvailableAnalytics = _context.AnalyticsDefinitions.Include(a => a.VersionAnalytics).ToList();
+
+            return viewModel;
+        }
     }
 }

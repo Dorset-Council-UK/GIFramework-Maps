@@ -1,0 +1,21 @@
+﻿@model List<GIFrameworkMaps.Data.Models.Version>
+
+@{
+    var allVersions = ViewData["AllVersions"] as List<GIFrameworkMaps.Data.Models.Version>;
+    var selectedVersions = ViewData["SelectedVersions"] as List<int>;
+}
+@foreach (var version in Model)
+{
+
+    bool IsVersionChecked = selectedVersions != null && selectedVersions.Where(b => b == version.Id).Count() != 0;
+
+    <div class="form-check">
+        <input type="checkbox"
+            class="form-check-input"
+               name="SelectedVersions"
+               value="@version.Id"
+               id="SelectedVersions__@version.Id"
+           @(Html.Raw(IsVersionChecked ? "checked=\"checked\"" : "")) />
+        <label class="form-check-label" for="SelectedVersions__@version.Id">@version.Name</label>
+    </div>
+}
