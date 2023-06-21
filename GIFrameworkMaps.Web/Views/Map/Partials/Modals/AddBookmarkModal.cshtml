@@ -1,4 +1,5 @@
-﻿<div class="modal" tabindex="-1" id="add-bookmark-modal">
+﻿@model GIFrameworkMaps.Data.Models.Bookmark
+<div class="modal" tabindex="-1" id="add-bookmark-modal">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -8,12 +9,14 @@
             <form asp-action="AddBookmark" asp-controller="API">
                 <div class="modal-body">
                     <p>Give your bookmark a name</p>
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="gifw-new-bookmark-name" name="name" maxlength="100">
+                    <div class="mb-3">
+                        <label asp-for="Name" class="control-label"></label>
+                        <input asp-for="Name" class="form-control">
+                        <div class="text-danger"></div>
                     </div>
-                    <input type="hidden" class="form-control" name="x" value="345784"/>
-                    <input type="hidden" class="form-control" name="y" value="95468" />
-                    <input type="hidden" class="form-control" name="zoom" value="17"/>
+                    <input type="hidden" class="form-control" asp-for="X"/>
+                    <input type="hidden" class="form-control" asp-for="Y" />
+                    <input type="hidden" class="form-control" asp-for="Zoom" />
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Save bookmark</button>

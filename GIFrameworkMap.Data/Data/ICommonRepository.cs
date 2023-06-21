@@ -15,8 +15,8 @@ namespace GIFrameworkMaps.Data
         List<Models.Authorization.ApplicationUserRole> GetUserRoles(string userId);
         List<Models.WebLayerServiceDefinition> GetWebLayerServiceDefinitions();
         List<Models.ProxyAllowedHost> GetProxyAllowedHosts();
-
         Task<List<Models.ProxyAllowedHost>> GetProxyAllowedHostsAsync();
+        Task<List<Models.Bookmark>> GetBookmarksForUserAsync(string userId);
         Task<string> GenerateShortId(string url);
         Task<string> GetFullUrlFromShortId(string shortId);
         bool IsURLCurrentApplication(string url);

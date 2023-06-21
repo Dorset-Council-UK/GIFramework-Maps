@@ -254,6 +254,12 @@ namespace GIFrameworkMaps.Data
             return allowedHosts;
         }
 
+        public async Task<List<Bookmark>> GetBookmarksForUserAsync(string userId)
+        {
+            var userBookmarks = await _context.Bookmarks.Where(b => b.UserId ==  userId).OrderBy(b => b.Name).AsNoTracking().ToListAsync();
+            return userBookmarks;
+        }
+
         public async Task<string> GenerateShortId(string url)
         {
             string shortId = ShortId.Generate();

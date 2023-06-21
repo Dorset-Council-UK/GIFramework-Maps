@@ -34,20 +34,6 @@ export class BookmarkMenu {
         });
 
     }
-    private async addBookmark(formData: FormData) {
-        const resp = await fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}API/AddBookmark`, {
-            body: formData,
-            method: "post",
-        });
-        if (resp.ok) {
-            //bookmark added successfully
-            const modal = Modal.getOrCreateInstance('#add-bookmark-modal');
-            modal.hide();
-            Util.Alert.showTimedToast('Success', '<span class="bi bi-check-circle text-success"></span> Bookmark added successfully',Util.AlertSeverity.Success);
-        } else {
-            //show error
-        }
-    }
 
     /**
      * Gets the bookmarks for the user and adds them to the bookmarks list
@@ -63,7 +49,7 @@ export class BookmarkMenu {
                 if (data && data.length !== 0) {
                     this.renderBookmarks(data, bookmarksListContainer as HTMLElement);
                 } else {
-                    bookmarksListContainer.insertAdjacentHTML('afterbegin', `<li><span class="dropdown-item-text">No bookmarks saved yet</span></li>`);
+                    bookmarksListContainer.insertAdjacentHTML('afterbegin', `<li><span class="dropdown-item-text mb-3 text-center">No bookmarks saved yet</span></li>`);
                 }
             });
     }
@@ -123,8 +109,46 @@ export class BookmarkMenu {
      * Opens the Add Bookmark modal
      */
     private openAddBookmarkModal() {
+        //fill in the form
+        const addBookmarkForm: HTMLFormElement = document.querySelector('#add-bookmark-modal form');
+
+        const nameInput: HTMLInputElement = addBookmarkForm.querySelector('input[name="Name"]');
+        const xInput: HTMLInputElement = addBookmarkForm.querySelector('input[name="X"]');
+        const yInput: HTMLInputElement = addBookmarkForm.querySelector('input[name="Y"]');
+        const zoomInput: HTMLInputElement = addBookmarkForm.querySelector('input[name="Zoom"]');
+        const validationText: HTMLDivElement = addBookmarkForm.querySelector('.text-danger');
+
+        const mapCenter = this.gifwMapInstance.olMap.getView().getCenter();
+        const mapZoom = this.gifwMapInstance.olMap.getView().getZoom();
+
+        nameInput.value = "";
+        xInput.value = mapCenter[0].toString();
+        yInput.value = mapCenter[1].toString();
+        zoomInput.value = mapZoom.toString();
+        validationText.innerHTML = "";
+
         const modal = Modal.getOrCreateInstance('#add-bookmark-modal');
         modal.show();
+    }
+
+    private async addBookmark(formData: FormData) {
+        const resp = await fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}API/AddBookmark`, {
+            body: formData,
+            method: "post",
+        });
+        if (resp.ok) {
+            //bookmark added successfully
+            const modal = Modal.getOrCreateInstance('#add-bookmark-modal');
+            modal.hide();
+            this.getBookmarks();
+            Util.Alert.showTimedToast('Success', '<span class="bi bi-check-circle text-success"></span> Bookmark added successfully', Util.AlertSeverity.Success);
+        } else {
+            //show error
+            
+            resp.text().then(t => {
+                document.querySelector('#add-bookmark-modal form .text-danger').innerHTML = t;
+            })
+        }
     }
 
     private zoomToBookmark(bookmark:Bookmark) {
@@ -154,14 +178,16 @@ export class BookmarkMenu {
     }
 
     private async removeBookmark(bookmarkId: number): Promise<boolean> {
-        const response = await fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}API/DeleteBookmark/${bookmarkId}`, { method: 'DELETE' });
+        if (confirm('Are you sure you want to delete this bookmark?')) {
+            const response = await fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}API/DeleteBookmark/${bookmarkId}`, { method: 'DELETE' });
 
-        if (!response.ok) {
-            Util.Alert.showPopupError('Something went wrong','Something went wrong deleting your bookmark. Please try again later.')
-            return false;
+            if (!response.ok) {
+                Util.Alert.showPopupError('Something went wrong', 'Something went wrong deleting your bookmark. Please try again later.')
+                return false;
+            }
+            this.getBookmarks();
+            return true;
         }
-        this.getBookmarks();
-        return true;
     }
 
     /**

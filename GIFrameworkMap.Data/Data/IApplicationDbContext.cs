@@ -31,5 +31,6 @@ namespace GIFrameworkMaps.Data
         DbSet<Models.LayerSourceType> LayerSourceType { get; set; }
         DbSet<Models.LayerSourceOption> LayerSourceOption { get; set; }
         DbSet<Models.ShortLink> ShortLink { get; set; }
+        DbSet<Models.Bookmark> Bookmarks { get; set; }
     }
 }

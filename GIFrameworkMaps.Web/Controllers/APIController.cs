@@ -6,6 +6,7 @@ using GIFrameworkMaps.Web.Models.API;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Svg;
@@ -15,6 +16,7 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -242,59 +244,42 @@ namespace GIFrameworkMaps.Web.Controllers
         }
 
         [Authorize]
-        public IActionResult UserBookmarks()
+        public async Task<IActionResult> UserBookmarks()
         {
-            if(User.Identity.IsAuthenticated)
-            {
-            //var bookmarks = _repository.GetUserBookmarks(User.Identity.Name);
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userId = claim.Value;
 
-            var bookmark1 = 
-                new
-                {
-                    id = 1,
-                    name = "Cerne Giant",
-                    x = -275493,
-                    y = 6588398,
-                    zoom = 19
-                };
+            var bookmarks = await _repository.GetBookmarksForUserAsync(userId);
 
-            var bookmark2 =
-                new
-                {
-                    id = 2,
-                    name = "Dorchester",
-                    x = -271791,
-                    y = 6570443,
-                    zoom = 14
-                };
+            return Json(bookmarks);
 
-                var bookmarks = new List<object>
-                {
-                    bookmark1,
-                    bookmark2
-                };
-                return Json(bookmarks);
-            }
-            else
-            {
-                return Unauthorized();
-            }
         }
 
         [Authorize]
         [HttpDelete]
-        public IActionResult DeleteBookmark(int id)
+        public async Task<IActionResult> DeleteBookmark(int id)
         {
-            if (User.Identity.IsAuthenticated)
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userId = claim.Value;
+            //get the bookmark
+            
+            var bookmarkToDelete = await _context.Bookmarks.Where(b => b.Id == id && b.UserId == userId).FirstOrDefaultAsync();
+            if(bookmarkToDelete != null)
             {
-                //get the bookmark
-
-                //check the user owns the bookmark
-
-                //delete the bookmark
-                
-                //return HTTP 204 response
-                return NoContent();
+                try
+                {
+                    _context.Bookmarks.Remove(bookmarkToDelete);
+                    await _context.SaveChangesAsync();
+                    //return HTTP 204 response
+                    return NoContent();
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Bookmark delete failed");
+                    return StatusCode(500, "Bookmark delete failed");
+                }
             }
             else
             {
@@ -304,20 +289,42 @@ namespace GIFrameworkMaps.Web.Controllers
 
         [Authorize]
         [HttpPost]
-        public IActionResult AddBookmark(string name, int x, int y, int zoom)
+        public async Task<IActionResult> AddBookmark(Bookmark bookmark)
         {
-            if (User.Identity.IsAuthenticated)
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userId = claim.Value;
+            bookmark.UserId = userId;
+            bookmark.Name = bookmark.Name?.Trim();
+            ModelState.Remove("UserId");
+            if (ModelState.IsValid)
             {
-                //check if a bookmark with the same name already exists
+                //additional validation here
+                var existingBookmark = await _context.Bookmarks.Where(b => b.UserId == userId && b.Name == bookmark.Name).FirstOrDefaultAsync();
+                if (existingBookmark == null)
+                {
 
-                //add the bookmark
-                //return HTTP 201 response
-                return Created("","");
+                    try
+                    {
+                        _context.Add(bookmark);
+                        await _context.SaveChangesAsync();
+                        return Created("", "");
+                    }
+                    catch (DbUpdateException ex)
+                    {
+                        _logger.LogError(ex, "Bookmark creation failed");
+                        return StatusCode(500, "Bookmark creation failed");
+                    }
+                }
+                else
+                {
+                    return StatusCode(400,"Bookmark with this name already exists");
+                }
             }
             else
             {
-                return Unauthorized();
-            }
+                return BadRequest("Name must be filled in and less than 50 characters");
+            }           
         }
     }
 
