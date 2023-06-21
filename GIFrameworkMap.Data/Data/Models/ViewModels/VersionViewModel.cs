@@ -23,5 +23,6 @@ namespace GIFrameworkMaps.Data.Models.ViewModels
         public string AppRoot { get; set; }
         public string AppInsightsKey { get; set; }
         public string GoogleMapsAPIKey { get; set; }
+        public bool IsLoggedIn { get; set; }
     }
 }

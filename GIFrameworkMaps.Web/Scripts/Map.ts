@@ -33,7 +33,7 @@ import { Search } from "./Search";
 import { Streetview } from "./Streetview";
 import { VersionViewModel } from "./Interfaces/VersionViewModel";
 import { WebLayerService } from "./WebLayerService";
-import { Bookmark } from "./Bookmark";
+import { BookmarkMenu } from "./BookmarkMenu";
 
 export class GIFWMap {
     id: string;
@@ -315,9 +315,10 @@ export class GIFWMap {
         webLayerService.init();
 
         //add bookmark control
-        let bookmarkControl = new Bookmark(this);
-        bookmarkControl.init();
-
+        if (this.config.isLoggedIn) {
+            let bookmarkControl = new BookmarkMenu(this);
+            bookmarkControl.init();
+        }
         measureControl.init();
         infoControl.init();
         geolocationControl.init();

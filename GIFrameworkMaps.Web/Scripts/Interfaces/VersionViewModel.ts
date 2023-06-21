@@ -22,4 +22,5 @@ export interface VersionViewModel {
     appRoot: string;
     appInsightsKey: string;
     googleMapsAPIKey: string;
+    isLoggedIn: boolean;
 }

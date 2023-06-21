@@ -199,6 +199,7 @@ namespace GIFrameworkMaps.Web.Controllers
                     versionViewModel.AppRoot = $"{host}{pathBase}/";
                     versionViewModel.GoogleMapsAPIKey = _configuration.GetValue<string>("ApiKeys:Google:MapsAPIKey");
                     versionViewModel.AppInsightsKey = _configuration.GetValue<string>("ApplicationInsights:ConnectionString");
+                    versionViewModel.IsLoggedIn = User.Identity.IsAuthenticated;
                     return Json(versionViewModel);
                 }
                 else
@@ -240,37 +241,38 @@ namespace GIFrameworkMaps.Web.Controllers
             }
         }
 
+        [Authorize]
         public IActionResult UserBookmarks()
         {
             if(User.Identity.IsAuthenticated)
             {
-                //var bookmarks = _repository.GetUserBookmarks(User.Identity.Name);
-                var bookmark1 = 
-                    new
-                    {
-                        id = 1,
-                        name = "Cerne Giant",
-                        x = 366646,
-                        y = 101677,
-                        zoom = 15
-                    };
+            //var bookmarks = _repository.GetUserBookmarks(User.Identity.Name);
 
-                var bookmark2 =
-                    new
-                    {
-                        id = 2,
-                        name = "Dorchester",
-                        x = 368810,
-                        y = 90420,
-                        zoom = 13
-                    };
+            var bookmark1 = 
+                new
+                {
+                    id = 1,
+                    name = "Cerne Giant",
+                    x = -275493,
+                    y = 6588398,
+                    zoom = 19
+                };
 
-                //var bookmarks = new List<object>
-                //{
-                //    bookmark1,
-                //    bookmark2
-                //};
-                var bookmarks = new List<object>();
+            var bookmark2 =
+                new
+                {
+                    id = 2,
+                    name = "Dorchester",
+                    x = -271791,
+                    y = 6570443,
+                    zoom = 14
+                };
+
+                var bookmarks = new List<object>
+                {
+                    bookmark1,
+                    bookmark2
+                };
                 return Json(bookmarks);
             }
             else
@@ -279,6 +281,44 @@ namespace GIFrameworkMaps.Web.Controllers
             }
         }
 
+        [Authorize]
+        [HttpDelete]
+        public IActionResult DeleteBookmark(int id)
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                //get the bookmark
+
+                //check the user owns the bookmark
+
+                //delete the bookmark
+                
+                //return HTTP 204 response
+                return NoContent();
+            }
+            else
+            {
+                return Unauthorized();
+            }
+        }
+
+        [Authorize]
+        [HttpPost]
+        public IActionResult AddBookmark(string name, int x, int y, int zoom)
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                //check if a bookmark with the same name already exists
+
+                //add the bookmark
+                //return HTTP 201 response
+                return Created("","");
+            }
+            else
+            {
+                return Unauthorized();
+            }
+        }
     }
 
  }
