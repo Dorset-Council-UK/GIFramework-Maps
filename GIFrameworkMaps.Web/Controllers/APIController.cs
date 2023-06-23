@@ -244,6 +244,7 @@ namespace GIFrameworkMaps.Web.Controllers
         }
 
         [Authorize]
+        [Route("api/bookmarks")]
         public async Task<IActionResult> UserBookmarks()
         {
             var claimsIdentity = (ClaimsIdentity)User.Identity;
@@ -258,6 +259,7 @@ namespace GIFrameworkMaps.Web.Controllers
 
         [Authorize]
         [HttpDelete]
+        [Route("api/bookmarks/delete/{id}")]
         public async Task<IActionResult> DeleteBookmark(int id)
         {
             var claimsIdentity = (ClaimsIdentity)User.Identity;
@@ -287,8 +289,9 @@ namespace GIFrameworkMaps.Web.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize()]
         [HttpPost]
+        [Route("api/bookmarks/create")]
         public async Task<IActionResult> AddBookmark(Bookmark bookmark)
         {
             var claimsIdentity = (ClaimsIdentity)User.Identity;
@@ -296,7 +299,7 @@ namespace GIFrameworkMaps.Web.Controllers
             var userId = claim.Value;
             bookmark.UserId = userId;
             bookmark.Name = bookmark.Name?.Trim();
-            ModelState.Remove("UserId");
+            ModelState.Remove("UserId"); //remove this from model state as it is not required
             if (ModelState.IsValid)
             {
                 //additional validation here
@@ -318,7 +321,7 @@ namespace GIFrameworkMaps.Web.Controllers
                 }
                 else
                 {
-                    return StatusCode(400,"Bookmark with this name already exists");
+                    return BadRequest("Bookmark with this name already exists");
                 }
             }
             else

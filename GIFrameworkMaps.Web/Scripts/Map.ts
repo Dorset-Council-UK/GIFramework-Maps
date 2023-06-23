@@ -848,11 +848,16 @@ export class GIFWMap {
      */
     public zoomToFeature(feature: (Feature<Geometry> | RenderFeature)) {
         let featureExtent = feature.getGeometry().getExtent();
+        this.fitMapToExtent(featureExtent);
+    }
+
+
+    public fitMapToExtent(extent: Extent, leftPadding: number = 100, maxZoom: number = 50, animationDuration: number = 1000): void {
         let curExtent = this.olMap.getView().calculateExtent();
-        if (!Util.Browser.PrefersReducedMotion() && containsExtent(curExtent, featureExtent)) {
-            this.olMap.getView().fit(featureExtent, { padding: [100, 100, 100, 100], duration: 1000 });
+        if (!Util.Browser.PrefersReducedMotion() && containsExtent(curExtent, extent)) {
+            this.olMap.getView().fit(extent, { padding: [100, 100, 100, leftPadding], maxZoom: maxZoom, duration: animationDuration });
         } else {
-            this.olMap.getView().fit(featureExtent, { padding: [100, 100, 100, 100] });
+            this.olMap.getView().fit(extent, { padding: [100, 100, 100, leftPadding], maxZoom: maxZoom });
         }
     }
 

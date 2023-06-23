@@ -264,6 +264,13 @@ export namespace Util {
             ele.querySelector('.btn-cancel').addEventListener('click', () => { ele.dispatchEvent(new Event('gifw-cancel')) });
         }
 
+        static removeLoadingOverlayFromElement(ele: HTMLElement): void {
+            let loadingOverlay = (ele.querySelector('.gifw-loading-overlay') as HTMLElement);
+            if (loadingOverlay) {
+                loadingOverlay.remove();
+            }
+        }
+
         static addFullScreenLoader(mapId: string, loadingText? :string, cancellable? :boolean, cancelCallback?: Function) {
             let loadingTakeoverHTML =
                 `<div class="w-100 h-100 position-fixed top-0 start-0 gifw-full-screen-loader">
@@ -683,6 +690,30 @@ export namespace Util {
             }
             let baseUrl = `${window.location.origin}${window.location.pathname}`;
             return `${baseUrl}${hash}`;
+        }
+
+        /**
+        * Calculates an appropriate animation speed based on the zoom difference between current location and target location
+        *
+        * @param zoomDiff - The zoom level difference between the target and current location
+        * @returns a number between 200 and 3000 indicating the recommended animation speed (in milliseconds)
+        *
+        */
+        static calculateAnimationSpeed(zoomDiff: number): number {
+
+            let speed = 200;
+            if (zoomDiff > 1 && zoomDiff <= 5) {
+                speed = 500;
+            } else if (zoomDiff > 5 && zoomDiff <= 10) {
+                speed = 1000;
+            } else if (zoomDiff > 10 && zoomDiff <= 15) {
+                speed = 1500;
+            } else if (zoomDiff > 15 && zoomDiff <= 20) {
+                speed = 2500;
+            } else if (zoomDiff > 20) {
+                speed = 3000;
+            }
+            return speed;
         }
     }
     

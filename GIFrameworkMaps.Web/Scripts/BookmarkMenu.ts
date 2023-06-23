@@ -1,15 +1,13 @@
-import { Modal } from "bootstrap";
+import { Dropdown, Modal } from "bootstrap";
 import { Point } from "ol/geom";
 import { Bookmark } from "./Interfaces/Bookmark";
 import { GIFWMap } from "./Map";
 import { Util } from "./Util";
-import * as olExtent from 'ol/extent';
 
 export class BookmarkMenu {
     gifwMapInstance: GIFWMap;
     constructor(gifwMapInstance: GIFWMap) {
         this.gifwMapInstance = gifwMapInstance;
-
     }
 
     public init() {
@@ -32,7 +30,13 @@ export class BookmarkMenu {
             this.addBookmark(new FormData(addBookmarkForm));
 
         });
-
+        const dropdownMenuEle = document.querySelector('#gifw-bookmarks-list').parentElement;
+        dropdownMenuEle.addEventListener('show.bs.dropdown', event => {
+            dropdownMenuEle.querySelector('a i').className = "bi bi-bookmark-fill";
+        })
+        dropdownMenuEle.addEventListener('hide.bs.dropdown', event => {
+            dropdownMenuEle.querySelector('a i').className = "bi bi-bookmark";
+        })
     }
 
     /**
@@ -43,7 +47,7 @@ export class BookmarkMenu {
 
         bookmarksListContainer.querySelectorAll('li.bookmark-list')?.forEach((item) => { item.remove() });
 
-        fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}API/UserBookmarks`)
+        fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}API/Bookmarks`)
             .then(response => response.json())
             .then(data => {
                 if (data && data.length !== 0) {
@@ -68,9 +72,6 @@ export class BookmarkMenu {
             newBookmark.href = `#gifw-zoomtobookmark-${bookmark.id}`;
             newBookmark.className = "dropdown-item";
             newBookmark.innerText = bookmark.name;
-            newBookmark.dataset.gifwBookmarkXCoordinate = bookmark.x.toString();
-            newBookmark.dataset.gifwBookmarkYCoordinate = bookmark.y.toString();
-            newBookmark.dataset.gifwBookmarkZoom = bookmark.zoom.toString();
             newBookmark.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.zoomToBookmark(bookmark);
@@ -126,27 +127,31 @@ export class BookmarkMenu {
         yInput.value = mapCenter[1].toString();
         zoomInput.value = mapZoom.toString();
         validationText.innerHTML = "";
-
+        const dropdownMenu = Dropdown.getOrCreateInstance('#gifw-bookmarks-list');
+        dropdownMenu.hide();
         const modal = Modal.getOrCreateInstance('#add-bookmark-modal');
         modal.show();
     }
 
     private async addBookmark(formData: FormData) {
-        const resp = await fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}API/AddBookmark`, {
+        const modalEle: HTMLElement = document.querySelector('#add-bookmark-modal');
+        const submitButton = modalEle.querySelector('button[type="submit"]');
+        submitButton.setAttribute('disabled', 'disabled');
+        const resp = await fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}API/Bookmarks/Create`, {
             body: formData,
             method: "post",
         });
-        if (resp.ok) {
+        submitButton.removeAttribute('disabled');
+        if (resp.ok && resp.status == 201) {
             //bookmark added successfully
-            const modal = Modal.getOrCreateInstance('#add-bookmark-modal');
+            const modal = Modal.getOrCreateInstance(modalEle);
             modal.hide();
             this.getBookmarks();
             Util.Alert.showTimedToast('Success', '<span class="bi bi-check-circle text-success"></span> Bookmark added successfully', Util.AlertSeverity.Success);
         } else {
             //show error
-            
             resp.text().then(t => {
-                document.querySelector('#add-bookmark-modal form .text-danger').innerHTML = t;
+                modalEle.querySelector('form .text-danger').innerHTML = t;
             })
         }
     }
@@ -159,7 +164,7 @@ export class BookmarkMenu {
         let zoomDiff = Math.max(bookmark.zoom, curZoom) - Math.min(bookmark.zoom, curZoom);
 
         const zoomToExtent = point.getExtent();
-        const animationSpeed = this.calculateAnimationSpeed(zoomDiff);
+        const animationSpeed = Util.Mapping.calculateAnimationSpeed(zoomDiff);
         const maxZoom = bookmark.zoom;
 
         let leftPadding = (document.querySelector('#gifw-sidebar-left') as HTMLDivElement).getBoundingClientRect().width;
@@ -169,8 +174,10 @@ export class BookmarkMenu {
             leftPadding = 100;
         }
 
-        if(this.gifwMapInstance.isExtentAvailableInCurrentMap(zoomToExtent)) {
-            this.fitMapToExtent(zoomToExtent, leftPadding, maxZoom, animationSpeed);
+        if (this.gifwMapInstance.isExtentAvailableInCurrentMap(zoomToExtent)) {
+            const dropdownMenu = Dropdown.getOrCreateInstance('#gifw-bookmarks-list');
+            dropdownMenu.hide();
+            this.gifwMapInstance.fitMapToExtent(zoomToExtent, leftPadding, maxZoom, animationSpeed);
         } else {
             this.showBookmarkOutsideBoundsError();
         }
@@ -179,7 +186,7 @@ export class BookmarkMenu {
 
     private async removeBookmark(bookmarkId: number): Promise<boolean> {
         if (confirm('Are you sure you want to delete this bookmark?')) {
-            const response = await fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}API/DeleteBookmark/${bookmarkId}`, { method: 'DELETE' });
+            const response = await fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}API/Bookmarks/Delete/${bookmarkId}`, { method: 'DELETE' });
 
             if (!response.ok) {
                 Util.Alert.showPopupError('Something went wrong', 'Something went wrong deleting your bookmark. Please try again later.')
@@ -189,48 +196,6 @@ export class BookmarkMenu {
             return true;
         }
     }
-
-    /**
-     * TODO: Function copied from Search.ts.  Should be moved to Util.ts or Map.ts
-     * @param extent
-     * @param leftPadding
-     * @param maxZoom
-     * @param animationDuration
-     */
-    private fitMapToExtent(extent: olExtent.Extent, leftPadding: number = 100, maxZoom: number = 50, animationDuration: number = 1000): void {
-        let curExtent = this.gifwMapInstance.olMap.getView().calculateExtent();
-        if (!Util.Browser.PrefersReducedMotion() && olExtent.containsExtent(curExtent, extent)) {
-            this.gifwMapInstance.olMap.getView().fit(extent, { padding: [100, 100, 100, leftPadding], maxZoom: maxZoom, duration: animationDuration });
-        } else {
-            this.gifwMapInstance.olMap.getView().fit(extent, { padding: [100, 100, 100, leftPadding], maxZoom: maxZoom });
-        }
-    }
-
-    /**
-    * Calculates an appropriate animation speed based on the distance and zoom difference between current location and target location
-    * TODO: Function copied from Search.ts.  Should be moved to Util.ts or Map.ts
-    * @param coordDiff - The number of metres difference between the target and current location
-    * @param zoomDiff - The zoom level difference between the target and current location
-    * @returns a number between 100 and 2000 indicating the recommended animation speed (in milliseconds)
-    *
-    */
-    private calculateAnimationSpeed(zoomDiff: number): number {
-
-        let speed = 200;
-        if (zoomDiff > 1 && zoomDiff <= 5) {
-            speed = 500;
-        } else if (zoomDiff > 5 && zoomDiff <= 10) {
-            speed = 1000;
-        } else if (zoomDiff > 10 && zoomDiff <= 15) {
-            speed = 1500;
-        } else if (zoomDiff > 15 && zoomDiff <= 20) {
-            speed = 2500;
-        } else if (zoomDiff > 20) {
-            speed = 3000;
-        }
-        return speed;
-    }
-
     private showBookmarkOutsideBoundsError(): void {
         let errDialog = new Util.Error
             (
