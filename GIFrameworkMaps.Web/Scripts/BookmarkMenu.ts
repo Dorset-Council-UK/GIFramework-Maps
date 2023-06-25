@@ -1,4 +1,4 @@
-import { Dropdown, Modal } from "bootstrap";
+import { Collapse, Dropdown, Modal } from "bootstrap";
 import { Point } from "ol/geom";
 import { Bookmark } from "./Interfaces/Bookmark";
 import { GIFWMap } from "./Map";
@@ -127,8 +127,7 @@ export class BookmarkMenu {
         yInput.value = mapCenter[1].toString();
         zoomInput.value = mapZoom.toString();
         validationText.innerHTML = "";
-        const dropdownMenu = Dropdown.getOrCreateInstance('#gifw-bookmarks-list');
-        dropdownMenu.hide();
+        this.hideBookmarkMenu();
         const modal = Modal.getOrCreateInstance('#add-bookmark-modal');
         modal.show();
     }
@@ -157,7 +156,6 @@ export class BookmarkMenu {
     }
 
     private zoomToBookmark(bookmark:Bookmark) {
-        console.log(bookmark);
         let coord = [bookmark.x, bookmark.y];
         let point = new Point(coord);
         let curZoom = this.gifwMapInstance.olMap.getView().getZoom();
@@ -175,8 +173,7 @@ export class BookmarkMenu {
         }
 
         if (this.gifwMapInstance.isExtentAvailableInCurrentMap(zoomToExtent)) {
-            const dropdownMenu = Dropdown.getOrCreateInstance('#gifw-bookmarks-list');
-            dropdownMenu.hide();
+            this.hideBookmarkMenu();
             this.gifwMapInstance.fitMapToExtent(zoomToExtent, leftPadding, maxZoom, animationSpeed);
         } else {
             this.showBookmarkOutsideBoundsError();
@@ -196,6 +193,14 @@ export class BookmarkMenu {
             return true;
         }
     }
+
+    private hideBookmarkMenu(): void {
+        const dropdownMenu = Dropdown.getOrCreateInstance('#gifw-bookmarks-list');
+        dropdownMenu.hide();
+        const navbar = Collapse.getInstance('.giframeworkMap > header > nav .navbar-collapse');
+        navbar.hide();
+    }
+
     private showBookmarkOutsideBoundsError(): void {
         let errDialog = new Util.Error
             (
