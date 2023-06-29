@@ -165,16 +165,9 @@ export class BookmarkMenu {
         const animationSpeed = Util.Mapping.calculateAnimationSpeed(zoomDiff);
         const maxZoom = bookmark.zoom;
 
-        let leftPadding = (document.querySelector('#gifw-sidebar-left') as HTMLDivElement).getBoundingClientRect().width;
-        const screenWidth = this.gifwMapInstance.olMap.getOverlayContainer().getBoundingClientRect().width;
-        const searchPanelPercentWidth = (leftPadding / screenWidth) * 100;
-        if (searchPanelPercentWidth > 50) {
-            leftPadding = 100;
-        }
-
         if (this.gifwMapInstance.isExtentAvailableInCurrentMap(zoomToExtent)) {
             this.hideBookmarkMenu();
-            this.gifwMapInstance.fitMapToExtent(zoomToExtent, leftPadding, maxZoom, animationSpeed);
+            this.gifwMapInstance.fitMapToExtent(zoomToExtent, maxZoom, animationSpeed);
         } else {
             this.showBookmarkOutsideBoundsError();
         }
@@ -196,9 +189,13 @@ export class BookmarkMenu {
 
     private hideBookmarkMenu(): void {
         const dropdownMenu = Dropdown.getOrCreateInstance('#gifw-bookmarks-list');
-        dropdownMenu.hide();
+        if (dropdownMenu) {
+            dropdownMenu.hide();
+        }
         const navbar = Collapse.getInstance('.giframeworkMap > header > nav .navbar-collapse');
-        navbar.hide();
+        if (navbar) {
+            navbar.hide();
+        }
     }
 
     private showBookmarkOutsideBoundsError(): void {

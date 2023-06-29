@@ -852,13 +852,46 @@ export class GIFWMap {
     }
 
 
-    public fitMapToExtent(extent: Extent, leftPadding: number = 100, maxZoom: number = 50, animationDuration: number = 1000): void {
+    public fitMapToExtent(extent: Extent, maxZoom: number = 50, animationDuration: number = 1000): void {
         let curExtent = this.olMap.getView().calculateExtent();
         if (!Util.Browser.PrefersReducedMotion() && containsExtent(curExtent, extent)) {
-            this.olMap.getView().fit(extent, { padding: [100, 100, 100, leftPadding], maxZoom: maxZoom, duration: animationDuration });
+            this.olMap.getView().fit(extent, { padding: this.getPaddingForMapCenter(), maxZoom: maxZoom, duration: animationDuration });
         } else {
-            this.olMap.getView().fit(extent, { padding: [100, 100, 100, leftPadding], maxZoom: maxZoom });
+            this.olMap.getView().fit(extent, { padding: this.getPaddingForMapCenter(), maxZoom: maxZoom });
         }
+    }
+
+    /**
+     * Gets the percentage of the map that is covered by overlays (left and right panels). Only returns width, does not care about height
+     * @returns A number indicating the percentage of the map that is covered by overlays
+     */
+    public getPercentOfMapCoveredWithOverlays(): number {
+        let mapPadding = this.getPaddingForMapCenter();
+        const screenWidth = this.olMap.getOverlayContainer().getBoundingClientRect().width;
+        const leftPanelPercentWidth = (mapPadding[3] / screenWidth) * 100;
+        const rightPanelPercentWidth = (mapPadding[1] / screenWidth) * 100;
+        return leftPanelPercentWidth + rightPanelPercentWidth;
+    }
+
+    /**
+     * Gets the padding required for view operations to center on the middle of the visible map not including open panels
+     * @param defaultPadding Optional default padding to apply. Defaults to 100
+     * @returns array of 4 numbers
+     */
+    public getPaddingForMapCenter(defaultPadding: number = 100): number[] {
+        let leftPadding = (document.querySelector('#gifw-sidebar-left') as HTMLDivElement).getBoundingClientRect().width;
+        let rightPadding = (document.querySelector('#gifw-sidebar-right') as HTMLDivElement).getBoundingClientRect().width;
+        const screenWidth = this.olMap.getOverlayContainer().getBoundingClientRect().width;
+        const leftPanelPercentWidth = (leftPadding / screenWidth) * 100;
+        if (leftPanelPercentWidth > 50) {
+            leftPadding = defaultPadding;
+        }
+        const rightPanelPercentWidth = (rightPadding / screenWidth) * 100;
+        if (rightPanelPercentWidth > 50) {
+            rightPadding = defaultPadding;
+        }
+
+        return [defaultPadding, rightPadding, defaultPadding, leftPadding];
     }
 
     /**

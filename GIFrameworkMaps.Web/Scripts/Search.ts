@@ -346,12 +346,8 @@ export class Search {
     private zoomToResult(result: SearchResult) {
         let sourceProj = olProj.get(`EPSG:${result.epsg}`);
         let targetProj = this.gifwMapInstance.olMap.getView().getProjection();
-        let leftPadding = (document.querySelector('#gifw-sidebar-left') as HTMLDivElement).getBoundingClientRect().width;
-        let screenWidth = this.gifwMapInstance.olMap.getOverlayContainer().getBoundingClientRect().width;
-        let searchPanelPercentWidth = (leftPadding / screenWidth) * 100;
         let closeOnRender = false;
-        if (searchPanelPercentWidth > 50) {
-            leftPadding = 100;
+        if (this.gifwMapInstance.getPercentOfMapCoveredWithOverlays() > 50) {
             closeOnRender = true;
         }
 
@@ -384,14 +380,13 @@ export class Search {
             zoomToExtent = point.getExtent();
             animationSpeed = Util.Mapping.calculateAnimationSpeed(zoomDiff);
             maxZoom = result.zoom;
-
-            
         }
 
 
         if (this.gifwMapInstance.isExtentAvailableInCurrentMap(zoomToExtent)) {
-            this.gifwMapInstance.fitMapToExtent(zoomToExtent, leftPadding, maxZoom, animationSpeed);
-
+            this.gifwMapInstance.fitMapToExtent(zoomToExtent, maxZoom, animationSpeed);
+            this.curSearchResultExtent = zoomToExtent;
+            this.curSearchResultMaxZoom = maxZoom;
             if (closeOnRender) {
                 this.close();
                 this.hideSearchControl();
@@ -420,7 +415,7 @@ export class Search {
     }
 
     private recenterMapOnSearchResult(): void {
-        this.gifwMapInstance.fitMapToExtent(this.curSearchResultExtent, undefined, this.curSearchResultMaxZoom, 250)
+        this.gifwMapInstance.fitMapToExtent(this.curSearchResultExtent, this.curSearchResultMaxZoom, 250)
     }
 
     private showSearchOutsideBoundsError(): void {
