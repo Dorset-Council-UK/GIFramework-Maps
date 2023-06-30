@@ -190,9 +190,9 @@
       },
       "Yarp.ReverseProxy": {
         "type": "Direct",
-        "requested": "[1.1.1, )",
-        "resolved": "1.1.1",
-        "contentHash": "wR7xCSrej/i7IeN7WmT+0fb6J6Uyf1WV2TVtzqyOuzSG9rHuCRdVHe720/+OqfW5a0IDTXu7LdAkILPKrkmIVw=="
+        "requested": "[1.1.2, )",
+        "resolved": "1.1.2",
+        "contentHash": "p24vwUZ3sBJ308cUdm5kk57jZO0pvThDu0LuywaEPZcI1jZKMsRduwpu5mZLI1QyXjKC6Kl7bP96Kvvd4+9kjg=="
       },
       "Azure.Core": {
         "type": "Transitive",
