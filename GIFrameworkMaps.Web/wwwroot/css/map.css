@@ -620,6 +620,11 @@
     }
 }
 
+/*Bookmarks*/
+.giframeworkMap .bookmarks-list {
+    max-height: 300px;
+    overflow: auto;
+}
 
 /*Helpers*/
 .giframeworkMap .text-pre-line {

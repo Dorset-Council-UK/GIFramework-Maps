@@ -42,20 +42,27 @@ export class BookmarkMenu {
     /**
      * Gets the bookmarks for the user and adds them to the bookmarks list
      */
-    private getBookmarks() {
+    private async getBookmarks() {
         const bookmarksListContainer = document.querySelector('#gifw-bookmarks-list');
 
         bookmarksListContainer.querySelectorAll('li.bookmark-list')?.forEach((item) => { item.remove() });
+        try {
+            const resp = await fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}API/Bookmarks`);
 
-        fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}API/Bookmarks`)
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.length !== 0) {
-                    this.renderBookmarks(data, bookmarksListContainer as HTMLElement);
+            if (!resp.ok) {
+                throw new Error("Network response was not OK");
+            } else {
+                const bookmarks = await resp.json();
+                if (bookmarks && bookmarks.length !== 0) {
+                    this.renderBookmarks(bookmarks, bookmarksListContainer as HTMLElement);
                 } else {
                     bookmarksListContainer.insertAdjacentHTML('afterbegin', `<li><span class="dropdown-item-text mb-3 text-center">No bookmarks saved yet</span></li>`);
                 }
-            });
+            }
+        } catch (e) {
+            console.error(e);
+            bookmarksListContainer.insertAdjacentHTML('afterbegin', `<li><span class="dropdown-item-text mb-3 text-center">There was a problem fetching your bookmarks</span></li>`);
+        }
     }
 
     /**
@@ -64,44 +71,34 @@ export class BookmarkMenu {
      * @param bookmarksListContainer The container to add the list to
      */
     private renderBookmarks(bookmarks: Bookmark[], bookmarksListContainer: HTMLElement) {
-        const newBookmarkTable = document.createElement('table');
-        newBookmarkTable.className = "table table-sm align-middle";
-        const newBookmarkTableBody = document.createElement('tbody');
+
+        const bookmarksListFragment = document.getElementById('bookmarks-list-container-template') as HTMLTemplateElement;
+        const bookmarksListInstance = document.importNode(bookmarksListFragment.content, true);
+
+        const newBookmarkTable = bookmarksListInstance.querySelector('table');
+        const newBookmarkTableBody = bookmarksListInstance.querySelector('tbody');
         bookmarks.forEach((bookmark) => {
-            const newBookmark = document.createElement('a');
-            newBookmark.href = `#gifw-zoomtobookmark-${bookmark.id}`;
-            newBookmark.className = "dropdown-item";
-            newBookmark.innerText = bookmark.name;
-            newBookmark.addEventListener('click', (e) => {
+            const bookmarkfragment = document.getElementById('bookmark-template') as HTMLTemplateElement;
+            const bookmarkInstance = document.importNode(bookmarkfragment.content, true);
+
+            const bookmarkText = bookmarkInstance.querySelector('a.dropdown-item') as HTMLAnchorElement;
+            bookmarkText.href = `#gifw-zoomtobookmark-${bookmark.id}`;
+            bookmarkText.innerText = bookmark.name;
+            bookmarkText.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.zoomToBookmark(bookmark);
             });
 
-            const deleteButton = document.createElement('a');
-            deleteButton.href = `#gifw-deletebookmark-${bookmark.id}`;
-            deleteButton.innerHTML = `<i class="bi bi-trash"></i>`;
-            deleteButton.className = "text-danger";
-            deleteButton.addEventListener('click', (e) => {
+            const bookmarkDeleteButton = bookmarkInstance.querySelector('a.text-danger') as HTMLAnchorElement;
+            bookmarkDeleteButton.href = `#gifw-zoomtobookmark-${bookmark.id}`;
+            bookmarkDeleteButton.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.removeBookmark(bookmark.id);
             });
-            const newBookmarkTableRow = document.createElement('tr');
-            newBookmarkTableRow.id = `gifw-bookmark-${bookmark.id}`;
-            newBookmarkTableRow.className = "bookmark-item";
-            const newBookmarkTableBookmarkContainer = document.createElement('td');
-            newBookmarkTableBookmarkContainer.appendChild(newBookmark);
-            const newBookmarkTableDeleteContainer = document.createElement('td');
-            newBookmarkTableDeleteContainer.appendChild(deleteButton);
-            newBookmarkTableRow.appendChild(newBookmarkTableBookmarkContainer);
-            newBookmarkTableRow.appendChild(newBookmarkTableDeleteContainer);
-            newBookmarkTableBody.appendChild(newBookmarkTableRow);
+            newBookmarkTableBody.appendChild(bookmarkInstance);
 
         });
-        const newBookmarkListItem = document.createElement('li');
-        newBookmarkListItem.style.maxHeight = "300px";
-        newBookmarkListItem.style.overflow = "auto";
-        newBookmarkListItem.className = "bookmark-list";
-        newBookmarkTable.appendChild(newBookmarkTableBody);
+        const newBookmarkListItem = bookmarksListInstance.querySelector('li');
         newBookmarkListItem.appendChild(newBookmarkTable);
         bookmarksListContainer.insertAdjacentElement('afterbegin', newBookmarkListItem);
     }
