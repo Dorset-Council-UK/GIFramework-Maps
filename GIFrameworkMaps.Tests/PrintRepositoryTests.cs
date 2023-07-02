@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GIFrameworkMaps.Data.Models.Print;
 using Microsoft.Extensions.Caching.Memory;
+using MockQueryable.Moq;
 
 namespace GIFrameworkMaps.Tests
 {
@@ -31,7 +32,6 @@ namespace GIFrameworkMaps.Tests
             _logger = factory.CreateLogger<PrintRepository>();
             var mockLogger = new Mock<ILogger>();
 
-
             var versions = new List<Version>
             {
                 new Version { Name = "General version",Slug= "general",Id=1 },
@@ -39,39 +39,20 @@ namespace GIFrameworkMaps.Tests
                 new Version { Name = "Null Print Config",Slug= "null/config",Id=3 }
             };
 
-            var versionsQueryable = versions.AsQueryable();
-
             var printConfigs = new List<PrintConfiguration> {
                 new PrintConfiguration { Name = "Default",Id = 1},
                 new PrintConfiguration { Name = "Alternative",Id = 2},
             };
 
-            var printConfigQueryable = printConfigs.AsQueryable();
-
             var printVersionConfigs = new List<VersionPrintConfiguration>
             {
                 new VersionPrintConfiguration { PrintConfigurationId = 1, VersionId=1, PrintConfiguration = printConfigs[0], Version = versions[0] },
                 new VersionPrintConfiguration { PrintConfigurationId = 2, VersionId=2, PrintConfiguration = printConfigs[1], Version = versions[1] }
-            }.AsQueryable();
+            };
 
-            var versionsMockSet = new Mock<DbSet<Version>>();
-            versionsMockSet.As<IQueryable<Version>>().Setup(m => m.Provider).Returns(versionsQueryable.Provider);
-            versionsMockSet.As<IQueryable<Version>>().Setup(m => m.Expression).Returns(versionsQueryable.Expression);
-            versionsMockSet.As<IQueryable<Version>>().Setup(m => m.ElementType).Returns(versionsQueryable.ElementType);
-            versionsMockSet.As<IQueryable<Version>>().Setup(m => m.GetEnumerator()).Returns(versionsQueryable.GetEnumerator());
-
-            var printConfigMockSet = new Mock<DbSet<PrintConfiguration>>();
-            printConfigMockSet.As<IQueryable<PrintConfiguration>>().Setup(m => m.Provider).Returns(printConfigQueryable.Provider);
-            printConfigMockSet.As<IQueryable<PrintConfiguration>>().Setup(m => m.Expression).Returns(printConfigQueryable.Expression);
-            printConfigMockSet.As<IQueryable<PrintConfiguration>>().Setup(m => m.ElementType).Returns(printConfigQueryable.ElementType);
-            printConfigMockSet.As<IQueryable<PrintConfiguration>>().Setup(m => m.GetEnumerator()).Returns(printConfigQueryable.GetEnumerator());
-
-            var printVersionConfigsMockSet = new Mock<DbSet<VersionPrintConfiguration>>();
-            printVersionConfigsMockSet.As<IQueryable<VersionPrintConfiguration>>().Setup(m => m.Provider).Returns(printVersionConfigs.Provider);
-            printVersionConfigsMockSet.As<IQueryable<VersionPrintConfiguration>>().Setup(m => m.Expression).Returns(printVersionConfigs.Expression);
-            printVersionConfigsMockSet.As<IQueryable<VersionPrintConfiguration>>().Setup(m => m.ElementType).Returns(printVersionConfigs.ElementType);
-            printVersionConfigsMockSet.As<IQueryable<VersionPrintConfiguration>>().Setup(m => m.GetEnumerator()).Returns(printVersionConfigs.GetEnumerator());
-
+            var versionsMockSet = versions.AsQueryable().BuildMockDbSet();
+            var printConfigMockSet = printConfigs.AsQueryable().BuildMockDbSet();
+            var printVersionConfigsMockSet = printVersionConfigs.AsQueryable().BuildMockDbSet();
             var mockApplicationDbContext = new Mock<IApplicationDbContext>();
             mockApplicationDbContext.Setup(m => m.Versions).Returns(versionsMockSet.Object);
             mockApplicationDbContext.Setup(m => m.PrintConfigurations).Returns(printConfigMockSet.Object);
