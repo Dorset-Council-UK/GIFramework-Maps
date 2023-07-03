@@ -31,7 +31,7 @@
     "jspdf": "2.5.1",
     "luxon": "3.3.0",
     "nunjucks": "3.2.4",
-    "ol": "7.3.0",
+    "ol": "7.4.0",
     "ol-contextmenu": "5.1.1",
     "proj4": "2.9.0",
     "shepherd.js": "11.1.1",
