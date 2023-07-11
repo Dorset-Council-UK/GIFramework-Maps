@@ -19,17 +19,27 @@ declare var gifw_version_config_url: string;
 declare var gifw_map_services_access_token: string;
 declare var gifw_map_services_access_url: string;
 
-if (gifw_appinsights_key) {
+if (gifw_appinsights_key != "") {
     const appInsights = new ApplicationInsights({
         config: {
             connectionString: gifw_appinsights_key,
             disableCookiesUsage: true
         }
     });
-    appInsights.loadAppInsights();
+    try {
+        appInsights.loadAppInsights();
+    } catch (ex) {
+        console.error("Failed to get load application insights", ex);
+    };
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+
+    //This allows the use of a cookie control
+    if (configure_cookie_control == "Civica Cookie Control" && typeof CookieControl != "undefined") {
+        document.getElementById("CookieControlLink").addEventListener("click", CookieControl.open);
+    }
+
 
     let mapId = 'giframeworkMap';
 

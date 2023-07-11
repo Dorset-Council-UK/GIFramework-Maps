@@ -49,7 +49,7 @@
     <PackageReference Include="Npgsql" Version="7.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.3" />
     <PackageReference Include="Svg" Version="3.4.4" />
-    <PackageReference Include="Yarp.ReverseProxy" Version="1.1.1" />
+    <PackageReference Include="Yarp.ReverseProxy" Version="1.1.2" />
   </ItemGroup>
 
   <ItemGroup>

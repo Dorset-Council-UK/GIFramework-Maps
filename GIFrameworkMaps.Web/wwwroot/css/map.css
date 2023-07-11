@@ -319,6 +319,7 @@
 }
 .giframeworkMap aside#sidebar-container .sidebar-panels .card.basemaps-selector a {
     background-color: rgba(255,255,255,0.7);
+    color: var(--primary-color);
     padding: 0 .5rem .5rem .5rem;
     border-bottom-right-radius: .5rem;
     border-top-left-radius: .25rem;
