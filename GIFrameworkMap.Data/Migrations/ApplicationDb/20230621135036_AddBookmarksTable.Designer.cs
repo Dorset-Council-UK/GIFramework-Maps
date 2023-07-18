@@ -3,6 +3,7 @@ using System;
 using GIFrameworkMaps.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230621135036_AddBookmarksTable")]
+    partial class AddBookmarksTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,34 +25,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("GIFrameworkMaps.Data.Models.AnalyticsDefinition", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CookieControl")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("DateModified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("Enabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("ProductKey")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProductName")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AnalyticsDefinitions", "giframeworkmaps");
-                });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.Attribution", b =>
                 {
@@ -152,7 +127,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -672,21 +647,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.ToTable("Versions", "giframeworkmaps");
                 });
 
-            modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionAnalytic", b =>
-                {
-                    b.Property<int>("AnalyticsDefinitionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("VersionId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("AnalyticsDefinitionId", "VersionId");
-
-                    b.HasIndex("VersionId");
-
-                    b.ToTable("VersionAnalytic", "giframeworkmaps");
-                });
-
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionBasemap", b =>
                 {
                     b.Property<int>("BasemapId")
@@ -1084,23 +1044,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.Navigation("WelcomeMessage");
                 });
 
-            modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionAnalytic", b =>
-                {
-                    b.HasOne("GIFrameworkMaps.Data.Models.AnalyticsDefinition", "AnalyticsDefinition")
-                        .WithMany("VersionAnalytics")
-                        .HasForeignKey("AnalyticsDefinitionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("GIFrameworkMaps.Data.Models.Version", null)
-                        .WithMany("VersionAnalytics")
-                        .HasForeignKey("VersionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AnalyticsDefinition");
-                });
-
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionBasemap", b =>
                 {
                     b.HasOne("GIFrameworkMaps.Data.Models.Basemap", "Basemap")
@@ -1184,11 +1127,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.Navigation("Version");
                 });
 
-            modelBuilder.Entity("GIFrameworkMaps.Data.Models.AnalyticsDefinition", b =>
-                {
-                    b.Navigation("VersionAnalytics");
-                });
-
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.Basemap", b =>
                 {
                     b.Navigation("VersionBasemaps");
@@ -1211,8 +1149,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.Version", b =>
                 {
-                    b.Navigation("VersionAnalytics");
-
                     b.Navigation("VersionBasemaps");
 
                     b.Navigation("VersionCategories");

@@ -40,6 +40,7 @@ namespace GIFrameworkMaps.Data
         public DbSet<Models.LayerSourceOption> LayerSourceOption { get; set; }
         public DbSet<Models.ShortLink> ShortLink { get; set; }
         public DbSet<Models.AnalyticsDefinition> AnalyticsDefinitions { get; set; }
+        public DbSet<Models.Bookmark> Bookmarks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

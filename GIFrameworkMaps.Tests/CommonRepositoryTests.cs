@@ -4,13 +4,14 @@ using GIFrameworkMaps.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using GIFrameworkMaps.Data.Models;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Caching.Memory;
 using GIFrameworkMaps.Data.Models.Authorization;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
+using MockQueryable.Moq;
 
 namespace GIFrameworkMaps.Tests
 {
@@ -31,7 +32,7 @@ namespace GIFrameworkMaps.Tests
             var factory = serviceProvider.GetService<ILoggerFactory>();
 
             _logger = factory.CreateLogger<CommonRepository>();
-            
+
             var versions = new List<Version>
             {
                 new Version { Name = "General version",Slug= "general",Id=1 },
@@ -39,52 +40,45 @@ namespace GIFrameworkMaps.Tests
                 new Version { Name = "Valid Version Test 2",Slug= "valid/version/two",Id=3 },
                 new Version { Name = "Requires Login",Slug= "requires/login",Id=4 ,RequireLogin=true},
                 new Version { Name = "Requires Login 2",Slug= "requires/login/two",Id=5, RequireLogin=true }
-            }.AsQueryable();
+            };
 
             var roles = new List<ApplicationRole>
             {
                 new ApplicationRole{Id=1,RoleName="GIFWAdmin"}
             };
-            var rolesQueryable = roles.AsQueryable(); ;
 
             var userRoles = new List<ApplicationUserRole>
             {
                 new ApplicationUserRole{UserId = "36850518-dd0a-48e0-9004-cdaf30d82746",Role=roles.First()}
-            }.AsQueryable(); ;
+            };
 
             var users = new List<VersionUser>
             {
                 new VersionUser{UserId="36850518-dd0a-48e0-9004-cdaf30d82746",VersionId=4 }
-            }.AsQueryable();
+            };
 
+            var bookmarks = new List<Bookmark>
+            {
+                new Bookmark{UserId="36850518-dd0a-48e0-9004-cdaf30d82746",Name="Test Bookmark",X=(decimal)-283267.6475493251, Y=(decimal)6570725.6916950345, Zoom = 18, Id = 1 },
+                new Bookmark{UserId="36850518-dd0a-48e0-9004-cdaf30d82746",Name="Test Bookmark 2",X=(decimal)-283945.864, Y=(decimal)61023565.9784, Zoom = 8, Id = 2 },
+                new Bookmark{UserId="36850518-dd0a-48e0-9004-cdaf30d82746",Name="Test Bookmark 3",X=(decimal)1005456.2345, Y=(decimal)0.456, Zoom = 10, Id = 3 },
+                new Bookmark{UserId="17819f99-b8d5-4495-8c48-964f5692afdc",Name="Test Bookmark 4",X=(decimal)-283267.6475493251, Y=(decimal)6570725.6916950345, Zoom = 10, Id = 4 },
+                new Bookmark{UserId="17819f99-b8d5-4495-8c48-964f5692afdc",Name="Test Bookmark 5",X=(decimal)-3894566.44, Y=(decimal)55427657.45, Zoom = 7, Id = 5 },
+            };
 
-
-            var versionsMockSet = new Mock<DbSet<Version>>();
-            versionsMockSet.As<IQueryable<Version>>().Setup(m => m.Provider).Returns(versions.Provider);
-            versionsMockSet.As<IQueryable<Version>>().Setup(m => m.Expression).Returns(versions.Expression);
-            versionsMockSet.As<IQueryable<Version>>().Setup(m => m.ElementType).Returns(versions.ElementType);
-            versionsMockSet.As<IQueryable<Version>>().Setup(m => m.GetEnumerator()).Returns(versions.GetEnumerator());
-            var versionUsersMockSet = new Mock<DbSet<VersionUser>>();
-            versionUsersMockSet.As<IQueryable<VersionUser>>().Setup(m => m.Provider).Returns(users.Provider);
-            versionUsersMockSet.As<IQueryable<VersionUser>>().Setup(m => m.Expression).Returns(users.Expression);
-            versionUsersMockSet.As<IQueryable<VersionUser>>().Setup(m => m.ElementType).Returns(users.ElementType);
-            versionUsersMockSet.As<IQueryable<VersionUser>>().Setup(m => m.GetEnumerator()).Returns(users.GetEnumerator());
-            var rolesMockSet = new Mock<DbSet<ApplicationRole>>();
-            rolesMockSet.As<IQueryable<ApplicationRole>>().Setup(m => m.Provider).Returns(rolesQueryable.Provider);
-            rolesMockSet.As<IQueryable<ApplicationRole>>().Setup(m => m.Expression).Returns(rolesQueryable.Expression);
-            rolesMockSet.As<IQueryable<ApplicationRole>>().Setup(m => m.ElementType).Returns(rolesQueryable.ElementType);
-            rolesMockSet.As<IQueryable<ApplicationRole>>().Setup(m => m.GetEnumerator()).Returns(rolesQueryable.GetEnumerator());
-            var userRolesMockSet = new Mock<DbSet<ApplicationUserRole>>();
-            userRolesMockSet.As<IQueryable<ApplicationUserRole>>().Setup(m => m.Provider).Returns(userRoles.Provider);
-            userRolesMockSet.As<IQueryable<ApplicationUserRole>>().Setup(m => m.Expression).Returns(userRoles.Expression);
-            userRolesMockSet.As<IQueryable<ApplicationUserRole>>().Setup(m => m.ElementType).Returns(userRoles.ElementType);
-            userRolesMockSet.As<IQueryable<ApplicationUserRole>>().Setup(m => m.GetEnumerator()).Returns(userRoles.GetEnumerator());
+            var versionsMockSet = versions.AsQueryable().BuildMockDbSet();
+            var versionUsersMockSet = users.AsQueryable().BuildMockDbSet();
+            var rolesMockSet = roles.AsQueryable().BuildMockDbSet();
+            var userRolesMockSet = userRoles.AsQueryable().BuildMockDbSet();
+            var bookmarksMockSet = bookmarks.AsQueryable().BuildMockDbSet();
 
             var mockApplicationDbContext = new Mock<IApplicationDbContext>();
             mockApplicationDbContext.Setup(m => m.Versions).Returns(versionsMockSet.Object);
             mockApplicationDbContext.Setup(m => m.VersionUser).Returns(versionUsersMockSet.Object);
             mockApplicationDbContext.Setup(m => m.ApplicationRoles).Returns(rolesMockSet.Object);
             mockApplicationDbContext.Setup(m => m.ApplicationUserRoles).Returns(userRolesMockSet.Object);
+            mockApplicationDbContext.Setup(m => m.Bookmarks).Returns(bookmarksMockSet.Object);
+           
 
             var mockMemoryCache = new MemoryCache(new MemoryCacheOptions());
             /* TO DO: Add some parameters to the mockMemoryCache? */
@@ -179,6 +173,31 @@ namespace GIFrameworkMaps.Tests
         {
             var roles = sut.GetUserRoles(userId);
             Assert.That(roles, Is.Empty);
+        }
+
+        [Test]
+        [TestCase("36850518-dd0a-48e0-9004-cdaf30d82746")]
+        public async Task GetBookmarksForUser_UserExists(string userId)
+        {
+            var bookmarks = await sut.GetBookmarksForUserAsync(userId);
+            Assert.That(bookmarks.Count, Is.EqualTo(3));
+        }
+
+        [Test]
+        [TestCase("10454521-dd0a-48e0-9004-cdaf30d82746")]
+        public async Task GetBookmarksForUser_UserDoesNotExist(string userId)
+        {
+            var bookmarks = await sut.GetBookmarksForUserAsync(userId);
+            Assert.That(bookmarks, Is.Empty);
+        }
+
+        [Test]
+        [TestCase("36850518-dd0a-48e0-9004-cdaf30d82746", ExpectedResult = 3)]
+        [TestCase("17819f99-b8d5-4495-8c48-964f5692afdc", ExpectedResult = 2)]
+        public async Task<int> GetBookmarksForUser_DoesNotGetOtherUsersBookmarks(string userId)
+        {
+            var bookmarks = await sut.GetBookmarksForUserAsync(userId);
+            return bookmarks.Count;
         }
 
     }

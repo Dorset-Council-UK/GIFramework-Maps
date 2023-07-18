@@ -346,12 +346,8 @@ export class Search {
     private zoomToResult(result: SearchResult) {
         let sourceProj = olProj.get(`EPSG:${result.epsg}`);
         let targetProj = this.gifwMapInstance.olMap.getView().getProjection();
-        let leftPadding = (document.querySelector('#gifw-sidebar-left') as HTMLDivElement).getBoundingClientRect().width;
-        let screenWidth = this.gifwMapInstance.olMap.getOverlayContainer().getBoundingClientRect().width;
-        let searchPanelPercentWidth = (leftPadding / screenWidth) * 100;
         let closeOnRender = false;
-        if (searchPanelPercentWidth > 50) {
-            leftPadding = 100;
+        if (this.gifwMapInstance.getPercentOfMapCoveredWithOverlays() > 50) {
             closeOnRender = true;
         }
 
@@ -382,16 +378,15 @@ export class Search {
             let zoomDiff = Math.max(result.zoom, curZoom) - Math.min(result.zoom, curZoom);
 
             zoomToExtent = point.getExtent();
-            animationSpeed = this.calculateAnimationSpeed(zoomDiff);
+            animationSpeed = Util.Mapping.calculateAnimationSpeed(zoomDiff);
             maxZoom = result.zoom;
-
-            
         }
 
 
         if (this.gifwMapInstance.isExtentAvailableInCurrentMap(zoomToExtent)) {
-            this.fitMapToExtent(zoomToExtent, leftPadding, maxZoom, animationSpeed);
-
+            this.gifwMapInstance.fitMapToExtent(zoomToExtent, maxZoom, animationSpeed);
+            this.curSearchResultExtent = zoomToExtent;
+            this.curSearchResultMaxZoom = maxZoom;
             if (closeOnRender) {
                 this.close();
                 this.hideSearchControl();
@@ -419,19 +414,8 @@ export class Search {
         Search.mapLockedFromSearch = true;
     }
 
-    private fitMapToExtent(extent: olExtent.Extent, leftPadding: number = 100, maxZoom: number = 50, animationDuration: number = 1000): void {
-        let curExtent = this.gifwMapInstance.olMap.getView().calculateExtent();
-        if (!Util.Browser.PrefersReducedMotion() && olExtent.containsExtent(curExtent, extent)) {
-            this.gifwMapInstance.olMap.getView().fit(extent, { padding: [100, 100, 100, leftPadding], maxZoom: maxZoom, duration: animationDuration });
-        } else {
-            this.gifwMapInstance.olMap.getView().fit(extent, { padding: [100, 100, 100, leftPadding], maxZoom: maxZoom });
-        }
-        this.curSearchResultExtent = extent;
-        this.curSearchResultMaxZoom = maxZoom;
-    }
-
     private recenterMapOnSearchResult(): void {
-        this.fitMapToExtent(this.curSearchResultExtent, undefined, this.curSearchResultMaxZoom, 250)
+        this.gifwMapInstance.fitMapToExtent(this.curSearchResultExtent, this.curSearchResultMaxZoom, 250)
     }
 
     private showSearchOutsideBoundsError(): void {
@@ -526,10 +510,7 @@ export class Search {
     */
     private hideLoading() {
         let searchResults = document.getElementById('gifw-search-results-list');
-        let loadingOverlay = (searchResults.querySelector('.gifw-loading-overlay') as HTMLElement);
-        if (loadingOverlay) {
-            loadingOverlay.remove();
-        }
+        Util.Helper.removeLoadingOverlayFromElement(searchResults);
         (document.getElementById('gifw-search-button') as HTMLButtonElement).disabled = false;
     }
 
@@ -543,31 +524,6 @@ export class Search {
         let searchResultsContainer = document.querySelector('#gifw-search-results-list');
         
         searchResultsContainer.innerHTML = `<div class="alert alert-danger">${errorMessage !== undefined ? errorMessage : this.genericErrorMessage}</div>`;
-    }
-    
-    /**
-    * Calculates an appropriate animation speed based on the distance and zoom difference between current location and target location
-    *
-    * @param coordDiff - The number of metres difference between the target and current location
-    * @param zoomDiff - The zoom level difference between the target and current location
-    * @returns a number between 100 and 2000 indicating the recommended animation speed (in milliseconds)
-    *
-    */
-    private calculateAnimationSpeed(zoomDiff: number): number {
-
-        let speed = 200;
-        if (zoomDiff > 1 && zoomDiff <= 5) {
-            speed = 500;
-        } else if (zoomDiff > 5 && zoomDiff <= 10) {
-            speed = 1000;
-        } else if (zoomDiff > 10 && zoomDiff <= 15) {
-            speed = 1500;
-        } else if (zoomDiff > 15 && zoomDiff <= 20) {
-            speed = 2500;
-        } else if (zoomDiff > 20) {
-            speed = 3000;
-        }
-        return speed;
     }
 
     /**

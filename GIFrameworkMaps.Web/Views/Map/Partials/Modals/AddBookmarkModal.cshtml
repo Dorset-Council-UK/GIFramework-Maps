@@ -1,0 +1,28 @@
+﻿@model GIFrameworkMaps.Data.Models.Bookmark
+<div class="modal" tabindex="-1" id="add-bookmark-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add bookmark</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="AddBookmark" asp-controller="API">
+                <div class="modal-body">
+                    <p>Give your bookmark a name</p>
+                    <div class="mb-3">
+                        <label asp-for="Name" class="control-label"></label>
+                        <input asp-for="Name" class="form-control">
+                        <div class="text-danger"></div>
+                    </div>
+                    <input type="hidden" class="form-control" asp-for="X"/>
+                    <input type="hidden" class="form-control" asp-for="Y" />
+                    <input type="hidden" class="form-control" asp-for="Zoom" />
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save bookmark</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

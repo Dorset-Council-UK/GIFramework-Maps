@@ -1,0 +1,29 @@
+﻿    <li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" href="#gifw-bookmarks-list"><i class="bi bi-bookmark" title="Map Bookmarks"></i> <span class="d-inline-block d-sm-none">Your bookmarks</span></a>
+        <ul class="dropdown-menu dropdown-menu-end" id="gifw-bookmarks-list">
+
+            <li>
+                <a id="gifw-add-bookmark" class="btn btn-outline-primary btn-sm mx-2" href="#add-bookmark"><i class="bi bi-plus-circle"></i> Bookmark this location</a>
+            </li>
+        </ul>
+    </li>
+
+    <template id="bookmark-template">
+        <tr class="bookmark-item">
+            <td>
+                <a class="dropdown-item"></a>
+            </td>
+            <td>
+                <a class="text-danger"><i class="bi bi-trash"></i></a>
+            </td>
+        </tr>
+    </template>
+
+    <template id="bookmarks-list-container-template">
+        <li class="bookmark-list">
+            <table class="table table-sm align-middle">
+                <tbody>
+                </tbody>
+            </table>
+        </li>
+    </template>

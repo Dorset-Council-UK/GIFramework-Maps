@@ -6,6 +6,7 @@ using GIFrameworkMaps.Web.Models.API;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Svg;
@@ -15,6 +16,7 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -198,6 +200,7 @@ namespace GIFrameworkMaps.Web.Controllers
                     var pathBase = Request.PathBase.ToUriComponent();
                     versionViewModel.AppRoot = $"{host}{pathBase}/";
                     versionViewModel.GoogleMapsAPIKey = _configuration.GetValue<string>("ApiKeys:Google:MapsAPIKey");
+                    versionViewModel.IsLoggedIn = User.Identity.IsAuthenticated;
                     return Json(versionViewModel);
                 }
                 else
@@ -239,6 +242,92 @@ namespace GIFrameworkMaps.Web.Controllers
             }
         }
 
+        [Authorize]
+        [Route("api/bookmarks")]
+        public async Task<IActionResult> UserBookmarks()
+        {
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userId = claim.Value;
+
+            var bookmarks = await _repository.GetBookmarksForUserAsync(userId);
+
+            return Json(bookmarks);
+
+        }
+
+        [Authorize]
+        [HttpDelete]
+        [Route("api/bookmarks/delete/{id}")]
+        public async Task<IActionResult> DeleteBookmark(int id)
+        {
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userId = claim.Value;
+            //get the bookmark
+            
+            var bookmarkToDelete = await _context.Bookmarks.Where(b => b.Id == id && b.UserId == userId).FirstOrDefaultAsync();
+            if(bookmarkToDelete != null)
+            {
+                try
+                {
+                    _context.Bookmarks.Remove(bookmarkToDelete);
+                    await _context.SaveChangesAsync();
+                    //return HTTP 204 response
+                    return NoContent();
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Bookmark delete failed");
+                    return StatusCode(500, "Bookmark delete failed");
+                }
+            }
+            else
+            {
+                return Unauthorized();
+            }
+        }
+
+        [Authorize()]
+        [HttpPost]
+        [Route("api/bookmarks/create")]
+        public async Task<IActionResult> AddBookmark(Bookmark bookmark)
+        {
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userId = claim.Value;
+            bookmark.UserId = userId;
+            bookmark.Name = bookmark.Name?.Trim();
+            ModelState.Remove("UserId"); //remove this from model state as it is not required
+            if (ModelState.IsValid)
+            {
+                //additional validation here
+                var existingBookmark = await _context.Bookmarks.Where(b => b.UserId == userId && b.Name == bookmark.Name).FirstOrDefaultAsync();
+                if (existingBookmark == null)
+                {
+
+                    try
+                    {
+                        _context.Add(bookmark);
+                        await _context.SaveChangesAsync();
+                        return Created("", "");
+                    }
+                    catch (DbUpdateException ex)
+                    {
+                        _logger.LogError(ex, "Bookmark creation failed");
+                        return StatusCode(500, "Bookmark creation failed");
+                    }
+                }
+                else
+                {
+                    return BadRequest("Bookmark with this name already exists");
+                }
+            }
+            else
+            {
+                return BadRequest("Name must be filled in and less than 50 characters");
+            }           
+        }
     }
 
  }

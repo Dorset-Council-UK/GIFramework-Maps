@@ -33,6 +33,7 @@ import { Search } from "./Search";
 import { Streetview } from "./Streetview";
 import { VersionViewModel } from "./Interfaces/VersionViewModel";
 import { WebLayerService } from "./WebLayerService";
+import { BookmarkMenu } from "./BookmarkMenu";
 
 export class GIFWMap {
     id: string;
@@ -90,6 +91,7 @@ export class GIFWMap {
 
         this.customControls.push(mousePosition, contextMenu, measureControl, annotateControl, infoControl, geolocationControl);
         let controls: olControl.Control[] = [attribution, scaleline, mousePosition.control, contextMenu.control, measureControl, rotateControl, annotateControl, infoControl, geolocationControl];
+
         //TODO - MESSY!
         var sidebarCollection = new gifwSidebarCollection.SidebarCollection(this.sidebars);
         sidebarCollection.initSidebarCollection();
@@ -312,6 +314,11 @@ export class GIFWMap {
         let webLayerService = new WebLayerService(this);
         webLayerService.init();
 
+        //add bookmark control
+        if (this.config.isLoggedIn) {
+            let bookmarkControl = new BookmarkMenu(this);
+            bookmarkControl.init();
+        }
         measureControl.init();
         infoControl.init();
         geolocationControl.init();
@@ -841,12 +848,50 @@ export class GIFWMap {
      */
     public zoomToFeature(feature: (Feature<Geometry> | RenderFeature)) {
         let featureExtent = feature.getGeometry().getExtent();
+        this.fitMapToExtent(featureExtent);
+    }
+
+
+    public fitMapToExtent(extent: Extent, maxZoom: number = 50, animationDuration: number = 1000): void {
         let curExtent = this.olMap.getView().calculateExtent();
-        if (!Util.Browser.PrefersReducedMotion() && containsExtent(curExtent, featureExtent)) {
-            this.olMap.getView().fit(featureExtent, { padding: [100, 100, 100, 100], duration: 1000 });
+        if (!Util.Browser.PrefersReducedMotion() && containsExtent(curExtent, extent)) {
+            this.olMap.getView().fit(extent, { padding: this.getPaddingForMapCenter(), maxZoom: maxZoom, duration: animationDuration });
         } else {
-            this.olMap.getView().fit(featureExtent, { padding: [100, 100, 100, 100] });
+            this.olMap.getView().fit(extent, { padding: this.getPaddingForMapCenter(), maxZoom: maxZoom });
         }
+    }
+
+    /**
+     * Gets the percentage of the map that is covered by overlays (left and right panels). Only returns width, does not care about height
+     * @returns A number indicating the percentage of the map that is covered by overlays
+     */
+    public getPercentOfMapCoveredWithOverlays(): number {
+        let mapPadding = this.getPaddingForMapCenter();
+        const screenWidth = this.olMap.getOverlayContainer().getBoundingClientRect().width;
+        const leftPanelPercentWidth = (mapPadding[3] / screenWidth) * 100;
+        const rightPanelPercentWidth = (mapPadding[1] / screenWidth) * 100;
+        return leftPanelPercentWidth + rightPanelPercentWidth;
+    }
+
+    /**
+     * Gets the padding required for view operations to center on the middle of the visible map not including open panels
+     * @param defaultPadding Optional default padding to apply. Defaults to 100
+     * @returns array of 4 numbers
+     */
+    public getPaddingForMapCenter(defaultPadding: number = 100): number[] {
+        let leftPadding = (document.querySelector('#gifw-sidebar-left') as HTMLDivElement).getBoundingClientRect().width;
+        let rightPadding = (document.querySelector('#gifw-sidebar-right') as HTMLDivElement).getBoundingClientRect().width;
+        const screenWidth = this.olMap.getOverlayContainer().getBoundingClientRect().width;
+        const leftPanelPercentWidth = (leftPadding / screenWidth) * 100;
+        if (leftPanelPercentWidth > 50) {
+            leftPadding = defaultPadding;
+        }
+        const rightPanelPercentWidth = (rightPadding / screenWidth) * 100;
+        if (rightPanelPercentWidth > 50) {
+            rightPadding = defaultPadding;
+        }
+
+        return [defaultPadding, rightPadding, defaultPadding, leftPadding];
     }
 
     /**

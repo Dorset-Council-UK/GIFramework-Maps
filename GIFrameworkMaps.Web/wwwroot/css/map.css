@@ -621,6 +621,11 @@
     }
 }
 
+/*Bookmarks*/
+.giframeworkMap .bookmarks-list {
+    max-height: 300px;
+    overflow: auto;
+}
 
 /*Helpers*/
 .giframeworkMap .text-pre-line {
@@ -629,7 +634,7 @@
 
 .giframeworkMapContainer .gifw-full-screen-loader {
     background-color: rgba(0,0,0,0.7);
-    z-index: 1000;
+    z-index: 10000;
 }
 
 

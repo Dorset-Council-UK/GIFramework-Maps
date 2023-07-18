@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Http;
 using GIFrameworkMaps.Data.Models.Search;
 using System.IO;
 using Microsoft.Extensions.Caching.Memory;
+using MockQueryable.Moq;
 
 namespace GIFrameworkMaps.Tests
 {
@@ -63,40 +64,23 @@ namespace GIFrameworkMaps.Tests
                 new Version { Name = "Custom Search Defs",Slug= "custom/searchdefs",Id=2 },
                 new Version { Name = "Default Search Defs",Slug= "default/searchdefs",Id=3 }
             };
-            var versionsQueryable = versions.AsQueryable();
 
             var searchDefs = new List<SearchDefinition>
             {
                 new LocalSearchDefinition{Name = "Coordinates - BNG 12 Figure", Title="British National Grid Coordinates"},
                 new APISearchDefinition{Name = "OS Places API", Title ="Addresses"}
             };
-            var searchDefsQueryable = searchDefs.AsQueryable();
 
             var versionSearchDefs = new List<VersionSearchDefinition>
             {
                 new VersionSearchDefinition{Version = versions[0], SearchDefinition = searchDefs[0],Enabled = true, VersionId = versions[0].Id},
                 new VersionSearchDefinition{Version = versions[0], SearchDefinition = searchDefs[1],Enabled = true, VersionId = versions[0].Id},
                 new VersionSearchDefinition{Version = versions[1], SearchDefinition = searchDefs[1],Enabled = true, VersionId = versions[1].Id}
-            }.AsQueryable();
+            };
 
-
-            var versionsMockSet = new Mock<DbSet<Version>>();
-            versionsMockSet.As<IQueryable<Version>>().Setup(m => m.Provider).Returns(versionsQueryable.Provider);
-            versionsMockSet.As<IQueryable<Version>>().Setup(m => m.Expression).Returns(versionsQueryable.Expression);
-            versionsMockSet.As<IQueryable<Version>>().Setup(m => m.ElementType).Returns(versionsQueryable.ElementType);
-            versionsMockSet.As<IQueryable<Version>>().Setup(m => m.GetEnumerator()).Returns(versionsQueryable.GetEnumerator());
-            
-            var searchDefsMockSet = new Mock<DbSet<SearchDefinition>>();
-            searchDefsMockSet.As<IQueryable<SearchDefinition>>().Setup(m => m.Provider).Returns(searchDefsQueryable.Provider);
-            searchDefsMockSet.As<IQueryable<SearchDefinition>>().Setup(m => m.Expression).Returns(searchDefsQueryable.Expression);
-            searchDefsMockSet.As<IQueryable<SearchDefinition>>().Setup(m => m.ElementType).Returns(searchDefsQueryable.ElementType);
-            searchDefsMockSet.As<IQueryable<SearchDefinition>>().Setup(m => m.GetEnumerator()).Returns(searchDefsQueryable.GetEnumerator());
-
-            var versionSearchDefsMockSet = new Mock<DbSet<VersionSearchDefinition>>();
-            versionSearchDefsMockSet.As<IQueryable<VersionSearchDefinition>>().Setup(m => m.Provider).Returns(versionSearchDefs.Provider);
-            versionSearchDefsMockSet.As<IQueryable<VersionSearchDefinition>>().Setup(m => m.Expression).Returns(versionSearchDefs.Expression);
-            versionSearchDefsMockSet.As<IQueryable<VersionSearchDefinition>>().Setup(m => m.ElementType).Returns(versionSearchDefs.ElementType);
-            versionSearchDefsMockSet.As<IQueryable<VersionSearchDefinition>>().Setup(m => m.GetEnumerator()).Returns(versionSearchDefs.GetEnumerator());
+            var versionsMockSet = versions.AsQueryable().BuildMockDbSet();
+            var searchDefsMockSet = searchDefs.AsQueryable().BuildMockDbSet();
+            var versionSearchDefsMockSet = versionSearchDefs.AsQueryable().BuildMockDbSet();
 
             var mockApplicationDbContext = new Mock<IApplicationDbContext>();
             mockApplicationDbContext.Setup(m => m.Versions).Returns(versionsMockSet.Object);

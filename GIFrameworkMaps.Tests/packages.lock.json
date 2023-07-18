@@ -31,6 +31,16 @@
           "Microsoft.TestPlatform.TestHost": "17.5.0"
         }
       },
+      "MockQueryable.Moq": {
+        "type": "Direct",
+        "requested": "[7.0.0, )",
+        "resolved": "7.0.0",
+        "contentHash": "1NWkaZui2eNXEHxzQUWJkuJjKCnayJ6T7mRVpDLWX0RHnr5MGlP/2LTFWa9xG6ym5G/+nein/iVmwsx2yt5l8Q==",
+        "dependencies": {
+          "MockQueryable.EntityFrameworkCore": "7.0.0",
+          "Moq": "4.8.0"
+        }
+      },
       "Moq": {
         "type": "Direct",
         "requested": "[4.18.4, )",
@@ -748,6 +758,20 @@
         "dependencies": {
           "System.Security.AccessControl": "4.7.0",
           "System.Security.Principal.Windows": "4.7.0"
+        }
+      },
+      "MockQueryable.Core": {
+        "type": "Transitive",
+        "resolved": "7.0.0",
+        "contentHash": "uLMBgYeUgaHLiUemXO7mNmyngY/a/uK1O0EsLK9jmeKwsq/0+aFjjdtotTpy7a/3LyPrEsJT7B855QUeZ69lYA=="
+      },
+      "MockQueryable.EntityFrameworkCore": {
+        "type": "Transitive",
+        "resolved": "7.0.0",
+        "contentHash": "T4VhG4T8gHuERxOM/HlR6MvU8/GHpOVZzIlNTXb4ranJGt9O8N8KkR76wNPYX8ZDWp3zqs5L4A0HnzLIfHIRRg==",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "7.0.0",
+          "MockQueryable.Core": "7.0.0"
         }
       },
       "NETStandard.Library": {
