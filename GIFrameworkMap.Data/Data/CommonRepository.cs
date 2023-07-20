@@ -280,7 +280,9 @@ namespace GIFrameworkMaps.Data
             else
             {
                 //we couldn't get a unique short id in 100 tries
-                _logger.LogError("Could not generate a unique short id for url {url} after {maxIterations} tries", url, maxIterations);
+                _logger.LogError("Could not generate a unique short id for url {url} after {maxIterations} tries",
+                    //Sanitise user input to prevent log forging
+                    url.Replace(Environment.NewLine, ""), maxIterations);
                 return null;
             }
         }
