@@ -336,7 +336,7 @@ namespace GIFrameworkMaps.Data
                     DisplayText = title.ToString(),
                     EPSG = searchDefinition.EPSG,
                     Ordering = i,
-                    Zoom = searchDefinition.ZoomLevel.GetValueOrDefault()
+                    Zoom = searchDefinition.ZoomLevel
                 };
                 //check whether we've received an X/Y
                 if (JTokensExist(xCoords, yCoords))

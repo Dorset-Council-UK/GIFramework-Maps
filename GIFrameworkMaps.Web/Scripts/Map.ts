@@ -854,6 +854,9 @@ export class GIFWMap {
 
     public fitMapToExtent(extent: Extent, maxZoom: number = 50, animationDuration: number = 1000): void {
         let curExtent = this.olMap.getView().calculateExtent();
+        if (maxZoom === null) {
+            maxZoom = 50;
+        }
         if (!Util.Browser.PrefersReducedMotion() && containsExtent(curExtent, extent)) {
             this.olMap.getView().fit(extent, { padding: this.getPaddingForMapCenter(), maxZoom: maxZoom, duration: animationDuration });
         } else {
@@ -890,8 +893,7 @@ export class GIFWMap {
         if (rightPanelPercentWidth > 50) {
             rightPadding = defaultPadding;
         }
-
-        return [defaultPadding, rightPadding, defaultPadding, leftPadding];
+        return [defaultPadding, rightPadding + defaultPadding, defaultPadding, leftPadding + defaultPadding];
     }
 
     /**
