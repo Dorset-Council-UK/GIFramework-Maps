@@ -1,9 +1,6 @@
-﻿:root{
-    --app-height: 100%;
-}
-.giframeworkMap {
+﻿.giframeworkMap {
     z-index: 1;
-    height: var(--app-height);
+    height: 100dvh;
     width: 100%;
     position: absolute;
     top: 0;
@@ -249,7 +246,7 @@
     right: 0;
     z-index: 100;
     top: 46px;
-    height: calc(var(--app-height) - 46px);
+    height: calc(100dvh - 46px);
 }
 
 /*Medium devices (tablets, 768px and up)*/
@@ -429,6 +426,7 @@
 /*NOTIFICATIONS*/
 .giframeworkMapContainer .toast-container {
     z-index: 1000;
+    max-width:75vw;
 }
 .giframeworkMapContainer .toast-container .toast-body {
     backdrop-filter: grayscale(1) blur(4px);

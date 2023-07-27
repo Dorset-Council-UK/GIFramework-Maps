@@ -302,10 +302,8 @@ export class GIFWMap {
         //add attribution size checker and app height variable
         window.addEventListener('resize', () => {
             this.checkAttributionSize(map, attribution);
-            this.setAppHeightVariable();
         });
         this.checkAttributionSize(map, attribution);
-        this.setAppHeightVariable();
 
         //add drag and drop
         this.addDragAndDropInteraction();
@@ -653,16 +651,6 @@ export class GIFWMap {
         let small = map.getSize()[0] < 600;
         attribution.setCollapsible(small);
         attribution.setCollapsed(small);
-    }
-
-    /**
-     * Sets the --app-height css variable to the current innerHeight of the Window
-     * @author Andreas Herd/StackOverflow https://stackoverflow.com/a/50683190/863487
-     * */
-    public setAppHeightVariable(): void {
-        const doc = document.documentElement
-        doc.style.setProperty('--app-height', `${window.innerHeight}px`);
-        this.olMap.updateSize();
     }
 
     /**
