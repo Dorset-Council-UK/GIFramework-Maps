@@ -44,7 +44,11 @@ namespace GIFrameworkMaps.Web.Controllers
 
         public async Task<IActionResult> IndexAsync(string slug1, string slug2, string slug3)
         {
-            _logger.LogInformation("User requested version {slug1}/{slug2}/{slug3}",slug1,slug2,slug3);
+            _logger.LogInformation("User requested version {slug1}/{slug2}/{slug3}",
+                //Sanitise user input to prevent log forging
+                slug1.Replace(Environment.NewLine, ""),
+                slug2 != null ? slug2.Replace(Environment.NewLine, "") : null,
+                slug3 != null ? slug3.Replace(Environment.NewLine, "") : null);
             var version = _repository.GetVersionBySlug(slug1,slug2,slug3);
             if (version != null)
             {

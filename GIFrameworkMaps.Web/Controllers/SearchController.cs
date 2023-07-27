@@ -22,9 +22,13 @@ namespace GIFrameworkMaps.Web.Controllers
 
         public JsonResult Index([FromBody]SearchQuery searchQuery)
         {
-            _logger.LogInformation("User searched for {searchQuery}",searchQuery.Query);
+            _logger.LogInformation("User searched for {searchQuery}",
+                //Sanitise user input to prevent log forging
+                searchQuery.Query.Replace(Environment.NewLine, ""));
             var results = _repository.Search(searchQuery.Query, searchQuery.Searches);
-            _logger.LogInformation("{TotalResults} results returned for query {searchQuery}", results.TotalResults,searchQuery.Query);
+            _logger.LogInformation("{TotalResults} results returned for query {searchQuery}", results.TotalResults,
+                //Sanitise user input to prevent log forging
+                searchQuery.Query.Replace(Environment.NewLine, ""));
             return Json(results);
         }
 
