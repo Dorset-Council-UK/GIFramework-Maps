@@ -55,9 +55,14 @@ namespace GIFrameworkMaps.Web.Controllers
                     ShortId = shortId,
                     FullUrl = decodedString
                 });
-                await _context.SaveChangesAsync();                
-                
-                return RedirectToAction("SignIn", "Account", new { area = "MicrosoftIdentity", redirectUri = $"/u/{shortId}" });
+                await _context.SaveChangesAsync();
+
+                Uri shortLink = new Uri(Url.RouteUrl("UserShortLink", new { id = shortId }, Request.Scheme));
+
+                string relativeShortLink = shortLink.IsAbsoluteUri ? shortLink.PathAndQuery : shortLink.OriginalString;
+
+
+                return RedirectToAction("SignIn", "Account", new { area = "MicrosoftIdentity", redirectUri = relativeShortLink });
             }
             else
             {
