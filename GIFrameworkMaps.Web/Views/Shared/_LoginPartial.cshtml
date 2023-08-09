@@ -24,7 +24,8 @@
         {
             string redirectUri = $"{Context.Request.PathBase}{Context.Request.Path}";
             <li class="nav-item">
-            <a class="nav-link" id="login" asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="SignIn" asp-route-redirectUri="@redirectUri" data-gifw-permalink-update-uri-param="redirectUri">Login/Register</a>
+            <a class="nav-link" id="login"  asp-controller="Account" asp-action="SignInWithRedirect" asp-route-redirectUri="@redirectUri" data-gifw-permalink-update-uri-param="redirectUri">Login/Register</a>
+            @*<a class="nav-link" id="login" asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="SignIn" asp-route-redirectUri="/u/-olVNCuQ">Login/Register</a>*@
             </li>
         }
 }
