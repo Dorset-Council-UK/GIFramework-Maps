@@ -13,5 +13,6 @@ namespace GIFrameworkMaps.Data.Models
         public string FullUrl { get; set; }
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime Created { get; set; }
+        public DateTime? LastVisited { get; set; }
     }
 }
