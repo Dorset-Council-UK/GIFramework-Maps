@@ -151,7 +151,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
+                        .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
                     b.Property<string>("UserId")
@@ -510,6 +510,10 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.Property<string>("FullUrl")
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("LastVisited")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("ShortId");
 

@@ -1,4 +1,6 @@
-﻿using GIFrameworkMaps.Data.Models;
+﻿using System;
+using System.Linq;
+using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Authorization;
 using GIFrameworkMaps.Data.Models.Tour;
 using Microsoft.EntityFrameworkCore;

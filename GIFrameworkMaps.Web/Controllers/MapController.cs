@@ -8,6 +8,12 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
 using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.ViewModels.Management;
+using Microsoft.EntityFrameworkCore;
+using GIFrameworkMaps.Data.Migrations.ApplicationDb;
+using Microsoft.Graph.Beta.Models.TermStore;
+using System.Reflection.Emit;
+using System.Linq;
+using shortid;
 
 namespace GIFrameworkMaps.Web.Controllers
 {
@@ -19,19 +25,22 @@ namespace GIFrameworkMaps.Web.Controllers
         private readonly ICommonRepository _repository;
         private readonly IManagementRepository _adminRepository;
         private readonly IConfiguration _configuration;
+        private readonly ApplicationDbContext _context;
 
         public MapController(
             ILogger<MapController> logger, 
             IAuthorizationService authorization,
             ICommonRepository repository,
             IManagementRepository adminRepository,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ApplicationDbContext context)
         {
             _logger = logger;
             _authorization = authorization;
             _repository = repository;
             _adminRepository = adminRepository;
             _configuration = configuration;
+            _context = context;
         }
         /// <summary>
         /// This route forces calls to the general /Map endpoint to redirect to the default slug route. Not pretty but does the job
@@ -115,6 +124,11 @@ namespace GIFrameworkMaps.Web.Controllers
             {
                 return View("ShortLinkNotFound");
             }
+
+            var shortLink = await _context.ShortLink.FirstOrDefaultAsync(s => s.ShortId == id);
+            shortLink.LastVisited = DateTime.UtcNow;
+            _context.SaveChanges();
+
             return Redirect(redirectUrl);
         }
     }

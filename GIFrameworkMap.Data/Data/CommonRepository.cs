@@ -11,6 +11,10 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using shortid;
+using Microsoft.AspNetCore.Mvc;
+using System.Reflection.Emit;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace GIFrameworkMaps.Data
 {
@@ -290,7 +294,7 @@ namespace GIFrameworkMaps.Data
         public async Task<string> GetFullUrlFromShortId(string shortId)
         {
             var shortLink = await _context.ShortLink.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
-            if(shortLink == null)
+            if (shortLink == null)
             {
                 return null;
             }
