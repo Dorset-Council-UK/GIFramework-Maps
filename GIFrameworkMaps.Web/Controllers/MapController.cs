@@ -6,14 +6,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
-using GIFrameworkMaps.Data.Models;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
 using Microsoft.EntityFrameworkCore;
-using GIFrameworkMaps.Data.Migrations.ApplicationDb;
-using Microsoft.Graph.Beta.Models.TermStore;
-using System.Reflection.Emit;
-using System.Linq;
-using shortid;
 
 namespace GIFrameworkMaps.Web.Controllers
 {

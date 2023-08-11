@@ -11,10 +11,6 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using shortid;
-using Microsoft.AspNetCore.Mvc;
-using System.Reflection.Emit;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace GIFrameworkMaps.Data
 {
