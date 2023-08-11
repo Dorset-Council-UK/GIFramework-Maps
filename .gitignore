@@ -354,3 +354,4 @@ healthchecksdb
 /GIFrameworkMaps.Web/wwwroot/js/vendors-node_modules_canvg_lib_index_es_js.bundle.js
 /GIFrameworkMaps.Web/.config
 /GIFrameworkMaps.Web/wwwroot/js/select-web-service.js
+/GIFrameworkMaps.Web/wwwroot/js/management/broadcast.js
