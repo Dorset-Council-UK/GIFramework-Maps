@@ -158,6 +158,11 @@ namespace GIFrameworkMaps.Web
                    defaults: new { controller = "ManagementLayer", action = "Index" });
 
                 endpoints.MapControllerRoute(
+                   name: "ManagementInterface-LayerWizard",
+                   pattern: "Management/LayerWizard/{action=Index}/{id?}",
+                   defaults: new { controller = "ManagementLayerWizard", action = "Index" });
+
+                endpoints.MapControllerRoute(
                    name: "ManagementInterface-LayerSource",
                    pattern: "Management/LayerSource/{action=Index}/{id?}",
                    defaults: new { controller = "ManagementLayerSource", action = "Index" });

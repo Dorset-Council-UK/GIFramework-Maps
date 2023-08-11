@@ -1,0 +1,32 @@
+﻿@{
+    ViewData["Title"] = "Add Layer Wizard";
+}
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Add a new layer from a web service</p>
+
+<div class="container">
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a asp-action="SelectWebService" class="stretched-link">
+                        <h4 class="card-title"><i class="bi bi-globe-europe-africa"></i> WMS</h4>
+                    </a>
+                    <p class="card-text">Add a layer from a WMS service</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a asp-action="CreateFromTMS" class="stretched-link">
+                        <h4 class="card-title"><i class="bi bi-grid-3x3-gap"></i> TMS/XYZ</h4>
+                        <p class="card-text">Add a TMS or XYZ layer</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

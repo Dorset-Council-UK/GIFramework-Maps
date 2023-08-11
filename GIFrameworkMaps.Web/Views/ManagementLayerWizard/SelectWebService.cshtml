@@ -1,0 +1,39 @@
+﻿@{
+    ViewData["Title"] = "Select web service";
+}
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Find the layer you want to add from the web services available, or add your own</p>
+
+
+<div class="row mt-2 mb-2">
+    <h2>Choose web service</h2>
+    <div class="row">
+        <div class="col-md-8 col-lg-6">
+            <form>
+                <div class="mb-3">
+                    <label class="control-label" for="service-select">Choose a web service from the list</label>
+                    <div class="input-group">
+                        <select class="form-select" id="service-select">
+                            <option></option>
+                            <option>Dorset Council - Countryside</option>
+                            <option>Dorset Council - Census</option>
+                            <option>Dorset Council - Property</option>
+                            <option>Dorset Council - Image Metadata</option>
+                        </select>
+                        <button class="btn btn-outline-primary" type="button" id="web-service-list-connect">Connect</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="control-label" for="service-url">Or enter a GetCapabilities URL</label>
+                    <div class="input-group">
+                        <input type="url" class="form-control" id="service-url" />
+                        <button class="btn btn-outline-primary" type="button" id="web-service-text-connect">Connect</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script type="text/javascript" src="~/js/select-web-service.js"></script>
