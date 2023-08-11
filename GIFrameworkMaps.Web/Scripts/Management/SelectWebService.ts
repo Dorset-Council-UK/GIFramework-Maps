@@ -1,6 +1,1 @@
-export class SelectWebService {
-
-    public init() {
-
-    }
-}
+console.log('ahoy!')

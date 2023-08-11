@@ -1,12 +1,19 @@
-﻿"use strict";
-
+//global var defined in view. Replace me with another method :)
+declare var appRoot: string;
 var connection = new signalR.HubConnectionBuilder().withUrl(`${appRoot}/broadcasthub`).build();
 
 //Disable send button until connection is established
-document.getElementById("sendButton").disabled = true;
+
+const sendButton: HTMLButtonElement = document.getElementById("sendButton") as HTMLButtonElement;
+const messageInput: HTMLInputElement = document.getElementById("messageInput") as HTMLInputElement;
+const versionSelect: HTMLSelectElement = document.getElementById("versionInput") as HTMLSelectElement;
+const msgSeveritySelect: HTMLSelectElement = document.getElementById("messageSeverityInput") as HTMLSelectElement;
+const msgTypeSelect: HTMLSelectElement = document.getElementById("messageTypeInput") as HTMLSelectElement;
+
+sendButton.disabled = true;
 
 connection.start().then(function () {
-    document.getElementById("sendButton").disabled = false;
+    sendButton.disabled = false;
 }).catch(function (err) {
     return console.error(err.toString());
 });
@@ -17,14 +24,14 @@ connection.on("ReceiveBroadcast", function (messageType, messageSeverity, messag
     var li = document.createElement("li");
     li.textContent = encodedMsg;
     document.getElementById("messagesList").appendChild(li);
-    document.getElementById("messageInput").value = "";
+    messageInput.value = "";
 });
 
 document.getElementById("sendButton").addEventListener("click", function (event) {
-    var msgType = document.getElementById("messageTypeInput").value;
-    var msgSeverity = document.getElementById("messageSeverityInput").value;
-    var message = document.getElementById("messageInput").value;
-    var version = document.getElementById("versionInput").value;
+    var msgType = msgTypeSelect.value;
+    var msgSeverity = msgSeveritySelect.value;
+    var message = messageInput.value;
+    var version = versionSelect.value;
     if (message !== "") {
         connection.invoke("SendBroadcast", msgType, msgSeverity, message, version).catch(function (err) {
             var li = document.createElement("li");
@@ -33,8 +40,8 @@ document.getElementById("sendButton").addEventListener("click", function (event)
             return console.error(err.toString());
         });
         //disable button for 5 seconds to prevent duplicated
-        document.getElementById("sendButton").disabled = true;
-        window.setTimeout(function () { document.getElementById("sendButton").disabled = false }, 5000);
+        sendButton.disabled = true;
+        window.setTimeout(function () { sendButton.disabled = false }, 5000);
     } else {
 
     }
