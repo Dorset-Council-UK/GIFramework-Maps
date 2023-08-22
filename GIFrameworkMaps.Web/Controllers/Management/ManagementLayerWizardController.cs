@@ -8,15 +8,18 @@ namespace GIFrameworkMaps.Web.Controllers.Management
     {
         private readonly ILogger<ManagementLayerWizardController> _logger;
         private readonly IManagementRepository _repository;
+        private readonly ICommonRepository _commonRepository;
         private readonly ApplicationDbContext _context;
         public ManagementLayerWizardController(
             ILogger<ManagementLayerWizardController> logger,
             IManagementRepository repository,
+            ICommonRepository commonRepository,
             ApplicationDbContext context
             )
         {
             _logger = logger;
             _repository = repository;
+            _commonRepository = commonRepository;
             _context = context;
         }
         public IActionResult Index()
@@ -26,8 +29,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         public IActionResult SelectWebService() {
             //get list of services
-
-            return View();
+            var definitions = _commonRepository.GetWebLayerServiceDefinitions();
+            return View(definitions);
         }
 
         //public IActionResult CreateFromWebService(string url) {

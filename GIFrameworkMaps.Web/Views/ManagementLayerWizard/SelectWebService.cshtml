@@ -1,4 +1,5 @@
-﻿@{
+﻿@model List<GIFrameworkMaps.Data.Models.WebLayerServiceDefinition>
+@{
     ViewData["Title"] = "Select web service";
 }
 <h1>@ViewData["Title"]</h1>
@@ -14,11 +15,27 @@
                     <label class="control-label" for="service-select">Choose a web service from the list</label>
                     <div class="input-group">
                         <select class="form-select" id="service-select">
-                            <option></option>
-                            <option>Dorset Council - Countryside</option>
-                            <option>Dorset Council - Census</option>
-                            <option>Dorset Council - Property</option>
-                            <option>Dorset Council - Image Metadata</option>
+
+                            @{
+                                var grouped = Model.OrderBy(d => d.SortOrder).GroupBy(d => d.Category);
+                            }
+
+                            @foreach(var group in grouped)
+                            {
+                                <optgroup label="@group.First().Category">
+                                    @foreach(var definition in group.OrderBy(d => d.SortOrder))
+                                    {
+                                        //TODO Temporary hack using url.content to generate correct link
+                                        var proxyEndpoint = definition.ProxyMetaRequests ? Url.Content("~/proxy") : "";
+                                        <option 
+                                            value="@definition.Url"
+                                                data-proxy-via="@proxyEndpoint"
+                                                data-wms-version="@definition.Version">
+                                        @definition.Name
+                                        </option>
+                                    }
+                                </optgroup>
+                                }
                         </select>
                         <button class="btn btn-outline-primary" type="button" id="web-service-list-connect">Connect</button>
                     </div>
@@ -34,6 +51,25 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="col">
+            <input type="search" class="form-control form-control-sm mb-2" style="display:none;" placeholder="Type to search for a layer" id="layer-list-search" />
+            <div id="web-layer-search-error" class="form-text text-danger" style="display: none;"></div>
+
+            <div id="layer-list-container" class="list-group">
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<script type="text/javascript" src="~/js/select-web-service.js"></script>
+<template id="web-service-layer-item-template">
+    <div class="list-group-item">
+        <h5 class="mb-2 text-break"></h5>
+        <p class="mb-1"></p>
+        <button class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-circle"></i> Add</button>
+    </div>
+</template>
+
+
+<script type="text/javascript" src="~/js/management/selectwebservice.js"></script>
