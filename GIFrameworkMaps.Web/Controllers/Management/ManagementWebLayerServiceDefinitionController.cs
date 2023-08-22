@@ -98,7 +98,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.Category, 
                 a => a.SortOrder, 
                 a => a.ProxyMapRequests, 
-                a => a.ProxyMetaRequests))
+                a => a.ProxyMetaRequests,
+                a => a.AdminOnly))
             {
 
                 try
