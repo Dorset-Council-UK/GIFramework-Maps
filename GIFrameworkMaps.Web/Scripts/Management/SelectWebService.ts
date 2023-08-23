@@ -83,7 +83,9 @@ class SelectWebService {
         epsg.textContent = layer.projection;
         btn.addEventListener('click', (e) => {
             console.log(layer);
-            console.log('GO!')
+            const form = document.getElementById('create-source-form') as HTMLFormElement;
+            form.querySelector('input').value = JSON.stringify(layer);
+            form.submit();
         })
 
         return layerItemInstance;

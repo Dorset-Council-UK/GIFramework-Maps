@@ -1,0 +1,85 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.LayerWizardCreateSourceViewModel
+
+@{
+    ViewData["Title"] = "Create layer source details";
+}
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Check the details below and make any changes you need</p>
+
+<div class="row mt-2 mb-2">
+    <div class="col-md-8 col-lg-6">
+        <form asp-action="CreateSourcePost">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <div class="mb-3">
+                <label asp-for="LayerSource.Name" class="control-label"></label>
+                <input asp-for="LayerSource.Name" class="form-control" />
+                <span asp-validation-for="LayerSource.Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LayerSource.Description" class="control-label"></label>
+                <textarea asp-for="LayerSource.Description" class="form-control"></textarea>
+                <span asp-validation-for="LayerSource.Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LayerSource.LayerSourceTypeId" class="control-label"></label>
+                <select asp-for="LayerSource.LayerSourceTypeId" asp-items="Model.AvailableLayerSourceTypes" class="form-select"></select>
+                <span asp-validation-for="LayerSource.LayerSourceTypeId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LayerSource.AttributionId" class="control-label"></label>
+                <select asp-for="LayerSource.AttributionId" asp-items="Model.AvailableAttributions" class="form-select"></select>
+                <span asp-validation-for="LayerSource.AttributionId" class="text-danger"></span>
+            </div>
+
+            <a href="#advancedSettings" class="btn btn-outline-secondary my-3" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="advancedSettings">Advanced settings</a>
+
+            <div class="collapse border-start border-bottom border-5 ps-3 mb-3" id="advancedSettings">
+                <div class="alert alert-warning">Most of this information should be left as is unless you know what you are doing</div>
+                <div class="mb-3">
+                    <label asp-for="BaseURL" class="control-label"></label>
+                    <input asp-for="BaseURL" class="form-control" />
+                    <span asp-validation-for="BaseURL" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="LayerName" class="control-label"></label>
+                    <input asp-for="LayerName" class="form-control" />
+                    <span asp-validation-for="LayerName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Format" class="control-label"></label>
+                    <input asp-for="Format" class="form-control" />
+                    <span asp-validation-for="Format" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="EPSG" class="control-label"></label>
+                    <input asp-for="EPSG" class="form-control" />
+                    <span asp-validation-for="EPSG" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                    <a asp-action="Index" class="btn btn-link">Cancel</a>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <input type="submit" value="Save and continue" class="btn btn-primary btn-lg" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+            </div>
+
+        </form>
+
+    </div>
+    <div class="col-md-4 col-lg-6">
+        <h2>Help</h2>
+        <p>Most of this information has been pulled from the data provider. The two to check properly are 'Layer Type' and 'Attribution'.</p>
+        <p><strong>Layer Type</strong>: This identifies the type of layer source this is. Read our <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/db/layers/#layersourcetype" target="_blank">help documentation on Layer Types</a> to learn more.</p>
+        <p><strong>Attribution</strong>: Whilst some services provide attributions in their metadata, a lot don't. Attributions are therefore stored seperately. We'll try and pick the right one automatically, but this often is not possible, so make sure you choose the correct one, or create a new one. Read our <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/db/attributions/" target="_blank">help documentation on attributions</a> to learn more.</p>
+    </div>
+</div>

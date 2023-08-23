@@ -1,6 +1,14 @@
 ﻿using GIFrameworkMaps.Data;
+using GIFrameworkMaps.Data.Models.ViewModels.Management;
+using GIFrameworkMaps.Data.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
+using System.Linq;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Graph.Beta.Models;
+using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
@@ -33,9 +41,74 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(definitions);
         }
 
-        //public IActionResult CreateFromWebService(string url) {
-        
-        //}
+        [HttpPost]
+        public IActionResult CreateSource(string layerDetails) {
+
+            LayerResource layerResource = JsonSerializer.Deserialize<LayerResource>(layerDetails);
+
+            var layerSource = new LayerSource
+            {
+                Name = layerResource.Name,
+                Description = layerResource.Abstract
+            };
+            var editModel = new LayerWizardCreateSourceViewModel {
+                BaseURL = layerResource.BaseUrl,
+                Format = layerResource.Formats[0],
+                EPSG = layerResource.Projection,
+                LayerName = layerResource.Name,
+                LayerSource = layerSource,
+            };
+            RebuildLayerWizardCreateSourceViewModel(ref editModel, layerSource);
+            return View(editModel);
+        }
+
+        public async Task<IActionResult> CreateSourcePost(LayerWizardCreateSourceViewModel model) {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+
+                    var urlOpt = new LayerSourceOption { Name = "url", Value = model.BaseURL };
+                    var paramsOpt = new LayerSourceOption
+                    {
+                        Name = "params",
+                        Value =
+                        @$"
+                            {{
+                                ""LAYERS"":""{model.LayerName}"", 
+                                ""FORMAT"":""{model.Format}""
+                            }}"
+                    };
+                    model.LayerSource.LayerSourceOptions.Add(urlOpt);
+                    model.LayerSource.LayerSourceOptions.Add(paramsOpt);
+                    _context.Add(model.LayerSource);
+                    await _context.SaveChangesAsync();
+
+                    //TODO - redirect to createfromsource with new layer id
+                    return RedirectToAction("CreateFromSource", "ManagementLayer", new {id=model.LayerSource.Id});
+
+
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Layer source creation failed");
+                    ModelState.AddModelError("", "Unable to save changes. " +
+                        "Try again, and if the problem persists, " +
+                        "contact your system administrator.");
+                }
+            }
+            RebuildLayerWizardCreateSourceViewModel(ref model, model.LayerSource);
+            return View("CreateSource", model);
+        }
+
+        private void RebuildLayerWizardCreateSourceViewModel(ref Data.Models.ViewModels.Management.LayerWizardCreateSourceViewModel model, Data.Models.LayerSource layerSource)
+        {
+            var attributions = _context.Attribution.OrderBy(t => t.Name).ToList();
+            var layerSourceTypes = _context.LayerSourceType.OrderBy(t => t.Name).ToList();
+
+            model.AvailableAttributions = new SelectList(attributions, "Id", "Name", layerSource.AttributionId);
+            model.AvailableLayerSourceTypes = new SelectList(layerSourceTypes, "Id", "Name", layerSource.LayerSourceTypeId);
+        }
 
         //public IActionResult CreateFromTMS()
         //{
