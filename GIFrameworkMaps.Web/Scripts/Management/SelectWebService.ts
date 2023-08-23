@@ -39,7 +39,8 @@ class SelectWebService {
     }
 
     private async renderLayersListFromService(url: string, version?: string, proxyEndpoint?: string) {
-
+        const loadingSpinner = document.getElementById('layers-loading-spinner');
+        loadingSpinner.style.display = 'block';
         let availableLayers = await Metadata.getLayersFromCapabilities(url, version, proxyEndpoint);
 
         let layersListContainer = document.getElementById('layer-list-container');
@@ -48,7 +49,9 @@ class SelectWebService {
         const searchInput: HTMLInputElement = document.getElementById('layer-list-search') as HTMLInputElement;
         layersListContainer.innerHTML = '';
         if (availableLayers && availableLayers.length !== 0) {
-            availableLayers.forEach(layer => {
+            availableLayers.sort((a, b) => {
+                return a.title.localeCompare(b.title);
+            }).forEach(layer => {
                 layersListContainer.appendChild(this.renderLayerItem(layer));
             })
 
@@ -56,9 +59,10 @@ class SelectWebService {
             searchInput.value = '';
             this.createOrUpdateFuseInstance(availableLayers);
         } else {
-            layersListContainer.innerHTML = '<div class="alert alert-warning">No layers could be retrieved from the service. You may need to be logged in to the service to see layers, or the service is not adveritsing any layers at the moment.</div>';
+            layersListContainer.innerHTML = '<div class="alert alert-warning">No layers could be retrieved from the service. You may need to be logged in to the service to see layers, or the service is not advertising any layers at the moment.</div>';
             searchInput.style.display = 'none';
         }
+        loadingSpinner.style.display = 'none';
         errMsg.style.display = 'none';
 
     }
@@ -69,13 +73,16 @@ class SelectWebService {
 
         const container = layerItemInstance.querySelector('.list-group-item');
         const header = layerItemInstance.querySelector('h5');
+        const epsg = layerItemInstance.querySelector('small');
         const desc = layerItemInstance.querySelector('p');
         const btn = layerItemInstance.querySelector('button');
 
         container.id = layer.name;
         header.textContent = layer.title;
         desc.textContent = layer.abstract;
+        epsg.textContent = layer.projection;
         btn.addEventListener('click', (e) => {
+            console.log(layer);
             console.log('GO!')
         })
 

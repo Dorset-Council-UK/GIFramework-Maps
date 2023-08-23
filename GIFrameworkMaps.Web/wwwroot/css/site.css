@@ -1,6 +1,9 @@
 ﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
 for details on configuring this project to bundle and minify static web assets. */
 
+:root {
+    --bs-primary: #05476d;
+}
 .navbar {
     background-color: #05476d;
 }
@@ -17,9 +20,9 @@ a {
     color: #1d70b8;
 }
 
-    a:hover, a:focus {
-        color: #23527c;
-    }
+a:hover, a:focus {
+    color: #23527c;
+}
 
 .btn-primary {
     color: #fff;
@@ -27,14 +30,14 @@ a {
     border-color: #0b2d49;
 }
 
-    .btn-primary:not(:disabled):not(.disabled).active, .btn-primary:not(:disabled):not(.disabled):active, .show > .btn-primary.dropdown-toggle {
-        background-color: #0b2d49;
-    }
+.btn-primary:not(:disabled):not(.disabled).active, .btn-primary:not(:disabled):not(.disabled):active, .show > .btn-primary.dropdown-toggle {
+    background-color: #0b2d49;
+}
 
-    .btn-primary:hover {
-        background-color: #0b2d49;
-        border-color: #0b2d49;
-    }
+.btn-primary:hover {
+    background-color: #0b2d49;
+    border-color: #0b2d49;
+}
 
 .btn-primary:focus, .btn-primary.focus {
     color: white;
@@ -44,6 +47,29 @@ a {
 .btn-primary:not(:disabled):not(.disabled).active:focus, .btn-primary:not(:disabled):not(.disabled):active:focus, .show > .btn-primary.dropdown-toggle:focus {
     box-shadow: 0 0 0 0.2rem rgba(11, 45, 73,.3);
 }
+
+.btn-outline-primary {
+    color: #0b2d49;
+    border-color: #0b2d49;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0b2d49;
+    border-color: #0b2d49;
+    color: white;
+}
+
+.btn-outline-primary:focus, .btn-outline-primary.focus {
+    box-shadow: 0 0 0 0.2rem rgba(11, 45, 73,.3);
+    background-color: #0b2d49;
+    color:white;
+}
+
+    .btn-outline-primary:not(:disabled):not(.disabled).active:focus, .btn-outline-primary:not(:disabled):not(.disabled):active:focus, .show > .btn-outline-primary.dropdown-toggle:focus {
+        box-shadow: 0 0 0 0.2rem rgba(11, 45, 73,.3);
+        background-color: #0b2d49;
+        color: white;
+    }
 
 .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
     color: #fff;
