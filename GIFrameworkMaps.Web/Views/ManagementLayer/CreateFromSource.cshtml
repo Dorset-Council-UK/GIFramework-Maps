@@ -55,14 +55,28 @@
                             </li>
                         </ul>
 
-                        <div class="tab-content mt-2" id="myTabContent">
+                        <div class="tab-content mt-2">
                             <div class="tab-pane fade show active" id="list-template-attributes-pane" role="tabpanel" aria-labelledby="list-template-attributes-tab" tabindex="0">
                                 <ul class="list-inline">
                                 </ul>
                             </div>
                             <div class="tab-pane fade" id="list-template-date-formatting-pane" role="tabpanel" aria-labelledby="list-template-date-formatting-tab" tabindex="0">
+                                @{
+                                    await Html.RenderPartialAsync("DateFormattingListPartial");
+                                }
                             </div>
                             <div class="tab-pane fade" id="list-template-preview-pane" role="tabpanel" aria-labelledby="list-template-preview-tab" tabindex="0">
+                                <a href="#" id="list-template-preview-generate">Generate preview</a>
+                                <div class="template-preview mt-2 border rounded p-2">
+                                    <div class="gifw-result-list">
+                                        <ul>
+                                            <li class="list-unstyled"><a href="#">A feature</a></li>
+                                            <li class="list-unstyled"><a href="#">A feature</a></li>
+                                            <li class="list-unstyled"><a href="#" id="list-template-preview-container">Your preview feature will go here</a></li>
+                                            <li class="list-unstyled"><a href="#">A feature</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -91,7 +105,7 @@
                             </li>
                         </ul>
 
-                        <div class="tab-content mt-2" id="myTabContent">
+                        <div class="tab-content mt-2">
                             <div class="tab-pane fade show active" id="template-html-tags-pane" role="tabpanel" aria-labelledby="template-html-tags-pane" tabindex="0">
                                 <ul class="list-inline">
                                     <li class="list-inline-item"><button type="button" data-tag="h1" class="btn btn-sm btn-outline-primary mb-2">&lt;h1&gt;</button></li>
@@ -117,10 +131,13 @@
                                 </ul>
                             </div>
                             <div class="tab-pane fade" id="template-date-formatting-pane" role="tabpanel" aria-labelledby="template-date-formatting-tab" tabindex="0">
-
+                                @{
+                                    await Html.RenderPartialAsync("DateFormattingListPartial");
+                                }
                             </div>
                             <div class="tab-pane fade" id="template-preview-pane" role="tabpanel" aria-labelledby="template-preview-tab" tabindex="0">
-
+                                <a href="#" id="template-preview-generate">Generate preview</a>
+                                <div id="template-preview-container" class="template-preview mt-2 border rounded p-2"></div>
                             </div>
                         </div>
                     </div>
@@ -219,4 +236,48 @@
 <input type="hidden" value="@baseUrl.Value" id="layer-source-url" />
 @section Scripts{
     <script type="text/javascript" src="~/js/management/createlayerfromsource.js"></script>
+}
+
+@section Styles{
+    <style type="text/css">
+        .template-preview {
+            max-height: 500px;
+            max-width: 400px;
+            overflow-y: auto;
+        }
+
+        .template-preview p, .template-preview a {
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        .template-preview ul {
+            margin-bottom: .5rem;
+        }
+
+        .template-preview h1 {
+            font-size: 1.5em;
+        }
+
+        .template-preview h2 {
+            font-size: 1.2rem;
+        }
+
+        .template-preview h3 {
+            font-size: 1.1rem;
+        }
+
+        .template-preview h4 {
+            font-size: 1.1rem;
+        }
+
+        .template-preview h5 {
+            font-size: 1rem;
+        }
+
+        .template-preview .gifw-result-list ul li {
+            padding-bottom: 5px;
+            border-bottom: thin solid #dfdfdf;
+        }
+    </style>
 }

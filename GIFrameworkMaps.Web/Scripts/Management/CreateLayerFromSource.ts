@@ -1,7 +1,12 @@
+import GML3 from "ol/format/GML3";
+import WFS from "ol/format/WFS";
 import { FeaturePropertiesHelper } from "../FeatureQuery/FeaturePropertiesHelper";
+import { FeatureQueryRequest } from "../Interfaces/FeatureQuery/FeatureQueryRequest";
+import { FeatureQueryResponse } from "../Interfaces/FeatureQuery/FeatureQueryResponse";
 import { CapabilityType } from "../Interfaces/OGCMetadata/BasicServerCapabilities";
 import { Metadata } from "../Metadata/Metadata";
-
+import { default as nunjucks } from "nunjucks";
+import { DateTime } from "luxon";
 class CreateLayerFromSource {
     htmlTags = [
         { tagId: 'h1', openTag: '<h1>', closeTag: '</h1>' },
@@ -16,16 +21,31 @@ class CreateLayerFromSource {
         { tagId: 'img', openTag: '<img src="" />', closeTag: '' }];
     templateInput: HTMLTextAreaElement;
     listTemplateInput: HTMLInputElement;
+    layerSourceURL: string;
+    layerSourceName: string;
+    _cachedExampleFeature: any;
     constructor() {
         this.templateInput = document.querySelector('textarea[data-template-target]') as HTMLTextAreaElement;
         this.listTemplateInput = document.querySelector('input[data-list-template-target]') as HTMLInputElement;
+        this.layerSourceURL = (document.getElementById('layer-source-url') as HTMLInputElement).value;
+        this.layerSourceName = (document.getElementById('layer-source-name') as HTMLInputElement).value;
+        let env = nunjucks.configure({ autoescape: false });
+        env.addFilter('date', (str, format) => {
+            let dt = DateTime.fromISO(str);
+            if (format) {
+                return dt.toFormat(format);
+            } else {
+                return dt.toLocaleString();
+            }
+
+        });
     }
 
     public async init() {
         await this.renderAttributeLists();
         //attach HTML tag buttons
         document.querySelectorAll('#template-html-tags-pane button').forEach(btn => {
-            btn.addEventListener('click', e => {
+            btn.addEventListener('click', () => {
                 const tagId = (btn as HTMLButtonElement).dataset.tag;
                 const tag = this.htmlTags.filter(t => t.tagId === tagId)[0];
                 let tagStr = tag.openTag;
@@ -38,29 +58,56 @@ class CreateLayerFromSource {
 
             })
         })
-        //attach attribute buttons
-
+        
         //attach date formatting helper buttons
-
+        document.querySelectorAll('#list-template-date-formatting-pane a[data-date-format]').forEach(link => {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                const formatString = (link as HTMLAnchorElement).dataset.dateFormat;
+                let formatTemplate = ' | date';
+                if (formatString) {
+                    formatTemplate += `('${formatString}')`;
+                }
+                this.insertAtCaret(formatTemplate, this.listTemplateInput);
+            })
+        });
+        document.querySelectorAll('#template-date-formatting-pane a[data-date-format]').forEach(link => {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                const formatString = (link as HTMLAnchorElement).dataset.dateFormat;
+                let formatTemplate = ' | date';
+                if (formatString) {
+                    formatTemplate += `('${formatString}')`;
+                }
+                this.insertAtCaret(formatTemplate, this.templateInput);
+            })
+        })
         //attach preview generators
+
+        document.getElementById('template-preview-generate').addEventListener('click', e => {
+            e.preventDefault();
+            this.generateTemplatePreview(this.templateInput.value, document.getElementById('template-preview-container'));
+        });
+        document.getElementById('list-template-preview-generate').addEventListener('click', e => {
+            e.preventDefault();
+            this.generateTemplatePreview(this.listTemplateInput.value, document.getElementById('list-template-preview-container'));
+        })
 
         //attach auto generate template button
         document.getElementById('template-auto-generate').addEventListener('click', e => { e.preventDefault();  this.autoGenerateTemplate() })
     }
 
     private async getAttributesForLayer() {
-        const layerSourceURL = (document.getElementById('layer-source-url') as HTMLInputElement).value;
-        const layerSourceName = (document.getElementById('layer-source-name') as HTMLInputElement).value;
-        if (layerSourceURL !== '' && layerSourceName !== '') {
-            let serverCapabilities = await Metadata.getBasicCapabilities(layerSourceURL, {}, "");
+
+        if (this.layerSourceURL !== '' && this.layerSourceName !== '') {
+            let serverCapabilities = await Metadata.getBasicCapabilities(this.layerSourceURL, {}, "");
 
             if (serverCapabilities &&
-                serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType && c.url !== '').length !== 0 &&
-                serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WFS_GetFeature && c.url !== '').length !== 0
+                serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType && c.url !== '').length !== 0
             ) {
                 //has all relevant capabilities
                 let describeFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType)[0];
-                let featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, layerSourceName, describeFeatureCapability.method, undefined, "");
+                let featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, this.layerSourceName, describeFeatureCapability.method, undefined, "");
                 if (featureDescription && featureDescription.featureTypes.length === 1) {
                     return featureDescription.featureTypes[0].properties.filter(f => f.type.indexOf("gml:") === -1 && FeaturePropertiesHelper.isUserDisplayableProperty(f.name));
                 }
@@ -130,6 +177,103 @@ class CreateLayerFromSource {
             template += `<p><strong>${attr}:</strong> {{${attr}}}</p>\r`;
         })
         this.templateInput.value = template;
+    }
+
+    private async generateTemplatePreview(template: string, previewContainer: HTMLElement) {
+        if (template) {
+            //get an example value from the service if possible.
+
+            const props = await this.getExampleFeature();
+            if (props !== null) {
+                let renderedTemplate = nunjucks.renderString(template, props);
+                previewContainer.innerHTML = renderedTemplate;
+            } else {
+                previewContainer.innerHTML = '<div class="alert alert-warning p-2 my-1">We couldn\'t get an example feature from the feature server</div>';
+            }
+            
+        } else {
+            previewContainer.innerHTML = '<div class="alert alert-warning p-2 my-1">No template defined!</div>';
+        }
+    }
+
+    private async getExampleFeature() {
+        if (this._cachedExampleFeature) {
+            return this._cachedExampleFeature;
+        }
+        let serverCapabilities = await Metadata.getBasicCapabilities(this.layerSourceURL, {});
+
+        if (serverCapabilities &&
+            serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType && c.url !== '').length !== 0 &&
+            serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WFS_GetFeature && c.url !== '').length !== 0
+        ) {
+            //has all relevant capabilities
+            let describeFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType)[0];
+            let featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, this.layerSourceName, describeFeatureCapability.method, undefined, "");
+
+            let wfsFeatureInfoRequest = new WFS().writeGetFeature({
+                srsName: 'EPSG:3857',
+                featureTypes: [this.layerSourceName],
+                featureNS: featureDescription.targetNamespace,
+                featurePrefix: featureDescription.targetPrefix,
+                count: 1,
+                maxFeatures: 1
+            });
+            let getFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WFS_GetFeature)[0];
+            let request: FeatureQueryRequest = {
+                layer: undefined, wfsRequest: wfsFeatureInfoRequest, searchUrl: getFeatureCapability.url, searchMethod: getFeatureCapability.method
+            };
+            let resp = await this.getFeatureInfoForLayer(request);
+
+            console.log(resp.features);
+
+            const props = resp.features[0].getProperties();
+            if (props) {
+                this._cachedExampleFeature = props;
+            }
+            return props;
+        }
+        return null;
+    }
+
+    private getFeatureInfoForLayer(request: FeatureQueryRequest): Promise<FeatureQueryResponse> {
+        let abortController = new AbortController();
+        let timer = window.setTimeout(() => abortController.abort(), 10000);
+        let promise = new Promise<FeatureQueryResponse>((resolve, reject) => {
+            let fetchUrl = request.searchUrl;
+
+            fetch(fetchUrl, {
+                method: request.wfsRequest ? "POST" : "GET",
+                mode: 'cors',
+                headers: { 'Content-Type': 'application/vnd.ogc.gml' },
+                body: request.wfsRequest ? new XMLSerializer().serializeToString(request.wfsRequest) : null,
+                signal: abortController.signal
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                }).then(data => {
+                    //if the request was a WFS, use the GML reader, else use the WMSGetFeatureInfo reader
+                    let features = new GML3().readFeatures(data)
+
+                    let response: FeatureQueryResponse = {
+                        layer: request.layer,
+                        features: features
+                    }
+
+                    resolve(response);
+                })
+                .catch(error => {
+                    console.error(error);
+                    reject(`Failed to get feature info for layer ${request.layer.get("name")}`);
+                })
+                .finally(() => {
+                    window.clearTimeout(timer);
+                });
+        })
+
+        return promise;
     }
 
     private insertAtCaret(text: string, el: HTMLInputElement|HTMLTextAreaElement) {
