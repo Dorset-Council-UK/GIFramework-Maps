@@ -1,4 +1,5 @@
-﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.LayerEditModel
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.LayerEditModel;
+@using System.Text.Json;
 @{
     ViewData["Title"] = $"Create new layer";
 }
@@ -37,14 +38,93 @@
 
             <div class="mb-3">
                 <label asp-for="Layer.InfoListTitleTemplate" class="control-label"></label>
-                <input asp-for="Layer.InfoListTitleTemplate" class="form-control" />
+                <input asp-for="Layer.InfoListTitleTemplate" class="form-control" data-list-template-target="true" />
                 <span asp-validation-for="Layer.InfoListTitleTemplate" class="text-danger"></span>
+                <div class="card">
+                    <div class="card-body">
+                        <ul class="nav nav-tabs" role="tablist">
+
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="list-template-attributes-tab" data-bs-toggle="tab" data-bs-target="#list-template-attributes-pane" type="button" role="tab" aria-controls="list-template-attributes-pane" aria-selected="false">Attributes</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="list-template-date-formatting-tab" data-bs-toggle="tab" data-bs-target="#list-template-date-formatting-pane" type="button" role="tab" aria-controls="list-template-date-formatting-pane" aria-selected="false">Date formatting</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="list-template-preview-tab" data-bs-toggle="tab" data-bs-target="#list-template-preview-pane" type="button" role="tab" aria-controls="list-template-preview-pane" aria-selected="false">Preview</button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content mt-2" id="myTabContent">
+                            <div class="tab-pane fade show active" id="list-template-attributes-pane" role="tabpanel" aria-labelledby="list-template-attributes-tab" tabindex="0">
+                                <ul class="list-inline">
+                                </ul>
+                            </div>
+                            <div class="tab-pane fade" id="list-template-date-formatting-pane" role="tabpanel" aria-labelledby="list-template-date-formatting-tab" tabindex="0">
+                            </div>
+                            <div class="tab-pane fade" id="list-template-preview-pane" role="tabpanel" aria-labelledby="list-template-preview-tab" tabindex="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="mb-3">
                 <label asp-for="Layer.InfoTemplate" class="control-label"></label>
-                <textarea asp-for="Layer.InfoTemplate" class="form-control" rows="5"></textarea>
+                <textarea asp-for="Layer.InfoTemplate" class="form-control" rows="5" data-template-target="true"></textarea>
                 <span asp-validation-for="Layer.InfoTemplate" class="text-danger"></span>
+                <div class="card">
+                    <div class="card-body">
+                        <p><a href="#" id="template-auto-generate" style="display:none;">Auto generate template</a> <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/gui/layers/#auto-generate-template" target="_blank" title="Learn more about auto generating templates"><i class="bi bi-question-circle"></i></a></p>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="template-html-tags-tab" data-bs-toggle="tab" data-bs-target="#template-html-tags-pane" type="button" role="tab" aria-controls="template-html-tags-pane" aria-selected="true">HTML Tags</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="template-attributes-tab" data-bs-toggle="tab" data-bs-target="#template-attributes-pane" type="button" role="tab" aria-controls="template-attributes-pane" aria-selected="false">Attributes</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="template-date-formatting-tab" data-bs-toggle="tab" data-bs-target="#template-date-formatting-pane" type="button" role="tab" aria-controls="template-date-formatting-pane" aria-selected="false">Date formatting</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="template-preview-tab" data-bs-toggle="tab" data-bs-target="#template-preview-pane" type="button" role="tab" aria-controls="template-preview-pane" aria-selected="false">Preview</button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content mt-2" id="myTabContent">
+                            <div class="tab-pane fade show active" id="template-html-tags-pane" role="tabpanel" aria-labelledby="template-html-tags-pane" tabindex="0">
+                                <ul class="list-inline">
+                                    <li class="list-inline-item"><button type="button" data-tag="h1" class="btn btn-sm btn-outline-primary mb-2">&lt;h1&gt;</button></li>
+                                    <li class="list-inline-item"><button type="button" data-tag="h1" data-tag-close="true" class="btn btn-sm btn-outline-primary mb-2">&lt;/h1&gt;</button></li>
+                                    <li class="list-inline-item"><button type="button" data-tag="h2" class="btn btn-sm btn-outline-primary mb-2">&lt;h2&gt;</button></li>
+                                    <li class="list-inline-item"><button type="button" data-tag="h2" data-tag-close="true" class="btn btn-sm btn-outline-primary mb-2">&lt;/h2&gt;</button></li>
+                                    <li class="list-inline-item"><button type="button" data-tag="h3" class="btn btn-sm btn-outline-primary mb-2">&lt;h3&gt;</button></li>
+                                    <li class="list-inline-item"><button type="button" data-tag="h3" data-tag-close="true" class="btn btn-sm btn-outline-primary mb-2">&lt;/h3&gt;</button></li>
+                                    <li class="list-inline-item"><button type="button" data-tag="p" class="btn btn-sm btn-outline-primary mb-2">&lt;p&gt;</button></li>
+                                    <li class="list-inline-item"><button type="button" data-tag="p" data-tag-close="true" class="btn btn-sm btn-outline-primary mb-2">&lt;/p&gt;</button></li>
+                                    <li class="list-inline-item"><button type="button" data-tag="strong" class="btn btn-sm btn-outline-primary mb-2">&lt;strong&gt;</button></li>
+                                    <li class="list-inline-item"><button type="button" data-tag="strong" data-tag-close="true" class="btn btn-sm btn-outline-primary mb-2">&lt;/strong&gt;</button></li>
+                                    <li class="list-inline-item"><button type="button" data-tag="a" class="btn btn-sm btn-outline-primary mb-2">&lt;a&gt;</button></li>
+                                    <li class="list-inline-item"><button type="button" data-tag="a" data-tag-close="true" class="btn btn-sm btn-outline-primary mb-2">&lt;/a&gt;</button></li>
+                                    <li class="list-inline-item"><button type="button" data-tag="i" class="btn btn-sm btn-outline-primary mb-2">&lt;i&gt;</button></li>
+                                    <li class="list-inline-item"><button type="button" data-tag="i" data-tag-close="true" class="btn btn-sm btn-outline-primary mb-2">&lt;/i&gt;</button></li>
+                                    <li class="list-inline-item"><button type="button" data-tag="img" class="btn btn-sm btn-outline-primary mb-2">&ltimg&gt;</button></li>
+                                    <li class="list-inline-item"><button type="button" data-tag="br" class="btn btn-sm btn-outline-primary mb-2">&lt;br&gt;</button></li>
+                                </ul>
+                            </div>
+                            <div class="tab-pane fade" id="template-attributes-pane" role="tabpanel" aria-labelledby="template-attributes-tab" tabindex="0">
+                                <ul class="list-inline">
+                                </ul>
+                            </div>
+                            <div class="tab-pane fade" id="template-date-formatting-pane" role="tabpanel" aria-labelledby="template-date-formatting-tab" tabindex="0">
+
+                            </div>
+                            <div class="tab-pane fade" id="template-preview-pane" role="tabpanel" aria-labelledby="template-preview-tab" tabindex="0">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="mb-3">
@@ -127,3 +207,16 @@
         </table>
     </div>
 </div>
+
+@{
+    //TODO - move this to a more generic area and return as part of viewmodel
+    var paramsOpt = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "params").FirstOrDefault().Value;
+    var values = JsonSerializer.Deserialize<Dictionary<string, string>>(paramsOpt);
+    var name = values.Where(v => v.Key.ToLower() == "layers").FirstOrDefault().Value;
+    var baseUrl = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "url").FirstOrDefault();
+}
+<input type="hidden" value="@name" id="layer-source-name" />
+<input type="hidden" value="@baseUrl.Value" id="layer-source-url" />
+@section Scripts{
+    <script type="text/javascript" src="~/js/management/createlayerfromsource.js"></script>
+}

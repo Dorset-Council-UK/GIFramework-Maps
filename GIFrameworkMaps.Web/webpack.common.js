@@ -25,7 +25,8 @@ const managementBundle =
 {
     entry: {
         broadcast: './Scripts/Management/Broadcast.ts',
-        selectwebservice: './Scripts/Management/SelectWebService.ts'
+        selectwebservice: './Scripts/Management/SelectWebService.ts',
+        createlayerfromsource: './Scripts/Management/CreateLayerFromSource.ts'
     },
     module: {
         rules: [
