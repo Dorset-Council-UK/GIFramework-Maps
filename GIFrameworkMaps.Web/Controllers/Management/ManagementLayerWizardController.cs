@@ -73,20 +73,22 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     {
                         Name = "params",
                         Value =
-                        @$"
-                            {{
+                        @$"{{
                                 ""LAYERS"":""{model.LayerName}"", 
-                                ""FORMAT"":""{model.Format}""
+                                ""FORMAT"":""{model.Format}"",
+                                ""CRS"": ""{model.EPSG}""
                             }}"
                     };
                     model.LayerSource.LayerSourceOptions.Add(urlOpt);
                     model.LayerSource.LayerSourceOptions.Add(paramsOpt);
+                    if(model.EPSG != "EPSG:3857")
+                    {
+                        model.LayerSource.LayerSourceOptions.Add(new LayerSourceOption { Name = "projection", Value = model.EPSG });
+                    }
                     _context.Add(model.LayerSource);
                     await _context.SaveChangesAsync();
 
-                    //TODO - redirect to createfromsource with new layer id
                     return RedirectToAction("CreateFromSource", "ManagementLayer", new {id=model.LayerSource.Id});
-
 
                 }
                 catch (DbUpdateException ex)
