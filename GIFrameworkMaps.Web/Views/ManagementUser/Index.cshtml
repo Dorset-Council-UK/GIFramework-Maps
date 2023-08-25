@@ -11,7 +11,7 @@
 
 @if (Model != null)
 {
-    <table class="table table-bordered table-striped mt-2">
+    <table id="userTable" class="table table-bordered table-striped mt-2">
         <thead>
             <tr>
                 <th>ID</th>
@@ -39,6 +39,10 @@
 else
 {
     <div class="alert alert-warning">No users could be found</div>
+}
+
+@section Scripts {
+    <script>const dataTable = new simpleDatatables.DataTable("#userTable");</script>
 }
 
             

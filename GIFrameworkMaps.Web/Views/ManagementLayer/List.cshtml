@@ -12,7 +12,7 @@
 
 @if (Model != null)
 {
-    <table class="table table-bordered table-striped mt-2">
+    <table id="layerTable" class="table table-bordered table-striped mt-2">
         <thead>
             <tr>
                 <th>ID</th><th>Name</th>
@@ -32,6 +32,10 @@
 else
 {
     <div class="alert alert-warning">No layers have been created yet</div>
+}
+
+@section Scripts {
+    <script>const dataTable = new simpleDatatables.DataTable("#layerTable");</script>
 }
 
 

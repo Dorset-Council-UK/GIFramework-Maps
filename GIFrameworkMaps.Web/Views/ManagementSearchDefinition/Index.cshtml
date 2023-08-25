@@ -14,7 +14,7 @@
 
 @if (Model != null)
 {
-    <table class="table table-bordered table-striped mt-2">
+    <table id="searchDefinitionTable" class="table table-bordered table-striped mt-2">
         <thead>
             <tr>
                 <th>ID</th><th>Name</th><th>Title</th>
@@ -35,6 +35,10 @@
 else
 {
     <div class="alert alert-warning">No search definitions have been created yet</div>
+}
+
+@section Scripts {
+    <script>const dataTable = new simpleDatatables.DataTable("#searchDefinitionTable");</script>
 }
 
             
