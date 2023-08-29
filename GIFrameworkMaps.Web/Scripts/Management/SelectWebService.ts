@@ -2,7 +2,7 @@ import Fuse from "fuse.js";
 import { LayerResource } from "../Interfaces/OGCMetadata/LayerResource";
 import { Metadata } from "../Metadata/Metadata";
 
-class SelectWebService {
+export class SelectWebService {
     _fuseInstance: Fuse<any>;
 
     constructor() {
@@ -137,7 +137,3 @@ class SelectWebService {
         this._fuseInstance = new Fuse(layers, options);
     }
 }
-
-addEventListener("DOMContentLoaded", (event) => {
-    new SelectWebService().init();
-});

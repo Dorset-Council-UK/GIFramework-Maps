@@ -16,6 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="Views\ManagementLayer\ListTemplateHelperPartial.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Scripts\app.ts" />
     <None Remove="webpack.common.js" />
     <None Remove="webpack.dev.js" />
@@ -57,6 +61,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Views\ManagementLayer\ListTemplateHelperPartial.cshtml" />
     <None Include="wwwroot\img\svg-icons\circle-label.svg" />
     <None Include="wwwroot\img\svg-icons\circle.svg" />
     <None Include="wwwroot\img\svg-icons\map-marker-alt-label.svg" />
@@ -70,6 +75,14 @@
     <TypeScriptCompile Include="webpack.prod.js" />
     <TypeScriptCompile Include="webpack.dev.js" />
     <TypeScriptCompile Include="webpack.common.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Views\ManagementLayer\ListTemplateHelperPartial.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Views\ManagementLayer\ListTemplateHelperPartial.cshtml" />
   </ItemGroup>
 
 </Project>

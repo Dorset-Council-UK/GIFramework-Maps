@@ -1,4 +1,5 @@
 ﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.LayerEditModel
+@using System.Text.Json;
 @{
     ViewData["Title"] = $"Edit layer '{Model.Layer.Name}'";
 }
@@ -34,23 +35,29 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="Layer.InfoListTitleTemplate" class="control-label"></label>
-                <input asp-for="Layer.InfoListTitleTemplate" class="form-control" />
-                <span asp-validation-for="Layer.InfoListTitleTemplate" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Layer.InfoTemplate" class="control-label"></label>
-                <textarea asp-for="Layer.InfoTemplate" class="form-control" rows="5"></textarea>
-                <span asp-validation-for="Layer.InfoTemplate" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <input asp-for="Layer.Queryable" class="form-check-input" />
+                <input asp-for="Layer.Queryable" class="form-check-input" data-queryable-check="true" />
                 <label asp-for="Layer.Queryable" class="form-check-label"></label>
                 <span asp-validation-for="Layer.Queryable" class="text-danger"></span>
             </div>
+            <div id="info-templates">
+                <div class="mb-3">
+                    <label asp-for="Layer.InfoListTitleTemplate" class="control-label"></label>
+                    <input asp-for="Layer.InfoListTitleTemplate" class="form-control" data-list-template-target="true" />
+                    <span asp-validation-for="Layer.InfoListTitleTemplate" class="text-danger"></span>
+                    @{
+                        await Html.RenderPartialAsync("ListTemplateHelperPartial");
+                    }
+                </div>
 
+                <div class="mb-3">
+                    <label asp-for="Layer.InfoTemplate" class="control-label"></label>
+                    <textarea asp-for="Layer.InfoTemplate" class="form-control" rows="5" data-template-target="true"></textarea>
+                    <span asp-validation-for="Layer.InfoTemplate" class="text-danger"></span>
+                    @{
+                        await Html.RenderPartialAsync("TemplateHelperPartial");
+                    }
+                </div>
+            </div>
             <div class="mb-3">
                 <input asp-for="Layer.Filterable" class="form-check-input" />
                 <label asp-for="Layer.Filterable" class="form-check-label"></label>
@@ -60,7 +67,7 @@
 
             <!--Collapse-->
 
-            <a href="#advancedSettings" class="btn btn-outline-secondary my-3" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="advancedSettings">Advanced settings</a>
+            <a href="#advancedSettings" class="btn btn-link my-3" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="advancedSettings"><i class="bi bi-caret-right"></i> Advanced settings</a>
 
             <div class="collapse border-start border-bottom border-5 ps-3 mb-3" id="advancedSettings">
 
@@ -129,7 +136,73 @@
 <a asp-action="Delete" asp-route-id="@Model.Layer.Id" class="btn btn-danger">Delete</a>
 
 
+@{
+    //TODO - move this to a more generic area and return as part of viewmodel
+    var paramsOpt = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "params").FirstOrDefault().Value;
+    var values = JsonSerializer.Deserialize<Dictionary<string, string>>(paramsOpt);
+    var name = values.Where(v => v.Key.ToLower() == "layers").FirstOrDefault().Value;
+    var baseUrl = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "url").FirstOrDefault();
+}
+<input type="hidden" value="@name" id="layer-source-name" />
+<input type="hidden" value="@baseUrl.Value" id="layer-source-url" />
 
-            
+
+<template id="template-helper-button-list-item">
+    <li class="list-inline-item">
+        <button type="button" class="btn btn-sm btn-outline-primary mb-2"></button>
+    </li>
+</template>
+
+@section Styles{
+    <style type="text/css">
+        .template-preview {
+            max-height: 500px;
+            max-width: 400px;
+            overflow-y: auto;
+        }
+
+            .template-preview p, .template-preview a {
+                font-size: 0.9rem;
+                margin-bottom: 0;
+            }
+
+            .template-preview ul {
+                margin-bottom: .5rem;
+            }
+
+            .template-preview h1 {
+                font-size: 1.5em;
+            }
+
+            .template-preview h2 {
+                font-size: 1.2rem;
+            }
+
+            .template-preview h3 {
+                font-size: 1.1rem;
+            }
+
+            .template-preview h4 {
+                font-size: 1.1rem;
+            }
+
+            .template-preview h5 {
+                font-size: 1rem;
+            }
+
+            .template-preview .gifw-result-list ul li {
+                padding-bottom: 5px;
+                border-bottom: thin solid #dfdfdf;
+            }
+    </style>
+}
 
 
+@section Scripts{
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            const ev = new Event("CreateLayerFromSourceInit")
+            document.dispatchEvent(ev);
+        });
+    </script>
+}

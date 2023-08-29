@@ -1,6 +1,4 @@
-﻿import { DateTime } from "luxon";
-import { default as nunjucks } from "nunjucks";
-import { Feature } from "ol";
+﻿import { Feature } from "ol";
 import { Coordinate } from "ol/coordinate";
 import { Geometry } from "ol/geom";
 import { Layer } from "ol/layer";
@@ -16,6 +14,7 @@ import { GIFWPopupAction } from "../Popups/PopupAction";
 import { GIFWPopupOptions } from "../Popups/PopupOptions";
 import { Util } from "../Util";
 import { FeaturePropertiesHelper } from "./FeaturePropertiesHelper";
+import { FeatureQueryTemplateHelper } from "./FeatureQueryTemplateHelper";
 
 export class FeatureQueryResultRenderer {
 
@@ -26,17 +25,7 @@ export class FeatureQueryResultRenderer {
 
     constructor(gifwMapInstance: GIFWMap) {
         this._gifwMapInstance = gifwMapInstance;
-
-        let env = nunjucks.configure({ autoescape: false });
-        env.addFilter('date', (str, format) => {
-            let dt = DateTime.fromISO(str);
-            if (format) {
-                return dt.toFormat(format);
-            } else {
-                return dt.toLocaleString();
-            }
-
-        });
+        FeatureQueryTemplateHelper.configureNunjucks();
 
         //add highlighted features layer
         this._highlightStyle = new Style({
@@ -136,7 +125,7 @@ export class FeatureQueryResultRenderer {
                     }
 
                 }
-                popupContent = nunjucks.renderString(gifwLayer.infoTemplate, props);
+                popupContent = FeatureQueryTemplateHelper.renderTemplate(gifwLayer.infoTemplate, props);
                 let popupActions: GIFWPopupAction[] = [];
                 if (feature.getGeometry()) {
                     popupActions.push(
@@ -194,7 +183,7 @@ export class FeatureQueryResultRenderer {
                     listItemContent = f.get('gifw-popup-title');
 
                 } else if (gifwLayer) {
-                    listItemContent = nunjucks.renderString(gifwLayer.infoListTitleTemplate, f.getProperties());
+                    listItemContent = FeatureQueryTemplateHelper.renderTemplate(gifwLayer.infoListTitleTemplate, f.getProperties());
                 }
 
                 if(listItemContent === '') {

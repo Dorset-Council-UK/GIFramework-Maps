@@ -128,6 +128,7 @@ namespace GIFrameworkMaps.Data
         {
             var layer = await _context.Layer
                 .Include(l => l.LayerSource)
+                .ThenInclude(l => l.LayerSourceOptions)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             return layer;

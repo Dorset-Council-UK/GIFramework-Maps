@@ -58,14 +58,19 @@
         <ul id="messagesList"></ul>
     </div>
 </div>
-<script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
-<script>
-    @{
-        var host = Context.Request.Host.ToUriComponent();
-        var pathBase = Context.Request.PathBase.ToUriComponent();
-        string AppRoot = $"{Context.Request.Scheme}://{host}{pathBase}";
-    }
-    /*TODO: Yuck, global var. Kill it with fire*/
-    var appRoot = '@AppRoot'
+@section Scripts{
+    <script>
+        @{
+            var host = Context.Request.Host.ToUriComponent();
+            var pathBase = Context.Request.PathBase.ToUriComponent();
+            string AppRoot = $"{Context.Request.Scheme}://{host}{pathBase}";
+        }
+        /*TODO: Yuck, global var. Kill it with fire*/
+        var appRoot = '@AppRoot';
+        //TODO - This method of initializing stuff is HORRIBLE. Replace with something better
+        document.addEventListener("DOMContentLoaded", (event) => {
+            const ev = new Event("BroadcastInit")
+            document.dispatchEvent(ev);
+        });
     </script>
-<script src="~/js/management/broadcast.js"></script>
+}

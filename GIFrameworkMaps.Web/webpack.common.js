@@ -23,11 +23,7 @@ const mapBundle = {
 
 const managementBundle =
 {
-    entry: {
-        broadcast: './Scripts/Management/Broadcast.ts',
-        selectwebservice: './Scripts/Management/SelectWebService.ts',
-        createlayerfromsource: './Scripts/Management/CreateLayerFromSource.ts'
-    },
+    entry: ['./Scripts/management/management.ts'],
     module: {
         rules: [
             {
@@ -41,7 +37,7 @@ const managementBundle =
         extensions: ['.tsx', '.ts', '.js'],
     },
     output: {
-        filename: '[name].js',
+        filename: 'management.js',
         path: path.resolve(__dirname, 'wwwroot/js/management'),
         publicPath: ''
     }

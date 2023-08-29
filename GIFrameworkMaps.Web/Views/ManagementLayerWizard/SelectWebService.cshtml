@@ -85,5 +85,10 @@
 </template>
 
 @section Scripts{
-    <script type="text/javascript" src="~/js/management/selectwebservice.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            const ev = new Event("SelectWebServiceInit")
+            document.dispatchEvent(ev);
+        });
+    </script>
 }
