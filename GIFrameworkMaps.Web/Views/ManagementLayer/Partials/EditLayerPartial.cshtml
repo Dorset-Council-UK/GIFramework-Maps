@@ -1,0 +1,118 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.LayerEditModel
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+<input type="hidden" asp-for="Layer.Id" />
+<div class="mb-3">
+    <label asp-for="Layer.Name" class="control-label"></label>
+    <input asp-for="Layer.Name" class="form-control" data-name-input="true" />
+    <span asp-validation-for="Layer.Name" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Layer.MinZoom" class="control-label"></label>
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-6">
+            <input asp-for="Layer.MinZoom" class="form-control" />
+        </div>
+    </div>
+    <span asp-validation-for="Layer.MinZoom" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Layer.MaxZoom" class="control-label"></label>
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-6">
+            <input asp-for="Layer.MaxZoom" class="form-control" />
+        </div>
+    </div>
+    <span asp-validation-for="Layer.MaxZoom" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Layer.ZIndex" class="control-label"></label>
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-6">
+            <input asp-for="Layer.ZIndex" class="form-control" />
+        </div>
+    </div>
+    <span asp-validation-for="Layer.ZIndex" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <input asp-for="Layer.Queryable" class="form-check-input" data-queryable-check="true" />
+    <label asp-for="Layer.Queryable" class="form-check-label"></label>
+    <p class="form-text text-danger" id="non-queryable-layer-warning" style="display:none">The server has reported that this layer is not queryable, so this should be unchecked.</p>
+    <span asp-validation-for="Layer.Queryable" class="text-danger"></span>
+</div>
+<div id="info-templates">
+    <div class="mb-3">
+        <label asp-for="Layer.InfoListTitleTemplate" class="control-label"></label>
+        <input asp-for="Layer.InfoListTitleTemplate" class="form-control" data-list-template-target="true" />
+        <span asp-validation-for="Layer.InfoListTitleTemplate" class="text-danger"></span>
+        @{
+            await Html.RenderPartialAsync("Partials/ListTemplateHelperPartial");
+        }
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Layer.InfoTemplate" class="control-label"></label>
+        <textarea asp-for="Layer.InfoTemplate" class="form-control" rows="5" data-template-target="true"></textarea>
+        <span asp-validation-for="Layer.InfoTemplate" class="text-danger"></span>
+        @{
+            await Html.RenderPartialAsync("Partials/TemplateHelperPartial");
+        }
+    </div>
+</div>
+<div class="mb-3">
+    <input asp-for="Layer.Filterable" class="form-check-input" />
+    <label asp-for="Layer.Filterable" class="form-check-label"></label>
+    <span asp-validation-for="Layer.Filterable" class="text-danger"></span>
+</div>
+
+<a href="#advancedSettings" class="btn btn-link my-3 ps-0" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="advancedSettings"><i class="bi bi-caret-right"></i> Advanced settings</a>
+
+<div class="collapse border-start border-bottom border-5 ps-3 mb-3" id="advancedSettings">
+
+    <div class="mb-3">
+        <label asp-for="Layer.BoundId" class="control-label"></label>
+        <select asp-for="Layer.BoundId" asp-items="Model.AvailableBounds" class="form-select">
+            <option value="">Not bounded</option>
+        </select>
+        <span class="form-text">Restricts map rendering and querying outside of these bounds. </span>
+        <span asp-validation-for="Layer.BoundId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Layer.DefaultOpacity" class="control-label"></label>
+        <input asp-for="Layer.DefaultOpacity" type="range" class="form-range" min="0" max="100" />
+        <span asp-validation-for="Layer.DefaultOpacity" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Layer.DefaultSaturation" class="control-label"></label>
+        <input asp-for="Layer.DefaultSaturation" type="range" class="form-range" min="0" max="100" />
+        <span asp-validation-for="Layer.DefaultSaturation" class="text-danger"></span>
+    </div>
+
+
+    <div class="mb-3">
+        <input asp-for="Layer.DefaultFilterEditable" class="form-check-input" />
+        <label asp-for="Layer.DefaultFilterEditable" class="form-check-label"></label>
+        <p class="form-text">Whether any default filters applied to the layer source are editable by end users. </p>
+
+        <span asp-validation-for="Layer.DefaultFilterEditable" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <input asp-for="Layer.ProxyMapRequests" class="form-check-input" />
+        <label asp-for="Layer.ProxyMapRequests" class="form-check-label"></label>
+        <span asp-validation-for="Layer.ProxyMapRequests" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <input asp-for="Layer.ProxyMetaRequests" class="form-check-input" />
+        <label asp-for="Layer.ProxyMetaRequests" class="form-check-label"></label>
+        <span asp-validation-for="Layer.ProxyMetaRequests" class="text-danger"></span>
+    </div>
+
+</div>

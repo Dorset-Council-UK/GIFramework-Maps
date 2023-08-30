@@ -30,6 +30,7 @@
     <PackageReference Include="AutoMapper" Version="12.0.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
+    <PackageReference Include="FuzzySharp" Version="2.0.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="7.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.3" />
@@ -61,7 +62,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Views\ManagementLayer\ListTemplateHelperPartial.cshtml" />
+    <None Include="Views\ManagementLayer\Partials\ListTemplateHelperPartial.cshtml" />
     <None Include="wwwroot\img\svg-icons\circle-label.svg" />
     <None Include="wwwroot\img\svg-icons\circle.svg" />
     <None Include="wwwroot\img\svg-icons\map-marker-alt-label.svg" />

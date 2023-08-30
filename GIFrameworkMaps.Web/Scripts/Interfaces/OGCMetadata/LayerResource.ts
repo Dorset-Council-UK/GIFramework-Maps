@@ -8,5 +8,6 @@ export interface LayerResource {
     formats: string[];
     baseUrl: string;
     projection: string;
-    extent: Extent
+    extent: Extent;
+    queryable: boolean;
 }

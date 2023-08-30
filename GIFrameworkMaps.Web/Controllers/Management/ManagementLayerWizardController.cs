@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Graph.Beta.Models;
+using FuzzySharp;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
@@ -51,6 +51,18 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 Name = layerResource.Name,
                 Description = layerResource.Abstract
             };
+            if (!string.IsNullOrEmpty(layerResource.Attribution))
+            {
+                //attempt to get most relevant attribution
+                var attributions = _context.Attribution.ToList();
+                var closestMatch = Process.ExtractOne(layerResource.Attribution, attributions.Select(a => a.RenderedAttributionHTML), cutoff: 70);
+                if (closestMatch != null)
+                {
+                    layerSource.Attribution = attributions[closestMatch.Index];
+                    layerSource.AttributionId = attributions[closestMatch.Index].Id;
+                }
+
+            }
             var editModel = new LayerWizardCreateSourceViewModel {
                 BaseURL = layerResource.BaseUrl,
                 Format = layerResource.Formats[0],
@@ -106,8 +118,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         private void RebuildLayerWizardCreateSourceViewModel(ref Data.Models.ViewModels.Management.LayerWizardCreateSourceViewModel model, Data.Models.LayerSource layerSource)
         {
             var attributions = _context.Attribution.OrderBy(t => t.Name).ToList();
-            var layerSourceTypes = _context.LayerSourceType.OrderBy(t => t.Name).ToList();
-
+            var layerSourceTypes = _context.LayerSourceType.Where(l => l.Name.Contains("WMS")).OrderBy(t => t.Id).ToList();
             model.AvailableAttributions = new SelectList(attributions, "Id", "Name", layerSource.AttributionId);
             model.AvailableLayerSourceTypes = new SelectList(layerSourceTypes, "Id", "Name", layerSource.LayerSourceTypeId);
         }

@@ -33,6 +33,7 @@ export class CreateLayerFromSource {
 
     public async init() {
         await this.renderAttributeLists();
+        await this.getPropertySuggestions();
         //attach HTML tag buttons
         this.renderHTMLTagsList();
         
@@ -77,6 +78,25 @@ export class CreateLayerFromSource {
         this.setTemplateVisibility();
         const checkbox = document.querySelector('input[data-queryable-check]') as HTMLInputElement;
         checkbox.addEventListener('change', e => { this.setTemplateVisibility() });
+    }
+
+    private async getPropertySuggestions() {
+        if (this.layerSourceURL !== '' && this.layerSourceName !== '') {
+            let availableLayers = await Metadata.getLayersFromCapabilities(this.layerSourceURL);
+            if (availableLayers && availableLayers.length !== 0) {
+                const curLayer = availableLayers.filter(l => l.name === this.layerSourceName);
+                if (curLayer.length === 1) {
+                    //make suggestions
+                    if (curLayer[0].queryable === false) {
+                        document.getElementById('non-queryable-layer-warning').style.display = '';
+                    }
+                    const layerNameInput = document.querySelector('input[data-name-input]') as HTMLInputElement;
+                    if (layerNameInput.value === '') {
+                        layerNameInput.value = curLayer[0].title;
+                    }
+                }
+            }
+        }
     }
 
     private async getAttributesForLayer() {
@@ -176,7 +196,9 @@ export class CreateLayerFromSource {
         }
         //loop through remaining properties, applying basic template
         attributes.forEach(attr => {
-            template += `<p><strong>${attr}:</strong> {{${attr}}}</p>\r`;
+            attr = attr.replace("_", " ").toLowerCase();
+            attr = `${attr.charAt(0).toUpperCase()}${attr.slice(1)}`;
+            template += `<p><strong>${attr.replace("_"," ")}:</strong> {{${attr}}}</p>\r`;
         })
         this.templateInput.value = template;
     }

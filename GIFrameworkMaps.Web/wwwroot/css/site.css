@@ -1,7 +1,4 @@
-﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
-for details on configuring this project to bundle and minify static web assets. */
-
-:root {
+﻿:root {
     --bs-primary: #05476d;
 }
 .navbar {
@@ -65,12 +62,15 @@ a:hover, a:focus {
     color:white;
 }
 
-    .btn-outline-primary:not(:disabled):not(.disabled).active:focus, .btn-outline-primary:not(:disabled):not(.disabled):active:focus, .show > .btn-outline-primary.dropdown-toggle:focus {
-        box-shadow: 0 0 0 0.2rem rgba(11, 45, 73,.3);
-        background-color: #0b2d49;
-        color: white;
-    }
+.btn-outline-primary:not(:disabled):not(.disabled).active:focus, .btn-outline-primary:not(:disabled):not(.disabled):active:focus, .show > .btn-outline-primary.dropdown-toggle:focus {
+    box-shadow: 0 0 0 0.2rem rgba(11, 45, 73,.3);
+    background-color: #0b2d49;
+    color: white;
+}
 
+.btn-link{
+    color:var(--bs-primary);
+}
 .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
     color: #fff;
     background-color: #05476d;
