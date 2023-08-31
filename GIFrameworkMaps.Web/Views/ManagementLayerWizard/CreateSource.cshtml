@@ -61,6 +61,18 @@
                     <input asp-for="EPSG" class="form-control" />
                     <span asp-validation-for="EPSG" class="text-danger"></span>
                 </div>
+
+                <div class="mb-3">
+                    <label asp-for="Version" class="control-label"></label>
+                    <input asp-for="Version" class="form-control" />
+                    <span asp-validation-for="Version" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <input asp-for="UseProxy" class="form-check-input" />
+                    <label asp-for="UseProxy" class="form-check-label"></label>
+                    <span asp-validation-for="UseProxy" class="text-danger"></span>
+                </div>
             </div>
 
             <div class="mb-3">

@@ -319,7 +319,10 @@ export class Metadata {
                     baseUrl: getMapEndpoint,
                     projection: projection,
                     extent: extent,
-                    queryable: queryable
+                    queryable: queryable,
+                    version: version,
+                    proxyMetaRequests: (proxyEndpoint !== "" ? true : false),
+                    proxyMapRequests: (proxyEndpoint !== "" ? true : false)
                 }
                 availableLayers.push(layer)
             })

@@ -1,6 +1,8 @@
 ﻿@model List<GIFrameworkMaps.Data.Models.WebLayerServiceDefinition>
 @{
     ViewData["Title"] = "Select web service";
+    //TODO Temporary hack using url.content to generate correct link
+    var proxyEndpoint = Url.Content("~/proxy");
 }
 <h1>@ViewData["Title"]</h1>
 <p class="lead">Find the layer you want to add from the web services available, or add your own</p>
@@ -25,11 +27,10 @@
                                 <optgroup label="@group.First().Category">
                                     @foreach(var definition in group.OrderBy(d => d.SortOrder))
                                     {
-                                        //TODO Temporary hack using url.content to generate correct link
-                                        var proxyEndpoint = definition.ProxyMetaRequests ? Url.Content("~/proxy") : "";
+
                                         <option 
                                             value="@definition.Url"
-                                                data-proxy-via="@proxyEndpoint"
+                                                data-proxy-via="@(definition.ProxyMetaRequests ? proxyEndpoint : "")"
                                                 data-wms-version="@definition.Version">
                                         @definition.Name
                                         </option>
@@ -44,6 +45,9 @@
                     <label class="control-label" for="service-url">Or enter a GetCapabilities URL</label>
                     <div class="input-group">
                         <input type="url" class="form-control" id="service-url" />
+                        <div class="input-group-text">
+                            <input class="form-check-input mt-0" type="checkbox" value="@proxyEndpoint" id="use-proxy"><label class="ms-2" for="use-proxy">Use proxy</label>
+                        </div>
                         <button class="btn btn-outline-primary" type="button" id="web-service-text-connect">Connect</button>
                     </div>
                 </div>

@@ -186,7 +186,14 @@ footer {
     color:inherit;
     text-decoration: none;
 }
+.validation-summary-errors li {
+    list-style: none;
+}
 
+.validation-summary-errors ul {
+    padding: 0;
+    margin: 0;
+}
 /*temporary bootstrap icons alignment*/
 [class^="bi-"]::before, [class*=" bi-"]::before{
     vertical-align:-.125em;

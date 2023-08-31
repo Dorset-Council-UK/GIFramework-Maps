@@ -25,10 +25,11 @@ export class SelectWebService {
 
         urlConnectBtn.addEventListener('click', (e) => {
             //parse URL and fetch
-            const webServiceInput = document.getElementById('service-url');
-            const url = (webServiceInput as HTMLInputElement).value;
+            const webServiceInput = document.getElementById('service-url') as HTMLInputElement;
+            const webServiceUseProxy = document.getElementById('use-proxy') as HTMLInputElement;
+            const url = webServiceInput.value;
 
-            this.renderLayersListFromService(url);
+            this.renderLayersListFromService(url, undefined, (webServiceUseProxy.checked ? webServiceUseProxy.value : ""));
         })
 
         const searchInput: HTMLInputElement = document.getElementById('layer-list-search') as HTMLInputElement;
@@ -82,7 +83,6 @@ export class SelectWebService {
         desc.textContent = layer.abstract;
         epsg.textContent = layer.projection;
         btn.addEventListener('click', (e) => {
-            console.log(layer);
             const form = document.getElementById('create-source-form') as HTMLFormElement;
             form.querySelector('input').value = JSON.stringify(layer);
             form.submit();

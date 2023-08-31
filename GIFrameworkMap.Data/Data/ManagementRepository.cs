@@ -230,6 +230,11 @@ namespace GIFrameworkMaps.Data
             return layerCategories;
         }
 
+        public async Task<List<CategoryLayer>> GetLayerCategoriesLayerAppearsIn(int layerId)
+        {
+            var layerCategories = await _context.CategoryLayer.Where(c => c.LayerId == layerId).ToListAsync();
+            return layerCategories;
+        }
 
         public async Task<List<SearchDefinition>> GetSearchDefinitions()
         {

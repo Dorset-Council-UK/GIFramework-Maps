@@ -68,6 +68,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 Format = layerResource.Formats[0],
                 EPSG = layerResource.Projection,
                 LayerName = layerResource.Name,
+                Version = layerResource.Version,
+                UseProxy = layerResource.ProxyMetaRequests,
                 LayerSource = layerSource,
             };
             RebuildLayerWizardCreateSourceViewModel(ref editModel, layerSource);
@@ -88,7 +90,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         @$"{{
                                 ""LAYERS"":""{model.LayerName}"", 
                                 ""FORMAT"":""{model.Format}"",
-                                ""CRS"": ""{model.EPSG}""
+                                ""CRS"": ""{model.EPSG}"",
+                                ""VERSION"": ""{model.Version}""
                             }}"
                     };
                     model.LayerSource.LayerSourceOptions.Add(urlOpt);
@@ -100,7 +103,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     _context.Add(model.LayerSource);
                     await _context.SaveChangesAsync();
 
-                    return RedirectToAction("CreateFromSource", "ManagementLayer", new {id=model.LayerSource.Id});
+                    return RedirectToAction("CreateFromSource", "ManagementLayer", new {id=model.LayerSource.Id, useProxy = model.UseProxy});
 
                 }
                 catch (DbUpdateException ex)

@@ -2,36 +2,59 @@
 @using System.Text.Json;
 @{
     ViewData["Title"] = $"Edit layer '{Model.Layer.Name}'";
+    //TODO Temporary hack using url.content to generate correct link
+    var proxyEndpoint = Url.Content("~/proxy");
 }
 
 <h1>@ViewData["Title"]</h1>
-<div class="row mt-2 mb-2">
-    <div class="col-md-8 col-lg-6">
-        <form asp-action="Edit">
-            
-            @{
-                await Html.RenderPartialAsync("Partials/EditLayerPartial", Model);
-            }
-
-            <div class="mb-3">
-                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
-                <a asp-action="List" class="btn btn-link">Cancel</a>
-            </div>
-        </form>
+<form asp-action="Edit">
+    <div class="row mt-2 mb-2">
+        <div class="col-md-8 col-lg-6">
         
+            
+                @{
+                    await Html.RenderPartialAsync("Partials/EditLayerPartial", Model);
+                }
+
+                <div class="mb-3">
+                    <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                    <a asp-action="List" class="btn btn-link">Cancel</a>
+                </div>
+                <div>
+                    <a asp-action="Delete" asp-route-id="@Model.Layer.Id" class="btn btn-danger">Delete</a>
+                </div>
+        
+        </div>
+        <div class="col-md-4 col-lg-6">
+
+            <ul class="nav nav-underline mb-2" role="tablist">
+                <li class="nav-item active" role="presentation">
+                    <button class="nav-link active" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories-tab-pane" type="button" role="tab" aria-controls="categories-tab-pane" aria-selected="true">Layer Categories</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="details-tab" data-bs-toggle="tab" data-bs-target="#details-tab-pane" type="button" role="tab" aria-controls="details-tab-pane" aria-selected="false">Source details</button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="categories-tab-pane" role="tabpanel" aria-labelledby="categories-tab" tabindex="0">
+                    <partial name="ManagementPartials/VersionCategoryList" model="Model.AvailableCategories.Where(c => c.ParentCategoryId == null).ToList()" view-data="ViewData" />
+                </div>
+                <div class="tab-pane fade" id="details-tab-pane" role="tabpanel" aria-labelledby="details-tab" tabindex="0">
+                    <table class="table table-sm table-striped">
+                        <tbody>
+                            <tr><th>ID</th><td>@Model.Layer.LayerSource.Id</td></tr>
+                            <tr><th>Name</th><td>@Model.Layer.LayerSource.Name</td></tr>
+                            <tr><th>Description</th><td>@Model.Layer.LayerSource.Description</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+        </div>
     </div>
-    <div class="col-md-4 col-lg-6">
-        <h2>Source details</h2>
-        <table class="table table-sm table-striped">
-            <tbody>
-                <tr><th>ID</th><td>@Model.Layer.LayerSource.Id</td></tr>
-                <tr><th>Name</th><td>@Model.Layer.LayerSource.Name</td></tr>
-                <tr><th>Description</th><td>@Model.Layer.LayerSource.Description</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-<a asp-action="Delete" asp-route-id="@Model.Layer.Id" class="btn btn-danger">Delete</a>
+</form>
 
 
 @{
@@ -95,7 +118,9 @@
     </style>
 }
 
-
+<script>
+    var proxyEndpoint = '@proxyEndpoint';
+</script>
 @section Scripts{
     <script>
         document.addEventListener("DOMContentLoaded", (event) => {

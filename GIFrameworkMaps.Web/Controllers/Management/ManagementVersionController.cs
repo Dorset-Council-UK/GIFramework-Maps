@@ -266,7 +266,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 return;
             }
 
-            var selectedCaegoriesHS = new HashSet<int>(selectedCategories);
+            var selectedCategoriesHS = new HashSet<int>(selectedCategories);
             var versionCategories = new HashSet<int>();
             if (versionToUpdate.VersionCategories != null)
             {
@@ -275,7 +275,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
             foreach (var category in _context.Category)
             {
-                if (selectedCaegoriesHS.Contains(category.Id))
+                if (selectedCategoriesHS.Contains(category.Id))
                 {
                     if (!versionCategories.Contains(category.Id))
                     {

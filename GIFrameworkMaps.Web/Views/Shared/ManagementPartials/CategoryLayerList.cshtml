@@ -10,6 +10,6 @@
             value="@layer.Id"
             id="SelectedLayers__@layer.Id"
         @(Html.Raw(isChecked ? "checked=\"checked\"" : "")) />
-        <label class="form-check-label" for="SelectedLayers__@layer.Id">@layer.Name</label>
+        <label class="form-check-label" for="SelectedLayers__@layer.Id">@layer.Name <small>(ID: @Html.ActionLink(layer.Id.ToString(), "Edit","ManagementLayer", new{id=layer.Id}))</small></label>
     </div>
 }

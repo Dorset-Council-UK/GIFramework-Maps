@@ -20,5 +20,11 @@ namespace GIFrameworkMaps.Data.Models.ViewModels.Management
         public string Projection { get; set; }
         [JsonPropertyName("extent")]
         public decimal[] Extent { get; set; }
+        [JsonPropertyName("version")]
+        public string Version { get; set; }
+        [JsonPropertyName("proxyMetaRequests")]
+        public bool ProxyMetaRequests { get; set; }
+        [JsonPropertyName("proxyMapRequests")]
+        public bool ProxyMapRequests { get; set; }
     }
 }

@@ -6,6 +6,8 @@ import { FeatureQueryResponse } from "../Interfaces/FeatureQuery/FeatureQueryRes
 import { CapabilityType } from "../Interfaces/OGCMetadata/BasicServerCapabilities";
 import { Metadata } from "../Metadata/Metadata";
 import { FeatureQueryTemplateHelper } from "../FeatureQuery/FeatureQueryTemplateHelper";
+//global var defined in view. Replace me with another method :)
+declare var proxyEndpoint: string;
 export class CreateLayerFromSource {
     htmlTags = [
         { tagId: 'h1', openTag: '<h1>', closeTag: '</h1>' },
@@ -22,12 +24,14 @@ export class CreateLayerFromSource {
     listTemplateInput: HTMLInputElement;
     layerSourceURL: string;
     layerSourceName: string;
+    proxyEndpoint: string;
     _cachedExampleFeature: any;
     constructor() {
         this.templateInput = document.querySelector('textarea[data-template-target]') as HTMLTextAreaElement;
         this.listTemplateInput = document.querySelector('input[data-list-template-target]') as HTMLInputElement;
         this.layerSourceURL = (document.getElementById('layer-source-url') as HTMLInputElement).value;
         this.layerSourceName = (document.getElementById('layer-source-name') as HTMLInputElement).value;
+        this.proxyEndpoint = proxyEndpoint;
         FeatureQueryTemplateHelper.configureNunjucks();
     }
 
@@ -82,7 +86,7 @@ export class CreateLayerFromSource {
 
     private async getPropertySuggestions() {
         if (this.layerSourceURL !== '' && this.layerSourceName !== '') {
-            let availableLayers = await Metadata.getLayersFromCapabilities(this.layerSourceURL);
+            let availableLayers = await Metadata.getLayersFromCapabilities(this.layerSourceURL, "", this.getProxyEndpoint());
             if (availableLayers && availableLayers.length !== 0) {
                 const curLayer = availableLayers.filter(l => l.name === this.layerSourceName);
                 if (curLayer.length === 1) {
@@ -102,7 +106,7 @@ export class CreateLayerFromSource {
     private async getAttributesForLayer() {
 
         if (this.layerSourceURL !== '' && this.layerSourceName !== '') {
-            let serverCapabilities = await Metadata.getBasicCapabilities(this.layerSourceURL, {}, "");
+            let serverCapabilities = await Metadata.getBasicCapabilities(this.layerSourceURL, {}, this.getProxyEndpoint());
 
             if (serverCapabilities &&
                 serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType && c.url !== '').length !== 0
@@ -196,9 +200,9 @@ export class CreateLayerFromSource {
         }
         //loop through remaining properties, applying basic template
         attributes.forEach(attr => {
-            attr = attr.replace("_", " ").toLowerCase();
-            attr = `${attr.charAt(0).toUpperCase()}${attr.slice(1)}`;
-            template += `<p><strong>${attr.replace("_"," ")}:</strong> {{${attr}}}</p>\r`;
+            let attrFriendlyName = attr.replace("_", " ").toLowerCase();
+            attrFriendlyName = `${attrFriendlyName.charAt(0).toUpperCase()}${attrFriendlyName.slice(1)}`;
+            template += `<p><strong>${attrFriendlyName.replace("_"," ")}:</strong> {{${attr}}}</p>\r`;
         })
         this.templateInput.value = template;
     }
@@ -224,7 +228,7 @@ export class CreateLayerFromSource {
         if (this._cachedExampleFeature) {
             return this._cachedExampleFeature;
         }
-        let serverCapabilities = await Metadata.getBasicCapabilities(this.layerSourceURL, {});
+        let serverCapabilities = await Metadata.getBasicCapabilities(this.layerSourceURL, {}, this.getProxyEndpoint());
 
         if (serverCapabilities &&
             serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType && c.url !== '').length !== 0 &&
@@ -306,6 +310,13 @@ export class CreateLayerFromSource {
         }
     }
 
+    private getProxyEndpoint() {
+        const proxyMetaInput = (document.querySelector('input[data-proxy-meta]') as HTMLInputElement);
+        if (proxyMetaInput.checked) {
+            return this.proxyEndpoint;
+        }
+        return "";
+    }
     private insertAtCaret(text: string, el: HTMLInputElement|HTMLTextAreaElement) {
         const [start, end] = [el.selectionStart, el.selectionEnd];
         el.setRangeText(text, start, end, 'end');

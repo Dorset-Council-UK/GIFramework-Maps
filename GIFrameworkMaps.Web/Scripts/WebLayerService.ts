@@ -74,7 +74,7 @@ export class WebLayerService {
             layersListContainer.innerHTML = '';
             if (availableLayers && availableLayers.length !== 0) {
                 availableLayers.forEach(layer => {
-                    layersListContainer.appendChild(this.renderLayerItem(layer, serviceDefinition));
+                    layersListContainer.appendChild(this.renderLayerItem(layer));
                 })
 
                 searchInput.style.display = '';
@@ -121,7 +121,7 @@ export class WebLayerService {
     * @returns HTMLElement
     *
     */
-    private renderLayerItem(layerDetails: LayerResource, serviceDefinition: WebLayerServiceDefinition): HTMLElement {
+    private renderLayerItem(layerDetails: LayerResource): HTMLElement {
         let layerItemContainer = document.createElement('div');
         layerItemContainer.className = `list-group-item`;
         layerItemContainer.id = layerDetails.name;
@@ -135,7 +135,7 @@ export class WebLayerService {
             try {
                 let source: olSource.ImageWMS | olSource.TileWMS;
 
-                if (serviceDefinition.proxyMapRequests) {
+                if (layerDetails.proxyMapRequests) {
                     let imageWMSOpts: ImageWMSOptions = {
                         url: layerDetails.baseUrl,
                         params: {
@@ -148,7 +148,7 @@ export class WebLayerService {
                         projection: layerDetails.projection,
                 
                     };
-                    if (serviceDefinition.proxyMapRequests) {
+                    if (layerDetails.proxyMapRequests) {
                         imageWMSOpts.imageLoadFunction = (imageTile: any, src: string) => {
                             let proxyUrl = this.gifwMapInstance.createProxyURL(src);
                             imageTile.getImage().src = proxyUrl;
@@ -169,7 +169,7 @@ export class WebLayerService {
                         projection: layerDetails.projection,
 
                     };
-                    if (serviceDefinition.proxyMapRequests) {
+                    if (layerDetails.proxyMapRequests) {
                         tileWMSOpts.tileLoadFunction = (imageTile: any, src: string) => {
                             let proxyUrl = this.gifwMapInstance.createProxyURL(src);
                             imageTile.getImage().src = proxyUrl;
@@ -182,8 +182,8 @@ export class WebLayerService {
                 this.gifwMapInstance.addWebLayerToMap(
                     source,
                     layerDetails.title,
-                    serviceDefinition.proxyMetaRequests,
-                    serviceDefinition.proxyMapRequests
+                    layerDetails.proxyMetaRequests,
+                    layerDetails.proxyMapRequests
                 )
                 let layerModal = Modal.getInstance('#add-layer-web-layer-modal');
 

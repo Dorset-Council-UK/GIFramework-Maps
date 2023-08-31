@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,9 +13,14 @@ namespace GIFrameworkMaps.Data.Models.ViewModels.Management
         public GIFrameworkMaps.Data.Models.LayerSource LayerSource { get; set; }
         public SelectList AvailableAttributions { get; set; }
         public SelectList AvailableLayerSourceTypes { get; set; }
+        [Display(Name ="Base URL")]
         public string BaseURL { get; set; }
+        [Display(Name = "Layer Name")]
         public string LayerName { get; set; }
         public string EPSG { get; set; }
         public string Format { get; set; }
+        public string Version { get; set; }
+        [Display(Name = "Require use of proxy?")]
+        public bool UseProxy { get; set; }
     }
 }
