@@ -165,3 +165,58 @@ footer {
 [class^="bi-"]::before, [class*=" bi-"]::before{
     vertical-align:-.125em;
 }
+
+
+/*simple-datatables overrides*/
+
+.datatable-search {
+    padding: .25rem .5rem;
+    border-radius: 0.375rem;
+    border-color: #dee2e6;
+    outline-offset: 0px;
+}
+
+.datatable-input {
+    outline-offset: 0px;
+    border-color: #dee2e6;
+    border-radius: 0.375rem;
+}
+
+.datatable-selector {
+    border-color: #dee2e6;
+    border-radius: 0.375rem;
+}
+
+.datatable-pagination li {
+    border: 1px solid;
+    border-color: #dee2e6;
+}
+
+.datatable-pagination li:first-child {
+    border-top-left-radius: 0.375rem;
+    border-bottom-left-radius: 0.375rem;
+}
+
+.datatable-pagination li:last-child {
+    border-top-right-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+}
+
+datatable-pagination a, .datatable-pagination button {
+    color: #0d6efd;
+    margin: 0 0;
+}
+
+.datatable-pagination li.datatable-hidden {
+    visibility: visible;
+}
+
+    .datatable-pagination .datatable-active a,
+    .datatable-pagination .datatable-active a:focus,
+    .datatable-pagination .datatable-active a:hover,
+    .datatable-pagination .datatable-active button,
+    .datatable-pagination .datatable-active button:focus,
+    .datatable-pagination .datatable-active button:hover {
+        background-color: #0d6efd;
+        color: #ffffff;
+    }
