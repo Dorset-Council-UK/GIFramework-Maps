@@ -46,6 +46,7 @@
                             <tr><th>Description</th><td>@Model.Layer.LayerSource.Description</td></tr>
                         </tbody>
                     </table>
+                    <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("Edit","ManagementLayerSource",new {id=Model.Layer.LayerSource.Id})" target="_blank">View source details <i class="bi bi-box-arrow-up-right"></i></a>
                 </div>
             </div>
 
@@ -56,13 +57,17 @@
 </form>
 @{
     //TODO - move this to a more generic area and return as part of viewmodel
-    var paramsOpt = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "params").FirstOrDefault().Value;
-    var values = JsonSerializer.Deserialize<Dictionary<string, string>>(paramsOpt);
-    var name = values.Where(v => v.Key.ToLower() == "layers").FirstOrDefault().Value;
-    var baseUrl = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "url").FirstOrDefault();
+    var name = "";
+    var baseUrl = "";
+    if(Model.Layer.LayerSource.LayerSourceType.Name != "XYZ"){
+        var paramsOpt = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "params").FirstOrDefault().Value;
+        var values = JsonSerializer.Deserialize<Dictionary<string, string>>(paramsOpt);
+        name = values.Where(v => v.Key.ToLower() == "layers").FirstOrDefault().Value;
+        baseUrl = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "url").FirstOrDefault().Value;
+    }
 }
 <input type="hidden" value="@name" id="layer-source-name" />
-<input type="hidden" value="@baseUrl.Value" id="layer-source-url" />
+<input type="hidden" value="@baseUrl" id="layer-source-url" />
 
 
 <template id="template-helper-button-list-item">

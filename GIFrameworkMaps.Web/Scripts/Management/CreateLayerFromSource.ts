@@ -65,23 +65,33 @@ export class CreateLayerFromSource {
             })
         })
         //attach preview generators
-
-        document.getElementById('template-preview-generate').addEventListener('click', e => {
-            e.preventDefault();
-            this.generateTemplatePreview(this.templateInput.value, document.getElementById('template-preview-container'));
-        });
-        document.getElementById('list-template-preview-generate').addEventListener('click', e => {
-            e.preventDefault();
-            this.generateTemplatePreview(this.listTemplateInput.value, document.getElementById('list-template-preview-container'));
-        })
+        const templatePreviewGeneratorButton = document.getElementById('template-preview-generate');
+        const listTemplatePreviewGeneratorButton = document.getElementById('list-template-preview-generate');
+        if (templatePreviewGeneratorButton) {
+            templatePreviewGeneratorButton.addEventListener('click', e => {
+                e.preventDefault();
+                this.generateTemplatePreview(this.templateInput.value, document.getElementById('template-preview-container'));
+            });
+        }
+        if (listTemplatePreviewGeneratorButton) {
+            listTemplatePreviewGeneratorButton.addEventListener('click', e => {
+                e.preventDefault();
+                this.generateTemplatePreview(this.listTemplateInput.value, document.getElementById('list-template-preview-container'));
+            })
+        }
 
         //attach auto generate template button
-        document.querySelector('#template-auto-generate a').addEventListener('click', e => { e.preventDefault(); this.autoGenerateTemplate() })
+        const autoGenerateTemplateButton = document.querySelector('#template-auto-generate a');
+        if (autoGenerateTemplateButton) {
+            document.querySelector('#template-auto-generate a').addEventListener('click', e => { e.preventDefault(); this.autoGenerateTemplate() })
+        }
 
         //attach template visibility toggler
-        this.setTemplateVisibility();
         const checkbox = document.querySelector('input[data-queryable-check]') as HTMLInputElement;
-        checkbox.addEventListener('change', e => { this.setTemplateVisibility() });
+        if (checkbox) {
+            this.setTemplateVisibility();
+            checkbox.addEventListener('change', e => { this.setTemplateVisibility() });
+        }
     }
 
     private async getPropertySuggestions() {
@@ -124,28 +134,30 @@ export class CreateLayerFromSource {
     private async renderHTMLTagsList() {
         const templateButtonFragment = document.getElementById('template-helper-button-list-item') as HTMLTemplateElement;
         const htmlTagsContainer = document.querySelector('#template-html-tags-pane ul');
-        this.htmlTags.forEach(tag => {
-            //open tag
-            const openTagInstance = document.importNode(templateButtonFragment.content, true);
-            const openTagButton = openTagInstance.querySelector('button') as HTMLButtonElement;
-            openTagButton.textContent = tag.openTagText || tag.openTag;
-            openTagButton.dataset.tag = tag.openTag;
-            openTagButton.addEventListener('click', e => {
-                this.insertAtCaret(tag.openTag, this.templateInput);
-            })
-            htmlTagsContainer.appendChild(openTagInstance);
-            //close tag
-            if (tag.closeTag !== '') {
-                const closeTagInstance = document.importNode(templateButtonFragment.content, true);
-                const closeTagButton = closeTagInstance.querySelector('button') as HTMLButtonElement;
-                closeTagButton.textContent = tag.closeTag;
-                closeTagButton.dataset.tag = tag.closeTag;
-                closeTagButton.addEventListener('click', e => {
-                    this.insertAtCaret(tag.closeTag, this.templateInput);
+        if (htmlTagsContainer) {
+            this.htmlTags.forEach(tag => {
+                //open tag
+                const openTagInstance = document.importNode(templateButtonFragment.content, true);
+                const openTagButton = openTagInstance.querySelector('button') as HTMLButtonElement;
+                openTagButton.textContent = tag.openTagText || tag.openTag;
+                openTagButton.dataset.tag = tag.openTag;
+                openTagButton.addEventListener('click', e => {
+                    this.insertAtCaret(tag.openTag, this.templateInput);
                 })
-                htmlTagsContainer.appendChild(closeTagInstance);
-            }
-        })
+                htmlTagsContainer.appendChild(openTagInstance);
+                //close tag
+                if (tag.closeTag !== '') {
+                    const closeTagInstance = document.importNode(templateButtonFragment.content, true);
+                    const closeTagButton = closeTagInstance.querySelector('button') as HTMLButtonElement;
+                    closeTagButton.textContent = tag.closeTag;
+                    closeTagButton.dataset.tag = tag.closeTag;
+                    closeTagButton.addEventListener('click', e => {
+                        this.insertAtCaret(tag.closeTag, this.templateInput);
+                    })
+                    htmlTagsContainer.appendChild(closeTagInstance);
+                }
+            })
+        }
     }
 
     private async renderAttributeLists() {
@@ -153,32 +165,33 @@ export class CreateLayerFromSource {
         const listTemplateAttributesContainer = document.getElementById('list-template-attributes-pane');
         const templateAttributesContainer = document.getElementById('template-attributes-pane');
         const templateButtonFragment = document.getElementById('template-helper-button-list-item') as HTMLTemplateElement;
-        
-        if (featureAttributes && featureAttributes.length > 0) {
-            featureAttributes.forEach(featureAttribute => {
-                const templateButtonInstance = document.importNode(templateButtonFragment.content, true);
-                const templateAttrBtn = templateButtonInstance.querySelector('button') as HTMLButtonElement;
-                templateAttrBtn.textContent = featureAttribute.name;
-                templateAttrBtn.dataset.attributeName = featureAttribute.name;
-                templateAttrBtn.addEventListener('click', e => {
-                    this.insertAtCaret(`{{${featureAttribute.name}}}`, this.templateInput)
-                })
-                templateAttributesContainer.querySelector('ul').appendChild(templateButtonInstance);
+        if (templateAttributesContainer && listTemplateAttributesContainer) {
+            if (featureAttributes && featureAttributes.length > 0) {
+                featureAttributes.forEach(featureAttribute => {
+                    const templateButtonInstance = document.importNode(templateButtonFragment.content, true);
+                    const templateAttrBtn = templateButtonInstance.querySelector('button') as HTMLButtonElement;
+                    templateAttrBtn.textContent = featureAttribute.name;
+                    templateAttrBtn.dataset.attributeName = featureAttribute.name;
+                    templateAttrBtn.addEventListener('click', e => {
+                        this.insertAtCaret(`{{${featureAttribute.name}}}`, this.templateInput)
+                    })
+                    templateAttributesContainer.querySelector('ul').appendChild(templateButtonInstance);
 
-                const listTemplateButtonInstance = document.importNode(templateButtonFragment.content, true);
-                const listTemplateAttrBtn = listTemplateButtonInstance.querySelector('button') as HTMLButtonElement;
-                listTemplateAttrBtn.textContent = featureAttribute.name;
-                listTemplateAttrBtn.dataset.attributeName = featureAttribute.name;
-                listTemplateAttrBtn.addEventListener('click', e => {
-                    this.insertAtCaret(`{{${featureAttribute.name}}}`, this.listTemplateInput)
-                })
-                listTemplateAttributesContainer.querySelector('ul').appendChild(listTemplateButtonInstance);
-            });
-        } else {
-            const errMsg = '<div class="alert alert-warning">We couldn\'t automatically determine the attributes available. You can insert attribute references manually using the syntax {{ATTRIBUTE}}</div>'
-            templateAttributesContainer.innerHTML = errMsg;
-            listTemplateAttributesContainer.innerHTML = errMsg;
-            document.getElementById('template-auto-generate').style.display = 'none';
+                    const listTemplateButtonInstance = document.importNode(templateButtonFragment.content, true);
+                    const listTemplateAttrBtn = listTemplateButtonInstance.querySelector('button') as HTMLButtonElement;
+                    listTemplateAttrBtn.textContent = featureAttribute.name;
+                    listTemplateAttrBtn.dataset.attributeName = featureAttribute.name;
+                    listTemplateAttrBtn.addEventListener('click', e => {
+                        this.insertAtCaret(`{{${featureAttribute.name}}}`, this.listTemplateInput)
+                    })
+                    listTemplateAttributesContainer.querySelector('ul').appendChild(listTemplateButtonInstance);
+                });
+            } else {
+                const errMsg = '<div class="alert alert-warning">We couldn\'t automatically determine the attributes available. You can insert attribute references manually using the syntax {{ATTRIBUTE}}</div>'
+                templateAttributesContainer.innerHTML = errMsg;
+                listTemplateAttributesContainer.innerHTML = errMsg;
+                document.getElementById('template-auto-generate').style.display = 'none';
+            }
         }
     }
 

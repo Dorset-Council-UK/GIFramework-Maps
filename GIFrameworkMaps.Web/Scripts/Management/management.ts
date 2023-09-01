@@ -33,9 +33,7 @@ addEventListener("DOMContentLoaded", (event) => {
 });
 
 //TODO - This method of initializing stuff is HORRIBLE. Replace with something better
-console.log('addEventListener');
 document.addEventListener('CreateLayerFromSourceInit', e => {
-    console.log('init');
     new CreateLayerFromSource().init();
 });
 document.addEventListener('BroadcastInit', e => {

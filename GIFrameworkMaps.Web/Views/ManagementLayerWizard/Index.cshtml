@@ -1,32 +1,141 @@
-﻿@{
-    ViewData["Title"] = "Add Layer Wizard";
+﻿@model List<GIFrameworkMaps.Data.Models.WebLayerServiceDefinition>
+@{
+    ViewData["Title"] = "Create a layer";
+    //TODO Temporary hack using url.content to generate correct link
+    var proxyEndpoint = Url.Content("~/proxy");
 }
+
+<partial name="ManagementPartials/BackToManagementLayers" />
+
 <h1>@ViewData["Title"]</h1>
-<p class="lead">Add a new layer from a web service</p>
+<p class="lead">Create a layer from a web service or an XYZ URL template</p>
 
-<div class="container">
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-        <div class="col">
-            <div class="card link-card h-100">
-                <div class="card-body">
-                    <a asp-action="SelectWebService" class="stretched-link">
-                        <h4 class="card-title"><i class="bi bi-globe-europe-africa"></i> WMS</h4>
-                    </a>
-                    <p class="card-text">Add a layer from a WMS service</p>
+<ul class="nav nav-underline" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="wms-tab" data-bs-toggle="tab" data-bs-target="#wms-tab-pane" type="button" role="tab" aria-controls="wms-tab-pane" aria-selected="true">WMS</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tms-tab" data-bs-toggle="tab" data-bs-target="#tms-tab-pane" type="button" role="tab" aria-controls="tms-tab-pane" aria-selected="false">XYZ/TMS</button>
+    </li>
+
+</ul>
+<div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade show active pt-2" id="wms-tab-pane" role="tabpanel" aria-labelledby="wms-tab" tabindex="0">
+
+        <div class="row mt-2 mb-2">
+            <h2>Choose web service</h2>
+            <div class="row">
+                <div class="col-md-8 col-lg-6">
+                    <form>
+                        <div class="mb-3">
+                            <label class="control-label" for="service-select">Choose a web service from the list</label>
+                            <div class="input-group">
+                                <select class="form-select" id="service-select">
+
+                                    @{
+                                        var grouped = Model.OrderBy(d => d.SortOrder).GroupBy(d => d.Category);
+                                    }
+
+                                    @foreach (var group in grouped)
+                                    {
+                                        <optgroup label="@group.First().Category">
+                                            @foreach (var definition in group.OrderBy(d => d.SortOrder))
+                                            {
+
+                                                <option value="@definition.Url"
+                                                        data-proxy-via="@(definition.ProxyMetaRequests ? proxyEndpoint : "")"
+                                                        data-wms-version="@definition.Version">
+                                                    @definition.Name
+                                                </option>
+                                            }
+                                        </optgroup>
+                                    }
+                                </select>
+                                <button class="btn btn-outline-primary" type="button" id="web-service-list-connect">Connect</button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="control-label" for="service-url">Or enter a GetCapabilities URL</label>
+                            <div class="input-group">
+                                <input type="url" class="form-control" id="service-url" />
+                                <div class="input-group-text">
+                                    <input class="form-check-input mt-0" type="checkbox" value="@proxyEndpoint" id="use-proxy"><label class="ms-2" for="use-proxy">Use proxy</label>
+                                </div>
+                                <button class="btn btn-outline-primary" type="button" id="web-service-text-connect">Connect</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
-        </div>
 
-        <div class="col">
-            <div class="card link-card h-100">
-                <div class="card-body">
-                    <a asp-action="CreateFromTMS" class="stretched-link">
-                        <h4 class="card-title"><i class="bi bi-grid-3x3-gap"></i> TMS/XYZ</h4>
-                        <p class="card-text">Add a TMS or XYZ layer</p>
-                    </a>
+            <div class="row">
+                <div class="col-xl-8">
+                    <div id="layers-loading-spinner" style="display:none;">
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        Fetching layers
+                    </div>
+                    <input type="search" class="form-control form-control-sm mb-2" style="display:none;" placeholder="Type to search for a layer" id="layer-list-search" />
+                    <div id="web-layer-search-error" class="form-text text-danger" style="display: none;"></div>
+
+                    <div id="layer-list-container" class="list-group">
+                    </div>
                 </div>
             </div>
+
         </div>
+
     </div>
+    <div class="tab-pane fade pt-2" id="tms-tab-pane" role="tabpanel" aria-labelledby="tms-tab" tabindex="0">
+        <h2>Enter URL template</h2>
+        <p>This follows the widely-used Google grid where x 0 and y 0 are in the top left. Grids like TMS where x 0 and y 0 are in the bottom left can be used by using the <code>{-y}</code> placeholder in the URL template, so long as the source does not have a custom tile grid.</p>
+
+        <p>Must include <code>{x}</code>, <code>{y}</code> or <code>{-y}</code>, and <code>{z}</code> placeholders. A <code>{?-?}</code> template pattern, for example subdomain{a-f}.domain.com, may be used to split traffic across multiple domains.</p>
+        <form asp-action="CreateXYZSource" method="post" id="create-xyz-source-form">
+            <label for="xyzUrl">XYZ URL</label>
+            <input name="xyzUrl" type="url" class="form-control form-control-lg" required />
+            <p class="form-text">Example: https://{a-c}.tileserver.com/layername/{x}/{y}/{z}</p>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary btn-lg">Create XYZ source</button>
+            </div>
+        </form>
+        <div class="alert alert-info mt-2">If the source uses a custom tile grid (such as if it's in a projection other than EPSG:3857), these can still be added, but additional options will need to be added to the layer source after creation. See the <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/db/layers/#xyz-reprojection" target="_blank">help documentation on XYZ reprojection</a> for further information.</div>
+    </div>
+
 </div>
 
+
+
+
+<form asp-action="CreateSource" method="post" id="create-source-form">
+    <input name="layerDetails" type="hidden" />
+    <input name="projection" type="hidden" />
+    <input name="format" type="hidden" />
+</form>
+
+<template id="web-service-layer-item-template">
+    <div class="list-group-item">
+        <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-2 text-break"></h5>
+        </div>
+        <p class="mb-1"></p>
+        <div class="container">
+            <div class="row row-cols-lg-auto align-items-center">
+                <select data-epsg-selector="true" class="form-select-sm me-2" aria-label="Projection"></select>
+                <select data-format-selector="true" class="form-select-sm me-2" aria-label="Format"></select>
+                <button class="btn btn-sm btn-primary"><i class="bi bi-plus-circle"></i> Add</button>
+            </div>
+        </div>
+
+    </div>
+</template>
+
+@section Scripts{
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            const ev = new Event("SelectWebServiceInit")
+            document.dispatchEvent(ev);
+        });
+    </script>
+}

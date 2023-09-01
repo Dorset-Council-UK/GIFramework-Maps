@@ -37,37 +37,40 @@
     </div>
     <span asp-validation-for="Layer.ZIndex" class="text-danger"></span>
 </div>
-
-<div class="mb-3">
-    <input asp-for="Layer.Queryable" class="form-check-input" data-queryable-check="true" />
-    <label asp-for="Layer.Queryable" class="form-check-label"></label>
-    <p class="form-text text-danger" id="non-queryable-layer-warning" style="display:none">The server has reported that this layer is not queryable, so this should be unchecked.</p>
-    <span asp-validation-for="Layer.Queryable" class="text-danger"></span>
-</div>
-<div id="info-templates">
+@if(Model.Layer.LayerSource.LayerSourceType.Name != "XYZ")
+{
     <div class="mb-3">
-        <label asp-for="Layer.InfoListTitleTemplate" class="control-label"></label>
-        <input asp-for="Layer.InfoListTitleTemplate" class="form-control" data-list-template-target="true" />
-        <span asp-validation-for="Layer.InfoListTitleTemplate" class="text-danger"></span>
-        @{
-            await Html.RenderPartialAsync("Partials/ListTemplateHelperPartial");
-        }
+        <input asp-for="Layer.Queryable" class="form-check-input" data-queryable-check="true" />
+        <label asp-for="Layer.Queryable" class="form-check-label"></label>
+        <p class="form-text text-danger" id="non-queryable-layer-warning" style="display:none">The server has reported that this layer is not queryable, so this should be unchecked.</p>
+        <span asp-validation-for="Layer.Queryable" class="text-danger"></span>
     </div>
+    <div id="info-templates">
+        <div class="mb-3">
+            <label asp-for="Layer.InfoListTitleTemplate" class="control-label"></label>
+            <input asp-for="Layer.InfoListTitleTemplate" class="form-control" data-list-template-target="true" />
+            <span asp-validation-for="Layer.InfoListTitleTemplate" class="text-danger"></span>
+            @{
+                await Html.RenderPartialAsync("Partials/ListTemplateHelperPartial");
+            }
+        </div>
 
-    <div class="mb-3">
-        <label asp-for="Layer.InfoTemplate" class="control-label"></label>
-        <textarea asp-for="Layer.InfoTemplate" class="form-control" rows="5" data-template-target="true"></textarea>
-        <span asp-validation-for="Layer.InfoTemplate" class="text-danger"></span>
-        @{
-            await Html.RenderPartialAsync("Partials/TemplateHelperPartial");
-        }
+        <div class="mb-3">
+            <label asp-for="Layer.InfoTemplate" class="control-label"></label>
+            <textarea asp-for="Layer.InfoTemplate" class="form-control" rows="5" data-template-target="true"></textarea>
+            <span asp-validation-for="Layer.InfoTemplate" class="text-danger"></span>
+            @{
+                await Html.RenderPartialAsync("Partials/TemplateHelperPartial");
+            }
+        </div>
     </div>
-</div>
-<div class="mb-3">
-    <input asp-for="Layer.Filterable" class="form-check-input" />
-    <label asp-for="Layer.Filterable" class="form-check-label"></label>
-    <span asp-validation-for="Layer.Filterable" class="text-danger"></span>
-</div>
+    <div class="mb-3">
+        <input asp-for="Layer.Filterable" class="form-check-input" />
+        <label asp-for="Layer.Filterable" class="form-check-label"></label>
+        <span asp-validation-for="Layer.Filterable" class="text-danger"></span>
+    </div>
+}
+
 
 <a href="#advancedSettings" class="btn btn-link my-3 ps-0" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="advancedSettings"><i class="bi bi-caret-right"></i> Advanced settings</a>
 
