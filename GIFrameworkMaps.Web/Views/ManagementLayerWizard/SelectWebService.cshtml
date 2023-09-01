@@ -75,16 +75,24 @@
 
 <form asp-action="CreateSource" method="post" id="create-source-form">
     <input name="layerDetails" type="hidden" />
+    <input name="projection" type="hidden" />
+    <input name="format" type="hidden" />
 </form>
 
 <template id="web-service-layer-item-template">
     <div class="list-group-item">
         <div class="d-flex w-100 justify-content-between">
             <h5 class="mb-2 text-break"></h5>
-            <small></small>
         </div>
         <p class="mb-1"></p>
-        <button class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-circle"></i> Add</button>
+        <div class="container">
+            <div class="row row-cols-lg-auto align-items-center">
+                <select data-epsg-selector="true" class="form-select-sm me-2" aria-label="Projection"></select>
+                <select data-format-selector="true" class="form-select-sm me-2" aria-label="Format"></select>
+                <button class="btn btn-sm btn-primary"><i class="bi bi-plus-circle"></i> Add</button>
+            </div>
+        </div>
+
     </div>
 </template>
 

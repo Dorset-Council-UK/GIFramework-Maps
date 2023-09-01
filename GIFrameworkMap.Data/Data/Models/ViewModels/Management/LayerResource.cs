@@ -17,7 +17,7 @@ namespace GIFrameworkMaps.Data.Models.ViewModels.Management
         [JsonPropertyName("baseUrl")]
         public string BaseUrl { get; set; }
         [JsonPropertyName("projection")]
-        public string Projection { get; set; }
+        public string[] Projections { get; set; }
         [JsonPropertyName("extent")]
         public decimal[] Extent { get; set; }
         [JsonPropertyName("version")]

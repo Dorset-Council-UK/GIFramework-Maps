@@ -42,7 +42,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         }
 
         [HttpPost]
-        public IActionResult CreateSource(string layerDetails) {
+        public IActionResult CreateSource(string layerDetails, string projection, string format) {
 
             LayerResource layerResource = JsonSerializer.Deserialize<LayerResource>(layerDetails);
 
@@ -65,8 +65,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
             var editModel = new LayerWizardCreateSourceViewModel {
                 BaseURL = layerResource.BaseUrl,
-                Format = layerResource.Formats[0],
-                EPSG = layerResource.Projection,
+                Format = format,
+                Projection = projection,
                 LayerName = layerResource.Name,
                 Version = layerResource.Version,
                 UseProxy = layerResource.ProxyMetaRequests,
@@ -90,15 +90,15 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         @$"{{
                                 ""LAYERS"":""{model.LayerName}"", 
                                 ""FORMAT"":""{model.Format}"",
-                                ""CRS"": ""{model.EPSG}"",
+                                ""CRS"": ""{model.Projection}"",
                                 ""VERSION"": ""{model.Version}""
                             }}"
                     };
                     model.LayerSource.LayerSourceOptions.Add(urlOpt);
                     model.LayerSource.LayerSourceOptions.Add(paramsOpt);
-                    if(model.EPSG != "EPSG:3857")
+                    if(model.Projection != "EPSG:3857")
                     {
-                        model.LayerSource.LayerSourceOptions.Add(new LayerSourceOption { Name = "projection", Value = model.EPSG });
+                        model.LayerSource.LayerSourceOptions.Add(new LayerSourceOption { Name = "projection", Value = model.Projection });
                     }
                     _context.Add(model.LayerSource);
                     await _context.SaveChangesAsync();

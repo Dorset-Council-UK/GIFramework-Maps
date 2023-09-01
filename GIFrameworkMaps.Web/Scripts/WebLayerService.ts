@@ -134,7 +134,11 @@ export class WebLayerService {
         addLayerButton.addEventListener('click', e => {
             try {
                 let source: olSource.ImageWMS | olSource.TileWMS;
-
+                const preferredProjections = ["EPSG:3857", "EPSG:900913", "EPSG:27700", "EPSG:4326", "CRS:84"]
+                let selectedProjection = preferredProjections.find(p => layerDetails.projections.includes(p));
+                if (!selectedProjection) {
+                    selectedProjection = layerDetails.projections[0];
+                }
                 if (layerDetails.proxyMapRequests) {
                     let imageWMSOpts: ImageWMSOptions = {
                         url: layerDetails.baseUrl,
@@ -145,7 +149,7 @@ export class WebLayerService {
                         },
                         attributions: layerDetails.attribution,
                         crossOrigin: 'anonymous',
-                        projection: layerDetails.projection,
+                        projection: selectedProjection,
                 
                     };
                     if (layerDetails.proxyMapRequests) {
@@ -166,7 +170,7 @@ export class WebLayerService {
                         },
                         attributions: layerDetails.attribution,
                         crossOrigin: 'anonymous',
-                        projection: layerDetails.projection,
+                        projection: selectedProjection,
 
                     };
                     if (layerDetails.proxyMapRequests) {

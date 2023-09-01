@@ -17,7 +17,7 @@ namespace GIFrameworkMaps.Data.Models.ViewModels.Management
         public string BaseURL { get; set; }
         [Display(Name = "Layer Name")]
         public string LayerName { get; set; }
-        public string EPSG { get; set; }
+        public string Projection { get; set; }
         public string Format { get; set; }
         public string Version { get; set; }
         [Display(Name = "Require use of proxy?")]

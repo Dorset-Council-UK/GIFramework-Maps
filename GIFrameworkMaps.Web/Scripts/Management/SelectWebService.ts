@@ -74,17 +74,37 @@ export class SelectWebService {
 
         const container = layerItemInstance.querySelector('.list-group-item');
         const header = layerItemInstance.querySelector('h5');
-        const epsg = layerItemInstance.querySelector('small');
+        const epsgSelectInput = layerItemInstance.querySelector('select[data-epsg-selector]') as HTMLSelectElement;
+        const formatSelectInput = layerItemInstance.querySelector('select[data-format-selector]') as HTMLSelectElement;
         const desc = layerItemInstance.querySelector('p');
         const btn = layerItemInstance.querySelector('button');
 
         container.id = layer.name;
         header.textContent = layer.title;
         desc.textContent = layer.abstract;
-        epsg.textContent = layer.projection;
+        const preferredProjections = ["EPSG:3857", "EPSG:900913", "EPSG:27700", "EPSG:4326", "CRS:84"]
+        let preferredProjection = preferredProjections.find(p => layer.projections.includes(p));
+        if (preferredProjection) {
+            //move the preferred projection to the top
+            layer.projections.sort(function (x, y) { return x == preferredProjection ? -1 : y == preferredProjection ? 1 : 0; });
+        }
+        layer.projections.forEach(projection => {
+            const opt = document.createElement('option');
+            opt.value = projection;
+            opt.text = projection;
+            epsgSelectInput.options.add(opt);
+        })
+        layer.formats.forEach(format => {
+            const opt = document.createElement('option');
+            opt.value = format;
+            opt.text = format;
+            formatSelectInput.options.add(opt);
+        })
         btn.addEventListener('click', (e) => {
             const form = document.getElementById('create-source-form') as HTMLFormElement;
-            form.querySelector('input').value = JSON.stringify(layer);
+            (form.querySelector('input[name="layerDetails"]') as HTMLInputElement).value = JSON.stringify(layer);
+            (form.querySelector('input[name="projection"]') as HTMLInputElement).value = epsgSelectInput.selectedOptions[0].value;
+            (form.querySelector('input[name="format"]') as HTMLInputElement).value = formatSelectInput.selectedOptions[0].value;
             form.submit();
         })
 
