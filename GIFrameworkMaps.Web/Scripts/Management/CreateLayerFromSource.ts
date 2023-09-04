@@ -19,7 +19,7 @@ export class CreateLayerFromSource {
         { tagId: 'strong', openTag: '<strong>', closeTag: '</strong>' },
         { tagId: 'i', openTag: '<i>', closeTag: '</i>' },
         { tagId: 'a', openTag: '<a href="" target="_blank" title="">', openTagText: '<a>', closeTag: '</a>' },
-        { tagId: 'img', openTag: '<img src="" />', openTagText: '<img>', closeTag: '' }];
+        { tagId: 'img', openTag: '<img src="" class="img-fluid" />', openTagText: '<img>', closeTag: '' }];
     templateInput: HTMLTextAreaElement;
     listTemplateInput: HTMLInputElement;
     layerSourceURL: string;

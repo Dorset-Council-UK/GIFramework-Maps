@@ -40,11 +40,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(layers);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             var layerSource = new LayerSource();
             var editModel = new LayerSourceEditModel();
-            RebuildViewModel(ref editModel, layerSource);
+            editModel = await RebuildViewModel(editModel, layerSource);
             return View(editModel);
         }
 
@@ -77,7 +77,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         "contact your system administrator.");
                 }
             }
-            RebuildViewModel(ref editModel, editModel.LayerSource);
+            editModel = await RebuildViewModel(editModel, editModel.LayerSource);
             return View(editModel);
         }
 
@@ -143,7 +143,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
 
             var editModel = new LayerSourceEditModel { LayerSource = layerSource };
-            RebuildViewModel(ref editModel, layerSource);
+            editModel = await RebuildViewModel(editModel, layerSource);
             return View(editModel);
         }
 
@@ -300,13 +300,19 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(optionToDelete);
         }
 
-        private void RebuildViewModel(ref Data.Models.ViewModels.Management.LayerSourceEditModel model, Data.Models.LayerSource layerSource)
+        private async Task<LayerSourceEditModel> RebuildViewModel(Data.Models.ViewModels.Management.LayerSourceEditModel model, Data.Models.LayerSource layerSource)
         {
             var attributions = _context.Attribution.OrderBy(t => t.Name).ToList();
             var layerSourceTypes = _context.LayerSourceType.OrderBy(t => t.Name).ToList();
+            if(model.LayerSource != null && model.LayerSource.Id != 0)
+            {
+                var layers = await _repository.GetLayersByLayerSource(model.LayerSource.Id);
+                model.LayersUsingSource = layers;
+            }
 
             model.AvailableAttributions = new SelectList(attributions, "Id", "Name", layerSource.AttributionId);
             model.AvailableLayerSourceTypes = new SelectList(layerSourceTypes, "Id", "Name", layerSource.LayerSourceTypeId);
+            return model;
         }
 
     }

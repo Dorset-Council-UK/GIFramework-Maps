@@ -50,18 +50,16 @@
             <label asp-for="Layer.InfoListTitleTemplate" class="control-label"></label>
             <input asp-for="Layer.InfoListTitleTemplate" class="form-control" data-list-template-target="true" />
             <span asp-validation-for="Layer.InfoListTitleTemplate" class="text-danger"></span>
-            @{
-                await Html.RenderPartialAsync("Partials/ListTemplateHelperPartial");
-            }
+
+            <partial name="ManagementPartials/ListTemplateHelperPartial" />
         </div>
 
         <div class="mb-3">
             <label asp-for="Layer.InfoTemplate" class="control-label"></label>
             <textarea asp-for="Layer.InfoTemplate" class="form-control" rows="5" data-template-target="true"></textarea>
             <span asp-validation-for="Layer.InfoTemplate" class="text-danger"></span>
-            @{
-                await Html.RenderPartialAsync("Partials/TemplateHelperPartial");
-            }
+
+            <partial name="ManagementPartials/TemplateHelperPartial" />
         </div>
     </div>
     <div class="mb-3">

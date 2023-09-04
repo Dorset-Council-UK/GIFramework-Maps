@@ -22,9 +22,7 @@
                 </ul>
             </div>
             <div class="tab-pane fade" id="list-template-date-formatting-pane" role="tabpanel" aria-labelledby="list-template-date-formatting-tab" tabindex="0">
-                @{
-                    await Html.RenderPartialAsync("Partials/DateFormattingListPartial");
-                }
+                <partial name="ManagementPartials/DateFormattingListPartial" />
             </div>
             <div class="tab-pane fade" id="list-template-preview-pane" role="tabpanel" aria-labelledby="list-template-preview-tab" tabindex="0">
                 <a href="#" id="list-template-preview-generate">Generate preview</a>

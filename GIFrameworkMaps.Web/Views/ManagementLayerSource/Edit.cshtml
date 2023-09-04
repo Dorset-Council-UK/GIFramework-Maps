@@ -69,6 +69,21 @@
                 <a href="@Url.Action("CreateOption",new {id = Model.LayerSource.Id})" class="btn btn-outline-secondary">Add option</a>
             </div>
             <div class="tab-pane fade" id="layers-tab-pane" role="tabpanel" aria-labelledby="layers-tab" tabindex="0">
+                @if(Model.LayersUsingSource != null && Model.LayersUsingSource.Count != 0)
+                {
+                    <ul class="list-group">
+                        @foreach (var layer in Model.LayersUsingSource)
+                        {
+                            <li class="list-group-item"><a asp-action="Edit" asp-controller="ManagementLayer" asp-route-id="@layer.Id">@layer.Name</a></li>
+                        }
+
+                    </ul>
+                }
+
+                {
+                <div class="alert alert-info">This layer source is not being used by any layers</div>
+                }
+
             </div>
         </div>
 

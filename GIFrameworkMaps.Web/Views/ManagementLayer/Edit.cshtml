@@ -10,19 +10,16 @@
 <form asp-action="Edit">
     <div class="row mt-2 mb-2">
         <div class="col-md-8 col-lg-6">
-        
-            
-                @{
-                    await Html.RenderPartialAsync("Partials/EditLayerPartial", Model);
-                }
 
-                <div class="mb-3">
-                    <input type="submit" value="Save" class="btn btn-primary btn-lg" />
-                    <a asp-action="List" class="btn btn-link">Cancel</a>
-                </div>
-                <div>
-                    <a asp-action="Delete" asp-route-id="@Model.Layer.Id" class="btn btn-danger">Delete</a>
-                </div>
+            <partial name="ManagementPartials/EditLayerPartial" model="Model"/>
+
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                <a asp-action="List" class="btn btn-link">Cancel</a>
+            </div>
+            <div>
+                <a asp-action="Delete" asp-route-id="@Model.Layer.Id" class="btn btn-danger">Delete</a>
+            </div>
         
         </div>
         <div class="col-md-4 col-lg-6">

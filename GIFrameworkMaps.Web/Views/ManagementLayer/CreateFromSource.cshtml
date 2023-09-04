@@ -12,15 +12,13 @@
     
         <div class="col-md-8 col-lg-6">
         
-                <input type="hidden" asp-for="Layer.LayerSourceId"/>
-                @{
-                    await Html.RenderPartialAsync("Partials/EditLayerPartial", Model);
-                }
+            <input type="hidden" asp-for="Layer.LayerSourceId"/>
+            <partial name="ManagementPartials/EditLayerPartial" model="Model" />
 
-                <div class="mb-3">
-                    <input type="submit" value="Create" class="btn btn-primary btn-lg" />
-                    <a asp-action="List" class="btn btn-link">Cancel</a>
-                </div>
+            <div class="mb-3">
+                <input type="submit" value="Create" class="btn btn-primary btn-lg" />
+                <a asp-action="List" class="btn btn-link">Cancel</a>
+            </div>
 
         </div>
         <div class="col-md-4 col-lg-6">

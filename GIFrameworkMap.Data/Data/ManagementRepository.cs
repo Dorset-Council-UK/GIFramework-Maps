@@ -145,6 +145,12 @@ namespace GIFrameworkMaps.Data
             return layers;
         }
 
+        public async Task<List<Layer>> GetLayersByLayerSource(int layerSourceId)
+        {
+            var layers = await _context.Layer.Where(l => l.LayerSourceId == layerSourceId).AsNoTracking().ToListAsync();
+            return layers;
+        }
+
         public async Task<LayerSource> GetLayerSource(int id)
         {
             var layerSource = await _context.LayerSource
