@@ -150,7 +150,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
                 try
                 {
-                    UpdateCategoryLayers(selectedCategories, layerToUpdate);
+                    await UpdateCategoryLayers(selectedCategories, layerToUpdate);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(List));
                 }
@@ -205,27 +205,27 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(layerToDelete);
         }
 
-        private void UpdateCategoryLayers(int[] selectedCategories, Data.Models.Layer layerToUpdate)
+        private async Task UpdateCategoryLayers(int[] selectedCategories, Data.Models.Layer layerToUpdate)
         {
             if (selectedCategories == null)
             {
-                _context.CategoryLayer.Where(c => c.LayerId == layerToUpdate.Id).ExecuteDeleteAsync();    
+                await _context.CategoryLayer.Where(c => c.LayerId == layerToUpdate.Id).ExecuteDeleteAsync();    
                 return;
             }
 
             //delete category layers not needed anymore
-            _context.CategoryLayer.Where(c => c.LayerId == layerToUpdate.Id && !selectedCategories.Contains(c.CategoryId)).ExecuteDeleteAsync();
+            await _context.CategoryLayer.Where(c => c.LayerId == layerToUpdate.Id && !selectedCategories.Contains(c.CategoryId)).ExecuteDeleteAsync();
 
             //add new category layers
             foreach (int category in selectedCategories)
             {
                 if (!_context.CategoryLayer.Where(c => c.LayerId == layerToUpdate.Id && c.CategoryId == category).Any())
                 {
-                    _context.CategoryLayer.Add(new CategoryLayer { CategoryId = category, Layer = layerToUpdate });
+                    await _context.CategoryLayer.AddAsync(new CategoryLayer { CategoryId = category, Layer = layerToUpdate });
                 }
 
             }
-
+            return;
 
         }
 
