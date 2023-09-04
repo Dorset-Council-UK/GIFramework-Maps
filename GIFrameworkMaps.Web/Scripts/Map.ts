@@ -349,6 +349,7 @@ export class GIFWMap {
 
         document.getElementById(this.id).addEventListener('gifw-update-permalink', () => {
             this.updatePermalinkInURL();
+            this.updatePermalinkInLinks();
         });
 
 
@@ -364,6 +365,16 @@ export class GIFWMap {
 
         window.history.replaceState(hashParams, '', permalink);
 
+    }
+
+    private updatePermalinkInLinks() {
+        let permalink = Util.Mapping.generatePermalinkForMap(this);
+        document.querySelectorAll('a[data-gifw-permalink-update-uri-param]').forEach(link => {
+            let paramToUpdate = (link as HTMLAnchorElement).dataset.gifwPermalinkUpdateUriParam;
+            const existingLink = new URL((link as HTMLAnchorElement).href);
+            existingLink.searchParams.set(paramToUpdate, permalink);
+            (link as HTMLAnchorElement).href = existingLink.toString();
+        })
     }
 
     /**
