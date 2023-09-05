@@ -2,6 +2,7 @@ import 'bootstrap';
 import { SelectWebService } from './SelectWebService';
 import { Broadcast } from './Broadcast';
 import { CreateLayerFromSource } from './CreateLayerFromSource';
+import { CreateSource } from './CreateSource';
 
 addEventListener("DOMContentLoaded", (event) => {
     //attach collapse caret changer
@@ -41,4 +42,7 @@ document.addEventListener('BroadcastInit', e => {
 });
 document.addEventListener('SelectWebServiceInit', e => {
     new SelectWebService().init();
+});
+document.addEventListener('CreateSourceInit', e => {
+    new CreateSource().init();
 });

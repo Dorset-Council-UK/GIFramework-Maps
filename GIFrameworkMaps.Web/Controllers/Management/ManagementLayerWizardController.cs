@@ -92,15 +92,18 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 Name = layerResource.Name,
                 Description = layerResource.Abstract
             };
+
+            bool attributionMatched = false;
             if (!string.IsNullOrEmpty(layerResource.Attribution))
             {
                 //attempt to get most relevant attribution
                 var attributions = _context.Attribution.ToList();
-                var closestMatch = Process.ExtractOne(layerResource.Attribution, attributions.Select(a => a.RenderedAttributionHTML), cutoff: 70);
+                var closestMatch = Process.ExtractOne(layerResource.Attribution, attributions.Select(a => a.RenderedAttributionHTML), cutoff: 80);
                 if (closestMatch != null)
                 {
                     layerSource.Attribution = attributions[closestMatch.Index];
                     layerSource.AttributionId = attributions[closestMatch.Index].Id;
+                    attributionMatched = true;
                 }
 
             }
@@ -112,6 +115,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 Version = layerResource.Version,
                 UseProxy = layerResource.ProxyMetaRequests,
                 LayerSource = layerSource,
+                ServiceAttribution = new Microsoft.AspNetCore.Html.HtmlString(layerResource.Attribution),
+                AttributionMatched = attributionMatched
             };
             RebuildLayerWizardCreateSourceViewModel(ref editModel, layerSource);
             return View(editModel);

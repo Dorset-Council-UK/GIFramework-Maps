@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Html;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -20,6 +22,9 @@ namespace GIFrameworkMaps.Data.Models.ViewModels.Management
         public string Projection { get; set; }
         public string Format { get; set; }
         public string Version { get; set; }
+        [BindNever]
+        public HtmlString ServiceAttribution { get; set; }
+        public bool AttributionMatched { get; set; }
         [Display(Name = "Require use of proxy?")]
         public bool UseProxy { get; set; }
     }
