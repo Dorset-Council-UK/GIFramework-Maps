@@ -37,5 +37,22 @@ else
 }
 
 @section Scripts {
-    <script>const dataTable = new simpleDatatables.DataTable("#layerSourceTable");</script>
+    <script>
+        const opts = {
+            perPage: 50,
+            perPageSelect: [10, 25, 50, 100, ["All", 0]],
+            classes:
+            {
+                input: "form-control",
+                top: "datatable-top px-0",
+                selector: "form-select",
+                paginationList: "pagination",
+                paginationListItem: "page-item",
+                paginationListItemLink: "page-link",
+                active: 'active',
+                disabled: 'disabled'
+            }
+        };
+        const dataTable = new simpleDatatables.DataTable("#layerSourceTable", opts);
+    </script>
 }
