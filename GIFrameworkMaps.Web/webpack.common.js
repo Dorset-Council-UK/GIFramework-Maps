@@ -23,7 +23,7 @@ const mapBundle = {
 
 const managementBundle =
 {
-    entry: ['./Scripts/management/management.ts'],
+    entry: ['./Scripts/Management/management.ts'],
     module: {
         rules: [
             {
