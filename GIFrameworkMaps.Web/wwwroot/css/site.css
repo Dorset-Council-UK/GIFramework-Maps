@@ -198,3 +198,10 @@ footer {
 [class^="bi-"]::before, [class*=" bi-"]::before{
     vertical-align:-.125em;
 }
+
+
+/*simple-datatables overrides*/
+
+.datatable-table{
+    border-collapse:collapse;
+}
