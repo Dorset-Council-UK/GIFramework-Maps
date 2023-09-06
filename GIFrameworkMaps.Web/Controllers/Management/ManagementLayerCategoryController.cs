@@ -180,7 +180,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 return;
             }
 
-            var selectedCaegoriesHS = new HashSet<int>(selectedLayers);
+            var selectedCategoriesHS = new HashSet<int>(selectedLayers);
             var versionCategories = new HashSet<int>();
             if (categoryToUpdate.Layers != null)
             {
@@ -189,7 +189,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
             foreach (var layer in _context.Layer)
             {
-                if (selectedCaegoriesHS.Contains(layer.Id))
+                if (selectedCategoriesHS.Contains(layer.Id))
                 {
                     if (!versionCategories.Contains(layer.Id))
                     {

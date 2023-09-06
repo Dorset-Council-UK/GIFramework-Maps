@@ -5,6 +5,8 @@
 
 <h1>@ViewData["Title"]</h1>
 
+<div class="alert alert-warning">This is the manual way of creating layer sources. For a simpler experience, try the @Html.ActionLink("Layer Wizard","Index","ManagementLayerWizard")</div>
+
 <div class="row mt-2 mb-2">
     <div class="col-md-8 col-lg-6">
         <form asp-action="Create">
@@ -29,8 +31,12 @@
 
             <div class="mb-3">
                 <label asp-for="LayerSource.AttributionId" class="control-label"></label>
-                <select asp-for="LayerSource.AttributionId" asp-items="Model.AvailableAttributions" class="form-select"></select>
+                <select asp-for="LayerSource.AttributionId" asp-items="Model.AvailableAttributions" class="form-select" data-attribution-select="true">
+                    <option value=""></option>
+                </select>
                 <span asp-validation-for="LayerSource.AttributionId" class="text-danger"></span>
+                <div class="alert alert-light small" role="alert" id="attribution-render-target">
+                </div>
             </div>
 
             <div class="mb-3 form-check">
@@ -51,7 +57,14 @@
     </div>
 </div>
 
-
-
-
-
+<script>
+    var attributionRendererEndpoint = '@Url.Action("RenderAttributionString","Management")';
+</script>
+@section Scripts{
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            const ev = new Event("CreateSourceInit")
+            document.dispatchEvent(ev);
+        });
+    </script>
+}

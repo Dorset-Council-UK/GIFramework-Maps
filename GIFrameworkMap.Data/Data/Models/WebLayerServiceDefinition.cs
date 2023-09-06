@@ -39,6 +39,8 @@ namespace GIFrameworkMaps.Data.Models
         public bool ProxyMetaRequests { get; set; }
 
         public bool ProxyMapRequests { get; set; }
+
+        public bool AdminOnly { get; set; }
     }
 
     public enum ServiceType

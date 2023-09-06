@@ -10,6 +10,7 @@ namespace GIFrameworkMaps.Data.Models.ViewModels.Management
     public class LayerSourceEditModel
     {
         public GIFrameworkMaps.Data.Models.LayerSource LayerSource { get; set; }
+        public List<GIFrameworkMaps.Data.Models.Layer> LayersUsingSource { get; set; }
         public SelectList AvailableAttributions { get; set; }
         public SelectList AvailableLayerSourceTypes { get; set; }
     }

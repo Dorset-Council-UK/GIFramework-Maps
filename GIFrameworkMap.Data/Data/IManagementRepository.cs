@@ -24,11 +24,13 @@ namespace GIFrameworkMaps.Data
         Task<List<WebLayerServiceDefinition>> GetWebLayerServiceDefinitions();
         Task<Layer> GetLayer(int id);
         Task<List<Layer>> GetLayers();
+        Task<List<Layer>> GetLayersByLayerSource(int layerSourceId);
         Task<LayerSource> GetLayerSource(int id);
         Task<List<LayerSource>> GetLayerSources();
         Task<LayerSourceOption> GetLayerSourceOption(int id);
         Task<List<Category>> GetLayerCategories();
         Task<Category> GetLayerCategory(int id);
+        Task<List<CategoryLayer>> GetLayerCategoriesLayerAppearsIn(int layerId);
         Task<TourDetails> GetTour(int id);
         Task<List<TourDetails>> GetTours();
         Task<TourStep> GetStep(int id);

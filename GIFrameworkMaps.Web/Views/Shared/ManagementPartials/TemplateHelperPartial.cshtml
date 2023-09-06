@@ -1,0 +1,40 @@
+﻿<div class="card">
+    <div class="card-header">
+        <a href="#template-helper" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="template-helper"><i class="bi bi-caret-right"></i> Template helper</a>
+    </div>
+    <div class="card-body collapse" id="template-helper">
+        <p id="template-auto-generate"><a href="#">Auto generate template</a> <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/gui/layers/#auto-generate-template" target="_blank" title="Learn more about auto generating templates"><i class="bi bi-question-circle"></i></a></p>
+        <ul class="nav nav-underline" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="template-html-tags-tab" data-bs-toggle="tab" data-bs-target="#template-html-tags-pane" type="button" role="tab" aria-controls="template-html-tags-pane" aria-selected="true">HTML Tags</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="template-attributes-tab" data-bs-toggle="tab" data-bs-target="#template-attributes-pane" type="button" role="tab" aria-controls="template-attributes-pane" aria-selected="false">Attributes</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="template-date-formatting-tab" data-bs-toggle="tab" data-bs-target="#template-date-formatting-pane" type="button" role="tab" aria-controls="template-date-formatting-pane" aria-selected="false">Date formatting</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="template-preview-tab" data-bs-toggle="tab" data-bs-target="#template-preview-pane" type="button" role="tab" aria-controls="template-preview-pane" aria-selected="false">Preview</button>
+            </li>
+        </ul>
+
+        <div class="tab-content mt-2">
+            <div class="tab-pane fade show active" id="template-html-tags-pane" role="tabpanel" aria-labelledby="template-html-tags-pane" tabindex="0">
+                <ul class="list-inline">
+                </ul>
+            </div>
+            <div class="tab-pane fade" id="template-attributes-pane" role="tabpanel" aria-labelledby="template-attributes-tab" tabindex="0">
+                <ul class="list-inline">
+                </ul>
+            </div>
+            <div class="tab-pane fade" id="template-date-formatting-pane" role="tabpanel" aria-labelledby="template-date-formatting-tab" tabindex="0">
+                <partial name="ManagementPartials/DateFormattingListPartial" />
+            </div>
+            <div class="tab-pane fade" id="template-preview-pane" role="tabpanel" aria-labelledby="template-preview-tab" tabindex="0">
+                <a href="#" id="template-preview-generate">Generate preview</a>
+                <div id="template-preview-container" class="template-preview mt-2 border rounded p-2"></div>
+            </div>
+        </div>
+    </div>
+</div>

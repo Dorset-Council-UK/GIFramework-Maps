@@ -128,6 +128,9 @@ namespace GIFrameworkMaps.Data
         {
             var layer = await _context.Layer
                 .Include(l => l.LayerSource)
+                .ThenInclude(l => l.LayerSourceType)
+                .Include(l => l.LayerSource)
+                .ThenInclude(l => l.LayerSourceOptions)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             return layer;
@@ -142,10 +145,17 @@ namespace GIFrameworkMaps.Data
             return layers;
         }
 
+        public async Task<List<Layer>> GetLayersByLayerSource(int layerSourceId)
+        {
+            var layers = await _context.Layer.Where(l => l.LayerSourceId == layerSourceId).AsNoTracking().ToListAsync();
+            return layers;
+        }
+
         public async Task<LayerSource> GetLayerSource(int id)
         {
             var layerSource = await _context.LayerSource
                 .Include(s => s.LayerSourceOptions)
+                .Include(s => s.LayerSourceType)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             return layerSource;
@@ -229,6 +239,11 @@ namespace GIFrameworkMaps.Data
             return layerCategories;
         }
 
+        public async Task<List<CategoryLayer>> GetLayerCategoriesLayerAppearsIn(int layerId)
+        {
+            var layerCategories = await _context.CategoryLayer.Where(c => c.LayerId == layerId).ToListAsync();
+            return layerCategories;
+        }
 
         public async Task<List<SearchDefinition>> GetSearchDefinitions()
         {

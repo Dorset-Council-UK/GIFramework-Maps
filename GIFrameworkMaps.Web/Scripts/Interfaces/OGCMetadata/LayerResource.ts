@@ -7,6 +7,10 @@ export interface LayerResource {
     attribution: string;
     formats: string[];
     baseUrl: string;
-    projection: string;
-    extent: Extent
+    projections: string[];
+    extent: Extent;
+    queryable: boolean;
+    version: string;
+    proxyMetaRequests: boolean;
+    proxyMapRequests: boolean;
 }
