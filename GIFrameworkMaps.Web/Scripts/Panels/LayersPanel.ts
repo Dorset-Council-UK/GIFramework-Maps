@@ -1166,21 +1166,22 @@ export class LayersPanel implements SidebarPanel {
         if (olLayer.get('gifw-filter-applied')) {
             return true;
         }
-
         let source = olLayer.getSource();
-        let params = (source as TileWMS | ImageWMS).getParams();
-        let cqlFilter: string;
-        for (const property in params) {
-            if (property.toLowerCase() === 'cql_filter') {
-                cqlFilter = params[property];
+        if (source instanceof TileWMS || source instanceof ImageWMS) {
+            let params = (source as TileWMS | ImageWMS).getParams();
+            let cqlFilter: string;
+            for (const property in params) {
+                if (property.toLowerCase() === 'cql_filter') {
+                    cqlFilter = params[property];
+                }
             }
-        }
 
-        if (cqlFilter) {
-            if (userEditableOnly) {
-                return layer.defaultFilterEditable;
-            } else {
-                return true;
+            if (cqlFilter) {
+                if (userEditableOnly) {
+                    return layer.defaultFilterEditable;
+                } else {
+                    return true;
+                }
             }
         }
         return false;
