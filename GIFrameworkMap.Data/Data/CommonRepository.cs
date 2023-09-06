@@ -202,14 +202,20 @@ namespace GIFrameworkMaps.Data
 
         public List<WebLayerServiceDefinition> GetWebLayerServiceDefinitions()
         {
-            string cacheKey = $"WebLayerServiceDefinitions";
+            bool includeAdminDefinitions = _httpContextAccessor.HttpContext.User.IsInRole("GIFWAdmin");
+            string cacheKey = $"WebLayerServiceDefinitions/{includeAdminDefinitions}";
             if (_memoryCache.TryGetValue(cacheKey, out List<WebLayerServiceDefinition> cacheValue))
             {
                 return cacheValue;
             }
 
             var services = _context.WebLayerServiceDefinitions.AsNoTracking().ToList();
-
+            
+            if(!includeAdminDefinitions)
+            {
+                services.RemoveAll(d => d.AdminOnly == true);
+            }
+            
             _memoryCache.Set(cacheKey, services, new MemoryCacheEntryOptions
             {
                 Priority = CacheItemPriority.Low,

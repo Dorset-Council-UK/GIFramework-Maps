@@ -25,7 +25,7 @@
                 <tr>
                     <td>@layerSource.Id</td>
                     <td>@Html.ActionLink(layerSource.Name, "Edit", new { id = layerSource.Id })</td>
-                    <td>@layerSource.Description.Substring(0,Math.Min(layerSource.Description.Length,100))@(layerSource.Description.Length > 100 ? "..." : "")</td>
+                    <td>@layerSource.Description?.Substring(0,Math.Min(layerSource.Description.Length,100))@(layerSource.Description?.Length > 100 ? "..." : "")</td>
                 </tr>
             }
         </tbody>

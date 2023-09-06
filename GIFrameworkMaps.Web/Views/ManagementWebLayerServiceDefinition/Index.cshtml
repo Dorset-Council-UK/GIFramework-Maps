@@ -15,7 +15,7 @@
     <table id="webLayerServiceDefinitionTable" class="table table-bordered table-striped mt-2">
         <thead>
             <tr>
-                <th>ID</th><th>Name</th><th>Category</th>
+                <th>ID</th><th>Name</th><th>Category</th><th></th>
             </tr>
         </thead>
         <tbody>
@@ -25,6 +25,11 @@
                     <td>@webLayerServiceDefinition.Id</td>
                     <td>@Html.ActionLink(webLayerServiceDefinition.Name, "Edit", new { id = webLayerServiceDefinition.Id })</td>
                     <td>@webLayerServiceDefinition.Category</td>
+                    <td>@if (webLayerServiceDefinition.AdminOnly)
+                        {
+                            <i class="bi bi-lock-fill" title="This service definition is only visible to administrators"></i>
+                        }
+                    </td>
                 </tr>
             }
         </tbody>

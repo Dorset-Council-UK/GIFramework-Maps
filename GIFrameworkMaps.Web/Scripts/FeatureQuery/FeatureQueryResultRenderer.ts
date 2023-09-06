@@ -1,6 +1,4 @@
-﻿import { DateTime } from "luxon";
-import { default as nunjucks } from "nunjucks";
-import { Feature } from "ol";
+﻿import { Feature } from "ol";
 import { Coordinate } from "ol/coordinate";
 import { Geometry } from "ol/geom";
 import { Layer } from "ol/layer";
@@ -15,6 +13,8 @@ import { GIFWMap } from "../Map";
 import { GIFWPopupAction } from "../Popups/PopupAction";
 import { GIFWPopupOptions } from "../Popups/PopupOptions";
 import { Util } from "../Util";
+import { FeaturePropertiesHelper } from "./FeaturePropertiesHelper";
+import { FeatureQueryTemplateHelper } from "./FeatureQueryTemplateHelper";
 
 export class FeatureQueryResultRenderer {
 
@@ -25,17 +25,7 @@ export class FeatureQueryResultRenderer {
 
     constructor(gifwMapInstance: GIFWMap) {
         this._gifwMapInstance = gifwMapInstance;
-
-        let env = nunjucks.configure({ autoescape: false });
-        env.addFilter('date', (str, format) => {
-            let dt = DateTime.fromISO(str);
-            if (format) {
-                return dt.toFormat(format);
-            } else {
-                return dt.toLocaleString();
-            }
-
-        });
+        FeatureQueryTemplateHelper.configureNunjucks();
 
         //add highlighted features layer
         this._highlightStyle = new Style({
@@ -115,13 +105,13 @@ export class FeatureQueryResultRenderer {
                     
                     keys.forEach(k => {
                         let value = Util.Helper.getValueFromObjectByKey(props, k);
-                        if (this.isUserDisplayableProperty(k,value)) {
+                        if (FeaturePropertiesHelper.isUserDisplayablePropertyAndValue(k,value)) {
                             genericTemplate += `<tr><th>${k}</th><td>{{${k}}}</td>`;
                         }
                     })
                     if (genericTemplate !== "") {
                         genericTemplate = `<table class="table table-sm"><tbody>${genericTemplate}</tbody></table>`;
-                        let titleProperty = this.getMostAppropriateTitleFromProperties(props);
+                        let titleProperty = FeaturePropertiesHelper.getMostAppropriateTitleFromProperties(props);
                         if (titleProperty) {
                             genericTemplate = `<h1>{{${titleProperty}}}</h1>${genericTemplate}`;
                         } else {
@@ -135,7 +125,7 @@ export class FeatureQueryResultRenderer {
                     }
 
                 }
-                popupContent = nunjucks.renderString(gifwLayer.infoTemplate, props);
+                popupContent = FeatureQueryTemplateHelper.renderTemplate(gifwLayer.infoTemplate, props);
                 let popupActions: GIFWPopupAction[] = [];
                 if (feature.getGeometry()) {
                     popupActions.push(
@@ -193,16 +183,16 @@ export class FeatureQueryResultRenderer {
                     listItemContent = f.get('gifw-popup-title');
 
                 } else if (gifwLayer) {
-                    listItemContent = nunjucks.renderString(gifwLayer.infoListTitleTemplate, f.getProperties());
+                    listItemContent = FeatureQueryTemplateHelper.renderTemplate(gifwLayer.infoListTitleTemplate, f.getProperties());
                 }
 
                 if(listItemContent === '') {
-                    let titleProperty = this.getMostAppropriateTitleFromProperties(f.getProperties());
+                    let titleProperty = FeaturePropertiesHelper.getMostAppropriateTitleFromProperties(f.getProperties());
                     if (titleProperty) {
                         listItemContent = Util.Helper.getValueFromObjectByKey(f.getProperties(), titleProperty) as string;
                     } else {
                         //fall back to first property
-                        let firstProp = this.getFirstAllowedPropertyFromProperties(f.getProperties() as object[])
+                        let firstProp = FeaturePropertiesHelper.getFirstAllowedPropertyFromProperties(f.getProperties() as object[])
                         listItemContent = firstProp[1].toString();
                     }
                 }
@@ -348,30 +338,4 @@ export class FeatureQueryResultRenderer {
         this._gifwMapInstance.popupOverlay.overlay.setPosition(coords);
         this._gifwMapInstance.popupOverlay.overlay.setOffset([0, 0]);
     }
-    private getMostAppropriateTitleFromProperties(props: any) {
-        
-        let properties = Util.Helper.getKeysFromObject(props);
-
-        let titleProperty = this._prioritisedTitleFields.find(t => properties.map(p => p.toLowerCase()).includes(t.toLowerCase()))
-        return titleProperty;
-    }
-    private getFirstAllowedPropertyFromProperties(props: object[]): [string,object] {
-        let propArr = Object.entries(props);
-
-        let firstProp = propArr.find(p => this.isUserDisplayableProperty(p[0], p[1]));
-
-        return firstProp;
-
-    }
-    private isUserDisplayableProperty(keyName: string, value: any) {
-
-        if (!this._disallowedKeys.includes(keyName.toLowerCase()) && typeof value !== 'object') {
-            return true;
-        }
-        return false;
-    }
-
-    private _prioritisedTitleFields = ["name", "title", "address", "id", "postcode", "featureid"];
-    private _disallowedKeys = ["geom", "boundedby", "the_geom", "geoloc","mi_style","mi_prinx"];
-
 }

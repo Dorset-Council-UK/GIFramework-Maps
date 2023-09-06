@@ -29,8 +29,10 @@
 
             <div class="mb-3">
                 <label asp-for="LayerSource.AttributionId" class="control-label"></label>
-                <select asp-for="LayerSource.AttributionId" asp-items="Model.AvailableAttributions" class="form-select"></select>
+                <select asp-for="LayerSource.AttributionId" asp-items="Model.AvailableAttributions" class="form-select" data-attribution-select="true"></select>
                 <span asp-validation-for="LayerSource.AttributionId" class="text-danger"></span>
+                <div class="alert alert-light small" role="alert" id="attribution-render-target">
+                </div>
             </div>
 
             <div class="mb-3">
@@ -41,28 +43,66 @@
         
     </div>
     <div class="col-md-4 col-lg-6">
-        <h2>Layer Source Options</h2>
-        <div class="table-responsive">
-            <table class="table table-sm table-striped">
-                @foreach(var opt in Model.LayerSource.LayerSourceOptions)
+        
+        <ul class="nav nav-underline mb-2" role="tablist">
+            <li class="nav-item active" role="presentation">
+                <button class="nav-link active" id="options-tab" data-bs-toggle="tab" data-bs-target="#options-tab-pane" type="button" role="tab" aria-controls="options-tab-pane" aria-selected="true">Layer Source Options</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="detalayersils-tab" data-bs-toggle="tab" data-bs-target="#layers-tab-pane" type="button" role="tab" aria-controls="layers-tab-pane" aria-selected="false">Layers using this source</button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="options-tab-pane" role="tabpanel" aria-labelledby="options-tab" tabindex="0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        @foreach (var opt in Model.LayerSource.LayerSourceOptions)
+                        {
+                            <tr>
+                                <td><a asp-action="EditOption" asp-route-id="@opt.Id"><span class="bi bi-pencil"></span></a></td>
+                                <th>@opt.Name</th>
+                                <td style="white-space:pre-line"><code>@opt.Value</code></td>
+                            </tr>
+                        }
+
+                    </table>
+                </div>
+                <a href="@Url.Action("CreateOption",new {id = Model.LayerSource.Id})" class="btn btn-outline-secondary">Add option</a>
+            </div>
+            <div class="tab-pane fade" id="layers-tab-pane" role="tabpanel" aria-labelledby="layers-tab" tabindex="0">
+                @if(Model.LayersUsingSource != null && Model.LayersUsingSource.Count != 0)
                 {
-                        <tr>
-                            <td><a asp-action="EditOption" asp-route-id="@opt.Id"><span class="bi bi-pencil"></span></a></td>
-                            <th>@opt.Name</th>
-                            <td style="white-space:pre-line"><code>@opt.Value</code></td></tr>
+                    <ul class="list-group">
+                        @foreach (var layer in Model.LayersUsingSource)
+                        {
+                            <li class="list-group-item"><a asp-action="Edit" asp-controller="ManagementLayer" asp-route-id="@layer.Id">@layer.Name</a></li>
+                        }
+
+                    </ul>
+                }else{
+                    <div class="alert alert-info">This layer source is not being used by any layers</div>
                 }
-            
-            </table>
+
+            </div>
         </div>
-        <a href="@Url.Action("CreateOption",new {id = Model.LayerSource.Id})" class="btn btn-outline-secondary">Add option</a>
+
+
+        
 
     </div>
     
 </div>
 <a asp-action="Delete" asp-route-id="@Model.LayerSource.Id" class="btn btn-danger">Delete</a>
 
-
-
-            
-
-
+<script>
+    var attributionRendererEndpoint = '@Url.Action("RenderAttributionString","Management")';
+</script>
+@section Scripts{
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            const ev = new Event("CreateSourceInit")
+            document.dispatchEvent(ev);
+        });
+    </script>
+}

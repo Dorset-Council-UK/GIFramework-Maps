@@ -74,7 +74,7 @@ export class WebLayerService {
             layersListContainer.innerHTML = '';
             if (availableLayers && availableLayers.length !== 0) {
                 availableLayers.forEach(layer => {
-                    layersListContainer.appendChild(this.renderLayerItem(layer, serviceDefinition));
+                    layersListContainer.appendChild(this.renderLayerItem(layer));
                 })
 
                 searchInput.style.display = '';
@@ -121,7 +121,7 @@ export class WebLayerService {
     * @returns HTMLElement
     *
     */
-    private renderLayerItem(layerDetails: LayerResource, serviceDefinition: WebLayerServiceDefinition): HTMLElement {
+    private renderLayerItem(layerDetails: LayerResource): HTMLElement {
         let layerItemContainer = document.createElement('div');
         layerItemContainer.className = `list-group-item`;
         layerItemContainer.id = layerDetails.name;
@@ -134,8 +134,12 @@ export class WebLayerService {
         addLayerButton.addEventListener('click', e => {
             try {
                 let source: olSource.ImageWMS | olSource.TileWMS;
-
-                if (serviceDefinition.proxyMapRequests) {
+                const preferredProjections = ["EPSG:3857", "EPSG:900913", "EPSG:27700", "EPSG:4326", "CRS:84"]
+                let selectedProjection = preferredProjections.find(p => layerDetails.projections.includes(p));
+                if (!selectedProjection) {
+                    selectedProjection = layerDetails.projections[0];
+                }
+                if (layerDetails.proxyMapRequests) {
                     let imageWMSOpts: ImageWMSOptions = {
                         url: layerDetails.baseUrl,
                         params: {
@@ -145,10 +149,10 @@ export class WebLayerService {
                         },
                         attributions: layerDetails.attribution,
                         crossOrigin: 'anonymous',
-                        projection: layerDetails.projection,
+                        projection: selectedProjection,
                 
                     };
-                    if (serviceDefinition.proxyMapRequests) {
+                    if (layerDetails.proxyMapRequests) {
                         imageWMSOpts.imageLoadFunction = (imageTile: any, src: string) => {
                             let proxyUrl = this.gifwMapInstance.createProxyURL(src);
                             imageTile.getImage().src = proxyUrl;
@@ -166,10 +170,10 @@ export class WebLayerService {
                         },
                         attributions: layerDetails.attribution,
                         crossOrigin: 'anonymous',
-                        projection: layerDetails.projection,
+                        projection: selectedProjection,
 
                     };
-                    if (serviceDefinition.proxyMapRequests) {
+                    if (layerDetails.proxyMapRequests) {
                         tileWMSOpts.tileLoadFunction = (imageTile: any, src: string) => {
                             let proxyUrl = this.gifwMapInstance.createProxyURL(src);
                             imageTile.getImage().src = proxyUrl;
@@ -182,8 +186,8 @@ export class WebLayerService {
                 this.gifwMapInstance.addWebLayerToMap(
                     source,
                     layerDetails.title,
-                    serviceDefinition.proxyMetaRequests,
-                    serviceDefinition.proxyMapRequests
+                    layerDetails.proxyMetaRequests,
+                    layerDetails.proxyMapRequests
                 )
                 let layerModal = Modal.getInstance('#add-layer-web-layer-modal');
 

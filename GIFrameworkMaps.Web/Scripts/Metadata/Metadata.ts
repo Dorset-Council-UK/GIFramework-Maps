@@ -224,6 +224,7 @@ export class Metadata {
 
     static async getLayersFromCapabilities(baseUrl: string, version:string = "1.1.0", proxyEndpoint:string = "") {
         try {
+            //does the baseurl already contain a version? If so, use that.
             let response = await this.getCapabilities(baseUrl, "WMS", version, proxyEndpoint);
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
@@ -248,19 +249,17 @@ export class Metadata {
             if (version === "1.3.0") {
                 projectionXPath = '//Capability/Layer/CRS';
             }
-            let projectionNodes = (evaluateXPathToNodes(projectionXPath, doc, null, null, { language: evaluateXPath.XQUERY_3_1_LANGUAGE }) as Node[]);
-            let projections = projectionNodes.map(f => f.textContent.split(" ")).flat();
-            const preferredProjections = ["EPSG:3857","EPSG:27700","EPSG:4326","EPSG:900913"]
-            let projection = preferredProjections.find(p => projections.includes(p));
-            if (!projection) {
-                projection = projections[0];
-            }
+            const projectionNodes = (evaluateXPathToNodes(projectionXPath, doc, null, null, { language: evaluateXPath.XQUERY_3_1_LANGUAGE }) as Node[]);
+            const projections = projectionNodes.map(f => f.textContent.split(" ")).flat();
             let layers = (evaluateXPathToNodes(`//Layer/Layer`, doc, null, null, { language: evaluateXPath.XQUERY_3_1_LANGUAGE }) as Node[]);
             //parse styles into list of styles
             let availableLayers: LayerResource[] = [];
             layers.forEach(s => {
-                let title: string, name: string, abstract: string, attribution: string, attributionUrl: string;
+                let title: string, name: string, abstract: string, attribution: string, attributionUrl: string, queryable: boolean = false;
                 let extent: olExtent.Extent;
+                if ((s as any).attributes.getNamedItem("queryable")?.value === "1") {
+                    queryable = true;
+                }
                 /*TODO - This is gross and inefficient. Make it better*/
                 s.childNodes.forEach(n => {
                     if (n.nodeName === 'Name') {
@@ -313,8 +312,12 @@ export class Metadata {
                     attribution: attribution,
                     formats: acceptableFormats,
                     baseUrl: getMapEndpoint,
-                    projection: projection,
-                    extent: extent
+                    projections: projections,
+                    extent: extent,
+                    queryable: queryable,
+                    version: version,
+                    proxyMetaRequests: (proxyEndpoint !== "" ? true : false),
+                    proxyMapRequests: (proxyEndpoint !== "" ? true : false)
                 }
                 availableLayers.push(layer)
             })

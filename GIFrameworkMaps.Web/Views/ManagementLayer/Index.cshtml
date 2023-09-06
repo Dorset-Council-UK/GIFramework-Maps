@@ -10,6 +10,22 @@
 <h1>@ViewData["Title"]</h1>
 <p class="lead">Manage the layers consumed by @appName</p>
 
+<div class="container mb-3">
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
+                    <a asp-action="Index" asp-controller="ManagementLayerWizard" class="stretched-link">
+                        <h4 class="card-title"><i class="bi bi-magic"></i> Add Layer Wizard</h4>
+                    </a>
+                    <p class="card-text">Add a new layer using the add layer wizard</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <div class="container">
     <div class="row row-cols-1 row-cols-md-3 g-4">
         <div class="col">
