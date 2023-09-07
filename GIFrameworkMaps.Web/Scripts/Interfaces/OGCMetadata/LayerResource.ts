@@ -13,4 +13,5 @@ export interface LayerResource {
     version: string;
     proxyMetaRequests: boolean;
     proxyMapRequests: boolean;
+    keywords?: string[];
 }
