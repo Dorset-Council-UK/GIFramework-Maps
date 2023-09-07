@@ -635,6 +635,10 @@
     z-index: 10000;
 }
 
+/*Civic Cookie Control overrides*/
+.giframeworkMap #ccc-overlay {
+    backdrop-filter: blur(2px) brightness(0.5);
+}
 
 /*Shepherd overrides (welcome tour)*/
 
