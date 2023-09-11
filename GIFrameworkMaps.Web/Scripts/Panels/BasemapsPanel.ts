@@ -4,7 +4,7 @@ import { GIFWMap } from "../Map";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { Layer as olLayer } from "ol/layer";
 import { Basemap } from "../Interfaces/Basemap";
-import { CSWMetadataViewer } from "../Metadata/CSWMetadataViewer";
+import { MetadataViewer } from "../Metadata/MetadataViewer";
 import { Layer } from "../Interfaces/Layer";
 import { Projection } from "ol/proj";
 
@@ -244,7 +244,6 @@ export class BasemapsPanel implements SidebarPanel {
         link.addEventListener('click', e => {
             //open modal for metadata
             let eTarget = e.currentTarget as HTMLElement;
-
             let layerGroup = this.gifwMapInstance.getLayerGroupOfType(LayerGroupType.Basemap);
             let layerConfig = (layerGroup.layers as Layer[]).filter(l => l.id == eTarget.dataset.gifwAboutBasemap);
             let proxyEndpoint = "";
@@ -252,7 +251,8 @@ export class BasemapsPanel implements SidebarPanel {
                 proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
             }
             if (layerConfig && layerConfig.length === 1) {
-                CSWMetadataViewer.showMetadataModal(layerConfig[0], undefined, proxyEndpoint);
+                let olLayer = this.gifwMapInstance.getActiveBasemap();
+                MetadataViewer.showMetadataModal(layerConfig[0], olLayer, undefined, proxyEndpoint);
             }
             e.preventDefault();
         })
