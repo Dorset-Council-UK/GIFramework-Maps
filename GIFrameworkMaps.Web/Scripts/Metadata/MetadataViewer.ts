@@ -16,7 +16,7 @@ export class MetadataViewer {
            3: Metadata from database description
         */
 
-        let metadata = await this.getMetadataFromCSWDocument(layer, proxyEndpoint);
+        let metadata = await this.getMetadataFromCSWDocument(layer, olLayer, proxyEndpoint);
         if (metadata) {
             return metadata;
         }
@@ -33,7 +33,7 @@ export class MetadataViewer {
         
     }
 
-    static async getMetadataFromCSWDocument(layer: Layer, proxyEndpoint?: string) {
+    static async getMetadataFromCSWDocument(layer: Layer, olLayer:olLayer, proxyEndpoint?: string) {
         try {
             const cswMetadataEndpoint = layer.layerSource.layerSourceOptions.filter(l => l.name == "cswendpoint");
             if (cswMetadataEndpoint && cswMetadataEndpoint.length !== 0) {
@@ -78,12 +78,38 @@ export class MetadataViewer {
                 };
                 for (let ref of refTags) {
                     if (ref.innerHTML !== "" && ref.getAttribute("scheme") !== null) {
-                        let metaLink: CSWMetadataLinks = {
-                            url: ref.innerHTML,
-                            type: ref.getAttribute("scheme")
-                        }
+                        
+                        if (olLayer.getSource() instanceof TileWMS || olLayer.getSource() instanceof ImageWMS) {
+                            const source = olLayer.getSource();
+                            let baseUrl: string;
+                            let params: any;
+                            if (source instanceof TileWMS) {
+                                baseUrl = source.getUrls()[0];
+                                params = source.getParams();
+                            } else {
+                                baseUrl = (source as ImageWMS).getUrl();
+                                params = (source as ImageWMS).getParams();
+                            }
+                            const version = Util.Helper.getValueFromObjectByKey(params, "version") as string || "1.1.0";
 
-                        refs.push(metaLink);
+                            const type = ref.getAttribute("scheme");
+                            if (type.toUpperCase() == "OGC:WMS") {
+                                const metaLink: CSWMetadataLinks = {
+                                    url: Metadata.constructGetCapabilitiesURL(baseUrl, "WMS", version),
+                                    type: "WMS GetCapabilities"
+                                }
+
+                                refs.push(metaLink);
+                            }
+                            if (type.toUpperCase() == "OGC:WFS") {
+                                const metaLink: CSWMetadataLinks = {
+                                    url: Metadata.constructGetCapabilitiesURL(baseUrl, "WFS", version),
+                                    type: "WFS GetCapabilities"
+                                }
+
+                                refs.push(metaLink);
+                            }
+                        }
                     }
                 };
                 let CSWMetadata: CSWMetadata = {
@@ -126,7 +152,10 @@ export class MetadataViewer {
                             abstract: matchedLayer[0].abstract || "No description provided",
                             accessRights: '',
                             keywords: matchedLayer[0].keywords,
-                            dataLinks: null,
+                            dataLinks: [{
+                                    url: Metadata.constructGetCapabilitiesURL(baseUrl, "WMS", version),
+                                    type: "WMS GetCapabilities"
+                                }],
                             documentURL: Metadata.constructGetCapabilitiesURL(baseUrl, "WMS", version)
                         }
                         return CSWMetadata;
