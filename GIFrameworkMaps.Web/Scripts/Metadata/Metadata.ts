@@ -9,16 +9,7 @@ export class Metadata {
 
     /*TODO - Make all the metadata fetchers use this generic function*/
     static async getCapabilities(baseUrl: string, service: string = "WMS", version: string = "1.1.0", proxyEndpoint: string = "") {
-        let getCapabilitiesURLParams = new URLSearchParams({
-            service: service,
-            version: version,
-            request: 'GetCapabilities'
-        });
-        let baseURLasURL = new URL(baseUrl)
-        let baseURLParams = new URL(baseUrl).searchParams;
-        let combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, getCapabilitiesURLParams, true);
-
-        let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
+        let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, service, version);
         if (proxyEndpoint !== "") {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
         }
@@ -69,17 +60,8 @@ export class Metadata {
      * @param baseUrl - The base URL of the OGC server you want to query
      */
     static async getBasicCapabilities(baseUrl: string, additionalUrlParams: {} = {}, proxyEndpoint: string = ""): Promise<BasicServerCapabilities> {
-        let getCapabilitiesURLParams = new URLSearchParams({
-            service: 'WFS',
-            version: '1.1.0',
-            request: 'GetCapabilities',
-            ...additionalUrlParams
-        });
-        let baseURLasURL = new URL(baseUrl)
-        let baseURLParams = new URL(baseUrl).searchParams;
-        let combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, getCapabilitiesURLParams, true);
 
-        let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
+        let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, 'WFS', '1.1.0', additionalUrlParams);
         if (proxyEndpoint !== "") {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
         }
@@ -164,17 +146,7 @@ export class Metadata {
      * @param layerName - The name of the layer to find in the list
      */
     static async getStylesForLayer(baseUrl: string, layerName: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}): Promise<Style[]> {
-        let getCapabilitiesURLParams = new URLSearchParams({
-            service: 'WMS',
-            version: '1.1.0',
-            request: 'GetCapabilities',
-            ...additionalUrlParams
-        });
-        let baseURLasURL = new URL(baseUrl)
-        let baseURLParams = new URL(baseUrl).searchParams;
-        let combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, getCapabilitiesURLParams, true);
-
-        let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
+        let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, "WMS", "1.1.0", additionalUrlParams);
         if (proxyEndpoint !== "") {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
         }
@@ -255,7 +227,7 @@ export class Metadata {
             //parse styles into list of styles
             let availableLayers: LayerResource[] = [];
             layers.forEach(s => {
-                let title: string, name: string, abstract: string, attribution: string, attributionUrl: string, queryable: boolean = false;
+                let title: string, name: string, abstract: string, attribution: string, attributionUrl: string, queryable: boolean = false, keywords:string[] = [];
                 let extent: olExtent.Extent;
                 if ((s as any).attributes.getNamedItem("queryable")?.value === "1") {
                     queryable = true;
@@ -303,6 +275,13 @@ export class Metadata {
                                 ]
                         }
                     }
+                    if (n.nodeName === 'KeywordList') {
+                        n.childNodes.forEach(c => {
+                            if (c.nodeName === 'Keyword') {
+                                keywords.push(c.textContent);
+                            }
+                        })
+                    }
                 })
                 
                 let layer: LayerResource = {
@@ -317,7 +296,8 @@ export class Metadata {
                     queryable: queryable,
                     version: version,
                     proxyMetaRequests: (proxyEndpoint !== "" ? true : false),
-                    proxyMapRequests: (proxyEndpoint !== "" ? true : false)
+                    proxyMapRequests: (proxyEndpoint !== "" ? true : false),
+                    keywords: keywords
                 }
                 availableLayers.push(layer)
             })
@@ -333,17 +313,8 @@ export class Metadata {
      * @param baseUrl - The base URL of the OGC server you want to query
      */
     static async getWPSCapabilities(baseUrl: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}): Promise<BasicServerCapabilities> {
-        let getCapabilitiesURLParams = new URLSearchParams({
-            service: 'wps',
-            version: '1.1.0',
-            request: 'GetCapabilities',
-            ...additionalUrlParams
-        });
-        let baseURLasURL = new URL(baseUrl)
-        let baseURLParams = new URL(baseUrl).searchParams;
-        let combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, getCapabilitiesURLParams, true);
-
-        let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
+        
+        let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, 'wps', '1.1.0', additionalUrlParams);
         if (proxyEndpoint !== "") {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
         }
@@ -457,5 +428,20 @@ export class Metadata {
         catch (error) {
             console.error(`Could not get process description: ${error}`);
         }
+    }
+
+    static constructGetCapabilitiesURL(baseUrl: string, service: string = "WMS", version: string = "1.1.0", additionalUrlParams: {} = {}) {
+        const getCapabilitiesURLParams = new URLSearchParams({
+            service: service,
+            version: version,
+            request: 'GetCapabilities',
+            ...additionalUrlParams
+        });
+        const baseURLasURL = new URL(baseUrl)
+        const baseURLParams = new URL(baseUrl).searchParams;
+        const combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, getCapabilitiesURLParams, true);
+
+        const fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
+        return fetchUrl;
     }
 }

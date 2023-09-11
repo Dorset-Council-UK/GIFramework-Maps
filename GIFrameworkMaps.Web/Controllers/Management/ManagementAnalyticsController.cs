@@ -180,7 +180,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         {
             var versions = _context.Versions.OrderBy(b => b.Name).ToList();
             string[] supportedProducts = { "Cloudflare", "Google Analytics (GA4)", "Microsoft Application Insights", "Microsoft Clarity" };
-            string[] supportedCookieControls = { "Civica Cookie Control" };
+            string[] supportedCookieControls = { "Civic Cookie Control" };
 
             model.availableProducts = new SelectList(supportedProducts);
             model.availableCookieControl = new SelectList(supportedCookieControls);

@@ -5,7 +5,7 @@ import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { LayerListSortingOption } from "../Interfaces/LayerPanel/LayerListSortingOption";
 import { LayerFilter } from "../LayerFilter";
 import { GIFWMap } from "../Map";
-import { CSWMetadataViewer } from "../Metadata/CSWMetadataViewer";
+import { MetadataViewer } from "../Metadata/MetadataViewer";
 import { LayersPanel } from "./LayersPanel";
 
 export class LayerList {
@@ -186,7 +186,7 @@ export class LayerList {
                     if (layerConfig[0].proxyMetaRequests) {
                         proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
                     }
-                    CSWMetadataViewer.showMetadataModal(layerConfig[0], isFiltered, proxyEndpoint);
+                    MetadataViewer.showMetadataModal(layerConfig[0], (olLayer as olLayer), isFiltered, proxyEndpoint);
                 }
                 e.preventDefault();
             });
