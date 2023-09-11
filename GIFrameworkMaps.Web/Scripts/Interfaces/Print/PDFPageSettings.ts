@@ -8,6 +8,7 @@
     maxPortraitTitleLength: number;
     maxLandscapeSubtitleLength: number;
     maxPortraitSubtitleLength: number;
+    legendTitleFontSize: number;
 }
 
 export type PDFPageSettings = {

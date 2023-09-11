@@ -1,6 +1,7 @@
 ﻿import jsPDF from "jspdf";
 import { Map } from "ol";
 import * as olProj from "ol/proj";
+import { LegendURLs } from "./Interfaces/LegendURLs";
 import { PDFPageSetting, PDFPageSettings } from "./Interfaces/Print/PDFPageSettings";
 import { PrintConfiguration } from "./Interfaces/Print/PrintConfiguration";
 import { GIFWMap } from "./Map";
@@ -71,7 +72,7 @@ export class Export {
 
         let promise = new Promise<void>((resolve, reject) => {
 
-            let evt = olMap.once('rendercomplete', () => {
+            let evt = olMap.once('rendercomplete', async () => {
                 try {
 
                     const pdf = new jsPDF({
@@ -115,7 +116,7 @@ export class Export {
 
                     this.createAttributionsBox(pdf, map, pageMargin, chosenPageSettings);
                     if (legend !== 'none') {
-                        this.createLegend(pdf, map, pageMargin, chosenPageSettings, legend, pageSize)
+                        await this.createLegend(pdf, map, pageMargin, chosenPageSettings, legend, pageSize, pageOrientation)
                         pdf.setPage(1);
                     }
                     //get logo async then send the PDF to the user
@@ -130,7 +131,7 @@ export class Export {
 
                         pdf.setProperties({
                             title: `${title.length !== 0 ? title : 'Map'}`,
-                            creator: 'GIFrameworkMaps',
+                            creator: map.config.name,
 
                         });
                         resolve(pdf.save(`${title.length !== 0 ? title.substring(0, 20) : 'Map'}_${timestamp}.pdf`, { returnPromise: true }));
@@ -453,24 +454,58 @@ export class Export {
         );
     }
 
-    private createLegend(pdf: jsPDF, map: GIFWMap, pageMargin: number, pageSettings: PDFPageSetting, legend: "none" | "left" | "right" | "seperate-page", pageSize: "a2" | "a3" | "a4" | "a5"){
+    private async createLegend(pdf: jsPDF, map: GIFWMap, pageMargin: number, pageSettings: PDFPageSetting, legend: "none" | "left" | "right" | "seperate-page", pageSize: "a2" | "a3" | "a4" | "a5", pageOrientation: "p" | "l") {
+        const legendUrls = map.getLegendURLs("wrap:true;wrap_limit:600;");
+        if (legend === 'none' || legendUrls.availableLegends.length === 0) {
+            return;
+        }
+        //get images
+
         switch (legend) {
-            case "none":
-                return;
             case "left":
                 break;
             case "right":
                 break;
             case "seperate-page":
-                pdf.addPage(pageSize, "p");
-                
+                pdf.addPage(pageSize, pageOrientation);
+                pdf.setFontSize(pageSettings.legendTitleFontSize);
+                pdf.text("Map Key", pageMargin / 2, pageMargin / 2);
+                const legendPromises = this.getLegendImages(legendUrls);
+                await Promise.allSettled(legendPromises).then((promises) => {
+                    let currentX = pageMargin / 2;
+                    let currentY = pageMargin / 2 + pdf.getTextDimensions("Map Key").h + 7.5;
+                    pdf.setFontSize(pageSettings.titleFontSize);
+                    promises.forEach(p => {
+                        if (p.status === 'fulfilled') {
+                            const layerName = p.value[0];
+                            const img = p.value[1];
+                            pdf.text(layerName, currentX, currentY);
+                            currentY += pdf.getTextDimensions(layerName).h
+                            const imgProps = pdf.getImageProperties(img);
+                            const widthInMM = (imgProps.width * 25.4) / 96;
+                            const heightInMM = (imgProps.height * 25.4) / 96;
+                            pdf.addImage(img, currentX, currentY, widthInMM, heightInMM);
+                            currentY += heightInMM + 7.5;
+                        }
+                    })
+                });
                 break;
         }
-        const legends = map.getLegendURLs("wrap:true;wrap_limit:400");
-        console.log(legends);
+
     }
 
-
+    private getLegendImages(legendUrls: LegendURLs) {
+        let promises: Promise<[string, HTMLImageElement]>[] = [];
+        legendUrls.availableLegends.forEach(legend => {
+            promises.push(new Promise<[string, HTMLImageElement]>((resolve, reject) => {
+                let img = new Image();
+                img.onload = () => resolve([legend.name, img]);
+                img.onerror = () => reject("Image load failed");
+                img.src = legend.legendUrl;
+            }));
+        })
+        return promises;
+    }
 
     /**
      * Gets the logo defined in the print configuration and converts it to a base64 string

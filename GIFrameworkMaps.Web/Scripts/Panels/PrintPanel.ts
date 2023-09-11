@@ -9,10 +9,10 @@ export class PrintPanel implements SidebarPanel {
     container: string;
     gifwMapInstance: GIFWMap;
     pdfPageSettings: PDFPageSettings = {
-        "a2": { attributionFontSize: 12, titleFontSize: 16, subtitleFontSize: 12, pageWidth: 594, pageHeight: 420, maxLandscapeTitleLength: 170, maxPortraitTitleLength: 130, maxLandscapeSubtitleLength: 500, maxPortraitSubtitleLength: 350 },
-        "a3": { attributionFontSize: 11, titleFontSize: 14, subtitleFontSize: 12, pageWidth: 420, pageHeight: 297, maxLandscapeTitleLength: 130, maxPortraitTitleLength: 90, maxLandscapeSubtitleLength: 350, maxPortraitSubtitleLength: 240 },
-        "a4": { attributionFontSize: 10, titleFontSize: 12, subtitleFontSize: 10, pageWidth: 297, pageHeight: 210, maxLandscapeTitleLength: 100, maxPortraitTitleLength: 70, maxLandscapeSubtitleLength: 310, maxPortraitSubtitleLength: 170 },
-        "a5": { attributionFontSize: 8, titleFontSize: 11, subtitleFontSize: 10, pageWidth: 210, pageHeight: 148, maxLandscapeTitleLength: 70, maxPortraitTitleLength: 50, maxLandscapeSubtitleLength: 160, maxPortraitSubtitleLength: 100 }
+        "a2": { attributionFontSize: 12, titleFontSize: 16, subtitleFontSize: 12, legendTitleFontSize: 20, pageWidth: 594, pageHeight: 420, maxLandscapeTitleLength: 170, maxPortraitTitleLength: 130, maxLandscapeSubtitleLength: 500, maxPortraitSubtitleLength: 350 },
+        "a3": { attributionFontSize: 11, titleFontSize: 14, subtitleFontSize: 12, legendTitleFontSize: 18, pageWidth: 420, pageHeight: 297, maxLandscapeTitleLength: 130, maxPortraitTitleLength: 90, maxLandscapeSubtitleLength: 350, maxPortraitSubtitleLength: 240 },
+        "a4": { attributionFontSize: 10, titleFontSize: 12, subtitleFontSize: 10, legendTitleFontSize: 16, pageWidth: 297, pageHeight: 210, maxLandscapeTitleLength: 100, maxPortraitTitleLength: 70, maxLandscapeSubtitleLength: 310, maxPortraitSubtitleLength: 170 },
+        "a5": { attributionFontSize: 8, titleFontSize: 11, subtitleFontSize: 10, legendTitleFontSize: 14, pageWidth: 210, pageHeight: 148, maxLandscapeTitleLength: 70, maxPortraitTitleLength: 50, maxLandscapeSubtitleLength: 160, maxPortraitSubtitleLength: 100 }
     };
     exportInstance: Export;
     abortController: AbortController;
