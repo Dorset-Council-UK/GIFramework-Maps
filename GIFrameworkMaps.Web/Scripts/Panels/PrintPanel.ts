@@ -123,10 +123,13 @@ export class PrintPanel implements SidebarPanel {
         if (pageSetting.substring(2) === "l") {
             pageOrientation = "l";
         }
+        const legend = ((document.getElementById('gifw-print-legend') as HTMLSelectElement).value as "none" | "left" | "right" | "seperate-page");
+        
 
         const resolution = parseInt((document.getElementById('gifw-print-resolution') as HTMLSelectElement).value);
         const isScalePrint = (document.getElementById('gifw-print-scale-print') as HTMLInputElement).checked;
         const scale = parseInt((document.getElementById('gifw-print-scale') as HTMLSelectElement).value);
+
         this.abortController = new AbortController();
         this.cancelledByUser = false;
         let promise = this.exportInstance.createPDF(
@@ -136,11 +139,11 @@ export class PrintPanel implements SidebarPanel {
             resolution,
             this.abortController,
             isScalePrint ? scale : undefined,
-
+            legend
         )
 
         this.showLoading();
-        /*TESTING*/
+
         this.longLoadingTimeout = window.setTimeout(() => this.showLongLoadingWarning(), this.longLoadingTimeoutLength);
 
         promise

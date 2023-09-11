@@ -34,6 +34,7 @@ import { Streetview } from "./Streetview";
 import { VersionViewModel } from "./Interfaces/VersionViewModel";
 import { WebLayerService } from "./WebLayerService";
 import { BookmarkMenu } from "./BookmarkMenu";
+import { LegendURLs } from "./Interfaces/LegendURLs";
 
 export class GIFWMap {
     id: string;
@@ -915,6 +916,65 @@ export class GIFWMap {
         let activeBasemap = this.getActiveBasemap();
         let maxBasemapExtent = activeBasemap.getExtent();
         return containsCoordinate(maxBasemapExtent, coord)
+    }
+
+
+    /**
+     * Gets all Legend URLs for layers that are legendable, and a list of layer names that are not legendable
+     * @param additionalLegendOptions Optional string of additoinal options to add to the LEGEND_OPTIONS parameter of the GetLegendGraphic request
+     * @returns LegendURLs
+     */
+    public getLegendURLs(additionalLegendOptions: string = "") {
+        let legends: LegendURLs = { availableLegends: [], nonLegendableLayers: [] };
+        if (this.anyOverlaysOn()) {
+            const resolution = this.olMap.getView().getResolution();
+            const roundedZoom = Math.ceil(this.olMap.getView().getZoom());
+            const layerGroups = this.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
+
+            let layers: olLayer.Layer<any, any>[] = [];
+            layerGroups.forEach(lg => {
+                layers = layers.concat(lg.olLayerGroup.getLayersArray());
+            })
+
+            const switchedOnLayers = layers.filter(l => l.getVisible() === true && l.getMaxZoom() >= roundedZoom && l.getMinZoom() < roundedZoom);
+            switchedOnLayers.sort((a, b) => a.getZIndex() - b.getZIndex()).reverse().forEach(l => {
+                let source = l.getSource();
+                if (source instanceof TileWMS || source instanceof ImageWMS) {
+                    let view = this.olMap.getView();
+                    let viewport = this.olMap.getViewport();
+                    let params: any = {
+                        LEGEND_OPTIONS: "fontAntiAliasing:true;forceLabels:on;countMatched:true;hideEmptyRules:true;" + additionalLegendOptions,
+                        bbox: view.calculateExtent().toString(),
+                        srcwidth: viewport.clientWidth,
+                        srcheight: viewport.clientHeight,
+                        crs: view.getProjection().getCode()
+                    }
+                    //merge valid params from the source and add to the legend
+                    let additionalParams: any = {};
+                    let sourceParams = source.getParams();
+
+                    let validProps = ["time", "cql_filter", "filter", "featureid", "elevation", "styles"];
+                    //For the sake of sanity, convert the param names to lowercase for processing
+                    let lowerCaseParams = Object.fromEntries(
+                        Object.entries(sourceParams).map(([k, v]) => [k.toLowerCase(), v])
+                    );
+                    additionalParams = Object.fromEntries(Object.entries(lowerCaseParams).filter(([key]) => validProps.includes(key)))
+                    if (additionalParams?.styles) {
+                        //in WMS GetMap, we use the paramater 'STYLES'. In a GetLegendGraphic, we need to use 'STYLE'
+                        //so we detect and convert it here, and get rid of the old one
+                        additionalParams.style = additionalParams.styles;
+                        delete additionalParams.styles;
+                    }
+                    params = { ...params, ...additionalParams };
+
+                    let legendUrl = { name: l.get('name'), legendUrl: source.getLegendUrl(resolution, params) }
+                    legends.availableLegends.push(legendUrl);
+                } else {
+                    legends.nonLegendableLayers.push(l.get('name'));
+                }
+            })
+        }
+        return legends;
     }
 
     /**

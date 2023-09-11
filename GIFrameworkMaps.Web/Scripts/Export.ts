@@ -1,5 +1,5 @@
 ﻿import jsPDF from "jspdf";
-import { Map, } from "ol";
+import { Map } from "ol";
 import * as olProj from "ol/proj";
 import { PDFPageSetting, PDFPageSettings } from "./Interfaces/Print/PDFPageSettings";
 import { PrintConfiguration } from "./Interfaces/Print/PrintConfiguration";
@@ -50,7 +50,8 @@ export class Export {
         pageOrientation: "p" | "l",
         resolution: number,
         abortController: AbortController,
-        scale?: number
+        scale?: number,
+        legend?: "none" | "left" | "right" | "seperate-page"
         
     ): Promise<void> {
 
@@ -113,7 +114,10 @@ export class Export {
                     this.createCoordinatesBox(pdf,map,pageMargin,chosenPageSettings);
 
                     this.createAttributionsBox(pdf, map, pageMargin, chosenPageSettings);
-
+                    if (legend !== 'none') {
+                        this.createLegend(pdf, map, pageMargin, chosenPageSettings, legend, pageSize)
+                        pdf.setPage(1);
+                    }
                     //get logo async then send the PDF to the user
                     this.getLogo().then((response) => {
                         let imgData = <string>response;
@@ -448,6 +452,25 @@ export class Export {
             { maxWidth: maxAttrWidth, align: "right" }
         );
     }
+
+    private createLegend(pdf: jsPDF, map: GIFWMap, pageMargin: number, pageSettings: PDFPageSetting, legend: "none" | "left" | "right" | "seperate-page", pageSize: "a2" | "a3" | "a4" | "a5"){
+        switch (legend) {
+            case "none":
+                return;
+            case "left":
+                break;
+            case "right":
+                break;
+            case "seperate-page":
+                pdf.addPage(pageSize, "p");
+                
+                break;
+        }
+        const legends = map.getLegendURLs("wrap:true;wrap_limit:400");
+        console.log(legends);
+    }
+
+
 
     /**
      * Gets the logo defined in the print configuration and converts it to a base64 string

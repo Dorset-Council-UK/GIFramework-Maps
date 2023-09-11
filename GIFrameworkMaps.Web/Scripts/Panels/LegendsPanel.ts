@@ -1,9 +1,6 @@
 ﻿import { SidebarPanel } from "../Interfaces/SidebarPanel";
 import { Sidebar } from "../Sidebar";
 import { GIFWMap } from "../Map";
-import { LayerGroupType } from "../Interfaces/LayerGroupType";
-import { ImageWMS, TileWMS } from "ol/source";
-import { Layer as olLayer } from "ol/layer";
 
 export class LegendsPanel implements SidebarPanel {
     container: string;
@@ -24,8 +21,7 @@ export class LegendsPanel implements SidebarPanel {
         this.render();
     };
     render() {
-        let resolution = this.gifwMapInstance.olMap.getView().getResolution();
-        this.updateLegend(resolution);
+        this.updateLegend();
     };
     /*TODO - Make this generic*/
     private attachCloseButton():void {
@@ -38,103 +34,50 @@ export class LegendsPanel implements SidebarPanel {
         }
     };
 
-    private updateLegend(resolution: number): void {
+    private updateLegend(): void {
 
         (document.querySelector(this.container).querySelector('#gifw-legends-container') as HTMLDivElement).innerHTML = '';
-        //get visible WMS based layers
-        if (this.gifwMapInstance.anyOverlaysOn()) {
-            let roundedZoom = Math.ceil(this.gifwMapInstance.olMap.getView().getZoom());
-            let layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
+        const legends = this.gifwMapInstance.getLegendURLs();
 
-            let layers: olLayer<any, any>[] = [];
-            layerGroups.forEach(lg => {
-                layers = layers.concat(lg.olLayerGroup.getLayersArray());
-            })
+        if (legends.availableLegends.length !== 0) {
 
-            let switchedOnLayers = layers.filter(l => l.getVisible() === true && l.getMaxZoom() >= roundedZoom && l.getMinZoom() < roundedZoom);
-            let legendUrls: { name: string; legendUrl: string }[] = [];
-            let nonLegendableLayers: string[] = [];
-            switchedOnLayers.sort((a, b) => a.getZIndex() - b.getZIndex()).reverse().forEach(l => {
-                let source = l.getSource();
-                if (source instanceof TileWMS || source instanceof ImageWMS) {
-                    let view = this.gifwMapInstance.olMap.getView();
-                    let viewport = this.gifwMapInstance.olMap.getViewport();
-                    let params: any = {
-                        //if we want to h
-                        LEGEND_OPTIONS: "fontAntiAliasing:true;forceLabels:on;countMatched:true;hideEmptyRules:true",
-                        bbox: view.calculateExtent().toString(),
-                        srcwidth: viewport.clientWidth,
-                        srcheight: viewport.clientHeight,
-                        crs: view.getProjection().getCode() 
+            legends.availableLegends.forEach((legend, index) => {
+
+                let legendContainer: HTMLElement = document.querySelector(this.container).querySelector('#gifw-legends-container');
+
+
+                var headerNode = document.createElement("h6");
+                headerNode.textContent = legend.name;
+
+                legendContainer.appendChild(headerNode);
+                var loadingNode = document.createElement('div')
+                loadingNode.className = 'legend-loading mb-2';
+                loadingNode.setAttribute('data-legend-name', legend.name);
+                loadingNode.innerHTML = `<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>`
+
+                var imgNode = new Image();
+                imgNode.id = "legend-image-" + index;
+                imgNode.className = 'legend-image mb-4';
+                imgNode.setAttribute('data-legend-name', legend.name);
+                imgNode.src = legend.legendUrl;
+                legendContainer.appendChild(loadingNode);
+                legendContainer.appendChild(imgNode);
+                imgNode.addEventListener("error", () => {
+                    this.showErrorForLegend(legend.name);
+                }, { once: true });
+                imgNode.addEventListener("load", () => {
+                    this.hideLoadingForLegend(legend.name);
+                    if (imgNode.width < 5) {
+                        this.showNoFeaturesMessageForLegend(legend.name);
                     }
-                    //merge valid params from the source and add to the legend
-                    let additionalParams: any = {};
-                    let sourceParams = source.getParams();
+                }, { once: true });
 
-                    let validProps = ["time", "cql_filter", "filter", "featureid", "elevation", "styles"];
-                    //For the sake of sanity, convert the param names to lowercase for processing
-                    let lowerCaseParams = Object.fromEntries(
-                        Object.entries(sourceParams).map(([k, v]) => [k.toLowerCase(), v])
-                    );
-                    additionalParams = Object.fromEntries(Object.entries(lowerCaseParams).filter(([key]) => validProps.includes(key)))
-                    if (additionalParams?.styles) {
-                        //in WMS GetMap, we use the paramater 'STYLES'. In a GetLegendGraphic, we need to use 'STYLE'
-                        //so we detect and convert it here, and get rid of the old one
-                        additionalParams.style = additionalParams.styles;
-                        delete additionalParams.styles;
-                    }
-                    params = { ...params, ...additionalParams };
-
-
-                    let legendUrl = { name: l.get('name'), legendUrl: source.getLegendUrl(resolution,params) }
-                    legendUrls.push(legendUrl);
-                } else {
-                    nonLegendableLayers.push(l.get('name'));
-                }
             })
-
-            if (legendUrls.length !== 0) {
-
-                legendUrls.forEach((legend, index) => {
-
-                    let legendContainer: HTMLElement = document.querySelector(this.container).querySelector('#gifw-legends-container');
-
-
-                    var headerNode = document.createElement("h6");
-                    headerNode.textContent = legend.name;
-
-                    legendContainer.appendChild(headerNode);
-                    var loadingNode = document.createElement('div')
-                    loadingNode.className = 'legend-loading mb-2';
-                    loadingNode.setAttribute('data-legend-name', legend.name);
-                    loadingNode.innerHTML = `<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>`
-
-                    var imgNode = new Image();
-                    imgNode.id = "legend-image-" + index;
-                    imgNode.className = 'legend-image mb-4';
-                    imgNode.setAttribute('data-legend-name', legend.name);
-                    imgNode.src = legend.legendUrl;
-                    legendContainer.appendChild(loadingNode);
-                    legendContainer.appendChild(imgNode);
-                    imgNode.addEventListener("error", () => {
-                        this.showErrorForLegend(legend.name);
-                    }, { once: true });
-                    imgNode.addEventListener("load", () => {
-                        this.hideLoadingForLegend(legend.name);
-                        if (imgNode.width < 5) {
-                            this.showNoFeaturesMessageForLegend(legend.name);
-                        }
-                    }, { once: true });
-
-                })
-                this.updateNoLegendsList(nonLegendableLayers, true);
-            } else {
-                this.updateNoLegendsList(nonLegendableLayers, false);
-            }
-
+            this.updateNoLegendsList(legends.nonLegendableLayers, true);
         } else {
-            this.updateNoLegendsList();
+            this.updateNoLegendsList(legends.nonLegendableLayers, false);
         }
+
 
     }
     private showErrorForLegend(layerName:string) {
