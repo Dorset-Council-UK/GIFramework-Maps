@@ -469,22 +469,61 @@ export class Export {
             case "seperate-page":
                 pdf.addPage(pageSize, pageOrientation);
                 pdf.setFontSize(pageSettings.legendTitleFontSize);
-                pdf.text("Map Key", pageMargin / 2, pageMargin / 2);
+                pdf.text("Map Key", pageMargin / 2, (pageMargin / 2) + 3);
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const startingX = pageMargin / 2;
+                const startingY = pageMargin / 2 + pdf.getTextDimensions("Map Key").h + 7.5;
                 const legendPromises = this.getLegendImages(legendUrls);
                 await Promise.allSettled(legendPromises).then((promises) => {
-                    let currentX = pageMargin / 2;
-                    let currentY = pageMargin / 2 + pdf.getTextDimensions("Map Key").h + 7.5;
+                    let currentX = startingX;
+                    let currentY = startingY;
+                    let maxWidth = 0;
                     pdf.setFontSize(pageSettings.titleFontSize);
                     promises.forEach(p => {
                         if (p.status === 'fulfilled') {
                             const layerName = p.value[0];
+                            const layerNameWidth = pdf.getTextDimensions(layerName).w;
                             const img = p.value[1];
+                            const imgProps = pdf.getImageProperties(img);
+                            let widthInMM = (imgProps.width * 25.4) / 96;
+                            let heightInMM = (imgProps.height * 25.4) / 96;
+                            if ((currentY + heightInMM + pdf.getTextDimensions(layerName).h) >= (pageHeight - pageMargin)) {
+                                currentX = (pageMargin / 2) + maxWidth + 7.5;
+                                currentY = startingY;
+                            }
+
+                            if (widthInMM > (pageWidth - pageMargin)) {
+                                //key is wider than page.
+                                const originalWidth = widthInMM;
+                                widthInMM = (pageWidth - pageMargin - startingX);
+                                const scaleRatio = widthInMM / originalWidth;
+                                heightInMM = heightInMM * scaleRatio;
+                            }
+                            if (heightInMM > (pageHeight - pageMargin)) {
+                                //key is taller than page
+                                const originalHeight = heightInMM;
+                                heightInMM = (pageHeight - pageMargin - startingY);
+                                const scaleRatio = heightInMM / originalHeight;
+                                widthInMM = widthInMM * scaleRatio;
+                            }
+
+                            if ((widthInMM + currentX) > (pageWidth - pageMargin) || (layerNameWidth + currentX) > (pageWidth - pageMargin)) {
+                                //key or title would overflow page edge
+                                //add to new page
+                                pdf.addPage(pageSize, pageOrientation);
+                                pdf.setFontSize(pageSettings.legendTitleFontSize);
+                                pdf.text("Map Key (cont.)", pageMargin / 2, (pageMargin / 2) + 3);
+                                pdf.setFontSize(pageSettings.titleFontSize);
+                                currentX = startingX;
+                                currentY = startingY;
+                                maxWidth = 0;
+                            }
                             pdf.text(layerName, currentX, currentY);
                             currentY += pdf.getTextDimensions(layerName).h
-                            const imgProps = pdf.getImageProperties(img);
-                            const widthInMM = (imgProps.width * 25.4) / 96;
-                            const heightInMM = (imgProps.height * 25.4) / 96;
                             pdf.addImage(img, currentX, currentY, widthInMM, heightInMM);
+                            if (widthInMM > maxWidth) maxWidth = widthInMM;
+                            if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
                             currentY += heightInMM + 7.5;
                         }
                     })
