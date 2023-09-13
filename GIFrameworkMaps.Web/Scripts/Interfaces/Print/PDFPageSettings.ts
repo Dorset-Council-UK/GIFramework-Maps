@@ -3,12 +3,14 @@
     subtitleFontSize: number;
     attributionFontSize: number;
     pageWidth: number;
+    inlineLegendPortraitMaxWidth?: number;
+    inlineLegendLandscapeMaxWidth?: number;
     pageHeight: number;
     maxLandscapeTitleLength: number;
     maxPortraitTitleLength: number;
     maxLandscapeSubtitleLength: number;
     maxPortraitSubtitleLength: number;
-    legendTitleFontSize: number;
+    standaloneLegendTitleFontSize: number;
 }
 
 export type PDFPageSettings = {

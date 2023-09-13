@@ -9,10 +9,10 @@ export class PrintPanel implements SidebarPanel {
     container: string;
     gifwMapInstance: GIFWMap;
     pdfPageSettings: PDFPageSettings = {
-        "a2": { attributionFontSize: 12, titleFontSize: 16, subtitleFontSize: 12, legendTitleFontSize: 20, pageWidth: 594, pageHeight: 420, maxLandscapeTitleLength: 170, maxPortraitTitleLength: 130, maxLandscapeSubtitleLength: 500, maxPortraitSubtitleLength: 350 },
-        "a3": { attributionFontSize: 11, titleFontSize: 14, subtitleFontSize: 12, legendTitleFontSize: 18, pageWidth: 420, pageHeight: 297, maxLandscapeTitleLength: 130, maxPortraitTitleLength: 90, maxLandscapeSubtitleLength: 350, maxPortraitSubtitleLength: 240 },
-        "a4": { attributionFontSize: 10, titleFontSize: 12, subtitleFontSize: 10, legendTitleFontSize: 16, pageWidth: 297, pageHeight: 210, maxLandscapeTitleLength: 100, maxPortraitTitleLength: 70, maxLandscapeSubtitleLength: 310, maxPortraitSubtitleLength: 170 },
-        "a5": { attributionFontSize: 8, titleFontSize: 11, subtitleFontSize: 10, legendTitleFontSize: 14, pageWidth: 210, pageHeight: 148, maxLandscapeTitleLength: 70, maxPortraitTitleLength: 50, maxLandscapeSubtitleLength: 160, maxPortraitSubtitleLength: 100 }
+        "a2": { attributionFontSize: 12, titleFontSize: 16, subtitleFontSize: 12, standaloneLegendTitleFontSize: 20, pageWidth: 594, pageHeight: 420, inlineLegendPortraitMaxWidth: 140, inlineLegendLandscapeMaxWidth: 200, maxLandscapeTitleLength: 170, maxPortraitTitleLength: 130, maxLandscapeSubtitleLength: 500, maxPortraitSubtitleLength: 350 },
+        "a3": { attributionFontSize: 11, titleFontSize: 14, subtitleFontSize: 12, standaloneLegendTitleFontSize: 18, pageWidth: 420, pageHeight: 297, inlineLegendPortraitMaxWidth: 120, inlineLegendLandscapeMaxWidth: 140, maxLandscapeTitleLength: 130, maxPortraitTitleLength: 90, maxLandscapeSubtitleLength: 350, maxPortraitSubtitleLength: 240 },
+        "a4": { attributionFontSize: 10, titleFontSize: 12, subtitleFontSize: 10, standaloneLegendTitleFontSize: 16, pageWidth: 297, pageHeight: 210, inlineLegendLandscapeMaxWidth: 120, maxLandscapeTitleLength: 100, maxPortraitTitleLength: 70, maxLandscapeSubtitleLength: 310, maxPortraitSubtitleLength: 170 },
+        "a5": { attributionFontSize: 8, titleFontSize: 11, subtitleFontSize: 10, standaloneLegendTitleFontSize: 14, pageWidth: 210, pageHeight: 148, maxLandscapeTitleLength: 70, maxPortraitTitleLength: 50, maxLandscapeSubtitleLength: 160, maxPortraitSubtitleLength: 100 }
     };
     exportInstance: Export;
     abortController: AbortController;
@@ -109,7 +109,7 @@ export class PrintPanel implements SidebarPanel {
 
     }
 
-    private doPrint(): void {
+    private async doPrint() {
 
         const map = this.gifwMapInstance;
 
@@ -123,7 +123,7 @@ export class PrintPanel implements SidebarPanel {
         if (pageSetting.substring(2) === "l") {
             pageOrientation = "l";
         }
-        const legend = ((document.getElementById('gifw-print-legend') as HTMLSelectElement).value as "none" | "left" | "right" | "seperate-page");
+        const legend = ((document.getElementById('gifw-print-legend') as HTMLSelectElement).value as "none" | "pinned-left" | "pinned-right" | "float-left" | "float-right" | "seperate-page");
         
 
         const resolution = parseInt((document.getElementById('gifw-print-resolution') as HTMLSelectElement).value);
@@ -132,9 +132,16 @@ export class PrintPanel implements SidebarPanel {
 
         this.abortController = new AbortController();
         this.cancelledByUser = false;
-        let promise = this.exportInstance.createPDF(
+
+
+        document.getElementById(map.id).addEventListener('gifw-print-finished', (e) => {
+            this.hideLoading()
+            window.clearTimeout(this.longLoadingTimeout);
+        }, {once:true});
+
+        this.exportInstance.createPDF(
             map,
-            pageSize as "a2"|"a3"|"a4"|"a5",
+            pageSize as "a2" | "a3" | "a4" | "a5",
             pageOrientation,
             resolution,
             this.abortController,
@@ -146,33 +153,34 @@ export class PrintPanel implements SidebarPanel {
 
         this.longLoadingTimeout = window.setTimeout(() => this.showLongLoadingWarning(), this.longLoadingTimeoutLength);
 
-        promise
-        .catch(reason => {
-            console.error(`Print failed: ${reason}`);
-            if (!this.cancelledByUser) {
-                let errDialog;
-                if (typeof reason === 'object' && (reason as DOMException).code === DOMException.ABORT_ERR ) {
-                    errDialog = new Util.Error(
-                        Util.AlertType.Popup,
-                        Util.AlertSeverity.Danger,
-                        "Print failed",
-                        `<p>Your print took too long to generate. Try turning off any layers you don't need, or choosing a smaller size or lower quality.</p>`
-                    );
-                } else {
-                    errDialog = new Util.Error(
-                        Util.AlertType.Popup,
-                        Util.AlertSeverity.Danger,
-                        "Print failed",
-                        `<p>Your print failed. Please try again. If you continue to have problems, please let us know.</p>`
-                    );
-                }
-                errDialog.show();
-            }
-        })
-        .finally(() => {
-            this.hideLoading()
-            window.clearTimeout(this.longLoadingTimeout);
-        });
+        //try {
+        //    await this.exportInstance.createPDF
+
+        //} catch(reason) {
+        //    console.error(`Print failed: ${reason}`);
+        //    if (!this.cancelledByUser) {
+        //        let errDialog;
+        //        if (typeof reason === 'object' && (reason as DOMException).code === DOMException.ABORT_ERR ) {
+        //            errDialog = new Util.Error(
+        //                Util.AlertType.Popup,
+        //                Util.AlertSeverity.Danger,
+        //                "Print failed",
+        //                `<p>Your print took too long to generate. Try turning off any layers you don't need, or choosing a smaller size or lower quality.</p>`
+        //            );
+        //        } else {
+        //            errDialog = new Util.Error(
+        //                Util.AlertType.Popup,
+        //                Util.AlertSeverity.Danger,
+        //                "Print failed",
+        //                `<p>Your print failed. Please try again. If you continue to have problems, please let us know.</p>`
+        //            );
+        //        }
+        //        errDialog.show();
+        //    }
+        //}
+        //finally{
+
+        //};
         
     }
 
