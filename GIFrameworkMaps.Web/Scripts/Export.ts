@@ -8,6 +8,10 @@ import { GIFWMap } from "./Map";
 import { GIFWMousePositionControl } from "./MousePositionControl";
 import { Util } from "./Util";
 
+export type LegendPositioningOption = "none" | "float-left" | "pinned-left" | "seperate-page";
+export type PageSizeOption = "a2" | "a3" | "a4" | "a5";
+export type PageOrientationOption = "p" | "l";
+type TitleBoxDimensions = { TotalHeight: number, TotalWidth: number, TitleHeight: number, SubtitleHeight:number };
 export class Export {
     pageSettings: PDFPageSettings;
     printConfigUrl: string;;
@@ -41,12 +45,12 @@ export class Export {
 
     public createPDF(
         map: GIFWMap,
-        pageSize: "a2" | "a3" | "a4" | "a5",
-        pageOrientation: "p" | "l",
+        pageSize: PageSizeOption,
+        pageOrientation: PageOrientationOption,
         resolution: number,
         abortController: AbortController,
         scale?: number,
-        legend?: "none" | "float-left" | "float-right" | "pinned-left" | "pinned-right" | "seperate-page"
+        legend?: LegendPositioningOption
         
     ) {
 
@@ -58,19 +62,17 @@ export class Export {
         const olMap = map.olMap;
         
         const chosenPageSettings = this.pageSettings[pageSize];
-        const width = Math.round(((pageOrientation === "l" ? chosenPageSettings.pageWidth : chosenPageSettings.pageHeight) * resolution) / 25.4);
-        const height = Math.round(((pageOrientation === "l" ? chosenPageSettings.pageHeight : chosenPageSettings.pageWidth) * resolution) / 25.4);
-        const pageMargin = 20;
-        let legendMargin = 0;
-        if (legend !== "none" && legend !== "seperate-page") {
+        const width = Math.round(((pageOrientation === "l" ? chosenPageSettings.pageWidth : chosenPageSettings.pageHeight) * resolution) / 25.4); //pixels
+        const height = Math.round(((pageOrientation === "l" ? chosenPageSettings.pageHeight : chosenPageSettings.pageWidth) * resolution) / 25.4); //pixels
+        const pageMargin = 20; //mm
+        let legendMargin = 0; //mm
+        if (legend === "pinned-left") {
             legendMargin = (pageOrientation === "l" ? chosenPageSettings.inlineLegendLandscapeMaxWidth : chosenPageSettings.inlineLegendPortraitMaxWidth) | 0;
         }
-        const mapWidth = width - pageMargin - legendMargin;
-        const mapHeight = height - pageMargin;
+        let mapWidth = width - (((pageMargin + legendMargin) * resolution) / 25.4); //pixels
+        let mapHeight = height - ((pageMargin * resolution) / 25.4); // pixels
         const size = olMap.getSize();
         const viewResolution = olMap.getView().getResolution();
-
-
 
         const evt = olMap.once('rendercomplete', async () => {
 
@@ -99,38 +101,43 @@ export class Export {
                             this.createLayerCanvas(canvas, mapContext);
                         });
 
+                        let mapStartingX = pageMargin / 2;
+                        if (legend === 'pinned-left') {
+                            mapStartingX += legendMargin;
+                        }
+                        const mapStartingY = pageMargin / 2;
+
                         pdf.addImage(
                             mapCanvas.toDataURL('image/jpeg'),
                             'JPEG',
-                            pageMargin / 2,
-                            pageMargin / 2,
-                            (pageOrientation === "l" ? chosenPageSettings.pageWidth - pageMargin : chosenPageSettings.pageHeight - pageMargin),
+                            mapStartingX,
+                            mapStartingY,
+                            (pageOrientation === "l" ? chosenPageSettings.pageWidth - pageMargin - legendMargin : chosenPageSettings.pageHeight - pageMargin - legendMargin),
                             (pageOrientation === "l" ? chosenPageSettings.pageHeight - pageMargin : chosenPageSettings.pageWidth - pageMargin)
                         );
                         pdf.rect(
-                            pageMargin / 2,
-                            pageMargin / 2,
-                            (pageOrientation === "l" ? chosenPageSettings.pageWidth - pageMargin : chosenPageSettings.pageHeight - pageMargin),
+                            mapStartingX,
+                            mapStartingY,
+                            (pageOrientation === "l" ? chosenPageSettings.pageWidth - pageMargin - legendMargin : chosenPageSettings.pageHeight - pageMargin - legendMargin),
                             (pageOrientation === "l" ? chosenPageSettings.pageHeight - pageMargin : chosenPageSettings.pageWidth - pageMargin),
                             "S"
                         );
+                        await this.createLegend(pdf, map, pageMargin, chosenPageSettings, legend, pageSize, pageOrientation);
 
                         this.createTitleBox(pdf, pageMargin, chosenPageSettings);
 
+                        /*TODO - Pass legend location info to the following so it can be appropriately moved around*/
                         this.createCoordinatesBox(pdf, map, pageMargin, chosenPageSettings);
 
                         this.createAttributionsBox(pdf, map, pageMargin, chosenPageSettings);
-                        if (legend !== 'none') {
-                            await this.createLegend(pdf, map, pageMargin, chosenPageSettings, legend, pageSize, pageOrientation)
-                            pdf.setPage(1);
-                        }
+
                         //get logo async then send the PDF to the user
                         this.getLogo().then((response) => {
                             let imgData = <string>response;
                             this.createLogoBox(pdf, pageMargin, imgData);
                         }).catch((reason) => {
                             console.error(`Getting the logo for a print failed. Reason: ${reason}`);
-                        }).finally(() => {
+                        }).finally(async () => {
                             let timestamp = new Date().toISOString();
                             let title = (document.getElementById('gifw-print-title') as HTMLInputElement).value;
 
@@ -139,7 +146,7 @@ export class Export {
                                 creator: map.config.name,
 
                             });
-                            pdf.save(`${title.length !== 0 ? title.substring(0, 20) : 'Map'}_${timestamp}.pdf`);
+                            await pdf.save(`${title.length !== 0 ? title.substring(0, 20) : 'Map'}_${timestamp}.pdf`, {returnPromise: true});
                             
                         })
 
@@ -162,20 +169,15 @@ export class Export {
                         document.getElementById(map.id).dispatchEvent(new Event('gifw-print-finished'));
                     });
 
-                    
-
-
-
-
-
-
             } else {
                 if (legend !== 'none') {
                     legend = 'seperate-page';
+                    legendMargin = 0;
                 }
                 //resize the map and listen for new render event before rendering
                 const secondRenderEvt = olMap.once('rendercomplete', async () => {
-                    //do map rendering
+                    //re-fetch legends
+                    
 
 
                     
@@ -217,23 +219,23 @@ export class Export {
                                 (pageOrientation === "l" ? chosenPageSettings.pageHeight - pageMargin : chosenPageSettings.pageWidth - pageMargin),
                                 "S"
                             );
-
+                            if (legend !== 'none') {
+                                await this.createLegend(pdf, map, pageMargin, chosenPageSettings, legend, pageSize, pageOrientation)
+                                pdf.setPage(1);
+                            }
                             this.createTitleBox(pdf, pageMargin, chosenPageSettings);
 
                             this.createCoordinatesBox(pdf, map, pageMargin, chosenPageSettings);
 
                             this.createAttributionsBox(pdf, map, pageMargin, chosenPageSettings);
-                            if (legend !== 'none') {
-                                await this.createLegend(pdf, map, pageMargin, chosenPageSettings, legend, pageSize, pageOrientation)
-                                pdf.setPage(1);
-                            }
+
                             //get logo async then send the PDF to the user
                             this.getLogo().then((response) => {
                                 let imgData = <string>response;
                                 this.createLogoBox(pdf, pageMargin, imgData);
                             }).catch((reason) => {
                                 console.error(`Getting the logo for a print failed. Reason: ${reason}`);
-                            }).finally(() => {
+                            }).finally(async () => {
                                 let timestamp = new Date().toISOString();
                                 let title = (document.getElementById('gifw-print-title') as HTMLInputElement).value;
 
@@ -242,14 +244,13 @@ export class Export {
                                     creator: map.config.name,
 
                                 });
-                                pdf.save(`${title.length !== 0 ? title.substring(0, 20) : 'Map'}_${timestamp}.pdf`, { returnPromise: true });
-                                document.getElementById(map.id).dispatchEvent(new Event('gifw-print-finished'));
+                                await pdf.save(`${title.length !== 0 ? title.substring(0, 20) : 'Map'}_${timestamp}.pdf`, { returnPromise: true });
                             })
 
                         } catch (ex: any) {
                             console.error(ex);
-                            document.getElementById(map.id).dispatchEvent(new Event('gifw-print-finished'));
                         } finally {
+                            document.getElementById(map.id).dispatchEvent(new Event('gifw-print-finished'));
                             window.clearTimeout(this._timeoutId);
                             this.resetMap(map, size, viewResolution);
                         }
@@ -266,7 +267,10 @@ export class Export {
                         });
                 });
                 // Set print size to standard
-                this.setMapSizeForPrinting(olMap, mapWidth - 20, mapHeight - 20, pageOrientation, resolution, scale)
+                legendMargin = 0;
+                let mapWidth = width - (((pageMargin + legendMargin) * resolution) / 25.4); //pixels
+                let mapHeight = height - ((pageMargin * resolution) / 25.4); // pixels
+                this.setMapSizeForPrinting(olMap, mapWidth, mapHeight, pageOrientation, resolution, scale)
 
             }
 
@@ -416,6 +420,33 @@ export class Export {
         const subtitle = (document.getElementById('gifw-print-subtitle') as HTMLInputElement).value;
         const dateString = `Date: ${new Date().toLocaleDateString()}`;
         let maxTitleWidth = ((pdf.internal.pageSize.width - (pageMargin * 2)) / 100) * 75;
+
+        const rectangleDims = this.getTitleBoxRequiredDimensions(pdf, pageMargin, pageSettings);
+        /*now add the actual text*/
+        pdf.setFillColor(255, 255, 255);
+        pdf.setDrawColor(0, 0, 0);
+        pdf.setTextColor(0, 0, 0)
+        pdf.rect(pageMargin / 2, pageMargin / 2, rectangleDims.TotalWidth, rectangleDims.TotalHeight, "DF");
+        /*add title*/
+        pdf.setFontSize(pageSettings.titleFontSize);
+        if (title.length !== 0) {
+            pdf.text(title, (pageMargin / 2) + 2, (pageMargin / 2) + pdf.getTextDimensions(title).h + 2, { maxWidth: maxTitleWidth });
+        }
+        /*add subtitle*/
+        pdf.setFontSize(pageSettings.subtitleFontSize);
+        if (subtitle.length !== 0) {
+            pdf.text(subtitle, (pageMargin / 2) + 2, (rectangleDims.TitleHeight) + (pageMargin / 2) + pdf.getTextDimensions(subtitle).h + 2, { maxWidth: maxTitleWidth });
+        }
+        /*add date*/
+        pdf.text(dateString, (pageMargin / 2) + 2, (rectangleDims.TitleHeight + rectangleDims.SubtitleHeight) + (pageMargin / 2) + pdf.getTextDimensions(dateString).h + 2, { maxWidth: maxTitleWidth });
+
+    }
+
+    private getTitleBoxRequiredDimensions(pdf: jsPDF, pageMargin: number, pageSettings: PDFPageSetting) {
+        const title = (document.getElementById('gifw-print-title') as HTMLInputElement).value;
+        const subtitle = (document.getElementById('gifw-print-subtitle') as HTMLInputElement).value;
+        const dateString = `Date: ${new Date().toLocaleDateString()}`;
+        let maxTitleWidth = ((pdf.internal.pageSize.width - (pageMargin * 2)) / 100) * 75;
         let maxTitleTextWidth = 0;
         let totalTitleBoxHeight = 0;
         let titleLines: string[] = [];
@@ -450,25 +481,10 @@ export class Export {
         /*add a line for the date*/
         maxTitleTextWidth = Math.max(maxTitleTextWidth, pdf.getTextWidth(dateString));
         totalTitleBoxHeight += (pdf.getTextDimensions(dateString, { maxWidth: maxTitleWidth }).h + 2);
-        /*now add the actual text*/
-        pdf.setFillColor(255, 255, 255);
-        pdf.setDrawColor(0, 0, 0);
-        pdf.setTextColor(0, 0, 0)
-
-        pdf.rect(pageMargin / 2, pageMargin / 2, maxTitleTextWidth + 5, totalTitleBoxHeight + 3, "DF");
-        /*add title*/
-        pdf.setFontSize(pageSettings.titleFontSize);
-        if (title.length !== 0) {
-            pdf.text(title, (pageMargin / 2) + 2, (pageMargin / 2) + pdf.getTextDimensions(title).h + 2, { maxWidth: maxTitleWidth });
-        }
-        /*add subtitle*/
-        pdf.setFontSize(pageSettings.subtitleFontSize);
-        if (subtitle.length !== 0) {
-            pdf.text(subtitle, (pageMargin / 2) + 2, (totalTitleHeight) + (pageMargin / 2) + pdf.getTextDimensions(subtitle).h + 2, { maxWidth: maxTitleWidth });
-        }
-        /*add date*/
-        pdf.text(dateString, (pageMargin / 2) + 2, (totalTitleHeight + totalSubtitleHeight) + (pageMargin / 2) + pdf.getTextDimensions(dateString).h + 2, { maxWidth: maxTitleWidth });
-
+        
+        totalTitleBoxHeight += 3;
+        const totalTitleBoxWidth = maxTitleTextWidth + 5;
+        return <TitleBoxDimensions>{TotalHeight: totalTitleBoxHeight, TotalWidth: totalTitleBoxWidth, TitleHeight: totalTitleHeight, SubtitleHeight: totalSubtitleHeight}
     }
 
     /**
@@ -551,7 +567,7 @@ export class Export {
         let startingAttrXPosition = pdf.internal.pageSize.width - pageMargin;
         let startingAttrYPosition = (pdf.internal.pageSize.height - 4) - ((pdf.getTextDimensions(attributionText).h + 1) * attrTotalLines - 1)
 
-        pdf.setFillColor(255, 255, 255);
+        pdf.setFillColor(255, 255, 255,);
         pdf.setDrawColor(0, 0, 0);
         pdf.rect(
             startingAttrXPosition - maxAttrTextWidth + 5,
@@ -568,42 +584,124 @@ export class Export {
         );
     }
 
-    private async createLegend(pdf: jsPDF, map: GIFWMap, pageMargin: number, pageSettings: PDFPageSetting, legend: "none" | "float-left" | "float-right" | "pinned-left" | "pinned-right" | "seperate-page", pageSize: "a2" | "a3" | "a4" | "a5", pageOrientation: "p" | "l") {
+    private async createLegend(pdf: jsPDF, map: GIFWMap, pageMargin: number, pageSettings: PDFPageSetting, legend: LegendPositioningOption, pageSize: PageSizeOption, pageOrientation: PageOrientationOption) {
         const legendUrls = map.getLegendURLs("wrap:true;wrap_limit:600;");
         if (legend === 'none' || legendUrls.availableLegends.length === 0) {
             return;
         }
         //get images
-
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        let startingX = pageMargin / 2;
+        let startingY = pageMargin / 2;
+        let currentX = 0;
+        let currentY = 0;
+        let maxWidth = 0;
+        let rectangleWidth = 0;
+        let rectangleHeight = 0;
+        const legendPromises = this.getLegendImages(legendUrls);
+        const allResolvedLegends = await Promise.allSettled(legendPromises);
+        const requiredTitleBoxDims = this.getTitleBoxRequiredDimensions(pdf, pageMargin, pageSettings);
         switch (legend) {
             case "pinned-left":
                 console.log("Creating pinned left key");
-                break;
-            case "pinned-right":
-                console.log("Creating pinned right key");
+
+                pdf.setFontSize(pageSettings.titleFontSize);
+                rectangleHeight = (pageHeight - pageMargin);
+                rectangleWidth = (pageOrientation === "l" ? pageSettings.inlineLegendLandscapeMaxWidth : pageSettings.inlineLegendPortraitMaxWidth);
+                pdf.setFillColor(255, 255, 255);
+                pdf.setDrawColor(0, 0, 0);
+                pdf.rect(startingX, startingY, rectangleWidth, rectangleHeight, "S");
+                pdf.setFontSize(pageSettings.titleFontSize);
+                pdf.text("Map Key", (pageMargin / 2) + 2, (pageMargin / 2) + requiredTitleBoxDims.TotalHeight + 2, { baseline: "top" });
+
+                startingY = (pageMargin / 2) + pdf.getTextDimensions("Map Key").h + 7.5 + requiredTitleBoxDims.TotalHeight;
+
+
+                currentX = startingX;
+                currentY = startingY;
+                pdf.setFontSize(pageSettings.subtitleFontSize);
+                allResolvedLegends.forEach(p => {
+                    if (p.status === 'fulfilled') {
+                        const layerName = p.value[0];
+                        const layerNameWidth = pdf.getTextDimensions(layerName).w;
+                        const img = p.value[1];
+                        const imgProps = pdf.getImageProperties(img);
+                        let widthInMM = (imgProps.width * 25.4) / 96;
+                        let heightInMM = (imgProps.height * 25.4) / 96;
+                        pdf.text(layerName, currentX + 2, currentY);
+                        currentY += pdf.getTextDimensions(layerName).h
+                        pdf.addImage(img, currentX + 2, currentY, widthInMM, heightInMM);
+                        if (widthInMM > maxWidth) maxWidth = widthInMM;
+                        if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
+                        currentY += heightInMM + 7.5;
+                    }
+                })
                 break;
             case "float-left":
                 console.log("Creating float left key");
-                break;
-            case "float-right":
-                console.log("Creating float right key");
+
+                pdf.setFontSize(pageSettings.titleFontSize);
+                rectangleHeight = pdf.getTextDimensions("Map key").h;
+
+                /*get max width required*/
+                allResolvedLegends.forEach(p => {
+                    if (p.status === 'fulfilled') {
+                        const layerName = p.value[0];
+                        const layerNameWidth = pdf.getTextDimensions(layerName).w;
+                        const layerNameHeight = pdf.getTextDimensions(layerName).h;
+                        const img = p.value[1];
+                        const imgProps = pdf.getImageProperties(img);
+                        let widthInMM = (imgProps.width * 25.4) / 96;
+                        let heightInMM = (imgProps.height * 25.4) / 96;
+
+                        rectangleHeight += layerNameHeight + heightInMM + 8;
+                        if (widthInMM > rectangleWidth) rectangleWidth = widthInMM + 3;
+                        if (layerNameWidth > rectangleWidth) rectangleWidth = layerNameWidth + 3;
+                    }
+                });
+                pdf.setFillColor(255, 255, 255);
+                pdf.setDrawColor(0, 0, 0);
+                pdf.rect(startingX, startingY + requiredTitleBoxDims.TotalHeight, rectangleWidth, rectangleHeight, "DF");
+
+                pdf.setFontSize(pageSettings.titleFontSize);
+                pdf.text("Map Key", (pageMargin / 2) + 2, (pageMargin / 2) + requiredTitleBoxDims.TotalHeight + 2, {baseline:"top"});
+
+                startingY = (pageMargin / 2) + pdf.getTextDimensions("Map Key").h + 7.5 + requiredTitleBoxDims.TotalHeight;
+
+                
+                currentX = startingX;
+                currentY = startingY;
+                pdf.setFontSize(pageSettings.subtitleFontSize);
+                allResolvedLegends.forEach(p => {
+                    if (p.status === 'fulfilled') {
+                        const layerName = p.value[0];
+                        const layerNameWidth = pdf.getTextDimensions(layerName).w;
+                        const img = p.value[1];
+                        const imgProps = pdf.getImageProperties(img);
+                        let widthInMM = (imgProps.width * 25.4) / 96;
+                        let heightInMM = (imgProps.height * 25.4) / 96;
+                        pdf.text(layerName, currentX + 2, currentY);
+                        currentY += pdf.getTextDimensions(layerName).h
+                        pdf.addImage(img, currentX + 2, currentY, widthInMM, heightInMM);
+                        if (widthInMM > maxWidth) maxWidth = widthInMM;
+                        if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
+                        currentY += heightInMM + 7.5;
+                    }
+                })
+
                 break;
             case "seperate-page":
                 console.log("Creating seperate page key");
                 pdf.addPage(pageSize, pageOrientation);
                 pdf.setFontSize(pageSettings.standaloneLegendTitleFontSize);
                 pdf.text("Map Key", pageMargin / 2, (pageMargin / 2) + 3);
-                const pageHeight = pdf.internal.pageSize.getHeight();
-                const pageWidth = pdf.internal.pageSize.getWidth();
-                const startingX = pageMargin / 2;
-                const startingY = pageMargin / 2 + pdf.getTextDimensions("Map Key").h + 7.5;
-                const legendPromises = this.getLegendImages(legendUrls);
-                await Promise.allSettled(legendPromises).then((promises) => {
-                    let currentX = startingX;
-                    let currentY = startingY;
-                    let maxWidth = 0;
+                
+                startingY = pageMargin / 2 + pdf.getTextDimensions("Map Key").h + 7.5;
+                    currentX = startingX;
+                    currentY = startingY;
                     pdf.setFontSize(pageSettings.titleFontSize);
-                    promises.forEach(p => {
+                    allResolvedLegends.forEach(p => {
                         if (p.status === 'fulfilled') {
                             const layerName = p.value[0];
                             const layerNameWidth = pdf.getTextDimensions(layerName).w;
@@ -650,7 +748,6 @@ export class Export {
                             currentY += heightInMM + 7.5;
                         }
                     })
-                });
                 break;
         }
 
@@ -692,11 +789,10 @@ export class Export {
         });
     }
 
-    private async keyWillFit(map: GIFWMap, pageMargin: number, pageSettings: PDFPageSetting, legend: "none" | "float-left" | "float-right" | "pinned-left" | "pinned-right" | "seperate-page", pageSize: "a2" | "a3" | "a4" | "a5", pageOrientation: "p" | "l") {
+    private async keyWillFit(map: GIFWMap, pageMargin: number, pageSettings: PDFPageSetting, legend: LegendPositioningOption, pageSize: PageSizeOption, pageOrientation: PageOrientationOption) {
         if (legend === 'none' || legend === 'seperate-page') {
             return true;
         }
-
 
         const pdf = new jsPDF({
             orientation: pageOrientation,
@@ -705,9 +801,8 @@ export class Export {
         });
 
         const pageHeight = pdf.internal.pageSize.getHeight();
-        const pageWidth = pdf.internal.pageSize.getWidth();
 
-        if (legend === 'pinned-left' || legend === 'pinned-right' || legend === 'float-left' || legend === 'float-right') {
+        if (legend === 'pinned-left' || legend === 'float-left') {
             //does legend fit
             const legendUrls = map.getLegendURLs("wrap:true;wrap_limit:600;");
             const legendPromises = this.getLegendImages(legendUrls);
@@ -735,11 +830,11 @@ export class Export {
 
                 }
             });
-
-            if (totalRequiredHeight > (pageHeight - pageMargin)) {
+            const requiredTitleBoxDims = this.getTitleBoxRequiredDimensions(pdf, pageMargin, pageSettings);
+            if (totalRequiredHeight > (pageHeight - pageMargin - requiredTitleBoxDims.TotalHeight)) {
                 return false;
             }
-            if (totalRequiredWidth > (pageWidth * 0.4)) {
+            if (totalRequiredWidth > (pageOrientation === "l" ? pageSettings.inlineLegendLandscapeMaxWidth : pageSettings.inlineLegendPortraitMaxWidth)) {
                 return false;
             }
             return true;

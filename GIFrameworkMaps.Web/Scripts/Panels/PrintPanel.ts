@@ -1,4 +1,4 @@
-﻿import { Export } from "../Export";
+﻿import { Export, LegendPositioningOption, PageOrientationOption, PageSizeOption } from "../Export";
 import { PDFPageSettings } from "../Interfaces/Print/PDFPageSettings";
 import { SidebarPanel } from "../Interfaces/SidebarPanel";
 import { GIFWMap } from "../Map";
@@ -10,8 +10,8 @@ export class PrintPanel implements SidebarPanel {
     gifwMapInstance: GIFWMap;
     pdfPageSettings: PDFPageSettings = {
         "a2": { attributionFontSize: 12, titleFontSize: 16, subtitleFontSize: 12, standaloneLegendTitleFontSize: 20, pageWidth: 594, pageHeight: 420, inlineLegendPortraitMaxWidth: 140, inlineLegendLandscapeMaxWidth: 200, maxLandscapeTitleLength: 170, maxPortraitTitleLength: 130, maxLandscapeSubtitleLength: 500, maxPortraitSubtitleLength: 350 },
-        "a3": { attributionFontSize: 11, titleFontSize: 14, subtitleFontSize: 12, standaloneLegendTitleFontSize: 18, pageWidth: 420, pageHeight: 297, inlineLegendPortraitMaxWidth: 120, inlineLegendLandscapeMaxWidth: 140, maxLandscapeTitleLength: 130, maxPortraitTitleLength: 90, maxLandscapeSubtitleLength: 350, maxPortraitSubtitleLength: 240 },
-        "a4": { attributionFontSize: 10, titleFontSize: 12, subtitleFontSize: 10, standaloneLegendTitleFontSize: 16, pageWidth: 297, pageHeight: 210, inlineLegendLandscapeMaxWidth: 120, maxLandscapeTitleLength: 100, maxPortraitTitleLength: 70, maxLandscapeSubtitleLength: 310, maxPortraitSubtitleLength: 170 },
+        "a3": { attributionFontSize: 11, titleFontSize: 14, subtitleFontSize: 12, standaloneLegendTitleFontSize: 18, pageWidth: 420, pageHeight: 297, inlineLegendPortraitMaxWidth: 80, inlineLegendLandscapeMaxWidth: 140, maxLandscapeTitleLength: 130, maxPortraitTitleLength: 90, maxLandscapeSubtitleLength: 350, maxPortraitSubtitleLength: 240 },
+        "a4": { attributionFontSize: 10, titleFontSize: 12, subtitleFontSize: 10, standaloneLegendTitleFontSize: 16, pageWidth: 297, pageHeight: 210, inlineLegendLandscapeMaxWidth: 80, maxLandscapeTitleLength: 100, maxPortraitTitleLength: 70, maxLandscapeSubtitleLength: 310, maxPortraitSubtitleLength: 170 },
         "a5": { attributionFontSize: 8, titleFontSize: 11, subtitleFontSize: 10, standaloneLegendTitleFontSize: 14, pageWidth: 210, pageHeight: 148, maxLandscapeTitleLength: 70, maxPortraitTitleLength: 50, maxLandscapeSubtitleLength: 160, maxPortraitSubtitleLength: 100 }
     };
     exportInstance: Export;
@@ -46,28 +46,47 @@ export class PrintPanel implements SidebarPanel {
     };
 
     private updateValidationRules() {
-        let container: HTMLElement = document.querySelector(this.container);
+        const container: HTMLElement = document.querySelector(this.container);
 
-        let printTitleInput: HTMLInputElement = container.querySelector('#gifw-print-title');
-        let printSubtitleInput: HTMLElement = container.querySelector('#gifw-print-subtitle');
-        let printPageSizeInput: HTMLSelectElement = container.querySelector('#gifw-print-pagesize');
-        let pageSize: "a5" | "a4" | "a3" | "a2" = "a4" ;
+        const printTitleInput: HTMLInputElement = container.querySelector('#gifw-print-title');
+        const printSubtitleInput: HTMLElement = container.querySelector('#gifw-print-subtitle');
+        const printPageSizeInput: HTMLSelectElement = container.querySelector('#gifw-print-pagesize');
+        const printLegendInput: HTMLSelectElement = container.querySelector('#gifw-print-legend');
+        const printLegendSizeWarning: HTMLDivElement = container.querySelector('#gifw-print-legend-size-warning');
+        let pageSize: PageSizeOption = "a4";
         if (printPageSizeInput.value.substring(0, 2) === "a5" || printPageSizeInput.value.substring(0, 2) === "a3" || printPageSizeInput.value.substring(0, 2) === "a2") {
-            pageSize = <"a5" | "a4" | "a3" | "a2">printPageSizeInput.value.substring(0, 2);
+            pageSize = <PageSizeOption>printPageSizeInput.value.substring(0, 2);
         }
-        let pageOrientation: "p" | "l" = "p";
+        let pageOrientation: PageOrientationOption = "p";
         if (printPageSizeInput.value.substring(2) === "l") {
             pageOrientation = "l";
         }
         const chosenPageSettings = this.pdfPageSettings[pageSize];
-        let maxTitleLen = (pageOrientation === "l" ? chosenPageSettings.maxLandscapeTitleLength : chosenPageSettings.maxPortraitTitleLength);
-        let maxSubtitleLen = (pageOrientation === "l" ? chosenPageSettings.maxLandscapeSubtitleLength : chosenPageSettings.maxPortraitSubtitleLength);
+        const maxTitleLen = (pageOrientation === "l" ? chosenPageSettings.maxLandscapeTitleLength : chosenPageSettings.maxPortraitTitleLength);
+        const maxSubtitleLen = (pageOrientation === "l" ? chosenPageSettings.maxLandscapeSubtitleLength : chosenPageSettings.maxPortraitSubtitleLength);
         printTitleInput.setAttribute('maxlength', maxTitleLen.toString());
         printTitleInput.nextElementSibling.textContent = `Title too long (max ${maxTitleLen} characters)`
         printSubtitleInput.setAttribute('maxlength', maxSubtitleLen.toString());
         printSubtitleInput.nextElementSibling.textContent = `Subtitle too long (max ${maxSubtitleLen} characters)`
 
-        let form = container.querySelector('form');
+        if (pageSize === "a5" || pageSize === "a4" && pageOrientation === "p") {
+            //seperate page legends only
+            (printLegendInput.querySelector(`option[value="${<LegendPositioningOption>"float-left"}"]`) as HTMLOptionElement).disabled = true;
+            (printLegendInput.querySelector(`option[value="${<LegendPositioningOption>"pinned-left"}"]`) as HTMLOptionElement).disabled = true;
+            printLegendSizeWarning.style.display = "";
+            if (printLegendInput.selectedOptions[0].disabled) {
+                printLegendInput.selectedIndex = 0;
+            }
+
+        } else {
+            //all legend types allowed
+            (printLegendInput.querySelector(`option[value="${<LegendPositioningOption>"float-left"}"]`) as HTMLOptionElement).disabled = false;
+            (printLegendInput.querySelector(`option[value="${<LegendPositioningOption>"pinned-left"}"]`) as HTMLOptionElement).disabled = false;
+            printLegendSizeWarning.style.display = "none";
+        }
+        
+
+        const form = container.querySelector('form');
         form.checkValidity();
         
     }
@@ -114,16 +133,16 @@ export class PrintPanel implements SidebarPanel {
         const map = this.gifwMapInstance;
 
         const pageSetting = (document.getElementById('gifw-print-pagesize') as HTMLSelectElement).value;
-        let pageSize = "a4";
+        let pageSize: PageSizeOption = "a4";
         if (pageSetting.substring(0, 2) === "a5" || pageSetting.substring(0, 2) === "a3" || pageSetting.substring(0, 2) === "a2") {
-            pageSize = pageSetting.substring(0, 2);
+            pageSize = <PageSizeOption>pageSetting.substring(0, 2);
         }
         /*Narrowing the type required for TS compatibility*/
-        let pageOrientation: "p" | "l" = "p";
+        let pageOrientation: PageOrientationOption = "p";
         if (pageSetting.substring(2) === "l") {
             pageOrientation = "l";
         }
-        const legend = ((document.getElementById('gifw-print-legend') as HTMLSelectElement).value as "none" | "pinned-left" | "pinned-right" | "float-left" | "float-right" | "seperate-page");
+        const legend = ((document.getElementById('gifw-print-legend') as HTMLSelectElement).value as LegendPositioningOption);
         
 
         const resolution = parseInt((document.getElementById('gifw-print-resolution') as HTMLSelectElement).value);
@@ -141,7 +160,7 @@ export class PrintPanel implements SidebarPanel {
 
         this.exportInstance.createPDF(
             map,
-            pageSize as "a2" | "a3" | "a4" | "a5",
+            pageSize,
             pageOrientation,
             resolution,
             this.abortController,

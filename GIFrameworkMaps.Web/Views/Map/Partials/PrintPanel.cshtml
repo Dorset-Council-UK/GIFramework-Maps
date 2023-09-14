@@ -43,17 +43,19 @@
             <option selected value="200">200 dpi (good)</option>
             <option value="300">300 dpi (excellent, slow)</option>
         </select>
-
-        <label for="gifw-print-legend" class="form-label">Legend/Key</label>
-        <select class="form-select mb-3" id="gifw-print-legend">
-            <option value="none">None</option>
-            <option value="float-left">Floating - Left</option>
-            <option value="float-right">Floatinge - Right</option>
-            <option value="pinned-left">Pinned to side - Left</option>
-            <option value="pinned-right">Pinned to side - Right</option>
-            <option value="seperate-page">Seperate page</option>
-        </select>
-
+        <div class="mb-3">
+            <label for="gifw-print-legend" class="form-label">Legend/Key</label>
+            <select class="form-select" id="gifw-print-legend">
+                <option value="none">None</option>
+                <option value="float-left">Floating - Left</option>
+                <option value="pinned-left">Pinned to side - Left</option>
+                <option value="seperate-page">Seperate page</option>
+            </select>
+            <div class="form-text" id="gifw-print-legend-size-warning" style="display:none;">
+                <span class="ol-grabbing bi-info-circle"></span> Some key options are not available due to the page size you selected
+            </div>
+        </div>
+        
         <div class="form-check mb-3" style="display:none;">
             <input class="form-check-input" type="checkbox" value="" id="gifw-print-scale-print">
             <label class="form-check-label" for="gifw-print-scale-print">Print to scale?</label>
