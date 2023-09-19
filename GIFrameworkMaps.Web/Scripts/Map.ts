@@ -943,7 +943,7 @@ export class GIFWMap {
                     let view = this.olMap.getView();
                     let viewport = this.olMap.getViewport();
                     let params: any = {
-                        LEGEND_OPTIONS: "fontAntiAliasing:true;forceLabels:on;countMatched:true;hideEmptyRules:true;" + additionalLegendOptions,
+                        LEGEND_OPTIONS: additionalLegendOptions,
                         bbox: view.calculateExtent().toString(),
                         srcwidth: viewport.clientWidth,
                         srcheight: viewport.clientHeight,

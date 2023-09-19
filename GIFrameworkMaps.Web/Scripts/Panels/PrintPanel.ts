@@ -9,10 +9,10 @@ export class PrintPanel implements SidebarPanel {
     container: string;
     gifwMapInstance: GIFWMap;
     pdfPageSettings: PDFPageSettings = {
-        "a2": { attributionFontSize: 12, titleFontSize: 16, subtitleFontSize: 12, standaloneLegendTitleFontSize: 20, pageWidth: 594, pageHeight: 420, inlineLegendPortraitMaxWidth: 140, inlineLegendLandscapeMaxWidth: 200, maxLandscapeTitleLength: 170, maxPortraitTitleLength: 130, maxLandscapeSubtitleLength: 500, maxPortraitSubtitleLength: 350 },
-        "a3": { attributionFontSize: 11, titleFontSize: 14, subtitleFontSize: 12, standaloneLegendTitleFontSize: 18, pageWidth: 420, pageHeight: 297, inlineLegendPortraitMaxWidth: 80, inlineLegendLandscapeMaxWidth: 140, maxLandscapeTitleLength: 130, maxPortraitTitleLength: 90, maxLandscapeSubtitleLength: 350, maxPortraitSubtitleLength: 240 },
-        "a4": { attributionFontSize: 10, titleFontSize: 12, subtitleFontSize: 10, standaloneLegendTitleFontSize: 16, pageWidth: 297, pageHeight: 210, inlineLegendLandscapeMaxWidth: 80, maxLandscapeTitleLength: 100, maxPortraitTitleLength: 70, maxLandscapeSubtitleLength: 310, maxPortraitSubtitleLength: 170 },
-        "a5": { attributionFontSize: 8, titleFontSize: 11, subtitleFontSize: 10, standaloneLegendTitleFontSize: 14, pageWidth: 210, pageHeight: 148, maxLandscapeTitleLength: 70, maxPortraitTitleLength: 50, maxLandscapeSubtitleLength: 160, maxPortraitSubtitleLength: 100 }
+        "a2": { attributionFontSize: 12, titleFontSize: 16, subtitleFontSize: 12, standaloneLegendTitleFontSize: 20, pageWidth: 594, pageHeight: 420, inlineLegendPortraitMaxWidth: 140, inlineLegendLandscapeMaxWidth: 200, maxLandscapeTitleLength: 170, maxPortraitTitleLength: 130, maxLandscapeSubtitleLength: 500, maxPortraitSubtitleLength: 350, landscapeKeyWrapLimit: 800, portraitKeyWrapLimit: 650 },
+        "a3": { attributionFontSize: 11, titleFontSize: 14, subtitleFontSize: 12, standaloneLegendTitleFontSize: 18, pageWidth: 420, pageHeight: 297, inlineLegendPortraitMaxWidth: 80, inlineLegendLandscapeMaxWidth: 140, maxLandscapeTitleLength: 130, maxPortraitTitleLength: 90, maxLandscapeSubtitleLength: 350, maxPortraitSubtitleLength: 240, landscapeKeyWrapLimit: 650, portraitKeyWrapLimit: 500 },
+        "a4": { attributionFontSize: 10, titleFontSize: 12, subtitleFontSize: 10, standaloneLegendTitleFontSize: 16, pageWidth: 297, pageHeight: 210, inlineLegendLandscapeMaxWidth: 80, maxLandscapeTitleLength: 100, maxPortraitTitleLength: 70, maxLandscapeSubtitleLength: 310, maxPortraitSubtitleLength: 170, landscapeKeyWrapLimit: 430, portraitKeyWrapLimit: 800 },
+        "a5": { attributionFontSize: 8, titleFontSize: 11, subtitleFontSize: 10, standaloneLegendTitleFontSize: 14, pageWidth: 210, pageHeight: 148, maxLandscapeTitleLength: 70, maxPortraitTitleLength: 50, maxLandscapeSubtitleLength: 160, maxPortraitSubtitleLength: 100, landscapeKeyWrapLimit: 700, portraitKeyWrapLimit: 700 }
     };
     exportInstance: Export;
     abortController: AbortController;
@@ -69,11 +69,12 @@ export class PrintPanel implements SidebarPanel {
         printSubtitleInput.setAttribute('maxlength', maxSubtitleLen.toString());
         printSubtitleInput.nextElementSibling.textContent = `Subtitle too long (max ${maxSubtitleLen} characters)`
 
-        if (pageSize === "a5" || pageSize === "a4" && pageOrientation === "p") {
+        if (pageSize === "a5" || (pageSize === "a4" && pageOrientation === "p")) {
             //seperate page legends only
             (printLegendInput.querySelector(`option[value="${<LegendPositioningOption>"float-left"}"]`) as HTMLOptionElement).disabled = true;
             (printLegendInput.querySelector(`option[value="${<LegendPositioningOption>"pinned-left"}"]`) as HTMLOptionElement).disabled = true;
             printLegendSizeWarning.style.display = "";
+            //if user has a disabled options selected, reset to 0
             if (printLegendInput.selectedOptions[0].disabled) {
                 printLegendInput.selectedIndex = 0;
             }
@@ -84,11 +85,9 @@ export class PrintPanel implements SidebarPanel {
             (printLegendInput.querySelector(`option[value="${<LegendPositioningOption>"pinned-left"}"]`) as HTMLOptionElement).disabled = false;
             printLegendSizeWarning.style.display = "none";
         }
-        
 
         const form = container.querySelector('form');
         form.checkValidity();
-        
     }
 
     private attachPrintControls(): void {
@@ -123,9 +122,7 @@ export class PrintPanel implements SidebarPanel {
             
         });
 
-
         container.addEventListener('gifw-export-cancel', () => { this.cancelExport() });
-
     }
 
     private async doPrint() {
@@ -143,7 +140,6 @@ export class PrintPanel implements SidebarPanel {
             pageOrientation = "l";
         }
         const legend = ((document.getElementById('gifw-print-legend') as HTMLSelectElement).value as LegendPositioningOption);
-        
 
         const resolution = parseInt((document.getElementById('gifw-print-resolution') as HTMLSelectElement).value);
         const isScalePrint = (document.getElementById('gifw-print-scale-print') as HTMLInputElement).checked;
@@ -152,10 +148,19 @@ export class PrintPanel implements SidebarPanel {
         this.abortController = new AbortController();
         this.cancelledByUser = false;
 
-
-        document.getElementById(map.id).addEventListener('gifw-print-finished', (e) => {
+        document.getElementById(map.id).addEventListener('gifw-print-finished', (e: CustomEvent) => {
             this.hideLoading()
             window.clearTimeout(this.longLoadingTimeout);
+            if (e.detail.success !== true) {
+                Util.Alert.showPopupError('Your print failed', `<p>Your print failed to generate. Try turning off any layers you don't need, or choosing a smaller size or lower quality. If you continue to have problems, please let us know.`)
+            } else {
+                if (e.detail.keyWasMoved === true) {
+                    const msg = new Util.Error(Util.AlertType.Popup, Util.AlertSeverity.Info,
+                        "Your key could not fit",
+                        "Your map key would not fit in the place you requested, so was added to a seperate page in your PDF");
+                    msg.show();
+                }
+            }
         }, {once:true});
 
         this.exportInstance.createPDF(
@@ -167,40 +172,8 @@ export class PrintPanel implements SidebarPanel {
             isScalePrint ? scale : undefined,
             legend
         )
-
         this.showLoading();
-
-        this.longLoadingTimeout = window.setTimeout(() => this.showLongLoadingWarning(), this.longLoadingTimeoutLength);
-
-        //try {
-        //    await this.exportInstance.createPDF
-
-        //} catch(reason) {
-        //    console.error(`Print failed: ${reason}`);
-        //    if (!this.cancelledByUser) {
-        //        let errDialog;
-        //        if (typeof reason === 'object' && (reason as DOMException).code === DOMException.ABORT_ERR ) {
-        //            errDialog = new Util.Error(
-        //                Util.AlertType.Popup,
-        //                Util.AlertSeverity.Danger,
-        //                "Print failed",
-        //                `<p>Your print took too long to generate. Try turning off any layers you don't need, or choosing a smaller size or lower quality.</p>`
-        //            );
-        //        } else {
-        //            errDialog = new Util.Error(
-        //                Util.AlertType.Popup,
-        //                Util.AlertSeverity.Danger,
-        //                "Print failed",
-        //                `<p>Your print failed. Please try again. If you continue to have problems, please let us know.</p>`
-        //            );
-        //        }
-        //        errDialog.show();
-        //    }
-        //}
-        //finally{
-
-        //};
-        
+        this.longLoadingTimeout = window.setTimeout(() => this.showLongLoadingWarning(), this.longLoadingTimeoutLength);       
     }
 
     private validatePrintOptions(): boolean {

@@ -37,7 +37,7 @@ export class LegendsPanel implements SidebarPanel {
     private updateLegend(): void {
 
         (document.querySelector(this.container).querySelector('#gifw-legends-container') as HTMLDivElement).innerHTML = '';
-        const legends = this.gifwMapInstance.getLegendURLs();
+        const legends = this.gifwMapInstance.getLegendURLs("fontAntiAliasing:true;forceLabels:on;countMatched:true;hideEmptyRules:true;");
 
         if (legends.availableLegends.length !== 0) {
 
