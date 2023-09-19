@@ -43,19 +43,18 @@ export class LegendsPanel implements SidebarPanel {
 
             legends.availableLegends.forEach((legend, index) => {
 
-                let legendContainer: HTMLElement = document.querySelector(this.container).querySelector('#gifw-legends-container');
+                const legendContainer: HTMLElement = document.querySelector(this.container).querySelector('#gifw-legends-container');
 
-
-                var headerNode = document.createElement("h6");
+                const headerNode = document.createElement("h6");
                 headerNode.textContent = legend.name;
 
                 legendContainer.appendChild(headerNode);
-                var loadingNode = document.createElement('div')
+                const loadingNode = document.createElement('div')
                 loadingNode.className = 'legend-loading mb-2';
                 loadingNode.setAttribute('data-legend-name', legend.name);
                 loadingNode.innerHTML = `<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>`
 
-                var imgNode = new Image();
+                const imgNode = new Image();
                 imgNode.id = "legend-image-" + index;
                 imgNode.className = 'legend-image mb-4';
                 imgNode.setAttribute('data-legend-name', legend.name);
@@ -63,6 +62,7 @@ export class LegendsPanel implements SidebarPanel {
                 legendContainer.appendChild(loadingNode);
                 legendContainer.appendChild(imgNode);
                 imgNode.addEventListener("error", () => {
+                    this.hideLoadingForLegend(legend.name);
                     this.showErrorForLegend(legend.name);
                 }, { once: true });
                 imgNode.addEventListener("load", () => {
