@@ -27,7 +27,6 @@ export class Export {
     }
 
     async init() {
-
         const resp = await fetch(this.printConfigUrl);
         if (resp.ok) {
             this.printConfiguration = await resp.json();
@@ -65,7 +64,6 @@ export class Export {
         abortController: AbortController,
         scale?: number,
         legend?: LegendPositioningOption
-        
     ) {
         if (abortController.signal.aborted) {
             return Promise.reject(new DOMException('Aborted', 'AbortError'));
@@ -356,8 +354,8 @@ export class Export {
      * @param height
      */
     private createBackgroundCanvas(mapContext: CanvasRenderingContext2D,width: number, height: number): void {
-        let backgroundCanvas: HTMLCanvasElement = document.createElement('canvas');
-        var ctx = backgroundCanvas.getContext("2d");
+        const backgroundCanvas: HTMLCanvasElement = document.createElement('canvas');
+        const ctx = backgroundCanvas.getContext("2d");
         backgroundCanvas.width = width;
         backgroundCanvas.height = height;
         ctx.fillStyle = "white";
@@ -376,7 +374,7 @@ export class Export {
         const title = (document.getElementById('gifw-print-title') as HTMLInputElement).value;
         const subtitle = (document.getElementById('gifw-print-subtitle') as HTMLInputElement).value;
         const dateString = `Date: ${new Date().toLocaleDateString()}`;
-        let maxTitleWidth = ((pdf.internal.pageSize.width - (pageMargin * 2)) / 100) * 75;
+        const maxTitleWidth = ((pdf.internal.pageSize.width - (pageMargin * 2)) / 100) * 75;
 
         const rectangleDims = this.getTitleBoxRequiredDimensions(pdf, pageMargin, pageSettings);
         /*now add the actual text*/
@@ -403,7 +401,7 @@ export class Export {
         const title = (document.getElementById('gifw-print-title') as HTMLInputElement).value;
         const subtitle = (document.getElementById('gifw-print-subtitle') as HTMLInputElement).value;
         const dateString = `Date: ${new Date().toLocaleDateString()}`;
-        let maxTitleWidth = ((pdf.internal.pageSize.width - (pageMargin * 2)) / 100) * 75;
+        const maxTitleWidth = ((pdf.internal.pageSize.width - (pageMargin * 2)) / 100) * 75;
         let maxTitleTextWidth = 0;
         let totalTitleBoxHeight = 0;
         let titleLines: string[] = [];
@@ -453,7 +451,7 @@ export class Export {
      */
     private createCoordinatesBox(pdf: jsPDF, map: GIFWMap, pageMargin:number, pageSettings: PDFPageSetting): void {
         let renderedCoordinates: string[] = [];
-        let olMap = map.olMap;
+        const olMap = map.olMap;
         map.customControls.forEach(c => {
             if (c instanceof GIFWMousePositionControl) {
                 let center = olMap.getView().getCenter();
@@ -466,7 +464,7 @@ export class Export {
             pdf.setFontSize(pageSettings.attributionFontSize);
             pdf.setFillColor(255, 255, 255);
             pdf.setDrawColor(0, 0, 0);
-            let maxCoordWidth = ((pdf.internal.pageSize.width - (pageMargin * 2)) / 100) * 25;
+            const maxCoordWidth = ((pdf.internal.pageSize.width - (pageMargin * 2)) / 100) * 25;
             let maxCoordTextWidth = 0;
             renderedCoordinates.forEach(c => {
                 maxCoordTextWidth = Math.max(maxCoordTextWidth, pdf.getTextWidth(c));
@@ -507,20 +505,20 @@ export class Export {
      * @param pageSettings
      */
     private createAttributionsBox(pdf: jsPDF, map:GIFWMap, pageMargin:number,pageSettings: PDFPageSetting): void {
-        let attributionListItems: NodeListOf<HTMLLIElement> = document.getElementById(map.id).querySelectorAll('.ol-attribution ul li');
+        const attributionListItems: NodeListOf<HTMLLIElement> = document.getElementById(map.id).querySelectorAll('.ol-attribution ul li');
         let attributionText: string = '';
         attributionListItems.forEach(attr => {
             attributionText += `${attr.innerText} `;
         })
         pdf.setFontSize(pageSettings.attributionFontSize);
-        let maxAttrWidth = ((pdf.internal.pageSize.width - (pageMargin * 2)) / 100) * 75;
+        const maxAttrWidth = ((pdf.internal.pageSize.width - (pageMargin * 2)) / 100) * 75;
         let maxAttrTextWidth = 0;
-        let attrLines: string[] = pdf.splitTextToSize(attributionText, maxAttrWidth);
+        const attrLines: string[] = pdf.splitTextToSize(attributionText, maxAttrWidth);
         attrLines.forEach(l => {
             maxAttrTextWidth = Math.max(maxAttrTextWidth, pdf.getTextWidth(l));
         })
 
-        let attrTotalLines = attrLines.length;
+        const attrTotalLines = attrLines.length;
         let startingAttrXPosition = pdf.internal.pageSize.width - pageMargin;
         let startingAttrYPosition = (pdf.internal.pageSize.height - 4) - ((pdf.getTextDimensions(attributionText).h + 1) * attrTotalLines - 1)
 
@@ -549,7 +547,7 @@ export class Export {
         //get images
         const pageHeight = pdf.internal.pageSize.getHeight();
         const pageWidth = pdf.internal.pageSize.getWidth();
-        let startingX = pageMargin / 2;
+        const startingX = pageMargin / 2;
         let startingY = pageMargin / 2;
         let currentX = 0;
         let currentY = 0;
@@ -561,8 +559,6 @@ export class Export {
         const requiredTitleBoxDims = this.getTitleBoxRequiredDimensions(pdf, pageMargin, pageSettings);
         switch (legend) {
             case "pinned-left":
-                console.log("Creating pinned left key");
-
                 pdf.setFontSize(pageSettings.titleFontSize);
                 rectangleHeight = (pageHeight - pageMargin);
                 rectangleWidth = (pageOrientation === "l" ? pageSettings.inlineLegendLandscapeMaxWidth : pageSettings.inlineLegendPortraitMaxWidth);
@@ -573,8 +569,6 @@ export class Export {
                 pdf.text("Map Key", (pageMargin / 2) + 2, (pageMargin / 2) + requiredTitleBoxDims.TotalHeight + 2, { baseline: "top" });
 
                 startingY = (pageMargin / 2) + pdf.getTextDimensions("Map Key").h + 7.5 + requiredTitleBoxDims.TotalHeight;
-
-
                 currentX = startingX;
                 currentY = startingY;
                 pdf.setFontSize(pageSettings.subtitleFontSize);
@@ -596,8 +590,6 @@ export class Export {
                 })
                 break;
             case "float-left":
-                console.log("Creating float left key");
-
                 pdf.setFontSize(pageSettings.titleFontSize);
                 rectangleHeight = pdf.getTextDimensions("Map key").h;
 
@@ -609,9 +601,8 @@ export class Export {
                         const layerNameHeight = pdf.getTextDimensions(layerName).h;
                         const img = p.value[1];
                         const imgProps = pdf.getImageProperties(img);
-                        let widthInMM = (imgProps.width * 25.4) / 96;
-                        let heightInMM = (imgProps.height * 25.4) / 96;
-
+                        const widthInMM = (imgProps.width * 25.4) / 96;
+                        const heightInMM = (imgProps.height * 25.4) / 96;
                         rectangleHeight += layerNameHeight + heightInMM + 8;
                         if (widthInMM > rectangleWidth) rectangleWidth = widthInMM + 3;
                         if (layerNameWidth > rectangleWidth) rectangleWidth = layerNameWidth + 3;
@@ -625,8 +616,6 @@ export class Export {
                 pdf.text("Map Key", (pageMargin / 2) + 2, (pageMargin / 2) + requiredTitleBoxDims.TotalHeight + 2, {baseline:"top"});
 
                 startingY = (pageMargin / 2) + pdf.getTextDimensions("Map Key").h + 7.5 + requiredTitleBoxDims.TotalHeight;
-
-                
                 currentX = startingX;
                 currentY = startingY;
                 pdf.setFontSize(pageSettings.subtitleFontSize);
@@ -636,8 +625,8 @@ export class Export {
                         const layerNameWidth = pdf.getTextDimensions(layerName).w;
                         const img = p.value[1];
                         const imgProps = pdf.getImageProperties(img);
-                        let widthInMM = (imgProps.width * 25.4) / 96;
-                        let heightInMM = (imgProps.height * 25.4) / 96;
+                        const widthInMM = (imgProps.width * 25.4) / 96;
+                        const heightInMM = (imgProps.height * 25.4) / 96;
                         pdf.text(layerName, currentX + 2, currentY);
                         currentY += pdf.getTextDimensions(layerName).h
                         pdf.addImage(img, currentX + 2, currentY, widthInMM, heightInMM);
@@ -649,72 +638,70 @@ export class Export {
 
                 break;
             case "seperate-page":
-                console.log("Creating seperate page key");
                 pdf.addPage(pageSize, pageOrientation);
                 pdf.setFontSize(pageSettings.standaloneLegendTitleFontSize);
                 pdf.text("Map Key", pageMargin / 2, (pageMargin / 2) + 3);
                 
                 startingY = pageMargin / 2 + pdf.getTextDimensions("Map Key").h + 7.5;
-                    currentX = startingX;
-                    currentY = startingY;
-                    pdf.setFontSize(pageSettings.titleFontSize);
-                    allResolvedLegends.forEach(p => {
-                        if (p.status === 'fulfilled') {
-                            const layerName = p.value[0];
-                            const layerNameWidth = pdf.getTextDimensions(layerName).w;
-                            const img = p.value[1];
-                            const imgProps = pdf.getImageProperties(img);
-                            let widthInMM = (imgProps.width * 25.4) / 96;
-                            let heightInMM = (imgProps.height * 25.4) / 96;
-                            if ((currentY + heightInMM + pdf.getTextDimensions(layerName).h) >= (pageHeight - pageMargin)) {
-                                currentX = (pageMargin / 2) + maxWidth + 7.5;
-                                currentY = startingY;
-                            }
-
-                            if (widthInMM > (pageWidth - pageMargin)) {
-                                //key is wider than page.
-                                const originalWidth = widthInMM;
-                                widthInMM = (pageWidth - pageMargin - startingX);
-                                const scaleRatio = widthInMM / originalWidth;
-                                heightInMM = heightInMM * scaleRatio;
-                            }
-                            if (heightInMM > (pageHeight - pageMargin)) {
-                                //key is taller than page
-                                const originalHeight = heightInMM;
-                                heightInMM = (pageHeight - pageMargin - startingY);
-                                const scaleRatio = heightInMM / originalHeight;
-                                widthInMM = widthInMM * scaleRatio;
-                            }
-
-                            if ((widthInMM + currentX) > (pageWidth - pageMargin) || (layerNameWidth + currentX) > (pageWidth - pageMargin)) {
-                                //key or title would overflow page edge
-                                //add to new page
-                                pdf.addPage(pageSize, pageOrientation);
-                                pdf.setFontSize(pageSettings.standaloneLegendTitleFontSize);
-                                pdf.text("Map Key (cont.)", pageMargin / 2, (pageMargin / 2) + 3);
-                                pdf.setFontSize(pageSettings.titleFontSize);
-                                currentX = startingX;
-                                currentY = startingY;
-                                maxWidth = 0;
-                            }
-                            pdf.text(layerName, currentX, currentY);
-                            currentY += pdf.getTextDimensions(layerName).h
-                            pdf.addImage(img, currentX, currentY, widthInMM, heightInMM);
-                            if (widthInMM > maxWidth) maxWidth = widthInMM;
-                            if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
-                            currentY += heightInMM + 7.5;
+                currentX = startingX;
+                currentY = startingY;
+                pdf.setFontSize(pageSettings.titleFontSize);
+                allResolvedLegends.forEach(p => {
+                    if (p.status === 'fulfilled') {
+                        const layerName = p.value[0];
+                        const layerNameWidth = pdf.getTextDimensions(layerName).w;
+                        const img = p.value[1];
+                        const imgProps = pdf.getImageProperties(img);
+                        let widthInMM = (imgProps.width * 25.4) / 96;
+                        let heightInMM = (imgProps.height * 25.4) / 96;
+                        if ((currentY + heightInMM + pdf.getTextDimensions(layerName).h) >= (pageHeight - pageMargin)) {
+                            currentX = (pageMargin / 2) + maxWidth + 7.5;
+                            currentY = startingY;
                         }
-                    })
-                break;
-        }
 
+                        if (widthInMM > (pageWidth - pageMargin)) {
+                            //key is wider than page.
+                            const originalWidth = widthInMM;
+                            widthInMM = (pageWidth - pageMargin - startingX);
+                            const scaleRatio = widthInMM / originalWidth;
+                            heightInMM = heightInMM * scaleRatio;
+                        }
+                        if (heightInMM > (pageHeight - pageMargin)) {
+                            //key is taller than page
+                            const originalHeight = heightInMM;
+                            heightInMM = (pageHeight - pageMargin - startingY);
+                            const scaleRatio = heightInMM / originalHeight;
+                            widthInMM = widthInMM * scaleRatio;
+                        }
+
+                        if ((widthInMM + currentX) > (pageWidth - pageMargin) || (layerNameWidth + currentX) > (pageWidth - pageMargin)) {
+                            //key or title would overflow page edge
+                            //add to new page
+                            pdf.addPage(pageSize, pageOrientation);
+                            pdf.setFontSize(pageSettings.standaloneLegendTitleFontSize);
+                            pdf.text("Map Key (cont.)", pageMargin / 2, (pageMargin / 2) + 3);
+                            pdf.setFontSize(pageSettings.titleFontSize);
+                            currentX = startingX;
+                            currentY = startingY;
+                            maxWidth = 0;
+                        }
+                        pdf.text(layerName, currentX, currentY);
+                        currentY += pdf.getTextDimensions(layerName).h
+                        pdf.addImage(img, currentX, currentY, widthInMM, heightInMM);
+                        if (widthInMM > maxWidth) maxWidth = widthInMM;
+                        if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
+                        currentY += heightInMM + 7.5;
+                    }
+                })
+            break;
+        }
     }
 
     private getLegendImages(legendUrls: LegendURLs) {
-        let promises: Promise<[string, HTMLImageElement]>[] = [];
+        const promises: Promise<[string, HTMLImageElement]>[] = [];
         legendUrls.availableLegends.forEach(legend => {
             promises.push(new Promise<[string, HTMLImageElement]>((resolve, reject) => {
-                let img = new Image();
+                const img = new Image();
                 img.onload = () => resolve([legend.name, img]);
                 img.onerror = () => reject("Image load failed");
                 img.src = legend.legendUrl;
@@ -727,22 +714,13 @@ export class Export {
      * Gets the logo defined in the print configuration and converts it to a base64 string
      * */
     private getLogo(): Promise<string | ArrayBuffer> {
-        return new Promise((resolve, reject) => {
-            var request = new XMLHttpRequest();
-            request.open('GET', this.printConfiguration.logoURL);
-            request.responseType = 'blob';
-            request.onload = () => {
-                if (request.status === 200) {
-                    this.blobToBase64(request.response).then((base64img) => resolve(base64img));
-                } else {
-                    reject(Error('Image didn\'t load successfully; error code:' + request.statusText));
-                }
-            };
-            request.onerror = function () {
+        return new Promise(async (resolve, reject) => {
+            const resp = await fetch(this.printConfiguration.logoURL)
+            if (resp.ok) {
+                this.blobToBase64(await resp.blob()).then((base64img) => resolve(base64img));
+            } else {
                 reject(Error('There was a network error.'));
-            };
-            // Send the request
-            request.send();
+            }
         });
     }
 
@@ -779,8 +757,8 @@ export class Export {
 
                     const img = p.value[1];
                     const imgProps = pdf.getImageProperties(img);
-                    let widthInMM = (imgProps.width * 25.4) / 96;
-                    let heightInMM = (imgProps.height * 25.4) / 96;
+                    const widthInMM = (imgProps.width * 25.4) / 96;
+                    const heightInMM = (imgProps.height * 25.4) / 96;
 
                     totalRequiredHeight += heightInMM;
                     if (totalRequiredWidth < widthInMM) totalRequiredWidth = widthInMM;
@@ -819,11 +797,11 @@ export class Export {
      * @param imgData - The base64 encoded image
      */
     private createLogoBox(pdf: jsPDF,pageMargin: number, imgData:string): void {
-        let imgProps = pdf.getImageProperties(imgData);
+        const imgProps = pdf.getImageProperties(imgData);
         let newWidth = imgProps.width;
         let newHeight = imgProps.height;
-        let maxLogoWidth = 40;
-        let maxLogoHeight = 8;
+        const maxLogoWidth = 40;
+        const maxLogoHeight = 8;
         let ratio = imgProps.height / imgProps.width;
 
         if (imgProps.height > maxLogoHeight || imgProps.width > maxLogoWidth) {
