@@ -8,7 +8,7 @@ export interface PDFPageSetting {
     subtitleFontSize: number;
     /** The font size of the attribution*/
     attributionFontSize: number;
-    /** The font size of the legend title when it is rendered on a seperate page*/
+    /** The font size of the legend title when it is rendered on a separate page*/
     standaloneLegendTitleFontSize: number;
     /** The maximum width a title block can be on the map when in landscape mode */
     maxLandscapeTitleLength: number;

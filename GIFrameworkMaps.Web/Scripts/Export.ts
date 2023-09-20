@@ -9,7 +9,7 @@ import { GIFWMap } from "./Map";
 import { GIFWMousePositionControl } from "./MousePositionControl";
 import { Util } from "./Util";
 
-export type LegendPositioningOption = "none" | "float-left" | "pinned-left" | "seperate-page";
+export type LegendPositioningOption = "none" | "float-left" | "pinned-left" | "separate-page";
 export type PageSizeOption = "a2" | "a3" | "a4" | "a5";
 export type PageOrientationOption = "p" | "l";
 type TitleBoxDimensions = { TotalHeight: number, TotalWidth: number, TitleHeight: number, SubtitleHeight:number };
@@ -102,7 +102,7 @@ export class Export {
 
             } else {
                 if (legend !== 'none') {
-                    legend = 'seperate-page';
+                    legend = 'separate-page';
                     legendMargin = 0;
                     keyWasMoved = true;
                 }
@@ -637,7 +637,7 @@ export class Export {
                 })
 
                 break;
-            case "seperate-page":
+            case "separate-page":
                 pdf.addPage(pageSize, pageOrientation);
                 pdf.setFontSize(pageSettings.standaloneLegendTitleFontSize);
                 pdf.text("Map Key", pageMargin / 2, (pageMargin / 2) + 3);
@@ -702,7 +702,12 @@ export class Export {
         legendUrls.availableLegends.forEach(legend => {
             promises.push(new Promise<[string, HTMLImageElement]>((resolve, reject) => {
                 const img = new Image();
-                img.onload = () => resolve([legend.name, img]);
+                img.onload = () => {
+                    if (img.width < 5) {
+                        reject(`No legend available for ${legend.name}`);
+                    }
+                    resolve([legend.name, img]);
+                }
                 img.onerror = () => reject("Image load failed");
                 img.src = legend.legendUrl;
             }));
@@ -725,7 +730,7 @@ export class Export {
     }
 
     private async keyWillFit(map: GIFWMap, pageMargin: number, pageSettings: PDFPageSetting, legend: LegendPositioningOption, pageSize: PageSizeOption, pageOrientation: PageOrientationOption) {
-        if (legend === 'none' || legend === 'seperate-page') {
+        if (legend === 'none' || legend === 'separate-page') {
             return true;
         }
 

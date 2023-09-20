@@ -70,7 +70,7 @@ export class PrintPanel implements SidebarPanel {
         printSubtitleInput.nextElementSibling.textContent = `Subtitle too long (max ${maxSubtitleLen} characters)`
 
         if (pageSize === "a5" || (pageSize === "a4" && pageOrientation === "p")) {
-            //seperate page legends only
+            //separate page legends only
             (printLegendInput.querySelector(`option[value="${<LegendPositioningOption>"float-left"}"]`) as HTMLOptionElement).disabled = true;
             (printLegendInput.querySelector(`option[value="${<LegendPositioningOption>"pinned-left"}"]`) as HTMLOptionElement).disabled = true;
             printLegendSizeWarning.style.display = "";
@@ -157,7 +157,7 @@ export class PrintPanel implements SidebarPanel {
                 if (e.detail.keyWasMoved === true) {
                     const msg = new Util.Error(Util.AlertType.Popup, Util.AlertSeverity.Info,
                         "Your key could not fit",
-                        "Your map key would not fit in the place you requested, so was added to a seperate page in your PDF");
+                        "Your map key would not fit in the place you requested, so was added to a separate page in your PDF");
                     msg.show();
                 }
             }
