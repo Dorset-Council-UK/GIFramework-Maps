@@ -41,21 +41,21 @@ In user secrets add the below line of code and fill in your database name, usern
 
 You should now be able to test your connection and run migrations using Entity Framework commands.
 
-### Download extensions in Visual Studio
+### Download optional extensions in Visual Studio
 There are two extensions we use in Visual Studio that you can download: 
 - NPM Task Runner
 - EF Core Power Tools 
 
-You can download these by going to the Extensions menu and then to Manage Extensions. You’ll need to restart Visual Studio once you’ve downloaded these.
+It's entirely optional to download these extensions. You can download these by going to the Extensions menu and then to Manage Extensions. You’ll need to restart Visual Studio once you’ve downloaded them.
 
 ### Authentication
 Follow these instructions if you want your app to have authentication so that only permitted users can access the administration part of the site.
 
-The Dorset Council version of this app uses Microsoft authentication, but you can use any provider that supports OpenID Connect. Refer to the documentation of your chosen provider for more information on how to setup an OpenID Connect connection.
+Currently this app only supports Microsoft Azure AD B2C authentication. Refer to the official documentation to set this up in your project.
 
-We use Azure KeyVault to provide the connection details to our production service. You can use any suitable service and free ones exist. Refer to the documentation of your chosen service on how to set it up.
+We use Azure KeyVault to provide the connection details to our production service. Refer to the official documentation to set this up in your project.
 
-Once you have setup a suitable service, add the details to your user secrets and go into `program.cs` and match the naming of your secrets.
+Once you have setup a service, add the details to your user secrets and go into `program.cs` and match the naming of your secrets.
 
 We recommend you follow the same naming conventions for user roles so that your service returns the role of “GIFWAdmin” for any user that should be able to access the administrator area of the website.
 
