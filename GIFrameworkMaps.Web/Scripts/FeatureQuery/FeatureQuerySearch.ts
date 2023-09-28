@@ -108,10 +108,9 @@ export class FeatureQuerySearch {
 
             this._searchResultRenderer.showLoadingPopup(layerNames, searchCoord);
             Promise.allSettled(searchPromises).then((promises) => {
-                Promise.allSettled(searchPromises).then((promises) => {
-                    this.resolveSearchPromises(promises, searchCoord);
-                });
+                this.resolveSearchPromises(promises, searchCoord);
             });
+
         }
     }
 
