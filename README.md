@@ -11,9 +11,6 @@ It is used by Dorset Council as their primary web mapping application for staff 
 
 GIFrameworkMaps is Free and Open Source software, it uses [OpenLayers](https://openlayers.org/) and [Bootstrap](https://getbootstrap.com/), as well as many other libraries, and is licensed under the MIT licence.
 
-## Features
-TODO
-
 ## Bugs
 
 Please use the [GitHub issue tracker](https://github.com/Dorset-Council-UK/GIFramework-Maps/issues) for all bugs and feature requests. Before creating a new issue, do a quick search to see if the problem has been reported already.
@@ -25,7 +22,7 @@ To run GIFrameworkMaps with minimal modification, you will need.
 - A web server capable of running .NET applications, such as IIS, Kestral or Azure
 - PostgreSQL 13+ with PostGIS extension
 
-GIFrameworkMaps uses [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/), so any spatial database that has an Entity Framework Core provider should work, but this has not been tested. For a full list of providers, check the [Entity Framework docs](https://docs.microsoft.com/en-us/ef/core/providers/?tabs=dotnet-core-cli).
+GIFrameworkMaps uses [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/). Postgres has been set up for this project, but with some modifications, any Entity Framework Core compatible provider should work. For a full list of providers, check the [Entity Framework docs](https://docs.microsoft.com/en-us/ef/core/providers/?tabs=dotnet-core-cli).
 
 ## Contributing
 
