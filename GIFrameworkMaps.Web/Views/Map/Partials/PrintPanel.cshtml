@@ -1,5 +1,5 @@
-﻿<div class="card-body">
-    <div class="card-title-closeable">
+﻿<div class="card-body pt-0">
+    <div class="card-title-closeable py-3">
         <h5 class="card-title">Export and Print</h5>
         <button type="button" class="btn-close" data-gifw-dismiss-sidebar="print-control" aria-label="Close"></button>
     </div>
@@ -43,7 +43,19 @@
             <option selected value="200">200 dpi (good)</option>
             <option value="300">300 dpi (excellent, slow)</option>
         </select>
-
+        <div class="mb-3">
+            <label for="gifw-print-legend" class="form-label">Legend/Key</label>
+            <select class="form-select" id="gifw-print-legend">
+                <option value="none">None</option>
+                <option value="float-left">Floating - Left</option>
+                <option value="pinned-left">Pinned to side - Left</option>
+                <option value="separate-page">Separate page</option>
+            </select>
+            <div class="form-text" id="gifw-print-legend-size-warning" style="display:none;">
+                <span class="ol-grabbing bi-info-circle"></span> Some key options are not available due to the page size you selected
+            </div>
+        </div>
+        
         <div class="form-check mb-3" style="display:none;">
             <input class="form-check-input" type="checkbox" value="" id="gifw-print-scale-print">
             <label class="form-check-label" for="gifw-print-scale-print">Print to scale?</label>

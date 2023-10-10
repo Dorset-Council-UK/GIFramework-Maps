@@ -121,8 +121,8 @@ namespace GIFrameworkMaps.Tests
             Assert.Throws<KeyNotFoundException>(delegate { sut.GetSearchDefinitionsByVersion(versionId); });
         }
 
-        [Test]
-        public void GetResultsFromJSON_Addresses_ValidJSON()
+        [Test(Description = "Gets a valid address-like JSON result and tests extracting the results, expecting a valid x and y and a properly formatted title")]
+        public void GetResultsFromJSON_Addresses_SingleTitle_ValidJSON()
         {
             APISearchDefinition searchDefinition = new() { Name = "Example Address API", Title = "Addresses", MaxResults = 100, ZoomLevel = 19, EPSG = 27700, SupressGeom = false, XFieldPath = "$.results[*].DPA.X_COORDINATE", YFieldPath = "$.results[*].DPA.Y_COORDINATE", TitleFieldPath = "$.results[*].DPA.ADDRESS" };
             string testJSONResult = File.ReadAllText("Data/addresses.json");
@@ -139,8 +139,44 @@ namespace GIFrameworkMaps.Tests
 
         }
 
-        [Test]
-        public void GetResultsFromJSON_Places_ValidJSON()
+        [Test(Description = "Gets a valid address-like JSON result and tests extracting the results, using a compound title with two attributes, expecting a valid x and y and a properly formatted title")]
+        public void GetResultsFromJSON_Addresses_CompoundTitle_ValidJSON()
+        {
+            APISearchDefinition searchDefinition = new() { Name = "Example Address API", Title = "Addresses", MaxResults = 100, ZoomLevel = 19, EPSG = 27700, SupressGeom = false, XFieldPath = "$.results[*].DPA.X_COORDINATE", YFieldPath = "$.results[*].DPA.Y_COORDINATE", TitleFieldPath = "{{$.results[*].DPA.ADDRESS}} (UPRN: {{$.results[*].DPA.UPRN}})" };
+            string testJSONResult = File.ReadAllText("Data/addresses.json");
+
+            var results = SearchRepository.GetResultsFromJSONString(testJSONResult, searchDefinition);
+
+            Assert.That(results, Has.Exactly(5).Items);
+
+            Assert.That(results, Has.Exactly(1)
+                .Matches<SearchResult>(
+                result => result.DisplayText == "1, EXAMPLE ROAD, EXAMPLE LOCALITY, EXAMPLE TOWN, AA1 1AA (UPRN: 10000000001)" &&
+                result.X == 361709.81m &&
+                result.Y == 90515.67m));
+
+        }
+
+        [Test(Description = "Gets a valid address-like JSON result and tests extracting the results, using a compound title formatting with a single attribute, expecting a valid x and y and a properly formatted title")]
+        public void GetResultsFromJSON_Addresses_SingleCompoundTitle_ValidJSON()
+        {
+            APISearchDefinition searchDefinition = new() { Name = "Example Address API", Title = "Addresses", MaxResults = 100, ZoomLevel = 19, EPSG = 27700, SupressGeom = false, XFieldPath = "$.results[*].DPA.X_COORDINATE", YFieldPath = "$.results[*].DPA.Y_COORDINATE", TitleFieldPath = "{{$.results[*].DPA.ADDRESS}}" };
+            string testJSONResult = File.ReadAllText("Data/addresses.json");
+
+            var results = SearchRepository.GetResultsFromJSONString(testJSONResult, searchDefinition);
+
+            Assert.That(results, Has.Exactly(5).Items);
+
+            Assert.That(results, Has.Exactly(1)
+                .Matches<SearchResult>(
+                result => result.DisplayText == "1, EXAMPLE ROAD, EXAMPLE LOCALITY, EXAMPLE TOWN, AA1 1AA" &&
+                result.X == 361709.81m &&
+                result.Y == 90515.67m));
+
+        }
+
+        [Test(Description = "Gets a valid places-like JSON result and tests extracting the results, expecting a valid BBOX and properly formatted display text")]
+        public void GetResultsFromJSON_Places_SingleTitle_ValidJSON()
         {
             APISearchDefinition searchDefinition = new() { Name = "Example Places API", Title = "Addresses", MaxResults = 50, ZoomLevel = 15, EPSG = 27700, SupressGeom = true, MBRXMaxPath = "$.results[*].GAZETTEER_ENTRY.MBR_XMAX", MBRXMinPath = "$.results[*].GAZETTEER_ENTRY.MBR_XMIN", MBRYMaxPath = "$.results[*].GAZETTEER_ENTRY.MBR_YMAX", MBRYMinPath = "$.results[*].GAZETTEER_ENTRY.MBR_YMIN" ,TitleFieldPath= "$.results[*].GAZETTEER_ENTRY.NAME1" };
             string testJSONResult = File.ReadAllText("Data/places.json");
@@ -153,6 +189,26 @@ namespace GIFrameworkMaps.Tests
             Assert.That(results, Has.Exactly(1)
                .Matches<SearchResult>(
                result => result.DisplayText == "Example"));
+
+            /*NOTE: Could not merge this test into the lambda test above (would not match)*/
+            Assert.That(results[0].Bbox, Is.EqualTo(expectedBbox));
+
+        }
+
+        [Test(Description = "Gets a valid places-like JSON result and tests extracting the results, using a compound title with two attributes, expecting a valid BBOX and a properly formatted title")]
+        public void GetResultsFromJSON_Places_CompoundTitle_ValidJSON()
+        {
+            APISearchDefinition searchDefinition = new() { Name = "Example Places API", Title = "Addresses", MaxResults = 50, ZoomLevel = 15, EPSG = 27700, SupressGeom = true, MBRXMaxPath = "$.results[*].GAZETTEER_ENTRY.MBR_XMAX", MBRXMinPath = "$.results[*].GAZETTEER_ENTRY.MBR_XMIN", MBRYMaxPath = "$.results[*].GAZETTEER_ENTRY.MBR_YMAX", MBRYMinPath = "$.results[*].GAZETTEER_ENTRY.MBR_YMIN", TitleFieldPath = "{{$.results[*].GAZETTEER_ENTRY.NAME1}} ({{$.results[*].GAZETTEER_ENTRY.COUNTY_UNITARY}})" };
+            string testJSONResult = File.ReadAllText("Data/places.json");
+
+            var results = SearchRepository.GetResultsFromJSONString(testJSONResult, searchDefinition);
+            decimal[] expectedBbox = { 358385.0m, 88725.0m, 359113.0m, 89225.0m };
+
+            Assert.That(results, Has.Exactly(1).Items);
+
+            Assert.That(results, Has.Exactly(1)
+               .Matches<SearchResult>(
+               result => result.DisplayText == "Example (Example County)"));
 
             /*NOTE: Could not merge this test into the lambda test above (would not match)*/
             Assert.That(results[0].Bbox, Is.EqualTo(expectedBbox));

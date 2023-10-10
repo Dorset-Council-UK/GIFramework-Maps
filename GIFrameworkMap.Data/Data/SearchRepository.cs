@@ -8,18 +8,16 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 [assembly: InternalsVisibleTo("GIFrameworkMaps.Tests")]
 namespace GIFrameworkMaps.Data
 {
-    public class SearchRepository : ISearchRepository
+    public partial class SearchRepository : ISearchRepository
     {
         //dependancy injection
         private readonly ILogger<SearchRepository> _logger;
@@ -139,7 +137,7 @@ namespace GIFrameworkMaps.Data
                                     searchResults.IsError = true;
                                 }
                                 // Stop search now if flag set on current search and something found since last time flag set
-                                if (searchResultCategory.Results is not null && (searchResultCategory.Results.Count > 0 & reqSearch.StopIfFound))
+                                if (searchResultCategory.Results is not null && searchResultCategory.Results.Count > 0 & reqSearch.StopIfFound)
                                     break;
                             }
                         }
@@ -310,9 +308,33 @@ namespace GIFrameworkMaps.Data
         internal static List<SearchResult> GetResultsFromJSONString(string content, APISearchDefinition searchDefinition)
         {
             var contentAsJSON = JToken.Parse(content);
+
+            //extract paths from title field template
+            var template = "{0}";
+            var titlePaths = new List<string>
+            {
+                searchDefinition.TitleFieldPath
+            };
+            Regex rx = HandlebarsPlaceholder();
+            if (rx.IsMatch(searchDefinition.TitleFieldPath))
+            {
+                var templateIndex = -1;
+                
+                template = rx.Replace(searchDefinition.TitleFieldPath, match =>
+                {
+                    templateIndex++;
+                    return match.Result($"{{{templateIndex}}}");
+                });
+                titlePaths = rx.Matches(searchDefinition.TitleFieldPath).Select(m => m.Value.Replace("{{","").Replace("}}","")).ToList();
+            }
             
-            
-            IEnumerable<JToken> titles = contentAsJSON.SelectTokens(searchDefinition.TitleFieldPath);
+            List<IList<JToken>> titleParts = new();
+            foreach (var titlePath in titlePaths)
+            {
+                IList<JToken> titlePart = null;
+                PopulateJTokenLists(ref titlePart, titlePath);
+                titleParts.Add(titlePart);
+            }
 
             IList<JToken> xCoords = null, yCoords = null, mbrXMinCoords = null, mbrYMinCoords = null, mbrXMaxCoords = null, mbrYMaxCoords = null, geom = null;
 
@@ -325,15 +347,21 @@ namespace GIFrameworkMaps.Data
             PopulateJTokenLists(ref mbrYMaxCoords, searchDefinition.MBRYMaxPath);
 
             PopulateJTokenLists(ref geom, searchDefinition.GeomFieldPath);
-                  
+
             var i = 0;
             var results = new List<SearchResult>();
-            /*TODO - I don't like looping through titles as they may not exist!*/
+            /*TODO - getting a single set of titles acts as a way of iterating through the full results list consistently. This is a bit messy!*/
+            IEnumerable<JToken> titles = contentAsJSON.SelectTokens(titlePaths.First());
             foreach (var title in titles)
             {
+                var resultTitleParts = new List<string>();
+                foreach(var r in titleParts)
+                {
+                    resultTitleParts.Add(r[i].ToString());
+                }
                 var result = new SearchResult
                 {
-                    DisplayText = title.ToString(),
+                    DisplayText = string.Format(template, resultTitleParts.ToArray()),
                     EPSG = searchDefinition.EPSG,
                     Ordering = i,
                     Zoom = searchDefinition.ZoomLevel
@@ -341,8 +369,8 @@ namespace GIFrameworkMaps.Data
                 //check whether we've received an X/Y
                 if (JTokensExist(xCoords, yCoords))
                 {
-                    result.X = Decimal.Parse(xCoords[i].ToString());
-                    result.Y = Decimal.Parse(yCoords[i].ToString());
+                    result.X = decimal.Parse(xCoords[i].ToString());
+                    result.Y = decimal.Parse(yCoords[i].ToString());
                 }
                 //check whether we've received an MBR
                 if (JTokensExist(mbrXMinCoords, mbrYMinCoords, mbrXMaxCoords, mbrYMaxCoords))
@@ -449,7 +477,7 @@ namespace GIFrameworkMaps.Data
                         FROM {searchDefinition.TableName}
                         WHERE {parameterizedWhereClause}";
                       
-            if (!String.IsNullOrEmpty(searchDefinition.OrderByClause))
+            if (!string.IsNullOrEmpty(searchDefinition.OrderByClause))
             {
                 string parameterizedOrderByClause = searchDefinition.OrderByClause;
                 ParameterizeClause(ref parameterizedOrderByClause, searchTerm, ref searchParams);
@@ -560,8 +588,8 @@ namespace GIFrameworkMaps.Data
                     searchTerm.Split(" ", 2);
                 if(searchTerms.Length == 2)
                 {
-                    bool canSplit = Decimal.TryParse(searchTerms[0], out decimal decimal1Temp)
-                                & Decimal.TryParse(searchTerms[1], out decimal decimal2Temp);
+                    bool canSplit = decimal.TryParse(searchTerms[0], out decimal decimal1Temp)
+                                & decimal.TryParse(searchTerms[1], out decimal decimal2Temp);
                     decimal1 = decimal1Temp;
                     decimal2 = decimal2Temp;
 
@@ -614,10 +642,13 @@ namespace GIFrameworkMaps.Data
                 parameterizedClause = parameterizedClause.Remove(replaceStart, p.Value.Length)
                                                          .Insert(replaceStart, $"@param{i}");
                 int lenAfter = parameterizedClause.Length;
-                shift += (lenAfter - lenBefore);
+                shift += lenAfter - lenBefore;
                 i++;
             }
             clause = parameterizedClause;
         }
+
+        [GeneratedRegex("{{[^}]+}}")]
+        private static partial Regex HandlebarsPlaceholder();
     }
 }

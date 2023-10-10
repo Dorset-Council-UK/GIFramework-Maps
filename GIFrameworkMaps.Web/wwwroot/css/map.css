@@ -272,7 +272,8 @@
 }
 
 .giframeworkMap aside#sidebar-container .sidebar-panels.show {
-    display: block;
+    display: flex;
+    flex-direction:column;
 }
 
 .giframeworkMap aside#sidebar-container .sidebar-panels .card {
@@ -280,27 +281,30 @@
     overflow-y: auto;
 }
 
-/*taken from modal header to allow close button to appear alongside title*/
-    .giframeworkMap aside#sidebar-container .sidebar-panels .card .card-title-closeable {
-        display: flex;
-        flex-shrink: 0;
-        align-items: center;
-        justify-content: space-between;
-    }
+.giframeworkMap aside#sidebar-container .sidebar-panels .card .card-title-closeable {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0px;
+    background: linear-gradient(0deg, transparent 0%, white 15%);
+    z-index: 10;
+}
 /*BASEMAPS*/
-    .giframeworkMap aside#sidebar-container .sidebar-panels .card.basemaps-selector {
-        height: 4rem;
-        background-color: #e0e0e0;
-        background-repeat: no-repeat;
-        background-size: cover;
-        margin-top: .5rem;
-        border-color: #e0e0e0;
-    }
-        .giframeworkMap aside#sidebar-container .sidebar-panels .card.basemaps-selector:hover {
-            box-shadow: 2px 2px 5px #e0e0e0;
-            border-color: var(--primary-color-transparent-50);
-            transition: all 0.2s ease;
-        }
+.giframeworkMap aside#sidebar-container .sidebar-panels .card.basemaps-selector {
+    height: 4rem;
+    background-color: #e0e0e0;
+    background-repeat: no-repeat;
+    background-size: cover;
+    margin-top: .5rem;
+    border-color: #e0e0e0;
+}
+.giframeworkMap aside#sidebar-container .sidebar-panels .card.basemaps-selector:hover {
+    box-shadow: 2px 2px 5px #e0e0e0;
+    border-color: var(--primary-color-transparent-50);
+    transition: all 0.2s ease;
+}
 .giframeworkMap aside#sidebar-container .sidebar-panels .card.basemaps-selector.active:hover {
     box-shadow: none;
 }
@@ -347,7 +351,7 @@
 /*Medium devices (tablets, 768px and up)*/
 @media (min-width: 768px) {
     .giframeworkMap .search-control {
-        width: 50%;
+        width: 45%;
     }
 
 }
@@ -363,7 +367,7 @@
 }
 
 .giframeworkMap #gifw-search-results {
-    padding-top: 2rem;
+    margin-top: 2.5rem;
 }
 .giframeworkMap #gifw-search-results-list li{
     padding:.5rem 0 .5rem 0;
