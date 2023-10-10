@@ -9,6 +9,12 @@ const mapBundle = {
                 use: 'ts-loader',
                 exclude: /node_modules/,
             },
+            {
+                test: /\.m?js$/,
+                resolve: {
+                    fullySpecified: false, // fix for ol-contextmenu
+                },
+            }
         ],
     },
     resolve: {
