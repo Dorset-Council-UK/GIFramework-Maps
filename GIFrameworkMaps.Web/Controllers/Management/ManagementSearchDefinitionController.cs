@@ -316,7 +316,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 try
                 {
                     await _context.SaveChangesAsync();
-                    TempData["Message"] = $"Search definition edited definition edited";
+                    TempData["Message"] = $"Search definition edited";
                     TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
