@@ -219,84 +219,84 @@ namespace GIFrameworkMaps.Web
 
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                if (!context.Versions.Any())
-                {
+                //if (!context.Versions.Any())
+                //{
                     
                     
-                    var ukBound = new Data.Models.Bound
-                    {
-                        Name = "UK",
-                        Description = "The extent of the United Kingdom plus a little extra to the east and a little less from the northern isles",
-                        BottomLeftX = -1226886,
-                        BottomLeftY = 6301670,
-                        TopRightX = 265865,
-                        TopRightY = 8405431
-                    };
-                    var globalBound = new Data.Models.Bound
-                    {
-                        Name = "Global",
-                        Description = "The extent of the whole world",
-                        BottomLeftX = -20037508,
-                        BottomLeftY = -20037508,
-                        TopRightX = 20037508,
-                        TopRightY = 20037508
-                    };
-                    var theme = new Data.Models.Theme
-                    {
-                        Name = "Default",
-                        Description = "The default style",
-                        PrimaryColour = "05476d",
-                        LogoURL = "https://static.geowessex.com/explorer/dorsetexplorer-assets/giframework-maps-icon.svg"
-                    };
+                //    var ukBound = new Data.Models.Bound
+                //    {
+                //        Name = "UK",
+                //        Description = "The extent of the United Kingdom plus a little extra to the east and a little less from the northern isles",
+                //        BottomLeftX = -1226886,
+                //        BottomLeftY = 6301670,
+                //        TopRightX = 265865,
+                //        TopRightY = 8405431
+                //    };
+                //    var globalBound = new Data.Models.Bound
+                //    {
+                //        Name = "Global",
+                //        Description = "The extent of the whole world",
+                //        BottomLeftX = -20037508,
+                //        BottomLeftY = -20037508,
+                //        TopRightX = 20037508,
+                //        TopRightY = 20037508
+                //    };
+                //    var theme = new Data.Models.Theme
+                //    {
+                //        Name = "Default",
+                //        Description = "The default style",
+                //        PrimaryColour = "05476d",
+                //        LogoURL = "https://static.geowessex.com/explorer/dorsetexplorer-assets/giframework-maps-icon.svg"
+                //    };
 
-                    var version = new Data.Models.Version
-                    {
-                        Name = "General",
-                        Description = "The general version",
-                        RequireLogin = false,
-                        ShowLogin = true,
-                        Enabled = true,
-                        Slug = "general",
-                        Bound = ukBound,
-                        Theme = theme
-                    };
+                //    var version = new Data.Models.Version
+                //    {
+                //        Name = "General",
+                //        Description = "The general version",
+                //        RequireLogin = false,
+                //        ShowLogin = true,
+                //        Enabled = true,
+                //        Slug = "general",
+                //        Bound = ukBound,
+                //        Theme = theme
+                //    };
 
-                    context.Versions.Add(version);
+                //    context.Versions.Add(version);
 
-                    if (!context.SearchDefinitions.Any())
-                    {
-                        SeedDatabaseWithSearchDefinitions(ref context, ref version);
+                //    if (!context.SearchDefinitions.Any())
+                //    {
+                //        SeedDatabaseWithSearchDefinitions(ref context, ref version);
 
-                    }
+                //    }
 
-                    var printConfig = new Data.Models.Print.PrintConfiguration
-                    {
-                        Name = "Default",
-                        LogoURL = "https://static.geowessex.com/explorer/dorsetexplorer-assets/print-logos/dc-logo-colour-with-clearzone.png"
-                    };
-                    context.VersionPrintConfiguration.Add(new Data.Models.VersionPrintConfiguration
-                    {
-                        Version = version,
-                        PrintConfiguration = printConfig
-                    });
+                //    var printConfig = new Data.Models.Print.PrintConfiguration
+                //    {
+                //        Name = "Default",
+                //        LogoURL = "https://static.geowessex.com/explorer/dorsetexplorer-assets/print-logos/dc-logo-colour-with-clearzone.png"
+                //    };
+                //    context.VersionPrintConfiguration.Add(new Data.Models.VersionPrintConfiguration
+                //    {
+                //        Version = version,
+                //        PrintConfiguration = printConfig
+                //    });
 
-                    if (!context.Basemap.Any())
-                    {
-                        var osmLayerSource = new Data.Models.LayerSource
-                        {
-                            Name = "OpenStreetMap",
-                            Description = "OpenStreetMap is a free map of the world created and run by volunteers. Note this layer should NOT be used for high usage workloads as it uses the free OpenStreetMap tile server.",
-                            Attribution = new Data.Models.Attribution { Name = "OpenStreetMap", AttributionHTML = "© <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors, CC-BY-SA" },
-                            LayerSourceType = new Data.Models.LayerSourceType { Name = "XYZ", Description = "Layer sources using the XYZ tile scheme. Similar to TMS." },
-                            LayerSourceOptions = new List<Data.Models.LayerSourceOption> { new Data.Models.LayerSourceOption { Name = "url", Value = "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png" } }
-                        };
+                //    if (!context.Basemap.Any())
+                //    {
+                //        var osmLayerSource = new Data.Models.LayerSource
+                //        {
+                //            Name = "OpenStreetMap",
+                //            Description = "OpenStreetMap is a free map of the world created and run by volunteers. Note this layer should NOT be used for high usage workloads as it uses the free OpenStreetMap tile server.",
+                //            Attribution = new Data.Models.Attribution { Name = "OpenStreetMap", AttributionHTML = "© <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors, CC-BY-SA" },
+                //            LayerSourceType = new Data.Models.LayerSourceType { Name = "XYZ", Description = "Layer sources using the XYZ tile scheme. Similar to TMS." },
+                //            LayerSourceOptions = new List<Data.Models.LayerSourceOption> { new Data.Models.LayerSourceOption { Name = "url", Value = "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png" } }
+                //        };
 
-                        var osmLayer = new Data.Models.Basemap { LayerSource = osmLayerSource, Name = "OpenStreetMap", Bound = globalBound, MinZoom = 2, MaxZoom = 18 };
-                        version.VersionBasemaps = new List<Data.Models.VersionBasemap>() { new Data.Models.VersionBasemap { Basemap = osmLayer, IsDefault = true, DefaultOpacity = 100, DefaultSaturation = 100 } };
+                //        var osmLayer = new Data.Models.Basemap { LayerSource = osmLayerSource, Name = "OpenStreetMap", Bound = globalBound, MinZoom = 2, MaxZoom = 18 };
+                //        version.VersionBasemaps = new List<Data.Models.VersionBasemap>() { new Data.Models.VersionBasemap { Basemap = osmLayer, IsDefault = true, DefaultOpacity = 100, DefaultSaturation = 100 } };
 
-                    }
-                    context.SaveChanges();
-                }
+                //    }
+                //    context.SaveChanges();
+                //}
 
                 
 

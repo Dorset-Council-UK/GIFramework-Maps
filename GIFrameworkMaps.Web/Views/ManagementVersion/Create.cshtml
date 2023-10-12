@@ -32,6 +32,13 @@
             </div>
 
             <div class="mb-3">
+                <label asp-for="Version.VersionNotes" class="control-label"></label>
+                <textarea asp-for="Version.VersionNotes" class="form-control"></textarea>
+                <div class="form-text">Notes in this field are not displayed to the end users</div>
+                <span asp-validation-for="Version.VersionNotes" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
                 <label asp-for="Version.ThemeId" class="control-label"></label>
                 <select asp-for="Version.ThemeId" asp-items="Model.AvailableThemes" class="form-select"></select>
                 <span asp-validation-for="Version.ThemeId" class="text-danger"></span>

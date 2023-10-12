@@ -103,6 +103,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
             var editModel = new VersionEditModel() { Version = version };
             RebuildViewModel(ref editModel, version);
+            ViewData["AlertEnabled"] = false; //TODO - we might add the ability to send alerts in the future but for now set to false
             return View(editModel);
         }
 
@@ -165,7 +166,54 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
             
             RebuildViewModel(ref editModel, versionToUpdate);
+            ViewData["AlertEnabled"] = false; //TODO - we might add the ability to send alerts in the future but for now set to false
             return View(editModel);
+        }
+
+        // GET: Version/ContactAlert/1
+        public async Task<IActionResult> ContactAlert(int id)
+        {
+            var version = await _context.Versions
+                .Include(v => v.VersionContacts)
+                .FirstOrDefaultAsync(v => v.Id == id);
+
+            if (version == null)
+            {
+                return NotFound();
+            }
+            var editModel = new VersionEditModel() { Version = version };
+            RebuildViewModel(ref editModel, version);
+            editModel.UserDetails = new Dictionary<string, Microsoft.Graph.Beta.Models.User>();
+            foreach (var v in editModel.Version.VersionContacts)
+            {
+                editModel.UserDetails.Add(v.UserId, await _repository.GetUser(v.UserId));
+            }
+            ViewData["AlertEnabled"] = false; //TODO - we might add the ability to send alerts in the future but for now set to false
+            return View(editModel);
+        }
+
+        // GET: Version/AddContact/1
+        public async Task<IActionResult> AddContact(int id)
+        {
+            VersionAddContactModel ViewModel = new VersionAddContactModel();
+            ViewModel.ContactEntry = new VersionContact { VersionId = id };
+            ViewModel.ListOfUsers = await _repository.GetUsers();
+            return View(ViewModel);
+        }
+
+        // POST: Version/AddContact
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddContact(VersionAddContactModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                //Save the record
+                return RedirectToAction("ContactAlert", new { Id = model.ContactEntry.VersionId });
+            }
+            //Refresh the available users list
+            model.ListOfUsers = await _repository.GetUsers();
+            return View(model);
         }
 
         // GET: Version/Delete/1

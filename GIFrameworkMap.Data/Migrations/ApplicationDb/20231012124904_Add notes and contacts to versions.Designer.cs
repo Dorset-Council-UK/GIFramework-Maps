@@ -3,6 +3,7 @@ using System;
 using GIFrameworkMaps.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231012124904_Add notes and contacts to versions")]
+    partial class Addnotesandcontactstoversions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -739,10 +742,10 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionContact", b =>
                 {
                     b.Property<int>("VersionContactId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    b.Property<int>("VersionId")
-                        .HasColumnType("integer");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("VersionContactId"));
 
                     b.Property<string>("DisplayName")
                         .HasColumnType("text");
@@ -753,7 +756,10 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.Property<string>("UserId")
                         .HasColumnType("text");
 
-                    b.HasKey("VersionContactId", "VersionId");
+                    b.Property<int?>("VersionId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("VersionContactId");
 
                     b.HasIndex("VersionId");
 
@@ -1173,9 +1179,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                 {
                     b.HasOne("GIFrameworkMaps.Data.Models.Version", "Version")
                         .WithMany("VersionContacts")
-                        .HasForeignKey("VersionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("VersionId");
 
                     b.Navigation("Version");
                 });

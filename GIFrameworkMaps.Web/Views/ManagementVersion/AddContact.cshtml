@@ -1,0 +1,41 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.VersionAddContactModel
+@{
+    ViewData["Title"] = "Add a version contact";
+}
+
+<h1>@ViewData["Title"]</h1>
+@using (Html.BeginForm("AddContact", "ManagementVersion", null, FormMethod.Post, true, null))
+{
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <div class="mb-3">
+                <label asp-for="ContactEntry.UserId" class="control-label"></label>
+                @* <select asp-for="ContactEntry.UserId" asp-items="ListOfUsers" class="form-select">
+                    <option value="">Please select</option>
+                </select> *@
+                <span asp-validation-for="ContactEntry.UserId" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ContactEntry.Enabled" class="control-label"></label>
+                
+                <span asp-validation-for="ContactEntry.Enabled" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <input type="hidden" asp-for="ContactEntry.VersionId" />
+                <div class="mb-3">
+                    <input type="submit" value="Add Contact" class="btn btn-primary" />
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <a asp-action="ContactAlert" asp-route-id="ContactEntry.VersionId">Cancel</a>
+            </div>
+        </div>
+    </div>
+}
