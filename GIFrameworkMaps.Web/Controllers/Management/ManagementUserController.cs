@@ -73,7 +73,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 UpdateUserRoles(selectedRoles, userToUpdate);
                 UpdateUserVersions(selectedVersions, userToUpdate);
                 await _context.SaveChangesAsync();
-
+                TempData["Message"] = $"User {userToUpdate.DisplayName} edited";
+                TempData["MessageType"] = "success";
                 return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateException ex)

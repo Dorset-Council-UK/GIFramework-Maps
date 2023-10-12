@@ -55,7 +55,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Add(step);
                     await _context.SaveChangesAsync();
-                    if(addAnother)
+                    TempData["Message"] = "New tour step created";
+                    TempData["MessageType"] = "success";
+                    if (addAnother)
                     {
                         return RedirectToAction("Create", new { tourId = step.TourDetailsId });
                     }
@@ -106,6 +108,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 try
                 {
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "Tour step edited";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction("Edit", "ManagementTour",new {id=stepToUpdate.TourDetailsId});
                 }
                 catch (DbUpdateException ex )
@@ -143,7 +147,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.TourStep.Remove(stepToDelete);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction("Edit","ManagementTour",new {id=redirectTo});
+                TempData["Message"] = "Tour step deleted";
+                TempData["MessageType"] = "success";
+                return RedirectToAction("Edit","ManagementTour",new {id=redirectTo});
                 }
                 catch (DbUpdateException ex)
                 {
