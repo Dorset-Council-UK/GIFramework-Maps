@@ -54,7 +54,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Add(bound);
                     await _context.SaveChangesAsync();
-                    TempData["Message"] = $"New bound created";
+                    TempData["Message"] = "New bound created";
                     TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
@@ -98,7 +98,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 try
                 {
                     await _context.SaveChangesAsync();
-                    TempData["Message"] = $"Bound edited";
+                    TempData["Message"] = "Bound edited";
                     TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
@@ -139,7 +139,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Bound.Remove(boundToDelete);
                     await _context.SaveChangesAsync();
-                TempData["Message"] = $"Bound deleted";
+                TempData["Message"] = "Bound deleted";
                 TempData["MessageType"] = "success";
                 return RedirectToAction(nameof(Index));
                 }

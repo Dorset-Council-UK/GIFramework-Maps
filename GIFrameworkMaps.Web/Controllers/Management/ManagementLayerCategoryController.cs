@@ -62,7 +62,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     _context.Add(editModel.Category);
                     UpdateCategoryLayers(selectedLayers, editModel.Category);
                     await _context.SaveChangesAsync();
-                    TempData["Message"] = $"New layer category created";
+                    TempData["Message"] = "New layer category created";
                     TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
@@ -123,7 +123,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     UpdateCategoryLayers(selectedLayers, categoryToUpdate);
                     await _context.SaveChangesAsync();
-                    TempData["Message"] = $"Layer category edited";
+                    TempData["Message"] = "Layer category edited";
                     TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
@@ -163,7 +163,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             {
                 _context.Category.Remove(categoryToDelete);
                 await _context.SaveChangesAsync();
-                TempData["Message"] = $"Layer category deleted";
+                TempData["Message"] = "Layer category deleted";
                 TempData["MessageType"] = "success";
                 return RedirectToAction(nameof(Index));
             }

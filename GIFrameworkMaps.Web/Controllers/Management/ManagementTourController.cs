@@ -54,7 +54,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Add(tour);
                     await _context.SaveChangesAsync();
-                    TempData["Message"] = $"New tour created";
+                    TempData["Message"] = "New tour created";
                     TempData["MessageType"] = "success";
                     if (AddStep)
                     {
@@ -105,7 +105,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 try
                 {
                     await _context.SaveChangesAsync();
-                    TempData["Message"] = $"Tour edited";
+                    TempData["Message"] = "Tour edited";
                     TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
@@ -144,7 +144,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.TourDetails.Remove(tourToDelete);
                     await _context.SaveChangesAsync();
-                TempData["Message"] = $"Tour deleted";
+                TempData["Message"] = "Tour deleted";
                 TempData["MessageType"] = "success";
                 return RedirectToAction(nameof(Index));
                 }
