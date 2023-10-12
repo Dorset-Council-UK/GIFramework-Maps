@@ -54,6 +54,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Add(webLayerServiceDefinition);
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = $"New web layer service definition created";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
@@ -105,6 +107,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 try
                 {
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = $"Web layer service definition edited";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex )
@@ -142,7 +146,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.WebLayerServiceDefinitions.Remove(webLayerServiceDefinitionToDelete);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                TempData["Message"] = $"Web layer service definition deleted";
+                TempData["MessageType"] = "success";
+                return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
                 {

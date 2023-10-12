@@ -91,6 +91,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     }
                     
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = $"New layer created";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(List));
                 }
                 catch (DbUpdateException ex)
@@ -152,6 +154,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     await UpdateCategoryLayers(selectedCategories, layerToUpdate);
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = $"Layer edited";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(List));
                 }
                 catch (DbUpdateException ex )
@@ -192,6 +196,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             {
                 _context.Layer.Remove(layerToDelete);
                 await _context.SaveChangesAsync();
+                TempData["Message"] = $"Layer deleted";
+                TempData["MessageType"] = "success";
                 return RedirectToAction(nameof(List));
             }
             catch (DbUpdateException ex)

@@ -54,6 +54,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Add(welcomeMessage);
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = $"New welcome message created";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
@@ -103,6 +105,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 try
                 {
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = $"Welcome message edited";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex )
@@ -140,7 +144,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.WelcomeMessages.Remove(welcomeMessageToDelete);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                TempData["Message"] = $"Welcome message deleted";
+                TempData["MessageType"] = "success";
+                return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
                 {

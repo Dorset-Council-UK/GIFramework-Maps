@@ -55,6 +55,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     theme.PrimaryColour = theme.PrimaryColour.Replace("#", "");
                     _context.Add(theme);
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = $"New theme created";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
@@ -103,6 +105,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     themeToUpdate.PrimaryColour = themeToUpdate.PrimaryColour.Replace("#", "");
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = $"Theme edited";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex )
@@ -140,7 +144,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Theme.Remove(themeToDelete);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                TempData["Message"] = $"Theme deleted";
+                TempData["MessageType"] = "success";
+                return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
                 {
