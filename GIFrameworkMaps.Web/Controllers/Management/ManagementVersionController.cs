@@ -67,6 +67,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     UpdateVersionBasemaps(selectedBasemaps, defaultBasemap, editModel.Version);
                     UpdateVersionCategories(selectedCategories,editModel.Version);
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "New version created";
+                    TempData["MessageType"] = "success";
                     if (purgeCache)
                     {
                         _repository.PurgeCache();
@@ -148,6 +150,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     UpdateVersionBasemaps(selectedBasemaps, defaultBasemap, versionToUpdate);
                     UpdateVersionCategories(selectedCategories, versionToUpdate);
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "Version edited";
+                    TempData["MessageType"] = "success";
 
                     if (purgeCache)
                     {
@@ -299,6 +303,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             {
                 _context.Versions.Remove(versionToDelete);
                 await _context.SaveChangesAsync();
+                TempData["Message"] = "Version deleted";
+                TempData["MessageType"] = "success";
                 return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateException ex)

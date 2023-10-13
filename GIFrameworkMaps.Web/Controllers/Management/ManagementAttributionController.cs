@@ -55,6 +55,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Add(attribution);
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "New attribution created";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
@@ -97,6 +99,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 try
                 {
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "Attribution edited";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex )
@@ -136,6 +140,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Attribution.Remove(attributionToDelete);
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "Attribution deleted";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)

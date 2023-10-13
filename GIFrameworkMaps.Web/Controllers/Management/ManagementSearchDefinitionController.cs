@@ -69,6 +69,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Add(searchDefinition);
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "New search definition created";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
@@ -93,6 +95,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Add(searchDefinition);
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "New search definition created";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
@@ -117,6 +121,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Add(searchDefinition);
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "New search definition created";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
@@ -226,11 +232,13 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 try
                 {
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "Search definition edited";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
                 {
-                    _logger.LogError(ex, "Serah definition edit failed");
+                    _logger.LogError(ex, "Search definition edit failed");
                     ModelState.AddModelError("", "Unable to save changes. " +
                         "Try again, and if the problem persists, " +
                         "contact your system administrator.");
@@ -269,11 +277,13 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 try
                 {
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "Search definition edited";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
                 {
-                    _logger.LogError(ex, "Serah definition edit failed");
+                    _logger.LogError(ex, "Search definition edit failed");
                     ModelState.AddModelError("", "Unable to save changes. " +
                         "Try again, and if the problem persists, " +
                         "contact your system administrator.");
@@ -306,11 +316,13 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 try
                 {
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "Search definition edited";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
                 {
-                    _logger.LogError(ex, "Serah definition edit failed");
+                    _logger.LogError(ex, "Search definition edit failed");
                     ModelState.AddModelError("", "Unable to save changes. " +
                         "Try again, and if the problem persists, " +
                         "contact your system administrator.");
@@ -344,7 +356,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.SearchDefinitions.Remove(searchDefinitionToDelete);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                TempData["Message"] = "Search definition deleted";
+                TempData["MessageType"] = "success";
+                return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
                 {
