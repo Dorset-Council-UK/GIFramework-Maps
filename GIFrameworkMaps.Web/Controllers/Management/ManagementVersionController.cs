@@ -243,7 +243,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     //Refresh the available users list
                     model.ListOfUsers = await _repository.GetUsers();
                     return View(model);
-                } 
+                }
+                TempData["Message"] = "Version contact updated";
+                TempData["MessageType"] = "success";
                 return RedirectToAction("ContactAlert", new { Id = model.ContactEntry.VersionId });
             }
             //Refresh the available users list
@@ -268,6 +270,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             {
                 _context.VersionContact.Remove(recordToDeleete);
                 await _context.SaveChangesAsync();
+                TempData["Message"] = "Version contact deleted";
+                TempData["MessageType"] = "success";
                 return RedirectToAction("ContactAlert",new { Id = id});
             }
             catch (DbUpdateException ex)
