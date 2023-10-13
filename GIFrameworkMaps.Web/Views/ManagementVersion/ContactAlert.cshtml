@@ -2,27 +2,45 @@
 @model GIFrameworkMaps.Data.Models.ViewModels.Management.VersionEditModel
 @{
     ViewData["Title"] = $"Edit version '{Model.Version.Name}'";
+    List<string> emailList = new List<string>();
+    List<string> ContactableUsers = Model.Version.VersionContacts.Where(u => u.Enabled == true).Select(u => u.UserId).ToList();
+    if (ContactableUsers.Count > 0)
+    {
+        List<User> ContactableUserList = Model.UserDetails.Where(u => ContactableUsers.Contains(u.Value.Id)).Select(u => u.Value).ToList();
+        if( ContactableUserList.Count > 0)
+        {
+            foreach (User user in ContactableUserList)
+            {
+                foreach(string email in user.OtherMails)
+                {
+                    emailList.Add(email);
+                }
+            }
+        }
+    }
+    string mailingList = string.Join(";",emailList);
 }
 
 <h1>@ViewData["Title"]</h1>
-<p class="lead">Manage user version contacts and alerts</p>
+<p class="lead">Manage user version contacts</p>
 
 <a asp-action="Edit" asp-route-id="@Model.Version.Id">Go back to version settings</a>
 
 <p>
-    You can add a list of contacts for this version below and specify whether or not they should recieve a broadcast notifications when the version has been updated <span class="text-warning">(not yet available)</span>
+    You can add a list of contacts for this version below and specify whether or not they should recieve messages relating to this version.
  </p>
 
 @if (Model.Version.VersionContacts != null)
 {
     <a href="@Url.Action("AddContact", "ManagementVersion",new {Id = Model.Version.Id})" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add a contact entry</a>
+    <a href="mailto:@(mailingList)?subject=Re:%20DorsetExplorer%20version%20=%20@(Model.Version.Name)" class="btn btn-primary float-end"><i class="bi bi-envelope-at"></i> Draft an email</a>
     <table id="userTable" class="table table-bordered table-striped mt-2">
         <thead>
             <tr>
                 <th>Edit</th>
                 <th>Display Name</th>
                 <th>Email(s)</th>
-                <th>Alert of Changes</th>
+                <th>Mailing List</th>
                 <th>Remove</th>
             </tr>
         </thead>

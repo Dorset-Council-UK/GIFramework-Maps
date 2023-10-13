@@ -175,22 +175,33 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/ContactAlert/1
         public async Task<IActionResult> ContactAlert(int id)
         {
-            var version = await _context.Versions
-                .Include(v => v.VersionContacts)
-                .FirstOrDefaultAsync(v => v.Id == id);
+            try
+            {
+                var version = await _context.Versions
+                                .Include(v => v.VersionContacts)
+                                .FirstOrDefaultAsync(v => v.Id == id);
 
-            if (version == null)
+                if (version == null)
+                {
+                    return NotFound();
+                }
+                var editModel = new VersionEditModel() { Version = version };
+                RebuildViewModel(ref editModel, version);
+                editModel.UserDetails = new Dictionary<string, Microsoft.Graph.Beta.Models.User>();
+                foreach (var v in editModel.Version.VersionContacts)
+                {
+                    editModel.UserDetails.Add(v.UserId, await _repository.GetUser(v.UserId));
+                }
+                return View(editModel);
+            } catch (DbUpdateException ex)
             {
-                return NotFound();
+                _logger.LogError(ex, "We were unable to load the contacts for this version");
+                ModelState.AddModelError("", "We were unable to load the contacts for this version. " +
+                "Try again, and if the problem persists, " +
+                "contact your system administrator.");
+                return RedirectToAction("Edit", new { Id = id });
             }
-            var editModel = new VersionEditModel() { Version = version };
-            RebuildViewModel(ref editModel, version);
-            editModel.UserDetails = new Dictionary<string, Microsoft.Graph.Beta.Models.User>();
-            foreach (var v in editModel.Version.VersionContacts)
-            {
-                editModel.UserDetails.Add(v.UserId, await _repository.GetUser(v.UserId));
-            }
-            return View(editModel);
+            
         }
 
         // GET: Version/AddContact/1
