@@ -221,8 +221,8 @@ namespace GIFrameworkMaps.Web
 
                 if (!context.Versions.Any())
                 {
-                    
-                    
+
+
                     var ukBound = new Data.Models.Bound
                     {
                         Name = "UK",
@@ -298,7 +298,7 @@ namespace GIFrameworkMaps.Web
                     context.SaveChanges();
                 }
 
-                
+
 
             }
         }

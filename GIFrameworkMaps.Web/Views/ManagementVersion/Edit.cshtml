@@ -6,6 +6,7 @@
 <h1>@ViewData["Title"]</h1>
 
 <a asp-action="Index">Cancel</a>
+<a asp-action="ContactAlert" asp-route-id="@Model.Version.Id" class="float-end">Version Contacts</a>
 
 <form asp-action="Edit">
     <div class="row mt-4 mb-2">
@@ -30,6 +31,13 @@
                 <textarea asp-for="Version.Description" class="form-control"></textarea>
                 <div class="form-text">This is put in the metadata of the version and is read by search engines</div>
                 <span asp-validation-for="Version.Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Version.VersionNotes" class="control-label"></label>
+                <textarea asp-for="Version.VersionNotes" class="form-control"></textarea>
+                <div class="form-text">Notes in this field are not displayed to the end users</div>
+                <span asp-validation-for="Version.VersionNotes" class="text-danger"></span>
             </div>
 
             <div class="mb-3">

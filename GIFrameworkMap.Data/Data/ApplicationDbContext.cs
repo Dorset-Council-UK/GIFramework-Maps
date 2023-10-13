@@ -14,6 +14,7 @@ namespace GIFrameworkMaps.Data
 
         public virtual DbSet<Models.Version> Versions { get; set; }
         public DbSet<Models.VersionUser> VersionUser { get; set; }
+        public DbSet<Models.VersionContact> VersionContact { get; set; }
         public DbSet<Models.VersionSearchDefinition> VersionSearchDefinition { get; set; }
         public DbSet<Models.Search.SearchDefinition> SearchDefinitions { get; set; }
         public DbSet<Models.Search.APISearchDefinition> APISearchDefinitions { get; set; }
@@ -50,6 +51,7 @@ namespace GIFrameworkMaps.Data
             modelBuilder.Entity<VersionBasemap>().HasKey(v => new { v.BasemapId, v.VersionId });
             modelBuilder.Entity<VersionCategory>().HasKey(v => new { v.CategoryId, v.VersionId });
             modelBuilder.Entity<VersionAnalytic>().HasKey(v => new { v.AnalyticsDefinitionId, v.VersionId });
+            modelBuilder.Entity<VersionContact>().HasKey(v => new { v.VersionContactId, v.VersionId });
             modelBuilder.Entity<CategoryLayer>().HasKey(c => new { c.CategoryId, c.LayerId });
             modelBuilder.Entity<VersionSearchDefinition>().HasKey(v => new { v.SearchDefinitionId, v.VersionId });
             modelBuilder.Entity<VersionPrintConfiguration>().HasKey(v => new { v.PrintConfigurationId, v.VersionId });

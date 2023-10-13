@@ -59,6 +59,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Add(editModel.LayerSource);
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "New Layer source created";
+                    TempData["MessageType"] = "success";
                     if (AddOption)
                     {
                         return RedirectToAction(nameof(CreateOption), new {id= editModel.LayerSource.Id});
@@ -107,6 +109,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Add(editModel.LayerSourceOption);
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "New layer option created";
+                    TempData["MessageType"] = "success";
                     if (AddAnother)
                     {
                         return RedirectToAction(nameof(CreateOption), new {id=editModel.LayerSourceOption.LayerSourceId});
@@ -166,6 +170,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 try
                 {
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "Layer source edited";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex )
@@ -211,6 +217,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 try
                 {
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "Layer option edited";
+                    TempData["MessageType"] = "success";
                     return RedirectToAction(nameof(Edit), new { id = optionToUpdate.LayerSourceId });
                 }
                 catch (DbUpdateException ex)
@@ -248,6 +256,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             {
                 _context.LayerSource.Remove(sourceToDelete);
                 await _context.SaveChangesAsync();
+                TempData["Message"] = "Layer source deleted";
+                TempData["MessageType"] = "success";
                 return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateException ex)
@@ -287,6 +297,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             {
                 _context.LayerSourceOption.Remove(optionToDelete);
                 await _context.SaveChangesAsync();
+                TempData["Message"] = "Layer option deleted";
+                TempData["MessageType"] = "success";
                 return RedirectToAction(nameof(Edit), new {id = optionToDelete.LayerSourceId});
             }
             catch (DbUpdateException ex)

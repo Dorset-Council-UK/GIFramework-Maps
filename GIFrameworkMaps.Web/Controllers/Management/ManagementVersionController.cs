@@ -67,6 +67,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     UpdateVersionBasemaps(selectedBasemaps, defaultBasemap, editModel.Version);
                     UpdateVersionCategories(selectedCategories,editModel.Version);
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "New version created";
+                    TempData["MessageType"] = "success";
                     if (purgeCache)
                     {
                         _repository.PurgeCache();
@@ -148,6 +150,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     UpdateVersionBasemaps(selectedBasemaps, defaultBasemap, versionToUpdate);
                     UpdateVersionCategories(selectedCategories, versionToUpdate);
                     await _context.SaveChangesAsync();
+                    TempData["Message"] = "Version edited";
+                    TempData["MessageType"] = "success";
 
                     if (purgeCache)
                     {
@@ -166,6 +170,129 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             
             RebuildViewModel(ref editModel, versionToUpdate);
             return View(editModel);
+        }
+
+        // GET: Version/ContactAlert/1
+        public async Task<IActionResult> ContactAlert(int id)
+        {
+            try
+            {
+                var version = await _context.Versions
+                                .Include(v => v.VersionContacts)
+                                .FirstOrDefaultAsync(v => v.Id == id);
+
+                if (version == null)
+                {
+                    return NotFound();
+                }
+                var editModel = new VersionEditModel() { Version = version };
+                RebuildViewModel(ref editModel, version);
+                editModel.UserDetails = new Dictionary<string, Microsoft.Graph.Beta.Models.User>();
+                foreach (var v in editModel.Version.VersionContacts)
+                {
+                    editModel.UserDetails.Add(v.UserId, await _repository.GetUser(v.UserId));
+                }
+                return View(editModel);
+            } catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "We were unable to load the contacts for this version");
+                ModelState.AddModelError("", "We were unable to load the contacts for this version. " +
+                "Try again, and if the problem persists, " +
+                "contact your system administrator.");
+                return RedirectToAction("Edit", new { Id = id });
+            }
+            
+        }
+
+        // GET: Version/AddContact/1
+        public async Task<IActionResult> AddContact(int id)
+        {
+            VersionAddContactModel ViewModel = new VersionAddContactModel();
+            ViewModel.ContactEntry = new VersionContact { VersionId = id, VersionContactId = -1 };
+            ViewModel.ListOfUsers = await _repository.GetUsers();
+            return View(ViewModel);
+        }
+
+        // POST: Version/AddContact
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddContact(VersionAddContactModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                //Save the record
+                try
+                {
+                    if (model.ContactEntry.VersionContactId == -1)
+                    {
+                        //This is a new record
+                        _context.VersionContact.Add(new VersionContact
+                        {
+                            DisplayName = model.ContactEntry.DisplayName,
+                            Enabled = model.ContactEntry.Enabled,
+                            UserId = model.ContactEntry.UserId,
+                            VersionId = model.ContactEntry.VersionId
+                        });
+                    }
+                    else
+                    {
+                        VersionContact existingRecord = _context.VersionContact.FirstOrDefault(u => u.VersionContactId == model.ContactEntry.VersionContactId);
+                        if (existingRecord != null)
+                        {
+                            existingRecord.DisplayName = model.ContactEntry.DisplayName;
+                            existingRecord.Enabled = model.ContactEntry.Enabled;
+                            existingRecord.UserId = model.ContactEntry.UserId;
+                        }
+                    }
+                    await _context.SaveChangesAsync();
+                } catch(DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Version contact edit failed");
+                    ModelState.AddModelError("", "Unable to save changes. " +
+                    "Try again, and if the problem persists, " +
+                    "contact your system administrator.");
+                    //Refresh the available users list
+                    model.ListOfUsers = await _repository.GetUsers();
+                    return View(model);
+                }
+                TempData["Message"] = "Version contact updated";
+                TempData["MessageType"] = "success";
+                return RedirectToAction("ContactAlert", new { Id = model.ContactEntry.VersionId });
+            }
+            //Refresh the available users list
+            model.ListOfUsers = await _repository.GetUsers();
+            return View(model);
+        }
+
+        // GET: Version/EditContact/1?VersionContactId=1
+        public async Task<IActionResult> EditContact(int id, int VersionContactId)
+        {
+            VersionAddContactModel ViewModel = new VersionAddContactModel();
+            ViewModel.ContactEntry = _context.VersionContact.FirstOrDefault(u => u.VersionId == id && u.VersionContactId == VersionContactId);
+            ViewModel.ListOfUsers = await _repository.GetUsers();
+            return View("AddContact", ViewModel);
+        }
+
+        // GET: Version/DeleteContact/1?VersionContactId=1
+        public async Task<IActionResult> DeleteContact(int id, int VersionContactId)
+        {
+            var recordToDeleete = _context.VersionContact.FirstOrDefault(u => u.VersionId == id && u.VersionContactId == VersionContactId);
+            try
+            {
+                _context.VersionContact.Remove(recordToDeleete);
+                await _context.SaveChangesAsync();
+                TempData["Message"] = "Version contact deleted";
+                TempData["MessageType"] = "success";
+                return RedirectToAction("ContactAlert",new { Id = id});
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Version contact delete failed");
+                ModelState.AddModelError("", "Unable to save changes. " +
+                    "Try again, and if the problem persists, " +
+                    "contact your system administrator.");
+            }
+            return RedirectToAction("ContactAlert", new { Id = id });
         }
 
         // GET: Version/Delete/1
@@ -191,6 +318,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             {
                 _context.Versions.Remove(versionToDelete);
                 await _context.SaveChangesAsync();
+                TempData["Message"] = "Version deleted";
+                TempData["MessageType"] = "success";
                 return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateException ex)
