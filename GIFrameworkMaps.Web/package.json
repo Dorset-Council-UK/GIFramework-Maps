@@ -16,7 +16,7 @@
     "outdated": "npm outdated"
   },
   "dependencies": {
-    "@microsoft/applicationinsights-web": "3.0.2",
+    "@microsoft/applicationinsights-web": "3.0.3",
     "@microsoft/signalr": "7.0.11",
     "@popperjs/core": "2.11.8",
     "@turf/buffer": "6.5.0",
@@ -46,6 +46,7 @@
     "@types/proj4": "2.5.2",
     "@types/sortablejs": "1.15.2",
     "@types/uuid": "9.0.4",
+    "eslint": "^8.51.0",
     "ts-loader": "9.4.4",
     "typescript": "5.2.2",
     "webpack": "5.88.2",

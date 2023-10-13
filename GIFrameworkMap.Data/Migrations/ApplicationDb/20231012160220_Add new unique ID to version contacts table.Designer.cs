@@ -3,6 +3,7 @@ using System;
 using GIFrameworkMaps.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231012160220_Add new unique ID to version contacts table")]
+    partial class AddnewuniqueIDtoversioncontactstable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -739,10 +742,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionContact", b =>
                 {
                     b.Property<int>("VersionContactId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("VersionContactId"));
 
                     b.Property<int>("VersionId")
                         .HasColumnType("integer");

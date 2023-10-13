@@ -43,10 +43,13 @@ namespace GIFrameworkMaps.Data.Models
         public int? WelcomeMessageId { get; set; }
         [Display(Name = "Tour (optional)")]
         public int? TourDetailsId { get; set; }
+        [Display(Name = "Version Notes (optional)"), MaxLength(500)]
+        public string VersionNotes { get; set; }
         public List<VersionUser> VersionUsers { get; set; }
         public List<VersionBasemap> VersionBasemaps { get; set; }
         public List<VersionCategory> VersionCategories { get; set; }
         public List<VersionAnalytic> VersionAnalytics { get; set; }
+        public List<VersionContact> VersionContacts { get; set; }
         //navigation properties
         public virtual Bound Bound { get; set; }
         public virtual Theme Theme { get; set; }

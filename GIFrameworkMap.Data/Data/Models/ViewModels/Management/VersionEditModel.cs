@@ -1,5 +1,6 @@
 ﻿using GIFrameworkMaps.Data.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Graph.Beta.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -27,5 +28,7 @@ namespace GIFrameworkMaps.Data.Models.ViewModels.Management
 
         [Display(Name="Purge memory cache on save?")]
         public bool PurgeCache { get; set; }
+
+        public Dictionary<string, User> UserDetails { get; set; }
     }
 }
