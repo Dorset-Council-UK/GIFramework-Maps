@@ -1,20 +1,12 @@
 ﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.VersionEditModel
 @{
     ViewData["Title"] = $"Edit version '{Model.Version.Name}'";
-    bool AlertEnabled = (bool)ViewData["AlertEnabled"];
 }
 
 <h1>@ViewData["Title"]</h1>
 
 <a asp-action="Index">Cancel</a>
-
-@if (AlertEnabled)
-{
-    <a asp-action="ContactAlert" asp-route-id="@Model.Version.Id" class="float-end">Contacts and Alerts</a>
-} else
-{
-    <a asp-action="ContactAlert" asp-route-id="@Model.Version.Id" class="float-end">Version Contacts</a>
-}
+<a asp-action="ContactAlert" asp-route-id="@Model.Version.Id" class="float-end">Version Contacts</a>
 
 <form asp-action="Edit">
     <div class="row mt-4 mb-2">

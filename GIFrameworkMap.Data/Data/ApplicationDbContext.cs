@@ -14,6 +14,7 @@ namespace GIFrameworkMaps.Data
 
         public virtual DbSet<Models.Version> Versions { get; set; }
         public DbSet<Models.VersionUser> VersionUser { get; set; }
+        public DbSet<Models.VersionContact> VersionContact { get; set; }
         public DbSet<Models.VersionSearchDefinition> VersionSearchDefinition { get; set; }
         public DbSet<Models.Search.SearchDefinition> SearchDefinitions { get; set; }
         public DbSet<Models.Search.APISearchDefinition> APISearchDefinitions { get; set; }

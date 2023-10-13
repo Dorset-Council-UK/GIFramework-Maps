@@ -2,7 +2,6 @@
 @model GIFrameworkMaps.Data.Models.ViewModels.Management.VersionEditModel
 @{
     ViewData["Title"] = $"Edit version '{Model.Version.Name}'";
-    bool AlertEnabled = (bool)ViewData["AlertEnabled"];
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -10,25 +9,21 @@
 
 <a asp-action="Edit" asp-route-id="@Model.Version.Id">Go back to version settings</a>
 
-<p>You can add a list of contacts for this version below
-    @if (AlertEnabled){
-        <span>and specify whether or not they should recieve a broadcast notifications when the version has been updated</span>
-    }
+<p>
+    You can add a list of contacts for this version below and specify whether or not they should recieve a broadcast notifications when the version has been updated <span class="text-warning">(not yet available)</span>
  </p>
 
 @if (Model.Version.VersionContacts != null)
 {
-    <a href="@Url.Action("AddContact", "ManagementVersion",new {Id = Model.Version.Id})" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add a user reference</a>
+    <a href="@Url.Action("AddContact", "ManagementVersion",new {Id = Model.Version.Id})" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add a contact entry</a>
     <table id="userTable" class="table table-bordered table-striped mt-2">
         <thead>
             <tr>
-                <th>ID</th>
-                <th>Name</th>
+                <th>Edit</th>
+                <th>Display Name</th>
                 <th>Email(s)</th>
-                @if (AlertEnabled)
-                {
-                    <th>Alert?</th>
-                }
+                <th>Alert of Changes</th>
+                <th>Remove</th>
             </tr>
         </thead>
         <tbody>
@@ -40,8 +35,8 @@
                     if (currentUser != null)
                     {
                         <tr>
-                            <td>@currentUser.Id</td>
-                            <td>@Html.ActionLink(user.DisplayName, "Edit", new { id = currentUser.Id })</td>
+                            <td>@Html.ActionLink("Edit entry", "EditContact",new {Id = Model.Version.Id, VersionContactId = user.VersionContactId})</td>
+                            <td>@Html.ActionLink(user.DisplayName, "Edit", "ManagementUser", new { id = currentUser.Id })</td>
                             <td>
                                 @foreach (var mail in currentUser.OtherMails)
                                 {
@@ -50,13 +45,14 @@
                                     <br />
                                 }
                             </td>
-                            @if (AlertEnabled)
+                            @if (user.Enabled)
                             {
-                                @if (user.Enabled)
-                                {
-                                    <td><span class="badge bg-success">Yes</span></td>
-                                }
+                                <td><span class="badge bg-success">Yes</span></td>
+                            } else
+                            {
+                                <td></td>
                             }
+                            <td>@Html.ActionLink("Remove entry", "DeleteContact",new {Id = Model.Version.Id, VersionContactId = user.VersionContactId}, new {@Class="text-danger"})</td>
                         </tr>
                     }
                 }

@@ -1,6 +1,7 @@
-﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.VersionAddContactModel
+﻿@using Microsoft.Graph.Beta.Models;
+@model GIFrameworkMaps.Data.Models.ViewModels.Management.VersionAddContactModel
 @{
-    ViewData["Title"] = "Add a version contact";
+    ViewData["Title"] = "Add/Edit a version contact";
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -11,14 +12,35 @@
             <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
             <div class="mb-3">
                 <label asp-for="ContactEntry.UserId" class="control-label"></label>
-                @* <select asp-for="ContactEntry.UserId" asp-items="ListOfUsers" class="form-select">
-                    <option value="">Please select</option>
-                </select> *@
+                <p class="card-text">Select a user (start typing)</p>
+                <select asp-for="ContactEntry.UserId" class="form-control">
+                    if (Model.ContactEntry.UserId == null)
+                    {
+                    <option value="" data-abbreviations=""></option>
+                    }
+                    @foreach (User user in Model.ListOfUsers.Value.OrderBy(u => u.DisplayName))
+                    {
+                        
+                        if (user.Id == Model.ContactEntry.UserId)
+                        {
+                            <option value=@user.Id data-abbreviations="@user.DisplayName" selected>@user.DisplayName</option>
+                        }
+                        else
+                        {
+                            <option value=@user.Id data-abbreviations="@user.DisplayName">@user.DisplayName</option>
+                        }
+                    }
+                </select>
                 <span asp-validation-for="ContactEntry.UserId" class="text-danger"></span>
             </div>
             <div class="mb-3">
-                <label asp-for="ContactEntry.Enabled" class="control-label"></label>
-                
+                <label asp-for="ContactEntry.DisplayName" class="control-label"></label>
+                <input asp-for="ContactEntry.DisplayName" class="form-control" />
+                <span asp-validation-for="ContactEntry.DisplayName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <input asp-for="ContactEntry.Enabled" class="form-check-input" />
+                <label asp-for="ContactEntry.Enabled" class="form-check-label"></label>
                 <span asp-validation-for="ContactEntry.Enabled" class="text-danger"></span>
             </div>
         </div>
@@ -27,15 +49,26 @@
         <div class="col-md-6">
             <div class="mb-3">
                 <input type="hidden" asp-for="ContactEntry.VersionId" />
+                <input type="hidden" asp-for="ContactEntry.VersionContactId" />
                 <div class="mb-3">
-                    <input type="submit" value="Add Contact" class="btn btn-primary" />
+                    <input type="submit" value="Save Contact" class="btn btn-primary" />
                 </div>
             </div>
         </div>
         <div class="col-md-6">
             <div class="mb-3">
-                <a asp-action="ContactAlert" asp-route-id="ContactEntry.VersionId">Cancel</a>
+                <a asp-action="ContactAlert" asp-route-id="@Model.ContactEntry.VersionId">Cancel</a>
             </div>
         </div>
     </div>
 }
+
+<link rel="stylesheet" href="~/css/accessible-autocomplete.min.css" />
+<script src="~/js/accessible-autocomplete.min.js"></script>
+<script src="~/js/govuk_government_organisations_autocomplete.js"></script>
+
+<script>
+    govukGovernmentOrganisationsAutocomplete({
+        selectElement: document.getElementById('ContactEntry_UserId'),
+    });
+</script>

@@ -1,9 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GIFrameworkMaps.Data.Models
 {
     public class VersionContact
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int VersionContactId { get; set; }
         public int VersionId { get; set; }
         [Display(Name = "Enable alerts for user")]
