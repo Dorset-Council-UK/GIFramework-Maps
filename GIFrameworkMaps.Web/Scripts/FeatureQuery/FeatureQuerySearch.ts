@@ -374,8 +374,9 @@ export class FeatureQuerySearch {
                 if (authKey) {
                     additionalParams = { authkey: authKey };
                 }
-
-                let serverCapabilities = await Metadata.getBasicCapabilities(baseUrl, additionalParams);
+                const gifwLayer = this._gifwMapInstance.getLayerConfigById(layer.get('layerId'));
+                const layerHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(gifwLayer.layerSource);
+                let serverCapabilities = await Metadata.getBasicCapabilities(baseUrl, additionalParams, undefined, layerHeaders);
 
                 if (serverCapabilities &&
                     serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType && c.url !== '').length !== 0 &&
@@ -513,10 +514,13 @@ export class FeatureQuerySearch {
             if (request.layer.get('gifw-proxy-meta-request') === true) {
                 fetchUrl = this._gifwMapInstance.createProxyURL(request.searchUrl);
             }
+            const gifwLayer = this._gifwMapInstance.getLayerConfigById(request.layer.get('layerId'), [LayerGroupType.Overlay]);
+            const layerHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(gifwLayer.layerSource);
+            layerHeaders.append('Content-Type', 'application/vnd.ogc.gml');
             fetch(fetchUrl, {
                 method: request.wfsRequest ? "POST" : "GET",
                 mode: 'cors',
-                headers: { 'Content-Type': 'application/vnd.ogc.gml' },
+                headers: layerHeaders,
                 body: request.wfsRequest ? new XMLSerializer().serializeToString(request.wfsRequest) : null,
                 signal: abortController.signal
             })

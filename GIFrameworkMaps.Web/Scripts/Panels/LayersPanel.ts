@@ -1028,7 +1028,8 @@ export class LayersPanel implements SidebarPanel {
                 if (gifwLayer.proxyMetaRequests) {
                     proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
                 }
-                let styleListPromise = Metadata.getStylesForLayer(baseUrl, featureTypeName, proxyEndpoint, additionalParams);
+                const httpHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(gifwLayer.layerSource);
+                let styleListPromise = Metadata.getStylesForLayer(baseUrl, featureTypeName, proxyEndpoint, additionalParams, httpHeaders);
                 if (styleListPromise) {
                     styleListPromise.then(styles => {
                         styleModalContent.innerHTML = '';

@@ -1198,7 +1198,8 @@ export class LayerFilter {
             if (this.layerConfig.proxyMetaRequests) {
                 proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
             }
-            let serverCapabilities = await Metadata.getBasicCapabilities(baseUrl, additionalParams, proxyEndpoint);
+            const layerHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(this.layerConfig.layerSource);
+            let serverCapabilities = await Metadata.getBasicCapabilities(baseUrl, additionalParams, proxyEndpoint, layerHeaders);
 
             if (serverCapabilities &&
                 serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType && c.url !== '').length !== 0 &&
@@ -1314,7 +1315,8 @@ export class LayerFilter {
             if (this.layerConfig.proxyMetaRequests) {
                 proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
             }
-            let serverCapabilities = await Metadata.getWPSCapabilities(baseUrl, proxyEndpoint);
+            const httpHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(this.layerConfig.layerSource);
+            let serverCapabilities = await Metadata.getWPSCapabilities(baseUrl, proxyEndpoint, {}, httpHeaders);
 
             if (serverCapabilities &&
                 serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WPS_DescribeProcess && c.url !== '').length !== 0 &&

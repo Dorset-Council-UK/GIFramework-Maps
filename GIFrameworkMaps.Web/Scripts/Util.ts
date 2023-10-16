@@ -10,6 +10,7 @@ import VectorSource from "ol/source/Vector";
 import { Point, SimpleGeometry } from "ol/geom";
 import { GIFWPopupOptions } from "./Popups/PopupOptions";
 import { ImageWMS, TileWMS } from "ol/source";
+import { LayerSource } from "./Interfaces/Layer";
 
 interface IPrefixArrayMember {
     xBase: number;
@@ -621,6 +622,18 @@ export namespace Util {
     }
 
     export class Mapping {
+        static extractCustomHeadersFromLayerSource(layerSource: LayerSource): Headers {
+            const customHeaders = new Headers();
+            if (layerSource.layerSourceOptions.find(l => l.name.toLowerCase() === 'headers')) {
+                const headersJson = JSON.parse(layerSource.layerSourceOptions.find(l => l.name.toLowerCase() === 'headers').value);
+                const keys = Util.Helper.getKeysFromObject(headersJson);
+                keys.forEach(key => {
+                    customHeaders.append(key, headersJson[key]);
+                });
+            }
+            return customHeaders;
+        }
+
         static generatePermalinkForMap(map: GIFWMap, includeSearchResults: boolean = true): string {
             //get the current view
             const view = map.olMap.getView();

@@ -49,21 +49,17 @@ export class GIFWLayerGroup implements LayerGroup {
                 let opacity = (layer.defaultOpacity !== undefined ? layer.defaultOpacity : 100) / 100;
                 let projection = viewProj;
                 let hasCustomHeaders = false;
-                const layerHeaders = new Headers();
+                const layerHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(layer.layerSource);
+                //this is a bit of a nasty way of checking for existence of headers
+                layerHeaders.forEach(_ => {
+                    hasCustomHeaders = true;
+                })
                 if (layer.layerSource.layerSourceOptions.some(l => l.name.toLowerCase() === 'projection')) {
                     projection = layer.layerSource.layerSourceOptions.filter(l => l.name.toLowerCase() === 'projection').map(p => { return p.value })[0];
                 }
                 let extent: Extent;
                 if (layer.bound) {
                     extent = [layer.bound.bottomLeftX, layer.bound.bottomLeftY, layer.bound.topRightX, layer.bound.topRightY];
-                }
-                if (layer.layerSource.layerSourceOptions.find(l => l.name.toLowerCase() === 'headers')) {
-                    hasCustomHeaders = true;
-                    const headersJson = JSON.parse(layer.layerSource.layerSourceOptions.find(l => l.name.toLowerCase() === 'headers').value);
-                    const keys = Util.Helper.getKeysFromObject(headersJson);
-                    keys.forEach(key => {
-                        layerHeaders.append(key, headersJson[key]);
-                    });
                 }
                 switch (layer.layerSource.layerSourceType.name) {
                     
