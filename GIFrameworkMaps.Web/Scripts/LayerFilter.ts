@@ -1207,7 +1207,7 @@ export class LayerFilter {
             ) {
                 //has all relevant capabilities
                 let describeFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType)[0];
-                let featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, featureTypeName, describeFeatureCapability.method, undefined, proxyEndpoint);
+                let featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, featureTypeName, describeFeatureCapability.method, undefined, proxyEndpoint, undefined, layerHeaders);
                 if (featureDescription && featureDescription.featureTypes.length === 1) {
                     return featureDescription.featureTypes[0].properties;
                 }
@@ -1249,11 +1249,12 @@ export class LayerFilter {
                 if (this.layerConfig.proxyMetaRequests) {
                     url = this.gifwMapInstance.createProxyURL(url);
                 }
-
+                const httpHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(this.layerConfig.layerSource);
                 let response = await fetch(url,
                     {
                         method: this.wpsExecuteCapability.method,
-                        body: xmlPayload
+                        body: xmlPayload,
+                        headers: httpHeaders
                     }
                 );
                 if (!response.ok) {
@@ -1324,11 +1325,12 @@ export class LayerFilter {
             ) {
                 //has all relevant capabilities
                 let describeProcessCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WPS_DescribeProcess)[0];
-
+                
                 let hasPagedUniqueProcess = await Metadata.hasWPSProcess(describeProcessCapability.url,
                                                                         describeProcessCapability.method,
                                                                         'gs:PagedUnique',
-                                                                        proxyEndpoint
+                                                                        proxyEndpoint,
+                                                                        httpHeaders
                                                                         );
                 if (hasPagedUniqueProcess) {
                     //set flag

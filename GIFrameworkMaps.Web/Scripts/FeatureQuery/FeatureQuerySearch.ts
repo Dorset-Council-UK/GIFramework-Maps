@@ -390,8 +390,8 @@ export class FeatureQuerySearch {
                     if (layer.get('gifw-proxy-meta-requests') === "true") {
                         proxyEndpoint = `${document.location.protocol}//${this._gifwMapInstance.config.appRoot}proxy`;
                     }
-
-                    let featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, featureTypeName, describeFeatureCapability.method,undefined,proxyEndpoint);
+                    const httpHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(gifwLayer.layerSource);
+                    let featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, featureTypeName, describeFeatureCapability.method,undefined,proxyEndpoint,undefined,httpHeaders);
                     if (featureDescription) {
                         let geomColumnName = featureDescription.featureTypes[0].properties.filter(p => p.type.indexOf("gml:") === 0);
                         if (geomColumnName.length !== 0) {
