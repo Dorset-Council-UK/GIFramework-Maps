@@ -8,7 +8,7 @@ import * as olExtent from "ol/extent";
 export class Metadata {
 
     /*TODO - Make all the metadata fetchers use this generic function*/
-    static async getCapabilities(baseUrl: string, service: string = "WMS", version: string = "1.1.0", proxyEndpoint: string = "", httpHeaders: Headers = null) {
+    static async getCapabilities(baseUrl: string, service: string = "WMS", version: string = "1.1.0", proxyEndpoint: string = "", httpHeaders: Headers = new Headers()) {
         let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, service, version);
         if (proxyEndpoint !== "") {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
@@ -18,7 +18,7 @@ export class Metadata {
 
     }
 
-    static async getDescribeFeatureType(baseUrl: string, featureTypeName: string, httpMethod: string, outputFormat: string = 'application/json', proxyEndpoint: string = "", additionalUrlParams: {} = {}, httpHeaders: Headers = null): Promise<DescribeFeatureType> {
+    static async getDescribeFeatureType(baseUrl: string, featureTypeName: string, httpMethod: string, outputFormat: string = 'application/json', proxyEndpoint: string = "", additionalUrlParams: {} = {}, httpHeaders: Headers = new Headers()): Promise<DescribeFeatureType> {
         
         let describeFeatureURLParams = new URLSearchParams({
             service: 'WFS',
@@ -59,7 +59,7 @@ export class Metadata {
      * a stripped down set of basic capabilities.
      * @param baseUrl - The base URL of the OGC server you want to query
      */
-    static async getBasicCapabilities(baseUrl: string, additionalUrlParams: {} = {}, proxyEndpoint: string = "", httpHeaders: Headers = null): Promise<BasicServerCapabilities> {
+    static async getBasicCapabilities(baseUrl: string, additionalUrlParams: {} = {}, proxyEndpoint: string = "", httpHeaders: Headers = new Headers()): Promise<BasicServerCapabilities> {
 
         let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, 'WFS', '1.1.0', additionalUrlParams);
         if (proxyEndpoint !== "") {
@@ -145,7 +145,7 @@ export class Metadata {
      * @param baseUrl - The base URL of the OGC server you want to query
      * @param layerName - The name of the layer to find in the list
      */
-    static async getStylesForLayer(baseUrl: string, layerName: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}, httpHeaders: Headers = null): Promise<Style[]> {
+    static async getStylesForLayer(baseUrl: string, layerName: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}, httpHeaders: Headers = new Headers()): Promise<Style[]> {
         let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, "WMS", "1.1.0", additionalUrlParams);
         if (proxyEndpoint !== "") {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
@@ -194,7 +194,7 @@ export class Metadata {
         }
     }
 
-    static async getLayersFromCapabilities(baseUrl: string, version: string = "1.1.0", proxyEndpoint: string = "", httpHeaders: Headers = null) {
+    static async getLayersFromCapabilities(baseUrl: string, version: string = "1.1.0", proxyEndpoint: string = "", httpHeaders: Headers = new Headers()) {
         try {
             //does the baseurl already contain a version? If so, use that.
             let response = await this.getCapabilities(baseUrl, "WMS", version, proxyEndpoint, httpHeaders);
@@ -312,7 +312,7 @@ export class Metadata {
      * a stripped down set of basic capabilities.
      * @param baseUrl - The base URL of the OGC server you want to query
      */
-    static async getWPSCapabilities(baseUrl: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}, httpHeaders: Headers = null): Promise<BasicServerCapabilities> {
+    static async getWPSCapabilities(baseUrl: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}, httpHeaders: Headers = new Headers()): Promise<BasicServerCapabilities> {
         
         let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, 'wps', '1.1.0', additionalUrlParams);
         if (proxyEndpoint !== "") {
@@ -388,7 +388,7 @@ export class Metadata {
 
     }
 
-    static async hasWPSProcess(baseUrl: string, httpMethod: string, processName: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}, httpHeaders: Headers = null): Promise<boolean> {
+    static async hasWPSProcess(baseUrl: string, httpMethod: string, processName: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}, httpHeaders: Headers = new Headers()): Promise<boolean> {
         let describeProcessURLParams = new URLSearchParams({
             service: 'WPS',
             version: '1.1.0',
