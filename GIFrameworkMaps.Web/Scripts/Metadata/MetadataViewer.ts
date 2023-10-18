@@ -142,7 +142,8 @@ export class MetadataViewer {
                     params = (source as ImageWMS).getParams();
                 }
                 const version = Util.Helper.getValueFromObjectByKey(params, "version") as string || "1.1.0";
-                const layers = await Metadata.getLayersFromCapabilities(baseUrl, version, proxyEndpoint);
+                const httpHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(layer.layerSource);
+                const layers = await Metadata.getLayersFromCapabilities(baseUrl, version, proxyEndpoint,httpHeaders);
                 const featureTypeName = params.LAYERS;
                 if (layers) {
                     const matchedLayer = layers.filter(l => l.name === featureTypeName);

@@ -1,5 +1,5 @@
 ﻿import { GIFWMap } from "../Map";
-import { View as olView } from "ol";
+import { ImageTile, View as olView } from "ol";
 import * as olLayer from "ol/layer";
 import * as olSource from "ol/source";
 import { Layer } from "../Interfaces/Layer";
@@ -11,6 +11,7 @@ import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { LayerGroup } from "./LayerGroup";
 import TileGrid from "ol/tilegrid/TileGrid";
 import BaseLayer from "ol/layer/Base";
+import { Util } from "../Util";
 
 export class GIFWLayerGroup implements LayerGroup {
     layers: Layer[];
@@ -47,6 +48,12 @@ export class GIFWLayerGroup implements LayerGroup {
                 let maxZoom = layer.maxZoom ? layer.maxZoom : 100;
                 let opacity = (layer.defaultOpacity !== undefined ? layer.defaultOpacity : 100) / 100;
                 let projection = viewProj;
+                let hasCustomHeaders = false;
+                const layerHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(layer.layerSource);
+                //this is a bit of a nasty way of checking for existence of headers
+                layerHeaders.forEach(_ => {
+                    hasCustomHeaders = true;
+                })
                 if (layer.layerSource.layerSourceOptions.some(l => l.name.toLowerCase() === 'projection')) {
                     projection = layer.layerSource.layerSourceOptions.filter(l => l.name.toLowerCase() === 'projection').map(p => { return p.value })[0];
                 }
@@ -54,7 +61,6 @@ export class GIFWLayerGroup implements LayerGroup {
                 if (layer.bound) {
                     extent = [layer.bound.bottomLeftX, layer.bound.bottomLeftY, layer.bound.topRightX, layer.bound.topRightY];
                 }
-
                 switch (layer.layerSource.layerSourceType.name) {
                     
                     case "XYZ":
@@ -70,10 +76,12 @@ export class GIFWLayerGroup implements LayerGroup {
                             xyzOpts.tileGrid = new TileGrid(JSON.parse(tileGrid[0].value));
                         }
 
-                        if (layer.proxyMapRequests) {
-                            xyzOpts.tileLoadFunction = (imageTile: any, src: string) => {
-                                let proxyUrl = this.gifwMapInstance.createProxyURL(src);
-                                imageTile.getImage().src = proxyUrl;
+                        if (layer.proxyMapRequests || hasCustomHeaders) {
+                            xyzOpts.tileLoadFunction = (imageTile: ImageTile, src: string) => {
+                                if (layer.proxyMapRequests) {
+                                    src = this.gifwMapInstance.createProxyURL(src);
+                                }
+                                this.customTileLoader(imageTile, src, layerHeaders);
                             };
                         }
                         ol_layer = new olLayer.Tile({
@@ -106,10 +114,12 @@ export class GIFWLayerGroup implements LayerGroup {
                             projection: projection
                         };
 
-                        if (layer.proxyMapRequests) {
-                            tileWMSOpts.tileLoadFunction = (imageTile: any, src: string) => {
-                                let proxyUrl = this.gifwMapInstance.createProxyURL(src);
-                                imageTile.getImage().src = proxyUrl;
+                        if (layer.proxyMapRequests || hasCustomHeaders) {
+                            tileWMSOpts.tileLoadFunction = async (imageTile: ImageTile, src: string) => {
+                                if (layer.proxyMapRequests) {
+                                    src = this.gifwMapInstance.createProxyURL(src);
+                                }
+                                this.customTileLoader(imageTile, src, layerHeaders);
                             };
                         }
 
@@ -139,10 +149,12 @@ export class GIFWLayerGroup implements LayerGroup {
                             })[0],
                             projection: projection
                         };
-                        if (layer.proxyMapRequests) {
+                        if (layer.proxyMapRequests || hasCustomHeaders) {
                             imageWMSOpts.imageLoadFunction = (imageTile: any, src: string) => {
-                                let proxyUrl = this.gifwMapInstance.createProxyURL(src);
-                                imageTile.getImage().src = proxyUrl;
+                                if (layer.proxyMapRequests) {
+                                    src = this.gifwMapInstance.createProxyURL(src);
+                                }
+                                this.customTileLoader(imageTile, src, layerHeaders);
                             };
                         }
                         ol_layer = new olLayer.Image({
@@ -184,6 +196,30 @@ export class GIFWLayerGroup implements LayerGroup {
         layerGroup.setProperties({ "type": this.layerGroupType });
         
         return layerGroup;
+    }
+
+    async customTileLoader(imageTile: ImageTile, src: string, layerHeaders: Headers) {
+        try {
+            const resp = await fetch(src, {
+                headers: layerHeaders,
+                mode: "cors"
+            });
+            if (resp.ok) {
+
+                const respBlob = await resp.blob();
+                const url = URL.createObjectURL(respBlob);
+                const img = imageTile.getImage();
+                img.addEventListener('load', function () {
+                    URL.revokeObjectURL(url);
+                });
+                (img as HTMLImageElement).src = url;
+
+            } else {
+                throw Error();
+            }
+        } catch (e) {
+            imageTile.setState(3);
+        }
     }
 
     /**

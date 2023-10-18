@@ -8,17 +8,17 @@ import * as olExtent from "ol/extent";
 export class Metadata {
 
     /*TODO - Make all the metadata fetchers use this generic function*/
-    static async getCapabilities(baseUrl: string, service: string = "WMS", version: string = "1.1.0", proxyEndpoint: string = "") {
+    static async getCapabilities(baseUrl: string, service: string = "WMS", version: string = "1.1.0", proxyEndpoint: string = "", httpHeaders: Headers = new Headers()) {
         let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, service, version);
         if (proxyEndpoint !== "") {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
         }
-        let response = await fetch(fetchUrl);
+        let response = await fetch(fetchUrl, {headers:httpHeaders});
         return response;
 
     }
 
-    static async getDescribeFeatureType(baseUrl: string, featureTypeName: string, httpMethod: string, outputFormat: string = 'application/json', proxyEndpoint:string = "", additionalUrlParams: {} = {}): Promise<DescribeFeatureType> {
+    static async getDescribeFeatureType(baseUrl: string, featureTypeName: string, httpMethod: string, outputFormat: string = 'application/json', proxyEndpoint: string = "", additionalUrlParams: {} = {}, httpHeaders: Headers = new Headers()): Promise<DescribeFeatureType> {
         
         let describeFeatureURLParams = new URLSearchParams({
             service: 'WFS',
@@ -39,7 +39,7 @@ export class Metadata {
 
         try {
             let response = await fetch(fetchUrl,
-                { method: httpMethod }
+                { method: httpMethod, headers: httpHeaders }
             );
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
@@ -59,14 +59,14 @@ export class Metadata {
      * a stripped down set of basic capabilities.
      * @param baseUrl - The base URL of the OGC server you want to query
      */
-    static async getBasicCapabilities(baseUrl: string, additionalUrlParams: {} = {}, proxyEndpoint: string = ""): Promise<BasicServerCapabilities> {
+    static async getBasicCapabilities(baseUrl: string, additionalUrlParams: {} = {}, proxyEndpoint: string = "", httpHeaders: Headers = new Headers()): Promise<BasicServerCapabilities> {
 
         let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, 'WFS', '1.1.0', additionalUrlParams);
         if (proxyEndpoint !== "") {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
         }
         try {
-            let response = await fetch(fetchUrl);
+            let response = await fetch(fetchUrl, {headers: httpHeaders});
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
@@ -145,14 +145,14 @@ export class Metadata {
      * @param baseUrl - The base URL of the OGC server you want to query
      * @param layerName - The name of the layer to find in the list
      */
-    static async getStylesForLayer(baseUrl: string, layerName: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}): Promise<Style[]> {
+    static async getStylesForLayer(baseUrl: string, layerName: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}, httpHeaders: Headers = new Headers()): Promise<Style[]> {
         let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, "WMS", "1.1.0", additionalUrlParams);
         if (proxyEndpoint !== "") {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
         }
 
         try {
-            let response = await fetch(fetchUrl);
+            let response = await fetch(fetchUrl, {headers: httpHeaders});
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
@@ -194,10 +194,10 @@ export class Metadata {
         }
     }
 
-    static async getLayersFromCapabilities(baseUrl: string, version:string = "1.1.0", proxyEndpoint:string = "") {
+    static async getLayersFromCapabilities(baseUrl: string, version: string = "1.1.0", proxyEndpoint: string = "", httpHeaders: Headers = new Headers()) {
         try {
             //does the baseurl already contain a version? If so, use that.
-            let response = await this.getCapabilities(baseUrl, "WMS", version, proxyEndpoint);
+            let response = await this.getCapabilities(baseUrl, "WMS", version, proxyEndpoint, httpHeaders);
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
@@ -312,14 +312,14 @@ export class Metadata {
      * a stripped down set of basic capabilities.
      * @param baseUrl - The base URL of the OGC server you want to query
      */
-    static async getWPSCapabilities(baseUrl: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}): Promise<BasicServerCapabilities> {
+    static async getWPSCapabilities(baseUrl: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}, httpHeaders: Headers = new Headers()): Promise<BasicServerCapabilities> {
         
         let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, 'wps', '1.1.0', additionalUrlParams);
         if (proxyEndpoint !== "") {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
         }
         try {
-            let response = await fetch(fetchUrl);
+            let response = await fetch(fetchUrl, { headers: httpHeaders });
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
@@ -388,7 +388,7 @@ export class Metadata {
 
     }
 
-    static async hasWPSProcess(baseUrl: string, httpMethod: string, processName: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}): Promise<boolean> {
+    static async hasWPSProcess(baseUrl: string, httpMethod: string, processName: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}, httpHeaders: Headers = new Headers()): Promise<boolean> {
         let describeProcessURLParams = new URLSearchParams({
             service: 'WPS',
             version: '1.1.0',
@@ -406,7 +406,7 @@ export class Metadata {
         }
         try {
             let response = await fetch(fetchUrl,
-                { method: httpMethod }
+                { method: httpMethod, headers: httpHeaders }
             );
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
