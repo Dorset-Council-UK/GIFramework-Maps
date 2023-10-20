@@ -155,25 +155,24 @@
           "Microsoft.VisualStudio.Web.CodeGenerators.Mvc": "7.0.10"
         }
       },
-      "Npgsql": {
+      "NodaTime.Serialization.SystemTextJson": {
         "type": "Direct",
-        "requested": "[7.0.6, )",
-        "resolved": "7.0.6",
-        "contentHash": "TAqvwRnm3NJ0QvN7cvu6geJkbI0XPzGVRElVY5hF4gsgA+BnE12x6GM1TLhdeq+7ZKvvo3BD8jXKnXmr3tvdEw==",
+        "requested": "[1.1.2, )",
+        "resolved": "1.1.2",
+        "contentHash": "/PGLhEW+wd01IkJnVMwRTzMW7OGXkFva9vjtC9f+ohM0SIwQIMDkLVECmTD+8s/8ctpBk+ImSURmXuR2muwKBg==",
         "dependencies": {
-          "Microsoft.Extensions.Logging.Abstractions": "6.0.0"
+          "NodaTime": "[3.0.0, 4.0.0)",
+          "System.Text.Json": "5.0.2"
         }
       },
-      "Npgsql.EntityFrameworkCore.PostgreSQL": {
+      "Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime": {
         "type": "Direct",
         "requested": "[7.0.11, )",
         "resolved": "7.0.11",
-        "contentHash": "cHEgEz0ldXc9wVANs8sJqC+3eilqefrkasCBgaVT0tyj8tb1p3/pwy2ngjboNkDG3M0z+xJsJ4jC5p8wySAM3w==",
+        "contentHash": "EKvdXnC8mHOloqyV17OUMI9Zarwa6OkMjARaWuiOAwk9mLxIn0hPtDzWyaTsgmHewUW47SXPEuTwW0BZujZwuA==",
         "dependencies": {
-          "Microsoft.EntityFrameworkCore": "[7.0.11, 8.0.0)",
-          "Microsoft.EntityFrameworkCore.Abstractions": "[7.0.11, 8.0.0)",
-          "Microsoft.EntityFrameworkCore.Relational": "[7.0.11, 8.0.0)",
-          "Npgsql": "7.0.6"
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "7.0.11",
+          "Npgsql.NodaTime": "7.0.6"
         }
       },
       "Svg": {
@@ -215,12 +214,12 @@
       },
       "Azure.Identity": {
         "type": "Transitive",
-        "resolved": "1.10.2",
-        "contentHash": "jfq07QnxB7Rx15DWHxIfZbdbgICL1IARncBPIYmnmF+1Xqn6KqiF6ijlKv2hj82WFr9kUi+jzU8zVqrBocJZ8A==",
+        "resolved": "1.10.3",
+        "contentHash": "l1Xm2MWOF2Mzcwuarlw8kWQXLZk3UeB55aQXVyjj23aBfDwOZ3gu5GP2kJ6KlmZeZv2TCzw7x4L3V36iNr3gww==",
         "dependencies": {
           "Azure.Core": "1.35.0",
-          "Microsoft.Identity.Client": "4.54.1",
-          "Microsoft.Identity.Client.Extensions.Msal": "2.31.0",
+          "Microsoft.Identity.Client": "4.56.0",
+          "Microsoft.Identity.Client.Extensions.Msal": "4.56.0",
           "System.Memory": "4.5.4",
           "System.Security.Cryptography.ProtectedData": "4.7.0",
           "System.Text.Json": "4.7.2",
@@ -1522,10 +1521,10 @@
       },
       "Microsoft.Identity.Client.Extensions.Msal": {
         "type": "Transitive",
-        "resolved": "2.31.0",
-        "contentHash": "IhGSqN0szneKC5Qk3/okJQJbDpQfLW/+mvslhzJPox4t2UuIkA2ZHe4w/z62ASye46G9sQWF9qqLXTgNacE2xQ==",
+        "resolved": "4.56.0",
+        "contentHash": "H12YAzEGK55vZ+QpxUzozhW8ZZtgPDuWvgA0JbdIR9UhMUplj29JhIgE2imuH8W2Nw9D8JKygR1uxRFtpSNcrg==",
         "dependencies": {
-          "Microsoft.Identity.Client": "4.54.1",
+          "Microsoft.Identity.Client": "4.56.0",
           "System.IO.FileSystem.AccessControl": "5.0.0",
           "System.Security.Cryptography.ProtectedData": "4.5.0"
         }
@@ -1873,6 +1872,42 @@
         "dependencies": {
           "NETStandard.Library": "1.6.1",
           "Newtonsoft.Json": "10.0.1"
+        }
+      },
+      "NodaTime": {
+        "type": "Transitive",
+        "resolved": "3.1.5",
+        "contentHash": "z+mbQdY9mHL+JpW7WDImN9debJhqORy5jOdFnKOTeDQzwXMSEnjXE4f+UVdKnPabSLABzWz+nKz+7uUXK2Sq6Q==",
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "4.7.1"
+        }
+      },
+      "Npgsql": {
+        "type": "Transitive",
+        "resolved": "7.0.6",
+        "contentHash": "TAqvwRnm3NJ0QvN7cvu6geJkbI0XPzGVRElVY5hF4gsgA+BnE12x6GM1TLhdeq+7ZKvvo3BD8jXKnXmr3tvdEw==",
+        "dependencies": {
+          "Microsoft.Extensions.Logging.Abstractions": "6.0.0"
+        }
+      },
+      "Npgsql.EntityFrameworkCore.PostgreSQL": {
+        "type": "Transitive",
+        "resolved": "7.0.11",
+        "contentHash": "cHEgEz0ldXc9wVANs8sJqC+3eilqefrkasCBgaVT0tyj8tb1p3/pwy2ngjboNkDG3M0z+xJsJ4jC5p8wySAM3w==",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "[7.0.11, 8.0.0)",
+          "Microsoft.EntityFrameworkCore.Abstractions": "[7.0.11, 8.0.0)",
+          "Microsoft.EntityFrameworkCore.Relational": "[7.0.11, 8.0.0)",
+          "Npgsql": "7.0.6"
+        }
+      },
+      "Npgsql.NodaTime": {
+        "type": "Transitive",
+        "resolved": "7.0.6",
+        "contentHash": "UIz+5gPbaynP4o9FuTaxycP+3hYfuq2CwGYXNYWOkXIJuWT02HXcIFWSDNrw9qB6tSPc8sskHBMojiw+EEsXIQ==",
+        "dependencies": {
+          "NodaTime": "3.1.5",
+          "Npgsql": "7.0.6"
         }
       },
       "NuGet.Common": {
@@ -2444,13 +2479,15 @@
         "type": "Project",
         "dependencies": {
           "AutoMapper.Extensions.Microsoft.DependencyInjection": "[12.0.1, )",
-          "Azure.Identity": "[1.10.2, )",
+          "Azure.Identity": "[1.10.3, )",
           "Microsoft.AspNetCore.Http.Abstractions": "[2.2.0, )",
           "Microsoft.AspNetCore.Mvc.ViewFeatures": "[2.2.0, )",
           "Microsoft.Extensions.Http": "[7.0.0, )",
           "Microsoft.Graph.Beta": "[5.19.0-preview, )",
           "Newtonsoft.Json": "[13.0.3, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[7.0.11, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime": "[7.0.11, )",
+          "Npgsql.NodaTime": "[7.0.6, )",
           "OpenLocationCode": "[2.1.1, )",
           "System.Data.SqlClient": "[4.8.5, )",
           "shortid": "[4.0.0, )"
