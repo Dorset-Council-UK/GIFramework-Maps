@@ -1,7 +1,7 @@
-﻿using System;
+﻿using NodaTime;
+using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.CompilerServices;
 
 namespace GIFrameworkMaps.Data.Models
 {
@@ -25,7 +25,7 @@ namespace GIFrameworkMaps.Data.Models
         public int Frequency { get; set; }
 
         [DisplayName("Update date")]
-        public DateTimeOffset UpdateDate { get; set; }
+        public LocalDateTime UpdateDate { get; set; }
 
         [DefaultValue("modal-lg")]
         [DisplayName("How large do you want your welcome message to be?")]
@@ -34,6 +34,6 @@ namespace GIFrameworkMaps.Data.Models
         [DisplayName("Dismiss button text")]
         public string DismissText{ get; set; }
 
-        public Boolean DismissOnButtonOnly { get; set; }
+        public bool DismissOnButtonOnly { get; set; }
     }
 }

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Microsoft.Graph.Beta.Models;
 using Microsoft.Kiota.Http.Generated;
+using NodaTime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,7 +58,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 try
                 {
                     editModel.SelectedVersions = selectedVersions.ToList();
-                    editModel.analyticDefinition.DateModified = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
+                    editModel.analyticDefinition.DateModified = SystemClock.Instance.GetCurrentInstant();
                     //Update the versions this analytic will apply to
                     editModel.analyticDefinition.VersionAnalytics = new List<VersionAnalytic>();
                     foreach (int version in editModel.SelectedVersions)
@@ -115,7 +116,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 var analyticRecord = _context.AnalyticsDefinitions.Where(a => a.Id == editModel.analyticDefinition.Id).FirstOrDefault();
                 if (analyticRecord != null)
                 {
-                    analyticRecord.DateModified = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
+                    analyticRecord.DateModified = SystemClock.Instance.GetCurrentInstant();
                     analyticRecord.ProductKey = editModel.analyticDefinition.ProductKey;
                     analyticRecord.ProductName = editModel.analyticDefinition.ProductName;
                     analyticRecord.CookieControl = editModel.analyticDefinition.CookieControl;

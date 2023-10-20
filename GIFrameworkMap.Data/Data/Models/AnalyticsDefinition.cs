@@ -1,11 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Kiota.Http.Generated;
-using System;
+﻿using NodaTime;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data.Models
 {
@@ -19,7 +14,7 @@ namespace GIFrameworkMaps.Data.Models
         [Display(Name = "Linked Cookie Control")]
         public string CookieControl { get; set; }
         [Display(Name = "Date of last modification")]
-        public DateTime DateModified { get; set; }
+        public Instant DateModified { get; set; }
         [Display(Name = "Is analytic enabled?")]
         public bool Enabled { get; set; }
         public List<VersionAnalytic> VersionAnalytics { get; set; }

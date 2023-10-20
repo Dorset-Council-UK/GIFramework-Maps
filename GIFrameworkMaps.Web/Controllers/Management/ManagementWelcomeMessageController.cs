@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using NodaTime;
+using System;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
@@ -46,8 +48,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         //POST: WelcomeMessage/Create
         [HttpPost, ActionName("Create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(WelcomeMessage welcomeMessage)
+        public async Task<IActionResult> CreatePost(WelcomeMessage welcomeMessage, DateTime UpdateDate)
         {
+            welcomeMessage.UpdateDate = LocalDateTime.FromDateTime(UpdateDate);
+            ModelState.Clear();
+            TryValidateModel(welcomeMessage);
             if (ModelState.IsValid)
             {
                 try
@@ -85,7 +90,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // POST: WelcomeMessage/Edit/1
         [HttpPost, ActionName("Edit")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditPost(int id)
+        public async Task<IActionResult> EditPost(int id, DateTime UpdateDate)
         {
             var welcomeMessageToUpdate = await _context.WelcomeMessages.FirstOrDefaultAsync(a => a.Id == id);
 
@@ -96,12 +101,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.Title, 
                 a => a.Content, 
                 a => a.Frequency, 
-                a => a.UpdateDate, 
                 a => a.ModalSize,
                 a => a.DismissOnButtonOnly, 
                 a => a.DismissText))
             {
-
+                LocalDateTime formattedUpdateDateTime = LocalDateTime.FromDateTime(UpdateDate);
                 try
                 {
                     await _context.SaveChangesAsync();

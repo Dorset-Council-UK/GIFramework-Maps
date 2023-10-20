@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using NodaTime;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
@@ -46,8 +49,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         //POST: Tour/Create
         [HttpPost, ActionName("Create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(TourDetails tour, bool AddStep)
+        public async Task<IActionResult> CreatePost(TourDetails tour, bool AddStep, DateTime UpdateDate)
         {
+            tour.UpdateDate = LocalDateTime.FromDateTime(UpdateDate);
+            ModelState.Clear();
+            TryValidateModel(tour);
             if (ModelState.IsValid)
             {
                 try
@@ -70,6 +76,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         "contact your system administrator.");
                 }
             }
+
             return View(tour);
         }
 
@@ -89,19 +96,19 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // POST: Tour/Edit/1
         [HttpPost, ActionName("Edit")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditPost(int id)
+        public async Task<IActionResult> EditPost(int id, DateTime UpdateDate)
         {
             var tourToUpdate = await _context.TourDetails.FirstOrDefaultAsync(a => a.Id == id);
-
             if (await TryUpdateModelAsync(
                 tourToUpdate,
                 "",
                 a => a.Name,
                 a => a.Frequency,
-                a => a.UpdateDate,
                 a => a.Steps))
             {
+                LocalDateTime formattedUpdateDateTime = LocalDateTime.FromDateTime(UpdateDate);
 
+                tourToUpdate.UpdateDate = formattedUpdateDateTime;
                 try
                 {
                     await _context.SaveChangesAsync();
@@ -117,6 +124,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         "contact your system administrator.");
                 }
             }
+            tourToUpdate.Steps = await _context.TourStep.Where(a => a.TourDetailsId == id).ToListAsync();
             return View(tourToUpdate);
         }
 
