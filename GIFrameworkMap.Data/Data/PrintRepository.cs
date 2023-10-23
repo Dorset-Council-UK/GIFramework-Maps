@@ -28,7 +28,7 @@ namespace GIFrameworkMaps.Data
                 string cacheKey = "PrintConfigurationByVersion/" + versionId.ToString();
 
                 // Check to see if the results of this search have already been cached and, if so, return that.
-                if (_memoryCache.TryGetValue(cacheKey, out Models.VersionPrintConfiguration cacheValue))
+                if (_memoryCache.TryGetValue(cacheKey, out Models.VersionPrintConfiguration? cacheValue))
                 {
                     return cacheValue;
                 }

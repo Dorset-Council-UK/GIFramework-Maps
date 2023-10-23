@@ -11,13 +11,13 @@ namespace GIFrameworkMaps.Data.Models
 
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [Required]
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         [Required]
-        public string Content { get; set; }
+        public string? Content { get; set; }
 
         [DefaultValue(-1)]
         [Range(-1, int.MaxValue)]
@@ -29,10 +29,10 @@ namespace GIFrameworkMaps.Data.Models
 
         [DefaultValue("modal-lg")]
         [DisplayName("How large do you want your welcome message to be?")]
-        public string ModalSize { get; set; }
+        public string? ModalSize { get; set; }
 
         [DisplayName("Dismiss button text")]
-        public string DismissText{ get; set; }
+        public string? DismissText{ get; set; }
 
         public Boolean DismissOnButtonOnly { get; set; }
     }

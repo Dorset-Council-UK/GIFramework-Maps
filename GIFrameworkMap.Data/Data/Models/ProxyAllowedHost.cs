@@ -11,6 +11,6 @@ namespace GIFrameworkMaps.Data.Models
     {
         public int Id { get; set; }
         [Required]
-        public string Host { get; set; }
+        public string? Host { get; set; }
     }
 }

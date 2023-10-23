@@ -38,13 +38,13 @@ namespace GIFrameworkMaps.Data
             string cacheKey = "VersionBySlug/" + slug;
 
             // Check to see if the version for this slug has already been cached and, if so, return that.
-            if (_memoryCache.TryGetValue(cacheKey, out Models.Version cacheValue))
+            if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
             {
                 return cacheValue;
             }
             else
             {
-                Models.Version version = _context.Versions
+                Models.Version? version = _context.Versions
                     .AsNoTrackingWithIdentityResolution()
                     .FirstOrDefault(v => v.Slug == slug);
 
@@ -76,7 +76,7 @@ namespace GIFrameworkMaps.Data
             string cacheKey = "Version/" + versionId.ToString();
 
             // Check to see if the version has already been cached and, if so, return that.
-            if (_memoryCache.TryGetValue(cacheKey, out Models.Version cacheValue))
+            if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
             {
                 return cacheValue;
             }

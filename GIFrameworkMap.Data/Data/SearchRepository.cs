@@ -1,4 +1,5 @@
-﻿using GIFrameworkMaps.Data.Models;
+﻿using GIFrameworkMaps.Data;
+using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Search;
 using Google.OpenLocationCode;
 using Microsoft.AspNetCore.Http;
@@ -108,24 +109,24 @@ namespace GIFrameworkMaps.Data
                 {
                     if (reqSearch.Enabled)
                     {
-                        var defs = searchDefs.Where(d => d.SearchDefinitionId == reqSearch.SearchDefinitionId);
-                        if (defs is not null & defs.Count() > 0)
+                        IEnumerable<VersionSearchDefinition> defs = searchDefs.Where(d => d.SearchDefinitionId == reqSearch.SearchDefinitionId);
+                        if (defs.NotNullOrEmpty())
                         {
-                            var selectedDefinition = defs.First().SearchDefinition;
+                            var selectedDefinition = defs!.First().SearchDefinition;
                                                        
                             if(IsValidSearchTerm(selectedDefinition))
                             {
                                 SearchResultCategory searchResultCategory = new SearchResultCategory
                                 {
-                                    CategoryName = selectedDefinition.Title,
+                                    CategoryName = selectedDefinition!.Title,
                                     Ordering = reqSearch.Order,
-                                    AttributionHtml = selectedDefinition.AttributionHtml,
+                                    AttributionHtml = selectedDefinition!.AttributionHtml,
                                     SupressGeom = selectedDefinition.SupressGeom
                                 };
                                 try
                                 {
                                     var results = SingleSearch(searchTerm, selectedDefinition);
-                                    if (results is not null && results.Count() > 0)
+                                    if (results.NotNullOrEmpty())
                                     {
                                         searchResultCategory.Results = results;
                                         searchResults.ResultCategories.Add(searchResultCategory);
@@ -137,7 +138,7 @@ namespace GIFrameworkMaps.Data
                                     searchResults.IsError = true;
                                 }
                                 // Stop search now if flag set on current search and something found since last time flag set
-                                if (searchResultCategory.Results is not null && searchResultCategory.Results.Count > 0 & reqSearch.StopIfFound)
+                                if (searchResultCategory.Results.NotNullOrEmpty() & reqSearch.StopIfFound)
                                     break;
                             }
                         }
@@ -149,8 +150,11 @@ namespace GIFrameworkMaps.Data
 
 
             //A search term is valid if it's blank or it matches the Required Search's validation regular expression. 
-            bool IsValidSearchTerm(SearchDefinition selectedDefinition)
+            bool IsValidSearchTerm(SearchDefinition? selectedDefinition)
             {
+                if (selectedDefinition == null)
+                    return false;
+
                 if (!string.IsNullOrEmpty(selectedDefinition.ValidationRegex))
                 {
                     var validationRegex = new Regex(selectedDefinition.ValidationRegex);
@@ -336,7 +340,7 @@ namespace GIFrameworkMaps.Data
                 titleParts.Add(titlePart);
             }
 
-            IList<JToken> xCoords = null, yCoords = null, mbrXMinCoords = null, mbrYMinCoords = null, mbrXMaxCoords = null, mbrYMaxCoords = null, geom = null;
+            IList<JToken>? xCoords = null, yCoords = null, mbrXMinCoords = null, mbrYMinCoords = null, mbrXMaxCoords = null, mbrYMaxCoords = null, geom = null;
 
             PopulateJTokenLists(ref xCoords, searchDefinition.XFieldPath);
             PopulateJTokenLists(ref yCoords, searchDefinition.YFieldPath);
@@ -393,7 +397,7 @@ namespace GIFrameworkMaps.Data
             }
             return results;
 
-            void PopulateJTokenLists(ref IList<JToken> tokens, string field)
+            void PopulateJTokenLists(ref IList<JToken> tokens, string? field)
             {
                 //Only proceed if all of the fields are neither null nor blank.
                 if (!string.IsNullOrEmpty(field))
@@ -403,7 +407,7 @@ namespace GIFrameworkMaps.Data
                 }
             }
 
-            bool JTokensExist(params IList<JToken>[] tokens)
+            bool JTokensExist(params IList<JToken?>[] tokens)
             {
                 return tokens.All(t => t is not null && t.Any());
             }
@@ -419,7 +423,7 @@ namespace GIFrameworkMaps.Data
         {
             List<DatabaseSearchResult> dbResults = GetDBSearchResults(searchTerm, searchDefinition);
 
-            if (dbResults is not null && dbResults.Count() > 0)
+            if (dbResults.NotNullOrEmpty())
             {
                 var results = new List<SearchResult>();
                 int ordering = 1;
@@ -486,7 +490,7 @@ namespace GIFrameworkMaps.Data
            
             return _context.DatabaseSearchResults.FromSqlRaw(sql, searchParams.ToArray()).ToList();
 
-            static string NameOrNullIfBlank(string name)
+            static string NameOrNullIfBlank(string? name)
             {
                 return string.IsNullOrEmpty(name) ? "NULL" : name;
             }
