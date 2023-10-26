@@ -122,7 +122,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     .ThenInclude(v => v.Basemap)
                 .Include(v => v.VersionCategories)
                     .ThenInclude(v => v.Category)
+                .Include(v => v.VersionLayers)
                 .FirstOrDefaultAsync(v => v.Id == id);
+
+            int[] issueLayers = { };
 
             var editModel = new VersionEditModel() { Version = versionToUpdate };
 
@@ -149,6 +152,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     UpdateVersionBasemaps(selectedBasemaps, defaultBasemap, versionToUpdate);
                     UpdateVersionCategories(selectedCategories, versionToUpdate);
+                    UpdateVersionLayers(selectedCategories, versionToUpdate, issueLayers);
                     await _context.SaveChangesAsync();
                     TempData["Message"] = "Version edited";
                     TempData["MessageType"] = "success";
@@ -172,8 +176,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(editModel);
         }
 
-        // GET: Version/ContactAlert/1
-        public async Task<IActionResult> ContactAlert(int id)
+        // GET: Version/EditContacts/1
+        public async Task<IActionResult> EditContacts(int id)
         {
             try
             {
@@ -293,6 +297,82 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     "contact your system administrator.");
             }
             return RedirectToAction("ContactAlert", new { Id = id });
+        }
+
+        // GET: Version/EditLayers/1
+        public IActionResult EditLayers(int id)
+        {
+            VersionLayersEditModel ViewModel = new VersionLayersEditModel();
+            ViewModel.VersionId = id;
+            ViewModel.Version = _context.Versions.AsNoTracking().FirstOrDefault(r => r.Id == id);
+            if (ViewModel.Version != null)
+            {
+                ViewModel.VersionLayers = _context.VersionLayer.Include(r => r.Layer).Include(r => r.Category).Where(r => r.VersionId == id).ToList();
+                return View(ViewModel);
+            } else
+            {
+                TempData["Message"] = "Version not found";
+                TempData["MessageType"] = "danger";
+                return RedirectToAction("Edit", new { Id = id });
+            }
+            
+        }
+
+        // POST: Version/EditLayers
+        [HttpPost]
+        public async Task<IActionResult> EditLayers(VersionLayersEditModel model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    foreach (VersionLayer layer in model.VersionLayers)
+                    {
+                        VersionLayer? dbEntry = _context.VersionLayer.FirstOrDefault(r => r.Id == layer.Id);
+                        if(dbEntry == null)
+                        {
+                            //Add
+                            _context.VersionLayer.Add(layer);
+                        } else
+                        {
+                            //Update
+                            dbEntry.IsDefault = layer.IsDefault;
+                            dbEntry.SortOrder = layer.SortOrder;
+                            dbEntry.DefaultOpacity = layer.DefaultOpacity;
+                            dbEntry.DefaultSaturation = layer.DefaultSaturation;
+                            dbEntry.MinZoom = layer.MinZoom;
+                            dbEntry.MaxZoom = layer.MaxZoom;
+                        }
+                    }
+                    await _context.SaveChangesAsync();
+
+                    //We have saved an update so we just refresh the whole list
+                    model.VersionLayers = _context.VersionLayer.Include(r => r.Layer).Include(r => r.Category).Where(r => r.VersionId == model.VersionId).ToList();
+                    //Reset the model and return to the edit page
+                    model.Version = _context.Versions.AsNoTracking().FirstOrDefault(r => r.Id == model.VersionId);
+                    return View(model);
+                } 
+            } catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Updating version layers failed");
+                ModelState.AddModelError("", "Unable to save changes. " +
+                    "Try again, and if the problem persists, " +
+                    "contact your system administrator.");
+            }
+            //In the case of failure we need to return the model but we scan to see if any version layers did not get posted back and add them if required.
+            var fullList = _context.VersionLayer.Include(r => r.Layer).Include(r => r.Category).Where(r => r.VersionId == model.VersionId).ToList();
+            HashSet<int> dbList = new HashSet<int>(fullList.Select(r => r.Id).ToList());
+            HashSet<int> postList = new HashSet<int>(model.VersionLayers.Select(r => r.Id).ToList());
+            foreach (var entry in dbList)
+            {
+                if (!postList.Contains(entry))
+                {
+                    //Not posted back for some reason so we add it back here
+                    model.VersionLayers.Add(fullList.FirstOrDefault(r => r.Id == entry));
+                }
+            }
+            model.Version = _context.Versions.AsNoTracking().FirstOrDefault(r => r.Id == model.VersionId);
+            return View(model);
         }
 
         // GET: Version/Delete/1
@@ -426,6 +506,51 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     {
                         VersionCategory versionCategoryToRemove = versionToUpdate.VersionCategories.FirstOrDefault(i => i.CategoryId == category.Id);
                         _context.Remove(versionCategoryToRemove);
+                    }
+                }
+            }
+        }
+
+        private void UpdateVersionLayers(int[] selectedCategories, Data.Models.Version versionToUpdate, int[] issueLayers)
+        {
+            //This function will populate the VersionLayers with new layers if they are not already present.
+            if(selectedCategories != null)
+            {
+                if (versionToUpdate.VersionLayers == null)
+                {
+                    versionToUpdate.VersionLayers = new List<VersionLayer>();
+                }
+                foreach(int c in selectedCategories)
+                {
+                    //Pickup the layers for this category
+                    Category? layerList = _context.Category.Include(r => r.Layers).FirstOrDefault(r => r.Id == c);
+                    if (layerList != null)
+                    {
+                        HashSet<int> layerHash = new HashSet<int>(layerList.Layers.Select(r => r.LayerId).ToList());
+                        HashSet<int> existingHash = new HashSet<int>(versionToUpdate.VersionLayers.Where(r => r.CategoryId == c).Select(r => r.LayerId).ToList());
+                        HashSet<int> fullHash = new HashSet<int>(versionToUpdate.VersionLayers.Select(r => r.LayerId).ToList());
+
+                        foreach (int  layerId in layerHash)
+                        {
+                            if (!existingHash.Contains(layerId))
+                            {
+                                if (fullHash.Contains(layerId))
+                                {
+                                    //This layer has already been added by another category and therefore is a duplicate layer so we can't add it
+                                    //We just return it to be handled as required
+                                    issueLayers.Append(layerId);
+                                } else
+                                {
+                                    versionToUpdate.VersionLayers.Add(new VersionLayer
+                                    {
+                                        LayerId = layerId,
+                                        CategoryId = c
+                                    });
+                                }
+                            }
+
+                            //TODO - handle layers being removed from a category?
+                        } 
                     }
                 }
             }

@@ -1,0 +1,99 @@
+﻿@using GIFrameworkMaps.Data.Models;
+@using Microsoft.Graph.Beta.Models;
+@model GIFrameworkMaps.Data.Models.ViewModels.Management.VersionLayersEditModel
+@{
+    ViewData["Title"] = $"Edit version layers for '{Model.Version.Name}'";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<a asp-action="Index">Cancel</a>
+<nav>
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a asp-action="Edit" asp-route-id="@Model.Version.Id" tabindex="1" class="nav-link">Version Settings</a>
+        </li>
+        <li class="nav-item">
+            <a asp-action="EditLayers" asp-route-id="@Model.Version.Id" tabindex="2" class="nav-link active">Version Layers</a>
+        </li>
+        <li class="nav-item">
+            <a asp-action="EditContacts" asp-route-id="@Model.Version.Id" tabindex="3" class="nav-link">Version Contacts</a>
+        </li>
+    </ul>
+</nav>
+<p class="lead">Please use the options below to set layer specific options for this version.</p>
+@if (Model.VersionLayers != null)
+{
+    <form asp-action="EditLayers">
+        <table id="layerTable" class="table table-bordered table-striped mt-2">
+            <thead>
+                <tr>
+                    <th>Layer</th>
+                    <th>Category</th>
+                    <th>Display</th>
+                    <th>Sort Order</th>
+                    <th>Opacity</th>
+                    <th>Saturation</th>
+                    <th>Min Zoom</th>
+                    <th>Max Zoom</th>
+                </tr>
+            </thead>
+            <tbody>
+                @Html.HiddenFor(m => m.VersionId)
+                @if (Model.VersionLayers.Count > 0)
+                {
+                    int i = 0;
+                    foreach (VersionLayer layerEntry in Model.VersionLayers.OrderBy(u => u.Layer.Name))
+                    { 
+                        <tr>
+                            @Html.HiddenFor(m => m.VersionLayers[i].Id)
+                            <td>@layerEntry.Layer.Name</td>
+                            <td>@layerEntry.Category.Name</td>
+                            <td class="text-center">
+                                <input asp-for="VersionLayers[i].IsDefault" class="form-check-input" />
+                                <span asp-validation-for="VersionLayers[i].IsDefault" class="text-danger"></span>
+                            </td>
+                            <td>
+                                <input asp-for="VersionLayers[i].SortOrder" class="form-control" />
+                                <span asp-validation-for="VersionLayers[i].SortOrder" class="text-danger"></span>
+                            </td>
+                            <td>
+                                <input asp-for="VersionLayers[i].DefaultOpacity" class="form-control" />
+                                <span asp-validation-for="VersionLayers[i].DefaultOpacity" class="text-danger"></span>
+                            </td>
+                            <td>
+                                <input asp-for="VersionLayers[i].DefaultSaturation" class="form-control" />
+                                <span asp-validation-for="VersionLayers[i].DefaultSaturation" class="text-danger"></span>
+                            </td>
+                            <td>
+                                <input asp-for="VersionLayers[i].MinZoom" class="form-control" />
+                                <span asp-validation-for="VersionLayers[i].MinZoom" class="text-danger"></span>
+                            </td>
+                            <td>
+                                <input asp-for="VersionLayers[i].MaxZoom" class="form-control" />
+                                <span asp-validation-for="VersionLayers[i].MaxZoom" class="text-danger"></span>
+                            </td>
+                            @Html.HiddenFor(m => m.VersionLayers[i].VersionId)
+                            @Html.HiddenFor(m => m.VersionLayers[i].CategoryId)
+                        </tr>
+                        i++;
+                    }
+                } else
+                {
+                    <div class="alert alert-info mt-1">There are no layers associated with this version yet</div>
+                }
+            </tbody>
+        </table>
+
+        <div class="mb-3">
+            <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+            <a asp-action="Index" class="btn btn-link">Cancel</a>
+        </div>
+    </form>
+}
+else
+{
+    <div class="alert alert-warning mt-1">We were unable to work out which layers are associated with this version</div>
+}
+
+

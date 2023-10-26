@@ -1,7 +1,7 @@
 ﻿@using Microsoft.Graph.Beta.Models;
 @model GIFrameworkMaps.Data.Models.ViewModels.Management.VersionEditModel
 @{
-    ViewData["Title"] = $"Edit version '{Model.Version.Name}'";
+    ViewData["Title"] = $"Manage version users for '{Model.Version.Name}'";
     List<string> emailList = new List<string>();
     List<string> ContactableUsers = Model.Version.VersionContacts.Where(u => u.Enabled == true).Select(u => u.UserId).ToList();
     if (ContactableUsers.Count > 0)
@@ -22,11 +22,23 @@
 }
 
 <h1>@ViewData["Title"]</h1>
-<p class="lead">Manage user version contacts</p>
 
-<a asp-action="Edit" asp-route-id="@Model.Version.Id">Go back to version settings</a>
+<a asp-action="Index">Cancel</a>
+<nav>
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a asp-action="Edit" asp-route-id="@Model.Version.Id" tabindex="1" class="nav-link">Version Settings</a>
+        </li>
+        <li class="nav-item">
+            <a asp-action="EditLayers" asp-route-id="@Model.Version.Id" tabindex="2" class="nav-link">Version Layers</a>
+        </li>
+        <li class="nav-item">
+            <a asp-action="EditContacts" asp-route-id="@Model.Version.Id" tabindex="3" class="nav-link active">Version Contacts</a>
+        </li>
+    </ul>
+</nav>
 
-<p>
+<p class ="lead">
     You can add a list of contacts for this version below and specify whether or not they should recieve messages relating to this version.
  </p>
 
