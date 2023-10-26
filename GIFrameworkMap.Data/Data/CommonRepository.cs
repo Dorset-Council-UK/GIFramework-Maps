@@ -122,6 +122,7 @@ namespace GIFrameworkMaps.Data
                                         .ThenInclude(cl => cl.Layer)
                                         .ThenInclude(l => l.LayerSource)
                                         .ThenInclude(l => l.Attribution)
+                                    .Include(v => v.VersionLayers)
                                     .AsSplitQuery()
                                     .AsNoTrackingWithIdentityResolution()
                                     .FirstOrDefault(v => v.Id == versionId);
@@ -148,6 +149,28 @@ namespace GIFrameworkMaps.Data
 
             List<Data.Models.ViewModels.CategoryViewModel> categories =
                 _mapper.Map<List<Data.Models.VersionCategory>, List<Data.Models.ViewModels.CategoryViewModel>>(version.VersionCategories);
+
+            //Set version layer overrides
+            foreach(var category in categories)
+            {
+                List<VersionLayer> layerLookup = version.VersionLayers.Where(v => v.CategoryId == category.Id).ToList();
+                if (layerLookup.Count > 0)
+                {
+                    foreach(Models.ViewModels.LayerViewModel l in category.Layers)
+                    {
+                        VersionLayer? overrideSettings = layerLookup.FirstOrDefault(v => v.LayerId == l.Id);
+                        if (overrideSettings != null)
+                        {
+                            l.IsDefault = (bool)(overrideSettings.IsDefault);
+                            l.DefaultOpacity = (int)(overrideSettings.DefaultOpacity == null ? l.DefaultOpacity : overrideSettings.DefaultOpacity);
+                            l.DefaultSaturation = (int)(overrideSettings.DefaultSaturation == null ? l.DefaultSaturation : overrideSettings.DefaultSaturation);
+                            l.SortOrder = (int)(overrideSettings.SortOrder == null ? l.SortOrder : overrideSettings.SortOrder);
+                            l.MinZoom = (overrideSettings.MinZoom == null ? l.MinZoom : overrideSettings.MinZoom);
+                            l.MaxZoom = (overrideSettings.MaxZoom == null ? l.MaxZoom : overrideSettings.MaxZoom);
+                        }
+                    }
+                }
+            }
 
             var viewModel = _mapper.Map<Data.Models.ViewModels.VersionViewModel>(version);
             viewModel.Categories = categories;
