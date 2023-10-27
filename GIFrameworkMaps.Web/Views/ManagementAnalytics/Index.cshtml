@@ -40,7 +40,7 @@
                     <td>@Html.ActionLink(analyticsDefinition.ProductName, "Edit", new { id = analyticsDefinition.Id })</td>
                     <td>@analyticsDefinition.ProductKey</td>
                     <td>@analyticsDefinition.CookieControl</td>
-                    <td>@analyticsDefinition.DateModified</td>
+                    <td>@analyticsDefinition.DateModified.ToString("dd/MM/yyyy HH:mm",null)</td>
                     <td>
                         @if (!analyticsDefinition.Enabled)
                         {
