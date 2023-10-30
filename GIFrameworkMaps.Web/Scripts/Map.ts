@@ -953,7 +953,7 @@ export class GIFWMap {
                     let additionalParams: any = {};
                     let sourceParams = source.getParams();
 
-                    let validProps = ["time", "cql_filter", "filter", "featureid", "elevation", "styles"];
+                    let validProps = ["time", "cql_filter", "filter", "featureid", "elevation", "styles", "authkey"];
                     //For the sake of sanity, convert the param names to lowercase for processing
                     let lowerCaseParams = Object.fromEntries(
                         Object.entries(sourceParams).map(([k, v]) => [k.toLowerCase(), v])
