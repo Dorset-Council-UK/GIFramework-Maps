@@ -194,7 +194,7 @@ namespace GIFrameworkMaps.Web.Controllers
 
                 if (authResult.Succeeded)
                 {
-                    var versionViewModel = _repository.GetVersionViewModel(id);
+                    var versionViewModel = _repository.GetVersionViewModel(version);
 
                     var host = Request.Host.ToUriComponent();
                     var pathBase = Request.PathBase.ToUriComponent();

@@ -73,7 +73,7 @@ namespace GIFrameworkMaps.Web.Controllers
                 if (authResult.Succeeded)
                 { 
                     //now we get the full details
-                    var viewModel = _repository.GetVersionViewModel(version.Id);
+                    var viewModel = _repository.GetVersionViewModel(version);
                     ViewData["AnalyticsModel"] = _adminRepository.GetAnalyticsModel();
 
                     var host = Request.Host.ToUriComponent();

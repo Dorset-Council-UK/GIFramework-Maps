@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 using Yarp.ReverseProxy.Transforms;
 using GIFrameworkMaps.Data.Models;
+using System.Threading;
 
 namespace GIFrameworkMaps.Web
 {
@@ -396,10 +397,11 @@ namespace GIFrameworkMaps.Web
             public override async ValueTask TransformRequestAsync(
                 HttpContext httpContext,
                 HttpRequestMessage proxyRequest, 
-                string destinationPrefix)
+                string destinationPrefix,
+                CancellationToken cancellationToken)
             {
                 // Copy all request headers
-                await base.TransformRequestAsync(httpContext, proxyRequest, destinationPrefix);
+                await base.TransformRequestAsync(httpContext, proxyRequest, destinationPrefix, cancellationToken);
 
                 // Customize the query string:
                 var queryContext = new QueryTransformContext(httpContext.Request);
