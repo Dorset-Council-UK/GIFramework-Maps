@@ -289,7 +289,7 @@ namespace GIFrameworkMaps.Data
                 searchDefinition.URLTemplate!.Replace("{{search}}", searchTerm));
 
             request.Headers.Add("User-Agent", "HttpClientFactory-GIFrameworkMaps");
-            var referer = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}";
+            var referer = $"{_httpContextAccessor.HttpContext!.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}";
             request.Headers.Add("Referer", referer);
                       
             var client = _httpClientFactory.CreateClient();

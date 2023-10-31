@@ -209,7 +209,7 @@ namespace GIFrameworkMaps.Data
 
         public List<WebLayerServiceDefinition> GetWebLayerServiceDefinitions()
         {
-            bool includeAdminDefinitions = _httpContextAccessor.HttpContext.User.IsInRole("GIFWAdmin");
+            bool includeAdminDefinitions = _httpContextAccessor.HttpContext!.User.IsInRole("GIFWAdmin");
             string cacheKey = $"WebLayerServiceDefinitions/{includeAdminDefinitions}";
             if (_memoryCache.TryGetValue(cacheKey, out List<WebLayerServiceDefinition>? cacheValue))
             {
@@ -320,7 +320,7 @@ namespace GIFrameworkMaps.Data
             var host = uri.Host;
             var port = uri.Port;
             var scheme = uri.Scheme;
-            var currentHost = _httpContextAccessor.HttpContext.Request.Host.Host;
+            var currentHost = _httpContextAccessor.HttpContext!.Request.Host.Host;
             var currentPort = _httpContextAccessor.HttpContext.Request.Host.Port;
             var currentScheme = _httpContextAccessor.HttpContext.Request.Scheme;
             //port is ignored if not specified in the http context
