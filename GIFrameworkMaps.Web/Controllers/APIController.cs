@@ -109,18 +109,16 @@ namespace GIFrameworkMaps.Web.Controllers
                 source_svg.GetElementById("shape").Stroke = new SvgColourServer(System.Drawing.ColorTranslator.FromHtml("#" + border_colour));
                 source_svg.GetElementById("shape").StrokeWidth = 15;
             }
-
-            var outputImage = new System.Drawing.Bitmap(width, height);
+            #pragma warning disable CA1416
+            //warning disabled as tracked in GitHub issue https://github.com/Dorset-Council-UK/GIFramework-Maps/issues/47
             source_svg.Width = width;
             source_svg.Height = height;
-            outputImage = source_svg.Draw();
+            var outputImage = source_svg.Draw();
             // stream it
-            using (var ms = new MemoryStream())
-            {
-                outputImage.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                return File(ms.ToArray(), "image/png");
-            }
-
+            using var ms = new MemoryStream();
+            outputImage.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            return File(ms.ToArray(), "image/png");
+            #pragma warning restore CA1416
         }
 
         public IActionResult WebManifest(int id)
