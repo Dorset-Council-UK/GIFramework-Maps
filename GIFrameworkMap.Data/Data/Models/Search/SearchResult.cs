@@ -10,7 +10,7 @@ namespace GIFrameworkMaps.Data.Models.Search
         public decimal X { get; set; }
         public decimal Y { get; set; }
         public int? Zoom { get; set; }
-        public decimal[] Bbox { get; set; } = new decimal[4];
+        public decimal[]? Bbox { get; set; }
         public decimal Ordering { get; set; }
         public int EPSG { get; set; }
         public string? Geom { get; set; }
