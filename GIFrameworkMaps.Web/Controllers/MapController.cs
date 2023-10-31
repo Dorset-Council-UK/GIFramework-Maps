@@ -71,9 +71,10 @@ namespace GIFrameworkMaps.Web.Controllers
                 var authResult = await _authorization.AuthorizeAsync(User,version, "CanAccessVersion");
 
                 if (authResult.Succeeded)
-                { 
+                {
                     //now we get the full details
-                    var viewModel = _repository.GetVersionViewModel(version);
+                    var fullVersionDetails = _repository.GetVersion(version.Id);
+                    var viewModel = _repository.GetVersionViewModel(fullVersionDetails);
                     ViewData["AnalyticsModel"] = _adminRepository.GetAnalyticsModel();
 
                     var host = Request.Host.ToUriComponent();

@@ -31,6 +31,14 @@ namespace GIFrameworkMaps.Data
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
+
+        /// <summary>
+        /// Gets the basic, top-level version information by slug. This should NOT be used to get all linked entities
+        /// </summary>
+        /// <param name="slug1">First part of the URL slug</param>
+        /// <param name="slug2">Second part of the URL slug</param>
+        /// <param name="slug3">Third part of the URL slug</param>
+        /// <returns>Version object containing basic information only, or null</returns>
         public Models.Version? GetVersionBySlug(string slug1, string slug2, string slug3)
         {            
             string slug = CreateSlug(slug1, slug2, slug3);
