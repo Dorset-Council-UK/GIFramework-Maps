@@ -136,29 +136,31 @@ namespace GIFrameworkMaps.Web.Controllers
             string appName = _configuration.GetValue<string>("GIFrameworkMaps:appName");
             if (version != null && version.Theme != null)
             {
-                ManifestIcon largeIcon = new ManifestIcon
+                ManifestIcon largeIcon = new()
                 {
                     Source = string.IsNullOrEmpty(version.Theme.CustomFaviconURL) ? Url.Content("~/android-chrome-512x512.png") : $"{version.Theme.CustomFaviconURL}/android-chrome-512x512.png",
                     Sizes = "512x512",
                     Type = "image/png"
                 };
 
-                ManifestIcon regularIcon = new ManifestIcon
+                ManifestIcon regularIcon = new()
                 {
                     Source = string.IsNullOrEmpty(version.Theme.CustomFaviconURL) ? Url.Content("~/android-chrome-192x192.png") : $"{version.Theme.CustomFaviconURL}/android-chrome-192x192.png",
                     Sizes = "192x192",
                     Type = "image/png"
                 };
 
-                List<ManifestIcon> iconsList = new List<ManifestIcon>();
-                iconsList.Add(largeIcon);
-                iconsList.Add(regularIcon);
+                List<ManifestIcon> iconsList = new()
+                {
+                    largeIcon,
+                    regularIcon
+                };
 
 
                 var host = Request.Host.ToUriComponent();
                 var pathBase = Request.PathBase.ToUriComponent();
 
-                ManifestFile manifest = new ManifestFile
+                ManifestFile manifest = new()
                 {
                     Id = version.Slug,
                     StartURL = $"{Request.Scheme}://{host}{pathBase}/{(version.Slug == "general" ? "" : version.Slug)}",

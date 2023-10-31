@@ -10,13 +10,11 @@ namespace GIFrameworkMaps.Data
     public class PrintRepository : IPrintRepository
     {
         //dependancy injection
-        private readonly ILogger<PrintRepository> _logger;
         private readonly IApplicationDbContext _context;
         private readonly IMemoryCache _memoryCache;
 
-        public PrintRepository(ILogger<PrintRepository> logger, IApplicationDbContext context, IMemoryCache memoryCache)
+        public PrintRepository(IApplicationDbContext context, IMemoryCache memoryCache)
         {
-            _logger = logger;
             _context = context;
             _memoryCache = memoryCache;
         }

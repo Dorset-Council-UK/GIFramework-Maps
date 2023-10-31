@@ -90,7 +90,7 @@ namespace GIFrameworkMaps.Data
         ///     <remarks></remarks>
         public SearchResults Search(string searchTerm, List<RequiredSearch> requiredSearchesList)
         {
-            SearchResults searchResults = new SearchResults();
+            SearchResults searchResults = new();
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
@@ -116,7 +116,7 @@ namespace GIFrameworkMaps.Data
                                                        
                             if(IsValidSearchTerm(selectedDefinition))
                             {
-                                SearchResultCategory searchResultCategory = new SearchResultCategory
+                                SearchResultCategory searchResultCategory = new()
                                 {
                                     CategoryName = selectedDefinition!.Title,
                                     Ordering = reqSearch.Order,
@@ -134,7 +134,7 @@ namespace GIFrameworkMaps.Data
                                 }catch(Exception ex)
                                 {
                                     //set the error flag as something went wrong. We still want to carry on with other searches though
-                                    _logger.LogError(ex,ex.Message);
+                                    _logger.LogError(ex,"Exception thrown executing search \"{definition}\"",selectedDefinition.Name);
                                     searchResults.IsError = true;
                                 }
                                 // Stop search now if flag set on current search and something found since last time flag set
@@ -323,7 +323,7 @@ namespace GIFrameworkMaps.Data
             {
                 searchDefinition.TitleFieldPath
             };
-            Regex rx = HandlebarsPlaceholder();
+            Regex rx = HandlebarsPlaceholderRegEx();
             if (rx.IsMatch(searchDefinition.TitleFieldPath))
             {
                 var templateIndex = -1;
@@ -543,7 +543,7 @@ namespace GIFrameworkMaps.Data
                     /*TODO - Would be good if this could handle not having N/S. This would require changes to the DB enforced RegEx*/
 
 
-                    string[] dmsCoords = Regex.Split(searchTerm, @"(?<=[NS])");
+                    string[] dmsCoords = LatLonDMSRegex().Split(searchTerm);
 
 
                     if (dmsCoords is not null && dmsCoords.Length == 2)
@@ -626,12 +626,12 @@ namespace GIFrameworkMaps.Data
         private static void ParameterizeClause(ref string clause, string searchTerm, ref List<Npgsql.NpgsqlParameter> searchParams)
         {
             //finds all the {{search}} tokens
-            var searchPlaceholders = Regex.Matches(clause, "{[^{]*{search}[^}]*}");
+            var searchPlaceholders = SearchHandlebarsRegex().Matches(clause);
             int i = searchParams.Count;
             var parameterizedClause = clause;
             int shift = 0;
             //loop through the search tokens and replace them with paramterised versions
-            foreach(Match p in searchPlaceholders)
+            foreach(Match p in searchPlaceholders.Cast<Match>())
             {                
                 int replaceStart = p.Index + shift;
 
@@ -650,6 +650,10 @@ namespace GIFrameworkMaps.Data
         }
 
         [GeneratedRegex("{{[^}]+}}")]
-        private static partial Regex HandlebarsPlaceholder();
+        private static partial Regex HandlebarsPlaceholderRegEx();
+        [GeneratedRegex("(?<=[NS])")]
+        private static partial Regex LatLonDMSRegex();
+        [GeneratedRegex("{[^{]*{search}[^}]*}")]
+        private static partial Regex SearchHandlebarsRegex();
     }
 }

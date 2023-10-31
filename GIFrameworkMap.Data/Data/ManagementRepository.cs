@@ -5,10 +5,8 @@ using GIFrameworkMaps.Data.Models.Search;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Graph.Beta;
 using Azure.Identity;
@@ -19,17 +17,15 @@ namespace GIFrameworkMaps.Data
     public class ManagementRepository : IManagementRepository
     {
         //dependancy injection
-        private readonly ILogger<ManagementRepository> _logger;
         private readonly IApplicationDbContext _context;
         private readonly IMemoryCache _memoryCache;
         private readonly IConfiguration _configuration;
 
-        public ManagementRepository(ILogger<ManagementRepository> logger, 
+        public ManagementRepository(
             IApplicationDbContext context, 
             IMemoryCache memoryCache,
             IConfiguration configuration)
         {
-            _logger = logger;
             _context = context;
             _memoryCache = memoryCache;
             _configuration = configuration;
@@ -363,8 +359,7 @@ namespace GIFrameworkMaps.Data
         /// <returns>True or false depending on success or not</returns>
         public bool PurgeCache()
         {
-            var memoryCache = _memoryCache as MemoryCache;
-            if(memoryCache != null)
+            if (_memoryCache is MemoryCache memoryCache)
             {
                 memoryCache.Compact(1);
                 return true;
@@ -374,8 +369,10 @@ namespace GIFrameworkMaps.Data
 
         public AnalyticsViewModel GetAnalyticsModel()
         {
-            AnalyticsViewModel viewModel = new AnalyticsViewModel();
-            viewModel.AvailableAnalytics = _context.AnalyticsDefinitions.Include(a => a.VersionAnalytics).ToList();
+            AnalyticsViewModel viewModel = new()
+            {
+                AvailableAnalytics = _context.AnalyticsDefinitions.Include(a => a.VersionAnalytics).ToList()
+            };
 
             return viewModel;
         }
