@@ -50,8 +50,8 @@ namespace GIFrameworkMaps.Web.Controllers
             _logger.LogInformation("User requested version {slug1}/{slug2}/{slug3}",
                 //Sanitise user input to prevent log forging
                 slug1.Replace(Environment.NewLine, ""),
-                slug2 != null ? slug2.Replace(Environment.NewLine, "") : null,
-                slug3 != null ? slug3.Replace(Environment.NewLine, "") : null);
+                slug2?.Replace(Environment.NewLine, ""),
+                slug3?.Replace(Environment.NewLine, ""));
             var version = _repository.GetVersionBySlug(slug1,slug2,slug3);
             if (version != null)
             {
@@ -70,9 +70,10 @@ namespace GIFrameworkMaps.Web.Controllers
                 var authResult = await _authorization.AuthorizeAsync(User,version, "CanAccessVersion");
 
                 if (authResult.Succeeded)
-                { 
+                {
                     //now we get the full details
-                    var viewModel = _repository.GetVersionViewModel(version.Id);
+                    var fullVersionDetails = _repository.GetVersion(version.Id);
+                    var viewModel = _repository.GetVersionViewModel(fullVersionDetails);
                     ViewData["AnalyticsModel"] = _adminRepository.GetAnalyticsModel();
 
                     var host = Request.Host.ToUriComponent();

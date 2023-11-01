@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using GIFrameworkMaps.Data.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +10,9 @@ namespace GIFrameworkMaps.Data.Models.ViewModels.Management
 {
     public class LayerSourceEditModel
     {
-        public GIFrameworkMaps.Data.Models.LayerSource LayerSource { get; set; }
-        public List<GIFrameworkMaps.Data.Models.Layer> LayersUsingSource { get; set; }
-        public SelectList AvailableAttributions { get; set; }
-        public SelectList AvailableLayerSourceTypes { get; set; }
+        public LayerSource? LayerSource { get; set; }
+        public List<Layer> LayersUsingSource { get; set; } = new();
+        public SelectList? AvailableAttributions { get; set; }
+        public SelectList? AvailableLayerSourceTypes { get; set; }
     }
 }

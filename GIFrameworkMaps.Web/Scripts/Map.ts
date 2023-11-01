@@ -68,30 +68,30 @@ export class GIFWMap {
             permalinkParams = Util.Browser.extractParamsFromHash(window.location.hash);
         }
         // set up controls
-        let attribution = new olControl.Attribution({
+        const attribution = new olControl.Attribution({
             collapsible: false,
         });
-        let scaleline = new olControl.ScaleLine({
+        const scaleline = new olControl.ScaleLine({
             units: 'metric'
         });
-        let rotateControl = new olControl.Rotate({
+        const rotateControl = new olControl.Rotate({
             autoHide: false,
             tipLabel: 'Reset rotation (Alt-Shift and Drag to rotate)'
         })
         //mouse position controls. TODO - alow DB setting of initial coord system
-        let mousePosition = new GIFWMousePositionControl('27700', 0);
-        let contextMenu = new GIFWContextMenu(mousePosition);
+        const mousePosition = new GIFWMousePositionControl('27700', 0);
+        const contextMenu = new GIFWContextMenu(mousePosition);
         //add measure
-        let measureControl = new Measure(this);
+        const measureControl = new Measure(this);
         // add annotations
-        let annotateControl = new Annotate(this);
+        const annotateControl = new Annotate(this);
         // add info click
-        let infoControl = new FeatureQuery(this)
+        const infoControl = new FeatureQuery(this)
         //add geolocation
-        let geolocationControl = new GIFWGeolocation(this);
+        const geolocationControl = new GIFWGeolocation(this);
 
         this.customControls.push(mousePosition, contextMenu, measureControl, annotateControl, infoControl, geolocationControl);
-        let controls: olControl.Control[] = [attribution, scaleline, mousePosition.control, contextMenu.control, measureControl, rotateControl, annotateControl, infoControl, geolocationControl];
+        const controls: olControl.Control[] = [attribution, scaleline, mousePosition.control, contextMenu.control, measureControl, rotateControl, annotateControl, infoControl, geolocationControl];
 
         //TODO - MESSY!
         var sidebarCollection = new gifwSidebarCollection.SidebarCollection(this.sidebars);
@@ -106,7 +106,7 @@ export class GIFWMap {
         //permalink dervied one is different from the server provided one
         if (permalinkParams.basemap) {
             const basemapParamParts = permalinkParams.basemap.split('/');
-            let overriddenBasemapId = basemapParamParts[0];
+            const overriddenBasemapId = basemapParamParts[0];
             if ((this.config.basemaps.filter(b => b.id == overriddenBasemapId).length !== 0) && basemapParamParts.length === 3 || this.config.basemaps.filter(b => b.id == overriddenBasemapId && !b.isDefault).length !== 0) {
                 this.config.basemaps.forEach(b => {
                     if (b.id != overriddenBasemapId) {
@@ -125,7 +125,7 @@ export class GIFWMap {
         this.layerGroups.push(new GIFWLayerGroup(this.config.basemaps, this, LayerGroupType.Basemap));
 
         let permalinkEnabledLayerSettings: string[] = [];
-        let permalinkEnabledLayers: string[][] = [];
+        const permalinkEnabledLayers: string[][] = [];
         if (permalinkParams.layers) {
             permalinkEnabledLayerSettings = permalinkParams.layers.split(',');
             permalinkEnabledLayerSettings.forEach(p => {
@@ -133,16 +133,16 @@ export class GIFWMap {
             })
         }
 
-        let flattenedLayers = this.config.categories.flat();
+        const flattenedLayers = this.config.categories.flat();
         let overrideDefaultLayers = false;
         if (permalinkEnabledLayers.length !== 0) {
             overrideDefaultLayers = true;
         }
-        let allLayers: Layer[] = [];
+        const allLayers: Layer[] = [];
         flattenedLayers.forEach(f => {
             f.layers.forEach(l => {
                 if (overrideDefaultLayers) {
-                    let layerSetting = permalinkEnabledLayers.filter(pel => pel[0] == l.id);
+                    const layerSetting = permalinkEnabledLayers.filter(pel => pel[0] == l.id);
                     if (layerSetting.length === 1) {
                         l.isDefault = true;
                         if (layerSetting[0].length >= 3) {
@@ -159,21 +159,21 @@ export class GIFWMap {
         })
         this.layerGroups.push(new GIFWLayerGroup(allLayers, this, LayerGroupType.Overlay));
 
-        let flattenedLayerGroups = this.layerGroups.flat();
-        let allLayerGroups: olLayer.Group[] = [];
+        const flattenedLayerGroups = this.layerGroups.flat();
+        const allLayerGroups: olLayer.Group[] = [];
         flattenedLayerGroups.forEach(f => {
             allLayerGroups.push(f.olLayerGroup);
         })
 
         //define popups
-        let popupEle = document.getElementById('gifw-popup')
+        const popupEle = document.getElementById('gifw-popup')
         this.popupOverlay = new GIFWPopupOverlay(popupEle);
 
         //define max extent of view
         let startExtent: number[] = [];
         let startMaxZoom: number = 22;
         let startMinZoom: number = 0;
-        let startBasemap = this.config.basemaps.find(b => b.isDefault);
+        const startBasemap = this.config.basemaps.find(b => b.isDefault);
         if (startBasemap !== null) {
             startExtent = [startBasemap.bound.bottomLeftX, startBasemap.bound.bottomLeftY, startBasemap.bound.topRightX, startBasemap.bound.topRightY];
             startMaxZoom = startBasemap.maxZoom;
@@ -210,7 +210,7 @@ export class GIFWMap {
             else if (permalinkParams.bbox) {
                 const parts = permalinkParams.bbox.split('/');
                 if (parts.length !== 0) {
-                    let bbox = parts[0].split(",");
+                    const bbox = parts[0].split(",");
 
                     if (bbox.length === 4) {
                         //check the contents are numbers
@@ -229,7 +229,7 @@ export class GIFWMap {
         }
 
         //init map
-        let map = new olMap({
+        const map = new olMap({
             target: this.id,
             layers: allLayerGroups,
             overlays: [this.popupOverlay.overlay],
@@ -256,25 +256,25 @@ export class GIFWMap {
         }
         //Set starting saturation and style of layers
         if (this.anyOverlaysOn()) {
-            let layerGroup = this.getLayerGroupOfType(LayerGroupType.Overlay);
-            let layers = layerGroup.olLayerGroup.getLayersArray();
-            let switchedOnLayers = layers.filter(l => l.getVisible() === true);
+            const layerGroup = this.getLayerGroupOfType(LayerGroupType.Overlay);
+            const layers = layerGroup.olLayerGroup.getLayersArray();
+            const switchedOnLayers = layers.filter(l => l.getVisible() === true);
 
             switchedOnLayers.forEach(l => {
-                let layerId = l.get('layerId');
-                let layer = this.getLayerConfigById(layerId,[LayerGroupType.Overlay])
+                const layerId = l.get('layerId');
+                const layer = this.getLayerConfigById(layerId,[LayerGroupType.Overlay])
                 if (layer !== null && layer.defaultSaturation !== 100) {
                     //get the default saturation and trigger a postrender once to apply it.
                     this.setInitialSaturationOfLayer(l as olLayer.Layer<any,any>, layer.defaultSaturation);
                 }
                 if (overrideDefaultLayers) {
-                    let layerSetting = permalinkEnabledLayers.filter(pel => pel[0] == layerId);
+                    const layerSetting = permalinkEnabledLayers.filter(pel => pel[0] == layerId);
                     if (layerSetting.length === 1) {
                         if (layerSetting[0].length === 4) {
-                            let permalinkStyleName = layerSetting[0][3];
-                            let layerSource = l.getSource();
+                            const permalinkStyleName = layerSetting[0][3];
+                            const layerSource = l.getSource();
                             if (layerSource instanceof TileWMS || layerSource instanceof ImageWMS) {
-                                let currentStyleName = layerSource.getParams()?.STYLES || "";
+                                const currentStyleName = layerSource.getParams()?.STYLES || "";
                                 if (currentStyleName !== permalinkStyleName) {
                                     layerSource.updateParams({ STYLES: permalinkStyleName });
                                 }
@@ -289,14 +289,14 @@ export class GIFWMap {
         //set start bounds
         //check paramater defined bbox first, then fall back to default start bound
         if (locationProvidedByURL && defaultBbox) {
-            let mapSize = map.getSize();
-            let reprojectedExtent = olProj.transformExtent(defaultBbox, `EPSG:${defaultCRS}`, this.olMap.getView().getProjection());
+            const mapSize = map.getSize();
+            const reprojectedExtent = olProj.transformExtent(defaultBbox, `EPSG:${defaultCRS}`, this.olMap.getView().getProjection());
             this.olMap.getView().fit(reprojectedExtent, { size: mapSize });
         }
         if (!locationProvidedByURL) { 
             let bounds: Extent;
             bounds = [this.config.bound.bottomLeftX, this.config.bound.bottomLeftY, this.config.bound.topRightX, this.config.bound.topRightY];
-            let mapSize = map.getSize();
+            const mapSize = map.getSize();
         
             map.getView().fit(bounds, { size: mapSize });
         }
@@ -310,24 +310,24 @@ export class GIFWMap {
         this.addDragAndDropInteraction();
 
         //add remote layer adder
-        let webLayerService = new WebLayerService(this);
+        const webLayerService = new WebLayerService(this);
         webLayerService.init();
 
         //add bookmark control
         if (this.config.isLoggedIn) {
-            let bookmarkControl = new BookmarkMenu(this);
+            const bookmarkControl = new BookmarkMenu(this);
             bookmarkControl.init();
         }
         measureControl.init();
         infoControl.init();
         geolocationControl.init();
 
-        let search = new Search('#search-container', this, `${document.location.protocol}//${this.config.appRoot}search/options/${this.config.id}`, `${document.location.protocol}//${this.config.appRoot}search`);
+        const search = new Search('#search-container', this, `${document.location.protocol}//${this.config.appRoot}search/options/${this.config.id}`, `${document.location.protocol}//${this.config.appRoot}search`);
 
         search.init(permalinkParams);
 
         if (this.config.googleMapsAPIKey) {
-            let streetview = new Streetview(this.config.googleMapsAPIKey);
+            const streetview = new Streetview(this.config.googleMapsAPIKey);
             streetview.init(contextMenu);
         }
 
@@ -361,17 +361,17 @@ export class GIFWMap {
      * Updates the permalink in the browser URL bar and pushes it into the history
      * */
     private updatePermalinkInURL() {
-        let permalink = Util.Mapping.generatePermalinkForMap(this);
-        let hashParams = Util.Browser.extractParamsFromHash(permalink.substring(permalink.indexOf('#')));
+        const permalink = Util.Mapping.generatePermalinkForMap(this);
+        const hashParams = Util.Browser.extractParamsFromHash(permalink.substring(permalink.indexOf('#')));
 
         window.history.replaceState(hashParams, '', permalink);
 
     }
 
     private updatePermalinkInLinks() {
-        let permalink = Util.Mapping.generatePermalinkForMap(this);
+        const permalink = Util.Mapping.generatePermalinkForMap(this);
         document.querySelectorAll('a[data-gifw-permalink-update-uri-param]').forEach(link => {
-            let paramToUpdate = (link as HTMLAnchorElement).dataset.gifwPermalinkUpdateUriParam;
+            const paramToUpdate = (link as HTMLAnchorElement).dataset.gifwPermalinkUpdateUriParam;
             const existingLink = new URL((link as HTMLAnchorElement).href);
             existingLink.searchParams.set(paramToUpdate, permalink);
             (link as HTMLAnchorElement).href = existingLink.toString();
@@ -425,7 +425,7 @@ export class GIFWMap {
         if (source instanceof KML) {
             ol_layer = new VectorLayer(opts);
         } else {
-            let additionalOpts = { style: styleFunc }
+            const additionalOpts = { style: styleFunc }
             opts = {...opts,...additionalOpts}
             ol_layer = new VectorLayer(opts);
         }
@@ -436,7 +436,7 @@ export class GIFWMap {
         ol_layer.setProperties({ "gifw-queryable": queryable })
         ol_layer.setProperties({ "gifw-is-user-layer": true })
 
-        let gifwLayer: Layer = {
+        const gifwLayer: Layer = {
             id: layerId,
             name: name,
             sortOrder: 0,
@@ -465,7 +465,7 @@ export class GIFWMap {
         } else {
             layerGroup.addLayerToGroup(ol_layer);
         }
-        let myLayersCategory = this.config.categories.filter(c => c.id === 0);
+        const myLayersCategory = this.config.categories.filter(c => c.id === 0);
         if (myLayersCategory.length === 0) {
             this.createMyLayersCategory([gifwLayer]);
         } else {
@@ -473,7 +473,7 @@ export class GIFWMap {
         }
         this.olMap.addLayer(ol_layer);
 
-        let event = new CustomEvent("gifw-layer-added", { detail: ol_layer });
+        const event = new CustomEvent("gifw-layer-added", { detail: ol_layer });
         this.olMap.getOverlayContainer().dispatchEvent(event);
 
         return ol_layer;
@@ -534,7 +534,7 @@ export class GIFWMap {
         ol_layer.setProperties({ "gifw-is-user-layer": true })
          /*TODO - This is a little odd. We have to create a 'stub' gifwLayer and an ol_layer
           * for different purposes. Be good if this was more streamlined*/
-        let gifwLayer: Layer = {
+        const gifwLayer: Layer = {
             id: layerId,
             name: name,
             sortOrder: 0,
@@ -563,13 +563,13 @@ export class GIFWMap {
         } else {
             layerGroup.addLayerToGroup(gifwLayer, ol_layer);
         }
-        let myLayersCategory = this.config.categories.filter(c => c.id === 0);
+        const myLayersCategory = this.config.categories.filter(c => c.id === 0);
         if (myLayersCategory.length === 0) {
             this.createMyLayersCategory([gifwLayer]);
         } else {
             myLayersCategory[0].layers.push(gifwLayer);
         }
-        let event = new CustomEvent("gifw-layer-added", { detail: ol_layer });
+        const event = new CustomEvent("gifw-layer-added", { detail: ol_layer });
         this.olMap.getOverlayContainer().dispatchEvent(event);
 
         return ol_layer;
@@ -592,7 +592,7 @@ export class GIFWMap {
      * @param type Type of layer group to return
      */
     public getLayerGroupOfType(type: LayerGroupType): LayerGroup {
-        let lg = this.layerGroups.filter(l => l.layerGroupType === type)[0];
+        const lg = this.layerGroups.filter(l => l.layerGroupType === type)[0];
         return lg;
     }
 
@@ -601,9 +601,9 @@ export class GIFWMap {
      * @param types Array of types of layer group to return
      */
     public getLayerGroupsOfType(types: LayerGroupType[]): LayerGroup[] {
-        let layerGroups: LayerGroup[] = [];
+        const layerGroups: LayerGroup[] = [];
         types.forEach(t => {
-            let lg = this.layerGroups.filter(l => l.layerGroupType === t);
+            const lg = this.layerGroups.filter(l => l.layerGroupType === t);
             if (lg.length !== 0) {
                 layerGroups.push(lg[0]);
             }
@@ -616,11 +616,11 @@ export class GIFWMap {
      * @param layerId The layers unique ID
      */
     public getLayerById(layerId: string): BaseLayer {
-        let layerGroups = this.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
+        const layerGroups = this.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
         let layer = null;
         layerGroups.forEach(lg => {
             
-            let lgLayers = lg.olLayerGroup.getLayers();
+            const lgLayers = lg.olLayerGroup.getLayers();
             lgLayers.forEach(l => {
                     
                 if (l.get('layerId') == layerId) {
@@ -638,11 +638,11 @@ export class GIFWMap {
      */
     public getLayerConfigById(layerId: string, layerGroupTypes: LayerGroupType[] = [LayerGroupType.Overlay, LayerGroupType.Basemap]): Layer {
         
-        let layerGroups = this.getLayerGroupsOfType(layerGroupTypes);
+        const layerGroups = this.getLayerGroupsOfType(layerGroupTypes);
         let layer = null;
         layerGroups.forEach(lg => {
 
-            let lgLayers = lg.layers as Layer[];
+            const lgLayers = lg.layers as Layer[];
             lgLayers.forEach(l => {
 
                 if (l.id?.toString() == layerId) {
@@ -660,7 +660,7 @@ export class GIFWMap {
      * @author OpenLayers contributors https://openlayers.org/en/latest/examples/attributions.html
      */
     public checkAttributionSize(map: olMap, attribution: olControl.Attribution):void {
-        let small = map.getSize()[0] < 600;
+        const small = map.getSize()[0] < 600;
         attribution.setCollapsible(small);
         attribution.setCollapsed(small);
     }
@@ -691,7 +691,7 @@ export class GIFWMap {
      * */
     public getActiveBasemap(): olLayer.Layer<any, any> {
 
-        let baseGroup = this.getLayerGroupOfType(LayerGroupType.Basemap);
+        const baseGroup = this.getLayerGroupOfType(LayerGroupType.Basemap);
         if (baseGroup !== null) {
             return baseGroup.olLayerGroup.getLayersArray().find(function (l) { return l.getVisible() == true });
         }
@@ -703,8 +703,8 @@ export class GIFWMap {
     * @param {boolean} quiet - Do this without firing any events
      */
     public setTransparencyOfActiveBasemap(opacity: number, quiet: boolean = false) {
-        let olOpacity = opacity / 100;
-        let l = this.getActiveBasemap();
+        const olOpacity = opacity / 100;
+        const l = this.getActiveBasemap();
         if (l !== null) {
             l.setOpacity(olOpacity);
             if (!quiet) {
@@ -719,7 +719,7 @@ export class GIFWMap {
     * @param {boolean} quiet - Do this without firing any events
      */
     public setSaturationOfActiveBasemap(saturation: number, quiet: boolean = false) {
-        let l = this.getActiveBasemap();
+        const l = this.getActiveBasemap();
         if (l !== null) {
             this.setLayerSaturation(l, saturation, quiet);
         }
@@ -736,11 +736,11 @@ export class GIFWMap {
     */
     public setLayerSaturation(layer: olLayer.Layer<any, any>, saturation: number, quiet: boolean = false) {
         //layers should have custom class names, if it has the default, this is ignored
-        let className = layer.getClassName();
+        const className = layer.getClassName();
         if (className !== 'ol-layer') {
-            let container: HTMLDivElement = document.querySelector(`.${className}`);
+            const container: HTMLDivElement = document.querySelector(`.${className}`);
             if (container !== null) {
-                let olSaturation = (100 - saturation) / 100;
+                const olSaturation = (100 - saturation) / 100;
                 container.style.filter = `grayscale(${olSaturation})`;
                 layer.set("saturation", saturation, quiet);
                 if (!quiet) {
@@ -772,7 +772,7 @@ export class GIFWMap {
      * */
     public anyOverlaysOn(): boolean {
         
-        let layerGroups = this.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
+        const layerGroups = this.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
 
         let layers: olLayer.Layer<any, any>[] = [];
         layerGroups.forEach(lg => {
@@ -792,7 +792,7 @@ export class GIFWMap {
     */
     public setLayerVisibility(layerId: string, visibility: boolean) {
 
-        let layerGroups = this.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
+        const layerGroups = this.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
         let layers: olLayer.Layer<any, any>[] = [];
 
         layerGroups.forEach(lg => {
@@ -800,7 +800,7 @@ export class GIFWMap {
         })
 
 
-        let layer = layers.filter(l => l.get('layerId') == layerId)[0];
+        const layer = layers.filter(l => l.get('layerId') == layerId)[0];
 
         layer.setVisible(visibility)
 
@@ -811,17 +811,17 @@ export class GIFWMap {
      * @param layerId The unique ID of the layer
      */
     public removeLayerById(layerId: string) {
-        let layerGroups = this.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
+        const layerGroups = this.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
         let removed = false;
         this.config.categories.forEach(c => {
-            let idx = c.layers.findIndex(l => l.id == layerId);
+            const idx = c.layers.findIndex(l => l.id == layerId);
             if (idx !== -1) {
                 c.layers.splice(idx, 1);
             }
         })
         layerGroups.forEach(lg => {
             if (!removed) {
-                let lgLayers = lg.olLayerGroup.getLayers();
+                const lgLayers = lg.olLayerGroup.getLayers();
                 lgLayers.forEach(l => {
                     if (!removed) {
                         if (l.get('layerId') == layerId) {
@@ -831,7 +831,7 @@ export class GIFWMap {
                             lgLayers.remove(l);
                             removed = true;
 
-                            let evt = new CustomEvent('gifw-layer-removed', { 'detail': l })
+                            const evt = new CustomEvent('gifw-layer-removed', { 'detail': l })
                             this.olMap.getOverlayContainer().dispatchEvent(evt);
                         }
                     }
@@ -847,13 +847,13 @@ export class GIFWMap {
      * @param feature The Feature to zoom to
      */
     public zoomToFeature(feature: (Feature<Geometry> | RenderFeature)) {
-        let featureExtent = feature.getGeometry().getExtent();
+        const featureExtent = feature.getGeometry().getExtent();
         this.fitMapToExtent(featureExtent);
     }
 
 
     public fitMapToExtent(extent: Extent, maxZoom: number = 50, animationDuration: number = 1000): void {
-        let curExtent = this.olMap.getView().calculateExtent();
+        const curExtent = this.olMap.getView().calculateExtent();
         if (maxZoom === null) {
             maxZoom = 50;
         }
@@ -869,7 +869,7 @@ export class GIFWMap {
      * @returns A number indicating the percentage of the map that is covered by overlays
      */
     public getPercentOfMapCoveredWithOverlays(): number {
-        let mapPadding = this.getPaddingForMapCenter();
+        const mapPadding = this.getPaddingForMapCenter();
         const screenWidth = this.olMap.getOverlayContainer().getBoundingClientRect().width;
         const leftPanelPercentWidth = (mapPadding[3] / screenWidth) * 100;
         const rightPanelPercentWidth = (mapPadding[1] / screenWidth) * 100;
@@ -902,8 +902,8 @@ export class GIFWMap {
      * @returns Boolean, true if extent is reachable, false otherwise
      */
     public isExtentAvailableInCurrentMap(extent: Extent): boolean {
-        let activeBasemap = this.getActiveBasemap();
-        let maxBasemapExtent = activeBasemap.getExtent();
+        const activeBasemap = this.getActiveBasemap();
+        const maxBasemapExtent = activeBasemap.getExtent();
         return containsExtent(maxBasemapExtent, extent)
     }
 
@@ -913,8 +913,8 @@ export class GIFWMap {
      *  @returns Boolean, true if coordinate is reachable, false otherwise
      */
     public isCoordinateAvailableInCurrentMap(coord:number[]): boolean {
-        let activeBasemap = this.getActiveBasemap();
-        let maxBasemapExtent = activeBasemap.getExtent();
+        const activeBasemap = this.getActiveBasemap();
+        const maxBasemapExtent = activeBasemap.getExtent();
         return containsCoordinate(maxBasemapExtent, coord)
     }
 
@@ -925,7 +925,7 @@ export class GIFWMap {
      * @returns LegendURLs
      */
     public getLegendURLs(additionalLegendOptions: string = "") {
-        let legends: LegendURLs = { availableLegends: [], nonLegendableLayers: [] };
+        const legends: LegendURLs = { availableLegends: [], nonLegendableLayers: [] };
         if (this.anyOverlaysOn()) {
             const resolution = this.olMap.getView().getResolution();
             const roundedZoom = Math.ceil(this.olMap.getView().getZoom());
@@ -938,10 +938,10 @@ export class GIFWMap {
 
             const switchedOnLayers = layers.filter(l => l.getVisible() === true && l.getMaxZoom() >= roundedZoom && l.getMinZoom() < roundedZoom);
             switchedOnLayers.sort((a, b) => a.getZIndex() - b.getZIndex()).reverse().forEach(l => {
-                let source = l.getSource();
+                const source = l.getSource();
                 if (source instanceof TileWMS || source instanceof ImageWMS) {
-                    let view = this.olMap.getView();
-                    let viewport = this.olMap.getViewport();
+                    const view = this.olMap.getView();
+                    const viewport = this.olMap.getViewport();
                     let params: any = {
                         LEGEND_OPTIONS: additionalLegendOptions,
                         bbox: view.calculateExtent().toString(),
@@ -951,11 +951,11 @@ export class GIFWMap {
                     }
                     //merge valid params from the source and add to the legend
                     let additionalParams: any = {};
-                    let sourceParams = source.getParams();
+                    const sourceParams = source.getParams();
 
-                    let validProps = ["time", "cql_filter", "filter", "featureid", "elevation", "styles"];
+                    const validProps = ["time", "cql_filter", "filter", "featureid", "elevation", "styles", "authkey"];
                     //For the sake of sanity, convert the param names to lowercase for processing
-                    let lowerCaseParams = Object.fromEntries(
+                    const lowerCaseParams = Object.fromEntries(
                         Object.entries(sourceParams).map(([k, v]) => [k.toLowerCase(), v])
                     );
                     additionalParams = Object.fromEntries(Object.entries(lowerCaseParams).filter(([key]) => validProps.includes(key)))
@@ -967,10 +967,10 @@ export class GIFWMap {
                     }
                     params = { ...params, ...additionalParams };
 
-                    let legendUrl = { name: l.get('name'), legendUrl: source.getLegendUrl(resolution, params) }
+                    const legendUrl = { name: (l.get('name') as string).trim(), legendUrl: source.getLegendUrl(resolution, params) }
                     legends.availableLegends.push(legendUrl);
                 } else {
-                    legends.nonLegendableLayers.push(l.get('name'));
+                    legends.nonLegendableLayers.push((l.get('name') as string).trim());
                 }
             })
         }
@@ -1022,7 +1022,7 @@ export class GIFWMap {
      */
     public openSidebarById(id: string) {
         
-        let matchedSidebar = this.sidebars.filter(s => s.id === id);
+        const matchedSidebar = this.sidebars.filter(s => s.id === id);
         if (matchedSidebar.length === 1) {
             matchedSidebar[0].open();
         } else {

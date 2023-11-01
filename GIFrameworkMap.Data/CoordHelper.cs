@@ -122,7 +122,7 @@ namespace GIFrameworkMaps.Data
         /// <param name="hemisphere">The hemisphere character (N/S/E/W)</param>
         /// <returns>A decimal coordinate</returns>
         /// <remarks>Adapted from https://stackoverflow.com/a/28640937/863487 by Matt Cashatt CC BY-SA 3.0</remarks>
-        internal static decimal ConvertDegreeAngleToDecimal(decimal degrees, decimal minutes, decimal seconds, string? hemisphere = "")
+        internal static decimal ConvertDegreeAngleToDecimal(decimal degrees, decimal minutes, decimal seconds, string hemisphere = "")
         {
 
             var multiplier = (hemisphere.Contains('S') || hemisphere.Contains('W')) ? -1 : 1; //handle south and west
@@ -143,7 +143,7 @@ namespace GIFrameworkMaps.Data
         /// </summary>
         /// <param name="alpha">The alpha characters e.g. ST (upper case)</param>
         /// <returns>An array of 2 integers representing the X and Y numeric</returns>
-        public static int[] TranslateOSGBAlphaCharactersToNumerics(string alpha)
+        public static int[]? TranslateOSGBAlphaCharactersToNumerics(string alpha)
         {
             int[] return_array = new int[2];
             switch (alpha)

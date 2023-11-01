@@ -10,6 +10,6 @@ namespace GIFrameworkMaps.Data.Models
     {
         public int VersionId { get; set; }
         public int AnalyticsDefinitionId { get; set; }
-        public AnalyticsDefinition AnalyticsDefinition { get; set; }
+        public AnalyticsDefinition? AnalyticsDefinition { get; set; }
     }
 }

@@ -12,7 +12,7 @@ namespace GIFrameworkMaps.Data.Models.Tour
 
         [Required]
         [DisplayName("Name of the tour")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [DefaultValue(-1)]
         [Range(-1, int.MaxValue)]
@@ -22,7 +22,7 @@ namespace GIFrameworkMaps.Data.Models.Tour
         [DisplayName("Update date")]
         public LocalDateTime UpdateDate { get; set; }
 
-        public List<TourStep> Steps { get; set; }
+        public List<TourStep> Steps { get; set; } = new();
 
     }
 }

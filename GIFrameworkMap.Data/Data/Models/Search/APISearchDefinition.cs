@@ -9,30 +9,30 @@ namespace GIFrameworkMaps.Data.Models.Search
     public class APISearchDefinition : SearchDefinition
     {
         [DisplayName("URL template")]
-        public string URLTemplate { get; set; }
+        public string? URLTemplate { get; set; }
 
         [DisplayName("X field path")]
-        public string XFieldPath { get; set; }
+        public string? XFieldPath { get; set; }
 
         [DisplayName("Y field path")]
-        public string YFieldPath { get; set; }
+        public string? YFieldPath { get; set; }
 
         [DisplayName("Title field path")]
-        public string TitleFieldPath { get; set; }
+        public string? TitleFieldPath { get; set; }
 
         [DisplayName("Geometry field path")]
-        public string GeomFieldPath { get; set; }
+        public string? GeomFieldPath { get; set; }
 
         [DisplayName("Minimum bounding rectangle X path")]
-        public string MBRXMinPath { get; set; }
+        public string? MBRXMinPath { get; set; }
 
         [DisplayName("Minimum bounding rectangle Y path")]
-        public string MBRYMinPath { get; set; }
+        public string? MBRYMinPath { get; set; }
 
         [DisplayName("Maximum bounding rectangle X path")]
-        public string MBRXMaxPath { get; set; }
+        public string? MBRXMaxPath { get; set; }
 
         [DisplayName("Maximum bounding rectangle Y path")]
-        public string MBRYMaxPath { get; set; }
+        public string? MBRYMaxPath { get; set; }
     }
 }
