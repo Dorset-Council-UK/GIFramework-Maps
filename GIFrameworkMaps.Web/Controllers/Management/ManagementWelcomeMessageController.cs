@@ -1,5 +1,6 @@
 ﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
+using GIFrameworkMaps.Data.Models.Tour;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -42,7 +43,12 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: WelcomeMessage/Create
         public IActionResult Create()
         {
-            return View();
+            Instant now = SystemClock.Instance.GetCurrentInstant();
+            DateTimeZone tz = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+            ZonedDateTime zdt = now.InZone(tz);
+            //default the update date to now
+            var model = new WelcomeMessage() { UpdateDate = zdt.LocalDateTime };
+            return View(model);
         }
 
         //POST: WelcomeMessage/Create
@@ -93,8 +99,12 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         public async Task<IActionResult> EditPost(int id, DateTime UpdateDate)
         {
             var welcomeMessageToUpdate = await _context.WelcomeMessages.FirstOrDefaultAsync(a => a.Id == id);
+            welcomeMessageToUpdate.UpdateDate = LocalDateTime.FromDateTime(UpdateDate);
+            ModelState.Clear();
+            TryValidateModel(welcomeMessageToUpdate);
+            if (ModelState.IsValid)
 
-            if (await TryUpdateModelAsync(
+                if (await TryUpdateModelAsync(
                 welcomeMessageToUpdate,
                 "",
                 a => a.Name, 
