@@ -967,10 +967,10 @@ export class GIFWMap {
                     }
                     params = { ...params, ...additionalParams };
 
-                    const legendUrl = { name: l.get('name'), legendUrl: source.getLegendUrl(resolution, params) }
+                    const legendUrl = { name: (l.get('name') as string).trim(), legendUrl: source.getLegendUrl(resolution, params) }
                     legends.availableLegends.push(legendUrl);
                 } else {
-                    legends.nonLegendableLayers.push(l.get('name'));
+                    legends.nonLegendableLayers.push((l.get('name') as string).trim());
                 }
             })
         }
