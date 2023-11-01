@@ -10,12 +10,12 @@ namespace GIFrameworkMaps.Data.Models
     {
         public int Id { get; set; }
         [Required]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         [Display(Name="Attribution HTML")]
         [Required]
-        public string AttributionHTML { get; set; }
+        public string? AttributionHTML { get; set; }
         [NotMapped]
-        public string RenderedAttributionHTML
+        public string? RenderedAttributionHTML
         {
             get => AttributionHTML?.Replace("{{CURRENT_YEAR}}", DateTime.Now.Year.ToString());
         }

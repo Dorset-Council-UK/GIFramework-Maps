@@ -31,20 +31,28 @@ namespace GIFrameworkMaps.Data
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
-        public Models.Version GetVersionBySlug(string slug1, string slug2, string slug3)
+
+        /// <summary>
+        /// Gets the basic, top-level version information by slug. This should NOT be used to get all linked entities
+        /// </summary>
+        /// <param name="slug1">First part of the URL slug</param>
+        /// <param name="slug2">Second part of the URL slug</param>
+        /// <param name="slug3">Third part of the URL slug</param>
+        /// <returns>Version object containing basic information only, or null</returns>
+        public Models.Version? GetVersionBySlug(string slug1, string slug2, string slug3)
         {            
             string slug = CreateSlug(slug1, slug2, slug3);
 
             string cacheKey = "VersionBySlug/" + slug;
 
             // Check to see if the version for this slug has already been cached and, if so, return that.
-            if (_memoryCache.TryGetValue(cacheKey, out Models.Version cacheValue))
+            if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
             {
                 return cacheValue;
             }
             else
             {
-                Models.Version version = _context.Versions
+                Models.Version? version = _context.Versions
                     .AsNoTrackingWithIdentityResolution()
                     .FirstOrDefault(v => v.Slug == slug);
 
@@ -71,12 +79,12 @@ namespace GIFrameworkMaps.Data
                     ? "/" + CreateSlug(slugParts.Skip(1).ToArray()) : "");
         }
 
-        public Models.Version GetVersion(int versionId)
+        public Models.Version? GetVersion(int versionId)
         {
             string cacheKey = "Version/" + versionId.ToString();
 
             // Check to see if the version has already been cached and, if so, return that.
-            if (_memoryCache.TryGetValue(cacheKey, out Models.Version cacheValue))
+            if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
             {
                 return cacheValue;
             }
@@ -88,40 +96,40 @@ namespace GIFrameworkMaps.Data
                                     .Include(v => v.Theme)
                                     .Include(v => v.WelcomeMessage)
                                     .Include(v => v.TourDetails)
-                                        .ThenInclude(t => t.Steps)
+                                        .ThenInclude(t => t!.Steps)
                                     .Include(v => v.VersionBasemaps)
                                         .ThenInclude(v => v.Basemap)
-                                        .ThenInclude(l => l.LayerSource)
-                                        .ThenInclude(l => l.LayerSourceOptions)
+                                        .ThenInclude(l => l!.LayerSource)
+                                        .ThenInclude(l => l!.LayerSourceOptions)
                                     .Include(v => v.VersionBasemaps)
                                         .ThenInclude(l => l.Basemap)
-                                        .ThenInclude(l => l.LayerSource)
-                                        .ThenInclude(l => l.LayerSourceType)
+                                        .ThenInclude(l => l!.LayerSource)
+                                        .ThenInclude(l => l!.LayerSourceType)
                                     .Include(v => v.VersionBasemaps)
                                         .ThenInclude(l => l.Basemap)
-                                        .ThenInclude(l => l.LayerSource)
-                                        .ThenInclude(l => l.Attribution)
+                                        .ThenInclude(l => l!.LayerSource)
+                                        .ThenInclude(l => l!.Attribution)
                                     .Include(v => v.VersionBasemaps)
                                         .ThenInclude(l => l.Basemap)
-                                        .ThenInclude(l => l.Bound)
+                                        .ThenInclude(l => l!.Bound)
                                     .Include(v => v.VersionCategories)
                                         .ThenInclude(v => v.Category)
-                                        .ThenInclude(c => c.Layers)
+                                        .ThenInclude(c => c!.Layers)
                                         .ThenInclude(cl => cl.Layer)
-                                        .ThenInclude(l => l.LayerSource)
-                                        .ThenInclude(ls => ls.LayerSourceOptions)
+                                        .ThenInclude(l => l!.LayerSource)
+                                        .ThenInclude(ls => ls!.LayerSourceOptions)
                                     .Include(v => v.VersionCategories)
                                         .ThenInclude(v => v.Category)
-                                        .ThenInclude(c => c.Layers)
+                                        .ThenInclude(c => c!.Layers)
                                         .ThenInclude(cl => cl.Layer)
-                                        .ThenInclude(l => l.LayerSource)
-                                        .ThenInclude(l => l.LayerSourceType)
+                                        .ThenInclude(l => l!.LayerSource)
+                                        .ThenInclude(l => l!.LayerSourceType)
                                     .Include(v => v.VersionCategories)
                                         .ThenInclude(v => v.Category)
-                                        .ThenInclude(c => c.Layers)
+                                        .ThenInclude(c => c!.Layers)
                                         .ThenInclude(cl => cl.Layer)
-                                        .ThenInclude(l => l.LayerSource)
-                                        .ThenInclude(l => l.Attribution)
+                                        .ThenInclude(l => l!.LayerSource)
+                                        .ThenInclude(l => l!.Attribution)
                                     .AsSplitQuery()
                                     .AsNoTrackingWithIdentityResolution()
                                     .FirstOrDefault(v => v.Id == versionId);
@@ -129,7 +137,7 @@ namespace GIFrameworkMaps.Data
                 if (version is not null && String.IsNullOrEmpty(version.HelpURL))
                 {
                     var generalVersion = GetVersionBySlug("general", "", "");
-                    version.HelpURL = generalVersion.HelpURL;
+                    version.HelpURL = generalVersion!.HelpURL;
                 }
 
 
@@ -139,9 +147,8 @@ namespace GIFrameworkMaps.Data
             }
         }
 
-        public Models.ViewModels.VersionViewModel GetVersionViewModel(int id)
+        public Models.ViewModels.VersionViewModel GetVersionViewModel(Models.Version version)
         {
-            var version = GetVersion(id);
 
             List<Data.Models.ViewModels.BasemapViewModel> basemaps =
                 _mapper.Map<List<Data.Models.VersionBasemap>, List<Data.Models.ViewModels.BasemapViewModel>>(version.VersionBasemaps);
@@ -167,7 +174,7 @@ namespace GIFrameworkMaps.Data
         public bool CanUserAccessVersion(string userId, int versionId)
         {
             var version = GetVersion(versionId);
-            if (!version.RequireLogin)
+            if (version != null && !version.RequireLogin)
             {
                 return true;
             }
@@ -183,9 +190,9 @@ namespace GIFrameworkMaps.Data
             string cacheKey = $"UserRole/{userId}";
 
             // Check to see if the version has already been cached and, if so, return that.
-            if (_memoryCache.TryGetValue(cacheKey, out List<ApplicationUserRole> cacheValue))
+            if (_memoryCache.TryGetValue(cacheKey, out List<ApplicationUserRole>? cacheValue))
             {
-                return cacheValue;
+                return cacheValue!;
             }
             var roles = _context.ApplicationUserRoles
                 .Where(u => u.UserId == userId)
@@ -202,11 +209,11 @@ namespace GIFrameworkMaps.Data
 
         public List<WebLayerServiceDefinition> GetWebLayerServiceDefinitions()
         {
-            bool includeAdminDefinitions = _httpContextAccessor.HttpContext.User.IsInRole("GIFWAdmin");
+            bool includeAdminDefinitions = _httpContextAccessor.HttpContext!.User.IsInRole("GIFWAdmin");
             string cacheKey = $"WebLayerServiceDefinitions/{includeAdminDefinitions}";
-            if (_memoryCache.TryGetValue(cacheKey, out List<WebLayerServiceDefinition> cacheValue))
+            if (_memoryCache.TryGetValue(cacheKey, out List<WebLayerServiceDefinition>? cacheValue))
             {
-                return cacheValue;
+                return cacheValue!;
             }
 
             var services = _context.WebLayerServiceDefinitions.AsNoTracking().ToList();
@@ -227,9 +234,13 @@ namespace GIFrameworkMaps.Data
         public List<ProxyAllowedHost> GetProxyAllowedHosts()
         {
             string cacheKey = $"ProxyAllowedHosts";
-            if (_memoryCache.TryGetValue(cacheKey, out List<ProxyAllowedHost> cacheValue))
+            if (_memoryCache.TryGetValue(cacheKey, out List<ProxyAllowedHost>? cacheValue))
             {
-                return cacheValue;
+                if(cacheValue != null)
+                {
+                    return cacheValue;
+                }
+                
             }
 
             var allowedHosts = _context.ProxyAllowedHosts.AsNoTracking().ToList();
@@ -245,9 +256,9 @@ namespace GIFrameworkMaps.Data
         public async Task<List<ProxyAllowedHost>> GetProxyAllowedHostsAsync()
         {
             string cacheKey = $"ProxyAllowedHosts";
-            if (_memoryCache.TryGetValue(cacheKey, out List<ProxyAllowedHost> cacheValue))
+            if (_memoryCache.TryGetValue(cacheKey, out List<ProxyAllowedHost>? cacheValue))
             {
-                return cacheValue;
+                return cacheValue!;
             }
 
             var allowedHosts = await _context.ProxyAllowedHosts.AsNoTracking().ToListAsync();
@@ -289,16 +300,16 @@ namespace GIFrameworkMaps.Data
                 _logger.LogError("Could not generate a unique short id for url {url} after {maxIterations} tries",
                     //Sanitise user input to prevent log forging
                     url.Replace(Environment.NewLine, ""), maxIterations);
-                return null;
+                return "";
             }
         }
 
         public async Task<string> GetFullUrlFromShortId(string shortId)
         {
             var shortLink = await _context.ShortLink.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
-            if(shortLink == null)
+            if(shortLink == null || shortLink.FullUrl == null)
             {
-                return null;
+                return "";
             }
             return shortLink.FullUrl;
         }
@@ -309,7 +320,7 @@ namespace GIFrameworkMaps.Data
             var host = uri.Host;
             var port = uri.Port;
             var scheme = uri.Scheme;
-            var currentHost = _httpContextAccessor.HttpContext.Request.Host.Host;
+            var currentHost = _httpContextAccessor.HttpContext!.Request.Host.Host;
             var currentPort = _httpContextAccessor.HttpContext.Request.Host.Port;
             var currentScheme = _httpContextAccessor.HttpContext.Request.Scheme;
             //port is ignored if not specified in the http context

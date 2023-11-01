@@ -9,7 +9,7 @@ namespace GIFrameworkMaps.Data.Models.ViewModels.Management
 {
     public class VersionAddContactModel
     {
-        public VersionContact ContactEntry { get; set; }
-        public UserCollectionResponse ListOfUsers { get; set; }
+        public VersionContact? ContactEntry { get; set; }
+        public UserCollectionResponse? ListOfUsers { get; set; }
     }
 }

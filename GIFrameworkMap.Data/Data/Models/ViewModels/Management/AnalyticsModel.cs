@@ -20,11 +20,11 @@ namespace GIFrameworkMaps.Data.Models.ViewModels.Management
 
     public class AnalyticsEditModel
     {
-        public AnalyticsDefinition analyticDefinition { get; set; }
-        public SelectList availableProducts { get; set; }
-        public SelectList availableCookieControl { get; set; }
+        public AnalyticsDefinition? analyticDefinition { get; set; }
+        public SelectList? availableProducts { get; set; }
+        public SelectList? availableCookieControl { get; set; }
 
-        public List<int> SelectedVersions { get; set; }
-        public List<Version> AvailableVersions { get; set; }
+        public List<int> SelectedVersions { get; set; } = new();
+        public List<Version> AvailableVersions { get; set; } = new();
     }
 }

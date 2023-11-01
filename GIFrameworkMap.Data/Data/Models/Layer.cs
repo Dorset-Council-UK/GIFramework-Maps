@@ -12,7 +12,7 @@ namespace GIFrameworkMaps.Data.Models
     {
         public int Id { get; set; }
         [MaxLength(200)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         [Display(Name = "Minimum viewable zoom level (optional)")]
         public int? MinZoom { get; set; }
         [Display(Name = "Maximum viewable zoom level (optional)")]
@@ -41,7 +41,7 @@ namespace GIFrameworkMaps.Data.Models
         [Display(Name = "Proxy Map Requests")]
         public bool ProxyMapRequests { get; set; }
         public int LayerSourceId { get; set; }
-        public LayerSource LayerSource { get; set; }
+        public LayerSource? LayerSource { get; set; }
         //public virtual List<Category> Categories { get; set; }
 
     }

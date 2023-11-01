@@ -187,7 +187,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
                 var editModel = new VersionEditModel() { Version = version };
                 RebuildViewModel(ref editModel, version);
-                editModel.UserDetails = new Dictionary<string, Microsoft.Graph.Beta.Models.User>();
                 foreach (var v in editModel.Version.VersionContacts)
                 {
                     editModel.UserDetails.Add(v.UserId, await _repository.GetUser(v.UserId));
@@ -334,15 +333,14 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private void UpdateVersionBasemaps(int[] selectedBasemaps, int defaultBasemap, Data.Models.Version versionToUpdate)
         {
-            if (selectedBasemaps == null)
+            if (!selectedBasemaps.Any())
             {
-                versionToUpdate.VersionBasemaps = new List<VersionBasemap>();
                 return;
             }
 
             var selectedBasemapsHS = new HashSet<int>(selectedBasemaps);
             var versionBasemaps = new HashSet<int>();
-            if(versionToUpdate.VersionBasemaps != null)
+            if(selectedBasemaps.Any())
             {
                 versionBasemaps = new HashSet<int>(versionToUpdate.VersionBasemaps.Select(c => c.BasemapId));
             }
@@ -352,11 +350,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 if (selectedBasemapsHS.Contains(basemap.Id))
                 {
                     if (!versionBasemaps.Contains(basemap.Id))
-                    {
-                        if(versionToUpdate.VersionBasemaps == null)
-                        {
-                            versionToUpdate.VersionBasemaps = new List<VersionBasemap>();
-                        }
+                    {                        
                         versionToUpdate.VersionBasemaps.Add(new VersionBasemap { 
                             VersionId = versionToUpdate.Id, 
                             BasemapId = basemap.Id, 
@@ -389,15 +383,14 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private void UpdateVersionCategories(int[] selectedCategories, Data.Models.Version versionToUpdate)
         {
-            if (selectedCategories == null)
+            if (!selectedCategories.Any())
             {
-                versionToUpdate.VersionCategories = new List<VersionCategory>();
                 return;
             }
 
             var selectedCategoriesHS = new HashSet<int>(selectedCategories);
             var versionCategories = new HashSet<int>();
-            if (versionToUpdate.VersionCategories != null)
+            if (versionToUpdate.VersionCategories.Any())
             {
                 versionCategories = new HashSet<int>(versionToUpdate.VersionCategories.Select(c => c.CategoryId));
             }
@@ -408,10 +401,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     if (!versionCategories.Contains(category.Id))
                     {
-                        if (versionToUpdate.VersionCategories == null)
-                        {
-                            versionToUpdate.VersionCategories = new List<VersionCategory>();
-                        }
                         versionToUpdate.VersionCategories.Add(new VersionCategory
                         {
                             VersionId = versionToUpdate.Id,
@@ -451,7 +440,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 model.DefaultBasemap = version.VersionBasemaps.Where(v => v.IsDefault == true).Select(v => v.BasemapId).FirstOrDefault();
             }
             model.AvailableCategories = categories;
-            if (version.VersionCategories != null)
+            if (version.VersionCategories.Any())
             {
                 model.SelectedCategories = version.VersionCategories.Select(c => c.CategoryId).ToList();
             }

@@ -36,7 +36,7 @@ namespace GIFrameworkMaps.Web.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> SignInWithRedirect(string redirectUri)
         {
-            StringWriter decodedStringWriter = new StringWriter();
+            StringWriter decodedStringWriter = new();
             string decodedString;
             // Decode the encoded string.
             HttpUtility.HtmlDecode(redirectUri, decodedStringWriter);
@@ -57,7 +57,7 @@ namespace GIFrameworkMaps.Web.Controllers
                 });
                 await _context.SaveChangesAsync();
 
-                Uri shortLink = new Uri(Url.RouteUrl("UserShortLink", new { id = shortId }, Request.Scheme));
+                Uri shortLink = new(Url.RouteUrl("UserShortLink", new { id = shortId }, Request.Scheme));
 
                 string relativeShortLink = shortLink.IsAbsoluteUri ? shortLink.PathAndQuery : shortLink.OriginalString;
 

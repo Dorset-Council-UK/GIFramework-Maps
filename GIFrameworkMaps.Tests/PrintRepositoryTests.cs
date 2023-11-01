@@ -15,7 +15,6 @@ namespace GIFrameworkMaps.Tests
 {
     public class PrintRepositoryTests
     {
-        private ILogger<PrintRepository> _logger;
         private PrintRepository sut;
 
         [OneTimeSetUp]
@@ -28,9 +27,6 @@ namespace GIFrameworkMaps.Tests
                .BuildServiceProvider();
 
             var factory = serviceProvider.GetService<ILoggerFactory>();
-
-            _logger = factory.CreateLogger<PrintRepository>();
-            var mockLogger = new Mock<ILogger>();
 
             var versions = new List<Version>
             {
@@ -61,7 +57,7 @@ namespace GIFrameworkMaps.Tests
             var mockMemoryCache = new MemoryCache(new MemoryCacheOptions()); ;
             /* TO DO: Add some parameters to the mockMemoryCache? */
 
-            sut = new PrintRepository(_logger, mockApplicationDbContext.Object, mockMemoryCache);
+            sut = new PrintRepository(mockApplicationDbContext.Object, mockMemoryCache);
         }
 
         [SetUp]

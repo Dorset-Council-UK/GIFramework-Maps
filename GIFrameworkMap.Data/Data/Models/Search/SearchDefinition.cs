@@ -11,14 +11,14 @@ namespace GIFrameworkMaps.Data.Models.Search
         public int Id { get; set; }
 
         [MaxLength(200)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [MaxLength(200)]
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         [MaxLength(1000)]
         [DisplayName("Attribution HTML (optional)")]
-        public string AttributionHtml { get; set; }
+        public string? AttributionHtml { get; set; }
 
         [DisplayName("Maximum number of results to return")]
         public int? MaxResults { get; set; }
@@ -29,7 +29,7 @@ namespace GIFrameworkMaps.Data.Models.Search
         public int EPSG { get; set; }
 
         [DisplayName("Validation regex code (leave blank for no validation)")]
-        public string ValidationRegex { get; set; }
+        public string? ValidationRegex { get; set; }
 
         public bool SupressGeom { get; set; }
     }

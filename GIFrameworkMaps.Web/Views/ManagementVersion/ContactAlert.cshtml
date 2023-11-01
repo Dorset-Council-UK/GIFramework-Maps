@@ -30,10 +30,11 @@
     You can add a list of contacts for this version below and specify whether or not they should recieve messages relating to this version.
  </p>
 
-@if (Model.Version.VersionContacts != null)
+@if (Model.Version.VersionContacts.Any())
 {
     <a href="@Url.Action("AddContact", "ManagementVersion",new {Id = Model.Version.Id})" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add a contact entry</a>
     <a href="mailto:@(mailingList)?subject=Re:%20DorsetExplorer%20version%20=%20@(Model.Version.Name)" class="btn btn-primary float-end"><i class="bi bi-envelope-at"></i> Draft an email</a>
+    @if (Model.Version.VersionContacts.Count > 0){
     <table id="userTable" class="table table-bordered table-striped mt-2">
         <thead>
             <tr>
@@ -45,41 +46,41 @@
             </tr>
         </thead>
         <tbody>
-            @if (Model.Version.VersionContacts.Count > 0)
+            @foreach (var user in Model.Version.VersionContacts.OrderBy(u => u.DisplayName))
             {
-                foreach (var user in Model.Version.VersionContacts.OrderBy(u => u.DisplayName))
+                User currentUser = Model.UserDetails.FirstOrDefault(u => u.Key == user.UserId).Value;
+                if (currentUser != null)
                 {
-                    User? currentUser = Model.UserDetails.Where(u => u.Key == user.UserId).ToList().Count() == 1 ? Model.UserDetails.FirstOrDefault(u => u.Key == user.UserId).Value : null;
-                    if (currentUser != null)
-                    {
-                        <tr>
-                            <td>@Html.ActionLink("Edit entry", "EditContact",new {Id = Model.Version.Id, VersionContactId = user.VersionContactId})</td>
-                            <td>@Html.ActionLink(user.DisplayName, "Edit", "ManagementUser", new { id = currentUser.Id })</td>
-                            <td>
-                                @foreach (var mail in currentUser.OtherMails)
-                                {
-                                    @mail
+                    <tr>
+                        <td>@Html.ActionLink("Edit entry", "EditContact",new {Id = Model.Version.Id, VersionContactId = user.VersionContactId})</td>
+                        <td>@Html.ActionLink(user.DisplayName, "Edit", "ManagementUser", new { id = currentUser.Id })</td>
+                        <td>
+                            @foreach (var mail in currentUser.OtherMails)
+                            {
+                                @mail
 
-                                    <br />
-                                }
-                            </td>
-                            @if (user.Enabled)
-                            {
-                                <td><span class="badge bg-success">Yes</span></td>
-                            } else
-                            {
-                                <td></td>
+                                <br />
                             }
-                            <td>@Html.ActionLink("Remove entry", "DeleteContact",new {Id = Model.Version.Id, VersionContactId = user.VersionContactId}, new {@Class="text-danger"})</td>
-                        </tr>
-                    }
+                        </td>
+                        @if (user.Enabled)
+                        {
+                            <td><span class="badge bg-success">Yes</span></td>
+                        } else
+                        {
+                            <td></td>
+                        }
+                        <td>@Html.ActionLink("Remove entry", "DeleteContact",new {Id = Model.Version.Id, VersionContactId = user.VersionContactId}, new {@Class="text-danger"})</td>
+                    </tr>
                 }
-            } else
-            {
-                <div class="alert alert-info mt-1">There are no users are associated with this version yet</div>
             }
+
         </tbody>
     </table>
+    }
+    else
+    {
+        <div class="alert alert-info mt-1">There are no users are associated with this version yet</div>
+    }
 }
 else
 {

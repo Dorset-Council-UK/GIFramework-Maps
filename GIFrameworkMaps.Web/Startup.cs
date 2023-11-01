@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 using Yarp.ReverseProxy.Transforms;
 using GIFrameworkMaps.Data.Models;
+using System.Threading;
 
 namespace GIFrameworkMaps.Web
 {
@@ -190,8 +191,7 @@ namespace GIFrameworkMaps.Web
                 endpoints.Map("/proxy", async httpContext =>
                 {
                     var queryContext = new QueryTransformContext(httpContext.Request);
-                    Microsoft.Extensions.Primitives.StringValues url;
-                    if (queryContext.Collection.TryGetValue("url", out url))
+                    if (queryContext.Collection.TryGetValue("url", out Microsoft.Extensions.Primitives.StringValues url))
                     {
                         var error = await forwarder.SendAsync(httpContext, url, httpClient, requestOptions, transformer);
                         // Check if the proxy operation was successful
@@ -201,7 +201,7 @@ namespace GIFrameworkMaps.Web
                             var exception = errorFeature.Exception;
                         }
                     }
-                    
+
                 });
 
                 endpoints.MapHub<BroadcastHub>("/broadcasthub");
@@ -211,166 +211,163 @@ namespace GIFrameworkMaps.Web
 
         private static void SeedDatabase(IApplicationBuilder app)
         {
-            using (var scope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            using var scope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
+            //scope.ServiceProvider.GetRequiredService<IdentityServer4.EntityFramework.DbContexts.PersistedGrantDbContext>().Database.Migrate();
+            //scope.ServiceProvider.GetRequiredService<IdentityServer4.EntityFramework.DbContexts.ConfigurationDbContext>().Database.Migrate();
+            //scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
+
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            if (!context.Versions.Any())
             {
-                //scope.ServiceProvider.GetRequiredService<IdentityServer4.EntityFramework.DbContexts.PersistedGrantDbContext>().Database.Migrate();
-                //scope.ServiceProvider.GetRequiredService<IdentityServer4.EntityFramework.DbContexts.ConfigurationDbContext>().Database.Migrate();
-                //scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
 
-                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                if (!context.Versions.Any())
+                var ukBound = new Data.Models.Bound
                 {
+                    Name = "UK",
+                    Description = "The extent of the United Kingdom plus a little extra to the east and a little less from the northern isles",
+                    BottomLeftX = -1226886,
+                    BottomLeftY = 6301670,
+                    TopRightX = 265865,
+                    TopRightY = 8405431
+                };
+                var globalBound = new Data.Models.Bound
+                {
+                    Name = "Global",
+                    Description = "The extent of the whole world",
+                    BottomLeftX = -20037508,
+                    BottomLeftY = -20037508,
+                    TopRightX = 20037508,
+                    TopRightY = 20037508
+                };
+                var theme = new Data.Models.Theme
+                {
+                    Name = "Default",
+                    Description = "The default style",
+                    PrimaryColour = "05476d",
+                    LogoURL = "https://static.geowessex.com/explorer/dorsetexplorer-assets/giframework-maps-icon.svg"
+                };
 
+                var version = new Data.Models.Version
+                {
+                    Name = "General",
+                    Description = "The general version",
+                    RequireLogin = false,
+                    ShowLogin = true,
+                    Enabled = true,
+                    Slug = "general",
+                    Bound = ukBound,
+                    Theme = theme
+                };
 
-                    var ukBound = new Data.Models.Bound
-                    {
-                        Name = "UK",
-                        Description = "The extent of the United Kingdom plus a little extra to the east and a little less from the northern isles",
-                        BottomLeftX = -1226886,
-                        BottomLeftY = 6301670,
-                        TopRightX = 265865,
-                        TopRightY = 8405431
-                    };
-                    var globalBound = new Data.Models.Bound
-                    {
-                        Name = "Global",
-                        Description = "The extent of the whole world",
-                        BottomLeftX = -20037508,
-                        BottomLeftY = -20037508,
-                        TopRightX = 20037508,
-                        TopRightY = 20037508
-                    };
-                    var theme = new Data.Models.Theme
-                    {
-                        Name = "Default",
-                        Description = "The default style",
-                        PrimaryColour = "05476d",
-                        LogoURL = "https://static.geowessex.com/explorer/dorsetexplorer-assets/giframework-maps-icon.svg"
-                    };
+                context.Versions.Add(version);
 
-                    var version = new Data.Models.Version
-                    {
-                        Name = "General",
-                        Description = "The general version",
-                        RequireLogin = false,
-                        ShowLogin = true,
-                        Enabled = true,
-                        Slug = "general",
-                        Bound = ukBound,
-                        Theme = theme
-                    };
+                if (!context.SearchDefinitions.Any())
+                {
+                    SeedDatabaseWithSearchDefinitions(ref context, ref version);
 
-                    context.Versions.Add(version);
-
-                    if (!context.SearchDefinitions.Any())
-                    {
-                        SeedDatabaseWithSearchDefinitions(ref context, ref version);
-
-                    }
-
-                    var printConfig = new Data.Models.Print.PrintConfiguration
-                    {
-                        Name = "Default",
-                        LogoURL = "https://static.geowessex.com/explorer/dorsetexplorer-assets/print-logos/dc-logo-colour-with-clearzone.png"
-                    };
-                    context.VersionPrintConfiguration.Add(new Data.Models.VersionPrintConfiguration
-                    {
-                        Version = version,
-                        PrintConfiguration = printConfig
-                    });
-
-                    if (!context.Basemap.Any())
-                    {
-                        var osmLayerSource = new Data.Models.LayerSource
-                        {
-                            Name = "OpenStreetMap",
-                            Description = "OpenStreetMap is a free map of the world created and run by volunteers. Note this layer should NOT be used for high usage workloads as it uses the free OpenStreetMap tile server.",
-                            Attribution = new Data.Models.Attribution { Name = "OpenStreetMap", AttributionHTML = "© <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors, CC-BY-SA" },
-                            LayerSourceType = new Data.Models.LayerSourceType { Name = "XYZ", Description = "Layer sources using the XYZ tile scheme. Similar to TMS." },
-                            LayerSourceOptions = new List<Data.Models.LayerSourceOption> { new Data.Models.LayerSourceOption { Name = "url", Value = "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png" } }
-                        };
-
-                        var osmLayer = new Data.Models.Basemap { LayerSource = osmLayerSource, Name = "OpenStreetMap", Bound = globalBound, MinZoom = 2, MaxZoom = 18 };
-                        version.VersionBasemaps = new List<Data.Models.VersionBasemap>() { new Data.Models.VersionBasemap { Basemap = osmLayer, IsDefault = true, DefaultOpacity = 100, DefaultSaturation = 100 } };
-
-                    }
-                    context.SaveChanges();
                 }
 
+                var printConfig = new Data.Models.Print.PrintConfiguration
+                {
+                    Name = "Default",
+                    LogoURL = "https://static.geowessex.com/explorer/dorsetexplorer-assets/print-logos/dc-logo-colour-with-clearzone.png"
+                };
+                context.VersionPrintConfiguration.Add(new Data.Models.VersionPrintConfiguration
+                {
+                    Version = version,
+                    PrintConfiguration = printConfig
+                });
 
+                if (!context.Basemap.Any())
+                {
+                    var osmLayerSource = new Data.Models.LayerSource
+                    {
+                        Name = "OpenStreetMap",
+                        Description = "OpenStreetMap is a free map of the world created and run by volunteers. Note this layer should NOT be used for high usage workloads as it uses the free OpenStreetMap tile server.",
+                        Attribution = new Data.Models.Attribution { Name = "OpenStreetMap", AttributionHTML = "© <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors, CC-BY-SA" },
+                        LayerSourceType = new Data.Models.LayerSourceType { Name = "XYZ", Description = "Layer sources using the XYZ tile scheme. Similar to TMS." },
+                        LayerSourceOptions = new List<Data.Models.LayerSourceOption> { new Data.Models.LayerSourceOption { Name = "url", Value = "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png" } }
+                    };
 
+                    var osmLayer = new Data.Models.Basemap { LayerSource = osmLayerSource, Name = "OpenStreetMap", Bound = globalBound, MinZoom = 2, MaxZoom = 18 };
+                    version.VersionBasemaps = new List<Data.Models.VersionBasemap>() { new Data.Models.VersionBasemap { Basemap = osmLayer, IsDefault = true, DefaultOpacity = 100, DefaultSaturation = 100 } };
+
+                }
+                context.SaveChanges();
             }
         }
 
         private static void SeedDatabaseWithSearchDefinitions(ref ApplicationDbContext context, ref Data.Models.Version version)
         {
-            var searchDefs = new List<Data.Models.Search.SearchDefinition>();
-            searchDefs.Add(new Data.Models.Search.LocalSearchDefinition
+            var searchDefs = new List<Data.Models.Search.SearchDefinition>
             {
-                Name = "Coordinates - BNG 12 Figure",
-                Title = "British National Grid Coordinates",
-                MaxResults = 1,
-                EPSG = 27700,
-                SupressGeom = false,
-                ValidationRegex = @"^(\d{1,3}),(\d{3})(\.\d+)?(\s+)(\d{1},)?(\d{1,3}),(\d{3})(\.\d+)?$|^(\d{1,6})(\.\d+)?(\s+|,\s*)(\d{1,7})(\.\d+)?$",
-                LocalSearchName = "BNG12Figure",
-                ZoomLevel = 18
-            });
-            searchDefs.Add(new Data.Models.Search.LocalSearchDefinition
-            {
-                Name = "Coordinates - BNG Alphanumeric",
-                Title = "British National Grid Coordinates",
-                MaxResults = 1,
-                EPSG = 27700,
-                SupressGeom = false,
-                ValidationRegex = @"^([STNHOstnho][A-Za-z]\s?)(\d{5}\s?\d{5}|\d{4}\s?\d{4}|\d{3}\s?\d{3}|\d{2}\s?\d{2}|\d{1}\s?\d{1})$",
-                LocalSearchName = "BNGAlphaNumeric",
-                ZoomLevel = 18
-            });
-            searchDefs.Add(new Data.Models.Search.LocalSearchDefinition
-            {
-                Name = "Coordinates - Latitude/Longitude Decimal",
-                Title = "Latitude/Longitude",
-                MaxResults = 1,
-                EPSG = 4326,
-                SupressGeom = false,
-                ValidationRegex = @"^(-?\d+(\.\d+)?)\s*,*\s*(-?\d+(\.\d+)?)$",
-                LocalSearchName = "LatLonDecimal",
-                ZoomLevel = 18
-            });
-            searchDefs.Add(new Data.Models.Search.LocalSearchDefinition
-            {
-                Name = "Coordinates - Lat/Lon Degrees Minutes Seconds",
-                Title = "Latitude/Longitude",
-                MaxResults = 1,
-                EPSG = 4326,
-                SupressGeom = false,
-                ValidationRegex = "^([0-8]?[0-9]|90)°?(\\s[0-5]?[0-9]['′]?)?(\\s[0-5]?[0-9](.[0-9]+)?[\"″]?)?\\s?([NSns])\\s+([0-8]?[0-9]|90)°?(\\s[0-5]?[0-9]['′]?)?(\\s[0-5]?[0-9](.[0-9]+)?[\"″]?)?\\s?([EWew])$",
-                LocalSearchName = "LatLonDMS",
-                ZoomLevel = 18
-            });
-            searchDefs.Add(new Data.Models.Search.LocalSearchDefinition
-            {
-                Name = "Plus Codes",
-                Title = "Plus Code",
-                AttributionHtml = "<a href=\"https://maps.google.com/pluscodes/learn/\" target=\"_blank\" rel=\"noopener\" title=\"Learn more about Plus Codes\"><img src=\"https://static.dev.geowessex.com/explorer/dorsetexplorer-assets/third-party/pluscodes_lockup.png\" width=\"100\"/></a>",
-                MaxResults = 1,
-                EPSG = 4326,
-                SupressGeom = false,
-                LocalSearchName = "PlusCode",
-                ZoomLevel = 18
-            });
-            searchDefs.Add(new Data.Models.Search.LocalSearchDefinition
-            {
-                Name = "Coordinates - Spherical Mercator",
-                Title = "Spherical Mercator Coordinate",
-                MaxResults = 1,
-                EPSG = 3857,
-                SupressGeom = false,
-                LocalSearchName = "SphericalMercator",
-                ZoomLevel = 18
-            });
+                new Data.Models.Search.LocalSearchDefinition
+                {
+                    Name = "Coordinates - BNG 12 Figure",
+                    Title = "British National Grid Coordinates",
+                    MaxResults = 1,
+                    EPSG = 27700,
+                    SupressGeom = false,
+                    ValidationRegex = @"^(\d{1,3}),(\d{3})(\.\d+)?(\s+)(\d{1},)?(\d{1,3}),(\d{3})(\.\d+)?$|^(\d{1,6})(\.\d+)?(\s+|,\s*)(\d{1,7})(\.\d+)?$",
+                    LocalSearchName = "BNG12Figure",
+                    ZoomLevel = 18
+                },
+                new Data.Models.Search.LocalSearchDefinition
+                {
+                    Name = "Coordinates - BNG Alphanumeric",
+                    Title = "British National Grid Coordinates",
+                    MaxResults = 1,
+                    EPSG = 27700,
+                    SupressGeom = false,
+                    ValidationRegex = @"^([STNHOstnho][A-Za-z]\s?)(\d{5}\s?\d{5}|\d{4}\s?\d{4}|\d{3}\s?\d{3}|\d{2}\s?\d{2}|\d{1}\s?\d{1})$",
+                    LocalSearchName = "BNGAlphaNumeric",
+                    ZoomLevel = 18
+                },
+                new Data.Models.Search.LocalSearchDefinition
+                {
+                    Name = "Coordinates - Latitude/Longitude Decimal",
+                    Title = "Latitude/Longitude",
+                    MaxResults = 1,
+                    EPSG = 4326,
+                    SupressGeom = false,
+                    ValidationRegex = @"^(-?\d+(\.\d+)?)\s*,*\s*(-?\d+(\.\d+)?)$",
+                    LocalSearchName = "LatLonDecimal",
+                    ZoomLevel = 18
+                },
+                new Data.Models.Search.LocalSearchDefinition
+                {
+                    Name = "Coordinates - Lat/Lon Degrees Minutes Seconds",
+                    Title = "Latitude/Longitude",
+                    MaxResults = 1,
+                    EPSG = 4326,
+                    SupressGeom = false,
+                    ValidationRegex = "^([0-8]?[0-9]|90)°?(\\s[0-5]?[0-9]['′]?)?(\\s[0-5]?[0-9](.[0-9]+)?[\"″]?)?\\s?([NSns])\\s+([0-8]?[0-9]|90)°?(\\s[0-5]?[0-9]['′]?)?(\\s[0-5]?[0-9](.[0-9]+)?[\"″]?)?\\s?([EWew])$",
+                    LocalSearchName = "LatLonDMS",
+                    ZoomLevel = 18
+                },
+                new Data.Models.Search.LocalSearchDefinition
+                {
+                    Name = "Plus Codes",
+                    Title = "Plus Code",
+                    AttributionHtml = "<a href=\"https://maps.google.com/pluscodes/learn/\" target=\"_blank\" rel=\"noopener\" title=\"Learn more about Plus Codes\"><img src=\"https://static.dev.geowessex.com/explorer/dorsetexplorer-assets/third-party/pluscodes_lockup.png\" width=\"100\"/></a>",
+                    MaxResults = 1,
+                    EPSG = 4326,
+                    SupressGeom = false,
+                    LocalSearchName = "PlusCode",
+                    ZoomLevel = 18
+                },
+                new Data.Models.Search.LocalSearchDefinition
+                {
+                    Name = "Coordinates - Spherical Mercator",
+                    Title = "Spherical Mercator Coordinate",
+                    MaxResults = 1,
+                    EPSG = 3857,
+                    SupressGeom = false,
+                    LocalSearchName = "SphericalMercator",
+                    ZoomLevel = 18
+                }
+            };
             int order = 10;
             foreach(Data.Models.Search.SearchDefinition def in searchDefs)
             {
@@ -388,7 +385,7 @@ namespace GIFrameworkMaps.Web
         }
         private class CustomTransformer : HttpTransformer
         {
-            IApplicationBuilder _app;
+            readonly IApplicationBuilder _app;
             public CustomTransformer(IApplicationBuilder app)
             {
                 _app = app;
@@ -396,10 +393,11 @@ namespace GIFrameworkMaps.Web
             public override async ValueTask TransformRequestAsync(
                 HttpContext httpContext,
                 HttpRequestMessage proxyRequest, 
-                string destinationPrefix)
+                string destinationPrefix,
+                CancellationToken cancellationToken)
             {
                 // Copy all request headers
-                await base.TransformRequestAsync(httpContext, proxyRequest, destinationPrefix);
+                await base.TransformRequestAsync(httpContext, proxyRequest, destinationPrefix, cancellationToken);
 
                 // Customize the query string:
                 var queryContext = new QueryTransformContext(httpContext.Request);
@@ -415,7 +413,7 @@ namespace GIFrameworkMaps.Web
                         allowedHosts = await repo.GetProxyAllowedHostsAsync();
                     }
                     string decodedUrl = System.Uri.UnescapeDataString(url);
-                    Uri requestUri = new Uri(decodedUrl);
+                    Uri requestUri = new(decodedUrl);
 
                     if(allowedHosts.FirstOrDefault(h => h.Host.ToLower() == requestUri.Host.ToLower()) == null){
                         return;

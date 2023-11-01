@@ -14,6 +14,6 @@ namespace GIFrameworkMaps.Data.Models
         public int DefaultOpacity { get; set; }
         public int DefaultSaturation { get; set; }
         public int SortOrder { get; set; }
-        public Basemap Basemap { get; set; }
+        public Basemap? Basemap { get; set; }
     }
 }
