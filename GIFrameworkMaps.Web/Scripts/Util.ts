@@ -624,12 +624,14 @@ export namespace Util {
     export class Mapping {
         static extractCustomHeadersFromLayerSource(layerSource: LayerSource): Headers {
             const customHeaders = new Headers();
-            if (layerSource.layerSourceOptions.find(l => l.name.toLowerCase() === 'headers')) {
-                const headersJson = JSON.parse(layerSource.layerSourceOptions.find(l => l.name.toLowerCase() === 'headers').value);
-                const keys = Util.Helper.getKeysFromObject(headersJson);
-                keys.forEach(key => {
-                    customHeaders.append(key, headersJson[key]);
-                });
+            if (layerSource && layerSource.layerSourceOptions) {
+                if (layerSource.layerSourceOptions.find(l => l.name.toLowerCase() === 'headers')) {
+                    const headersJson = JSON.parse(layerSource.layerSourceOptions.find(l => l.name.toLowerCase() === 'headers').value);
+                    const keys = Util.Helper.getKeysFromObject(headersJson);
+                    keys.forEach(key => {
+                        customHeaders.append(key, headersJson[key]);
+                    });
+                }
             }
             return customHeaders;
         }
