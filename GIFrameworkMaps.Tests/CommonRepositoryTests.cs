@@ -106,7 +106,6 @@ namespace GIFrameworkMaps.Tests
         [TestCase("VaLID", "VERSION", "tWo", ExpectedResult = "Valid Version Test 2")]
         public string GetVersionBySlug_ValidSlug(string slug1, string slug2, string slug3)
         {
-
             return sut.GetVersionBySlug(slug1, slug2, slug3).Name;
 
         }

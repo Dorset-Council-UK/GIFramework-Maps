@@ -11,7 +11,7 @@ namespace GIFrameworkMaps.Data.Models
     {
         public int Id { get; set;}
         [Required, MaxLength(50)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         [Required]
         public decimal X { get; set; }
         [Required]
@@ -19,6 +19,6 @@ namespace GIFrameworkMaps.Data.Models
         [Required, Range(0, 50)]
         public decimal Zoom { get; set; }
         [Required]
-        public string UserId { get; set; }
+        public string? UserId { get; set; }
     }
 }

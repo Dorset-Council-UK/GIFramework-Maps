@@ -7,7 +7,7 @@
         public bool Enabled { get; set; }
         public bool StopIfFound { get; set; }
         public int Order { get; set; }
-        public Version Version { get; set; }
-        public Search.SearchDefinition SearchDefinition { get; set; }
+        public Version? Version { get; set; }
+        public Search.SearchDefinition? SearchDefinition { get; set; }
     }
 }

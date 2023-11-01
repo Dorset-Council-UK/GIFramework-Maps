@@ -59,7 +59,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     editModel.SelectedVersions = selectedVersions.ToList();
                     editModel.analyticDefinition.DateModified = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
                     //Update the versions this analytic will apply to
-                    editModel.analyticDefinition.VersionAnalytics = new List<VersionAnalytic>();
                     foreach (int version in editModel.SelectedVersions)
                     {
                         editModel.analyticDefinition.VersionAnalytics.Add(new VersionAnalytic
@@ -185,7 +184,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             model.availableProducts = new SelectList(supportedProducts);
             model.availableCookieControl = new SelectList(supportedCookieControls);
             model.AvailableVersions = versions;
-            if (model.analyticDefinition.VersionAnalytics != null)
+            if (model.analyticDefinition.VersionAnalytics.Any())
             {
                 model.SelectedVersions = model.analyticDefinition.VersionAnalytics.Select(c => c.VersionId).ToList();
             }
@@ -195,9 +194,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         private void UpdateVersionAnalytics(AnalyticsEditModel editModel, AnalyticsDefinition _contextRecord)
         {
             //Update the versions this analytic will apply to
-            if (editModel.SelectedVersions == null)
+            if (!editModel.SelectedVersions.Any())
             {
-                editModel.AvailableVersions = new List<Data.Models.Version>();
                 return;
             }
 
@@ -206,7 +204,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             //Create a HashSet of the existing list from the database
             var analyticVersions = new HashSet<int>();
             var currentDefinition = _context.AnalyticsDefinitions.Include(ad => ad.VersionAnalytics).FirstOrDefault(a => a.Id == editModel.analyticDefinition.Id);
-            if (currentDefinition.VersionAnalytics != null)
+            if (currentDefinition.VersionAnalytics.Any())
             {
                 analyticVersions = new HashSet<int>(currentDefinition.VersionAnalytics.Select(c => c.VersionId));
             }
@@ -221,11 +219,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     {
                         //If it is selected but not in the database we add it
                         if (!analyticVersions.Contains(id))
-                        {
-                            if (_contextRecord.VersionAnalytics == null)
-                            {
-                                _contextRecord.VersionAnalytics = new List<VersionAnalytic>();
-                            }
+                        {                            
                             _contextRecord.VersionAnalytics.Add(new VersionAnalytic
                             {
                                 VersionId = id,

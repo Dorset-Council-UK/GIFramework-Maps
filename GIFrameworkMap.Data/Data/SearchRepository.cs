@@ -1,4 +1,5 @@
-﻿using GIFrameworkMaps.Data.Models;
+﻿using GIFrameworkMaps.Data;
+using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Search;
 using Google.OpenLocationCode;
 using Microsoft.AspNetCore.Http;
@@ -46,10 +47,10 @@ namespace GIFrameworkMaps.Data
             {                
                 string cacheKey = "SearchDefinitions/" + versionId.ToString();
 
-                // Check to see if the results of this search have already been cached and, if so, return that.
-                if (_memoryCache.TryGetValue(cacheKey, out List<VersionSearchDefinition> cacheValue))
+                if (_memoryCache.TryGetValue(cacheKey, out List<VersionSearchDefinition>? cacheValue))
                 {
-                    return cacheValue;
+                    //using null forgiving operator as if a value is found in the cache it must not be null
+                    return cacheValue!;
                 }
                 else
                 {
@@ -63,7 +64,7 @@ namespace GIFrameworkMaps.Data
                     if (searchDefs is null || searchDefs.Count == 0)
                     {
                         searchDefs = _context.VersionSearchDefinition
-                            .Where(v => v.Version.Slug == "general")
+                            .Where(v => v.Version!.Slug == "general")
                             .AsNoTrackingWithIdentityResolution()
                             .Include(v => v.SearchDefinition)
                             .ToList();
@@ -89,7 +90,7 @@ namespace GIFrameworkMaps.Data
         ///     <remarks></remarks>
         public SearchResults Search(string searchTerm, List<RequiredSearch> requiredSearchesList)
         {
-            SearchResults searchResults = new SearchResults();
+            SearchResults searchResults = new();
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
@@ -108,24 +109,24 @@ namespace GIFrameworkMaps.Data
                 {
                     if (reqSearch.Enabled)
                     {
-                        var defs = searchDefs.Where(d => d.SearchDefinitionId == reqSearch.SearchDefinitionId);
-                        if (defs is not null & defs.Count() > 0)
+                        IEnumerable<VersionSearchDefinition> defs = searchDefs.Where(d => d.SearchDefinitionId == reqSearch.SearchDefinitionId);
+                        if (defs.NotNullOrEmpty())
                         {
-                            var selectedDefinition = defs.First().SearchDefinition;
+                            var selectedDefinition = defs!.First().SearchDefinition;
                                                        
                             if(IsValidSearchTerm(selectedDefinition))
                             {
-                                SearchResultCategory searchResultCategory = new SearchResultCategory
+                                SearchResultCategory searchResultCategory = new()
                                 {
-                                    CategoryName = selectedDefinition.Title,
+                                    CategoryName = selectedDefinition!.Title,
                                     Ordering = reqSearch.Order,
-                                    AttributionHtml = selectedDefinition.AttributionHtml,
+                                    AttributionHtml = selectedDefinition!.AttributionHtml,
                                     SupressGeom = selectedDefinition.SupressGeom
                                 };
                                 try
                                 {
                                     var results = SingleSearch(searchTerm, selectedDefinition);
-                                    if (results is not null && results.Count() > 0)
+                                    if (results.NotNullOrEmpty())
                                     {
                                         searchResultCategory.Results = results;
                                         searchResults.ResultCategories.Add(searchResultCategory);
@@ -133,11 +134,11 @@ namespace GIFrameworkMaps.Data
                                 }catch(Exception ex)
                                 {
                                     //set the error flag as something went wrong. We still want to carry on with other searches though
-                                    _logger.LogError(ex,ex.Message);
+                                    _logger.LogError(ex,"Exception thrown executing search \"{definition}\"",selectedDefinition.Name);
                                     searchResults.IsError = true;
                                 }
                                 // Stop search now if flag set on current search and something found since last time flag set
-                                if (searchResultCategory.Results is not null && searchResultCategory.Results.Count > 0 & reqSearch.StopIfFound)
+                                if (searchResultCategory.Results.NotNullOrEmpty() & reqSearch.StopIfFound)
                                     break;
                             }
                         }
@@ -149,8 +150,11 @@ namespace GIFrameworkMaps.Data
 
 
             //A search term is valid if it's blank or it matches the Required Search's validation regular expression. 
-            bool IsValidSearchTerm(SearchDefinition selectedDefinition)
+            bool IsValidSearchTerm(SearchDefinition? selectedDefinition)
             {
+                if (selectedDefinition == null)
+                    return false;
+
                 if (!string.IsNullOrEmpty(selectedDefinition.ValidationRegex))
                 {
                     var validationRegex = new Regex(selectedDefinition.ValidationRegex);
@@ -176,18 +180,18 @@ namespace GIFrameworkMaps.Data
             if(apiSearchDefs.Any(d => d.Id == searchDefinition.Id))
             {
                 //API Search
-                var fullSearchDef = apiSearchDefs.Where(d => d.Id == searchDefinition.Id).FirstOrDefault();
+                var fullSearchDef = apiSearchDefs.Where(d => d.Id == searchDefinition.Id).First();
                 searchResults = APISearchAsync(searchTerm, fullSearchDef).Result;
             }
             else if(dbSearchDefs.Any(d => d.Id == searchDefinition.Id))
             {
                 //DB Search
-                var fullSearchDef = dbSearchDefs.Where(d => d.Id == searchDefinition.Id).FirstOrDefault();
+                var fullSearchDef = dbSearchDefs.Where(d => d.Id == searchDefinition.Id).First();
                 searchResults = DBSearch(searchTerm, fullSearchDef);
             }
             else if(localSearchDefs.Any(d => d.Id == searchDefinition.Id))
             {
-                var fullSearchDef = localSearchDefs.Where(d => d.Id == searchDefinition.Id).FirstOrDefault();
+                var fullSearchDef = localSearchDefs.Where(d => d.Id == searchDefinition.Id).First();
                 searchResults = LocalSearch(searchTerm, fullSearchDef);
             }
 
@@ -201,9 +205,9 @@ namespace GIFrameworkMaps.Data
         private List<APISearchDefinition> GetAPISearchDefinitions()
         {
             // Check to see if the results of this search have already been cached and, if so, return that.
-            if (_memoryCache.TryGetValue("APISearchDefinitions", out List<APISearchDefinition> cacheValue))
+            if (_memoryCache.TryGetValue("APISearchDefinitions", out List<APISearchDefinition>? cacheValue))
             {
-                return cacheValue;
+                return cacheValue!;
             }
             else
             {
@@ -226,9 +230,9 @@ namespace GIFrameworkMaps.Data
         private List<DatabaseSearchDefinition> GetDBSearchDefinitions()
         {
             // Check to see if the results of this search have already been cached and, if so, return that.
-            if (_memoryCache.TryGetValue("DBSearchDefinitions", out List<DatabaseSearchDefinition> cacheValue))
+            if (_memoryCache.TryGetValue("DBSearchDefinitions", out List<DatabaseSearchDefinition>? cacheValue))
             {
-                return cacheValue;
+                return cacheValue!;
             }
             else
             {
@@ -251,9 +255,9 @@ namespace GIFrameworkMaps.Data
         private List<LocalSearchDefinition> GetLocalSearchDefinitions()
         {
             // Check to see if the results of this search have already been cached and, if so, return that.
-            if (_memoryCache.TryGetValue("LocalSearchDefinitions", out List<LocalSearchDefinition> cacheValue))
+            if (_memoryCache.TryGetValue("LocalSearchDefinitions", out List<LocalSearchDefinition>? cacheValue))
             {
-                return cacheValue;
+                return cacheValue!;
             }
             else
             {
@@ -278,12 +282,14 @@ namespace GIFrameworkMaps.Data
         /// <returns>List of Search Results</returns>
         private async Task<List<SearchResult>> APISearchAsync(string searchTerm, APISearchDefinition searchDefinition)
         {
+            var results = new List<SearchResult>();
             //make a HTTP request to the defined search endpoint
+            //NOTE: Null forgiving operator used on URLTemplate as an API search def without a URL template is invalid
             var request = new HttpRequestMessage(HttpMethod.Get,
-                searchDefinition.URLTemplate.Replace("{{search}}", searchTerm));
+                searchDefinition.URLTemplate!.Replace("{{search}}", searchTerm));
 
             request.Headers.Add("User-Agent", "HttpClientFactory-GIFrameworkMaps");
-            var referer = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}";
+            var referer = $"{_httpContextAccessor.HttpContext!.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}";
             request.Headers.Add("Referer", referer);
                       
             var client = _httpClientFactory.CreateClient();
@@ -292,11 +298,9 @@ namespace GIFrameworkMaps.Data
             if (response.IsSuccessStatusCode)
             {                
                 var content = await response.Content.ReadAsStringAsync();
-             
-                var results = GetResultsFromJSONString(content, searchDefinition);
-                return results;
+                results = GetResultsFromJSONString(content, searchDefinition);
             }
-            return null;
+            return results;
         }
 
         /// <summary>
@@ -307,6 +311,10 @@ namespace GIFrameworkMaps.Data
         /// <returns>List of SearchResult</returns>
         internal static List<SearchResult> GetResultsFromJSONString(string content, APISearchDefinition searchDefinition)
         {
+            if(searchDefinition.TitleFieldPath == null)
+            {
+                throw new InvalidOperationException("Search definition does not have a title");
+            }
             var contentAsJSON = JToken.Parse(content);
 
             //extract paths from title field template
@@ -315,7 +323,7 @@ namespace GIFrameworkMaps.Data
             {
                 searchDefinition.TitleFieldPath
             };
-            Regex rx = HandlebarsPlaceholder();
+            Regex rx = HandlebarsPlaceholderRegEx();
             if (rx.IsMatch(searchDefinition.TitleFieldPath))
             {
                 var templateIndex = -1;
@@ -331,12 +339,13 @@ namespace GIFrameworkMaps.Data
             List<IList<JToken>> titleParts = new();
             foreach (var titlePath in titlePaths)
             {
-                IList<JToken> titlePart = null;
+                IList<JToken>? titlePart = null;
                 PopulateJTokenLists(ref titlePart, titlePath);
-                titleParts.Add(titlePart);
+                if(titlePart != null) { titleParts.Add(titlePart); }
+                
             }
 
-            IList<JToken> xCoords = null, yCoords = null, mbrXMinCoords = null, mbrYMinCoords = null, mbrXMaxCoords = null, mbrYMaxCoords = null, geom = null;
+            IList<JToken>? xCoords = null, yCoords = null, mbrXMinCoords = null, mbrYMinCoords = null, mbrXMaxCoords = null, mbrYMaxCoords = null, geom = null;
 
             PopulateJTokenLists(ref xCoords, searchDefinition.XFieldPath);
             PopulateJTokenLists(ref yCoords, searchDefinition.YFieldPath);
@@ -369,23 +378,23 @@ namespace GIFrameworkMaps.Data
                 //check whether we've received an X/Y
                 if (JTokensExist(xCoords, yCoords))
                 {
-                    result.X = decimal.Parse(xCoords[i].ToString());
-                    result.Y = decimal.Parse(yCoords[i].ToString());
+                    result.X = decimal.Parse(xCoords![i].ToString());
+                    result.Y = decimal.Parse(yCoords![i].ToString());
                 }
                 //check whether we've received an MBR
                 if (JTokensExist(mbrXMinCoords, mbrYMinCoords, mbrXMaxCoords, mbrYMaxCoords))
                 {
                     result.Bbox = new decimal[4] {
-                            decimal.Parse(mbrXMinCoords[i].ToString()),
-                            decimal.Parse(mbrYMinCoords[i].ToString()),
-                            decimal.Parse(mbrXMaxCoords[i].ToString()),
-                            decimal.Parse(mbrYMaxCoords[i].ToString())
+                            decimal.Parse(mbrXMinCoords![i].ToString()),
+                            decimal.Parse(mbrYMinCoords![i].ToString()),
+                            decimal.Parse(mbrXMaxCoords![i].ToString()),
+                            decimal.Parse(mbrYMaxCoords![i].ToString())
                         };
                 }
                 //check whether we've received a geom
                 if (JTokensExist(geom))
                 {
-                    result.Geom = geom[i].ToString();
+                    result.Geom = geom![i].ToString();
                 }               
 
                 results.Add(result);
@@ -393,7 +402,7 @@ namespace GIFrameworkMaps.Data
             }
             return results;
 
-            void PopulateJTokenLists(ref IList<JToken> tokens, string field)
+            void PopulateJTokenLists(ref IList<JToken>? tokens, string? field)
             {
                 //Only proceed if all of the fields are neither null nor blank.
                 if (!string.IsNullOrEmpty(field))
@@ -403,7 +412,7 @@ namespace GIFrameworkMaps.Data
                 }
             }
 
-            bool JTokensExist(params IList<JToken>[] tokens)
+            bool JTokensExist(params IList<JToken>?[] tokens)
             {
                 return tokens.All(t => t is not null && t.Any());
             }
@@ -418,10 +427,9 @@ namespace GIFrameworkMaps.Data
         private List<SearchResult> DBSearch(string searchTerm, DatabaseSearchDefinition searchDefinition)
         {
             List<DatabaseSearchResult> dbResults = GetDBSearchResults(searchTerm, searchDefinition);
-
-            if (dbResults is not null && dbResults.Count() > 0)
+            var results = new List<SearchResult>();
+            if (dbResults.NotNullOrEmpty())
             {
-                var results = new List<SearchResult>();
                 int ordering = 1;
                 foreach (var result in dbResults)
                 {
@@ -448,13 +456,11 @@ namespace GIFrameworkMaps.Data
                             Y = (decimal)result.YField.Value
                         });
                     }
-
                     ordering++;
                 }
-                return results;
             }
 
-            return null;
+            return results;
         }
 
         /// <summary>
@@ -467,7 +473,8 @@ namespace GIFrameworkMaps.Data
         {
             //sort out the params
             var searchParams = new List<Npgsql.NpgsqlParameter>();
-            string parameterizedWhereClause = searchDefinition.WhereClause;
+            //Null forgiving operator used a DB search without a where clause is invalid
+            string parameterizedWhereClause = searchDefinition.WhereClause!;
             ParameterizeClause(ref parameterizedWhereClause, searchTerm, ref searchParams);
 
             var sql = $@"SELECT {NameOrNullIfBlank(searchDefinition.TitleField)} as TitleField,
@@ -486,7 +493,7 @@ namespace GIFrameworkMaps.Data
            
             return _context.DatabaseSearchResults.FromSqlRaw(sql, searchParams.ToArray()).ToList();
 
-            static string NameOrNullIfBlank(string name)
+            static string NameOrNullIfBlank(string? name)
             {
                 return string.IsNullOrEmpty(name) ? "NULL" : name;
             }
@@ -511,7 +518,6 @@ namespace GIFrameworkMaps.Data
                         && CoordHelper.ValidateBNG12Figure(x, y))
                     {                        
                         AddResult($"{x}, {y}", x, y);
-                        return results;
                     } 
                     break;
 
@@ -521,7 +527,6 @@ namespace GIFrameworkMaps.Data
                         && CoordHelper.ValidateBNG12Figure(xyCoords[0],xyCoords[1]))
                     {                        
                         AddResult($"{searchTerm.ToUpper()} ({xyCoords[0]}, {xyCoords[1]})", xyCoords[0], xyCoords[1]);
-                        return results;
                     }
                     break;
 
@@ -530,7 +535,6 @@ namespace GIFrameworkMaps.Data
                         && CoordHelper.ValidateLatLon(latitude, longitude))
                     {                        
                         AddResult($"{latitude}, {longitude}", longitude, latitude);
-                        return results;
                     };
                     break;
 
@@ -539,7 +543,7 @@ namespace GIFrameworkMaps.Data
                     /*TODO - Would be good if this could handle not having N/S. This would require changes to the DB enforced RegEx*/
 
 
-                    string[] dmsCoords = Regex.Split(searchTerm, @"(?<=[NS])");
+                    string[] dmsCoords = LatLonDMSRegex().Split(searchTerm);
 
 
                     if (dmsCoords is not null && dmsCoords.Length == 2)
@@ -550,7 +554,6 @@ namespace GIFrameworkMaps.Data
                         {                            
                             AddResult($"{searchTerm} (approx {Math.Round(decimalLatitude, 5)}, {Math.Round(decimalLongitude, 5)})",
                                 decimalLongitude, decimalLatitude);
-                            return results;
                         }
                     }
                     break;
@@ -560,7 +563,6 @@ namespace GIFrameworkMaps.Data
                         && CoordHelper.ValidateSphericalMercator(smX, smY))
                     {
                         AddResult($"{smX}, {smY}", smX, smY);
-                        return results;
                     };
                     break;
 
@@ -572,13 +574,12 @@ namespace GIFrameworkMaps.Data
                         {
                             AddResult($"{searchTerm} (Approx {Convert.ToDecimal(codeArea.CenterLatitude)}, {Convert.ToDecimal(codeArea.CenterLongitude)})",
                                 Convert.ToDecimal(codeArea.CenterLongitude), Convert.ToDecimal(codeArea.CenterLatitude));
-                            return results;
                         }
                     }
                     break;
             }
 
-            return null;
+            return results;
 
             bool CanSplitSearchIntoTwoDecimals(out decimal decimal1, out decimal decimal2)
             {
@@ -625,12 +626,12 @@ namespace GIFrameworkMaps.Data
         private static void ParameterizeClause(ref string clause, string searchTerm, ref List<Npgsql.NpgsqlParameter> searchParams)
         {
             //finds all the {{search}} tokens
-            var searchPlaceholders = Regex.Matches(clause, "{[^{]*{search}[^}]*}");
+            var searchPlaceholders = SearchHandlebarsRegex().Matches(clause);
             int i = searchParams.Count;
             var parameterizedClause = clause;
             int shift = 0;
             //loop through the search tokens and replace them with paramterised versions
-            foreach(Match p in searchPlaceholders)
+            foreach(Match p in searchPlaceholders.Cast<Match>())
             {                
                 int replaceStart = p.Index + shift;
 
@@ -649,6 +650,10 @@ namespace GIFrameworkMaps.Data
         }
 
         [GeneratedRegex("{{[^}]+}}")]
-        private static partial Regex HandlebarsPlaceholder();
+        private static partial Regex HandlebarsPlaceholderRegEx();
+        [GeneratedRegex("(?<=[NS])")]
+        private static partial Regex LatLonDMSRegex();
+        [GeneratedRegex("{[^{]*{search}[^}]*}")]
+        private static partial Regex SearchHandlebarsRegex();
     }
 }
