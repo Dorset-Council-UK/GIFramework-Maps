@@ -179,15 +179,14 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private void UpdateCategoryLayers(int[] selectedLayers, Data.Models.Category categoryToUpdate)
         {
-            if (selectedLayers == null)
+            if (!selectedLayers.Any())
             {
-                categoryToUpdate.Layers = new List<CategoryLayer>();
                 return;
             }
 
             var selectedCategoriesHS = new HashSet<int>(selectedLayers);
             var versionCategories = new HashSet<int>();
-            if (categoryToUpdate.Layers != null)
+            if (categoryToUpdate.Layers.Any())
             {
                 versionCategories = new HashSet<int>(categoryToUpdate.Layers.Select(c => c.LayerId));
             }
@@ -197,11 +196,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 if (selectedCategoriesHS.Contains(layer.Id))
                 {
                     if (!versionCategories.Contains(layer.Id))
-                    {
-                        if (categoryToUpdate.Layers == null)
-                        {
-                            categoryToUpdate.Layers = new List<CategoryLayer>();
-                        }
+                    {                        
                         categoryToUpdate.Layers.Add(new CategoryLayer
                         {
                             CategoryId = categoryToUpdate.Id,
@@ -230,7 +225,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             model.AvailableParentCategories = new SelectList(categories, "Id", "Name", category.ParentCategoryId);
 
             model.AvailableLayers = layers;
-            if (category.Layers != null)
+            if (category.Layers.Any())
             {
                 model.SelectedLayers = category.Layers.Select(c => c.LayerId).ToList();
             }

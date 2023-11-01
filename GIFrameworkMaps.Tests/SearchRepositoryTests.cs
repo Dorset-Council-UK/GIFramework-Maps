@@ -4,7 +4,6 @@ using GIFrameworkMaps.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using GIFrameworkMaps.Data.Models;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -17,6 +16,7 @@ using GIFrameworkMaps.Data.Models.Search;
 using System.IO;
 using Microsoft.Extensions.Caching.Memory;
 using MockQueryable.Moq;
+using System;
 
 namespace GIFrameworkMaps.Tests
 {
@@ -58,11 +58,11 @@ namespace GIFrameworkMaps.Tests
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(client);
 
 
-            var versions = new List<Version>
+            var versions = new List<Data.Models.Version>
             {
-                new Version { Name = "General version",Slug= "general",Id=1 },
-                new Version { Name = "Custom Search Defs",Slug= "custom/searchdefs",Id=2 },
-                new Version { Name = "Default Search Defs",Slug= "default/searchdefs",Id=3 }
+                new Data.Models.Version { Name = "General version",Slug= "general",Id=1 },
+                new Data.Models.Version { Name = "Custom Search Defs",Slug= "custom/searchdefs",Id=2 },
+                new Data.Models.Version { Name = "Default Search Defs",Slug= "default/searchdefs",Id=3 }
             };
 
             var searchDefs = new List<SearchDefinition>
@@ -215,6 +215,16 @@ namespace GIFrameworkMaps.Tests
 
         }
 
+        [Test(Description = "Attempts to fetch an address using a search definition that doesn't have a title")]
+        public void GetResultsFromJSON_Addresses_NoTitle_ShouldThrow()
+        {
+            APISearchDefinition searchDefinition = new() { Name = "Example Address API", Title = "Addresses", MaxResults = 100, ZoomLevel = 19, EPSG = 27700, SupressGeom = false, XFieldPath = "$.results[*].DPA.X_COORDINATE", YFieldPath = "$.results[*].DPA.Y_COORDINATE" };
+            string testJSONResult = File.ReadAllText("Data/addresses.json");
+
+            Assert.Throws<InvalidOperationException>(delegate { SearchRepository.GetResultsFromJSONString(testJSONResult, searchDefinition); });
+
+        }
+
         [Test]
         [TestCase("366646 101677",ExpectedResult = new int[] { 366_646, 101_677 })]
         [TestCase("366646,101677", ExpectedResult = new int[] { 366_646, 101_677 })]
@@ -241,7 +251,8 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-            Assert.IsNull(results);
+            Assert.AreEqual(results.Count, 0);
+
         }
 
         [Test]
@@ -298,7 +309,7 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-            Assert.IsNull(results);
+            Assert.AreEqual(results.Count, 0);
         }
 
         [Test]
@@ -324,7 +335,7 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-            Assert.IsNull(results);
+            Assert.AreEqual(results.Count, 0);
         }
 
         [Test]
@@ -351,7 +362,8 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-            Assert.IsNull(results);
+            Assert.AreEqual(results.Count, 0);
+
         }
 
         [Test]
@@ -378,7 +390,7 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-            Assert.IsNull(results);
+            Assert.AreEqual(results.Count, 0);
         }
 
     }

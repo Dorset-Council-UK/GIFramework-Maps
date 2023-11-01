@@ -9,11 +9,11 @@ namespace GIFrameworkMaps.Data.Models.ViewModels.Management
 {
     public class UserEditModel
     {
-        public Microsoft.Graph.Beta.Models.User User { get; set; }
-        public List<int> SelectedRoles { get; set; }
-        public List<ApplicationRole> AvailableRoles { get; set; }
+        public Microsoft.Graph.Beta.Models.User? User { get; set; }
+        public List<int> SelectedRoles { get; set; } = new();
+        public List<ApplicationRole> AvailableRoles { get; set; } = new();
 
-        public List<int> SelectedVersions { get; set; }
-        public List<Version> AvailableVersions { get; set; }
+        public List<int> SelectedVersions { get; set; } = new();
+        public List<Version> AvailableVersions { get; set; } = new();
     }
 }
