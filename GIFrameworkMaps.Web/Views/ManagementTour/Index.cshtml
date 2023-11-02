@@ -24,7 +24,7 @@
                 <tr>
                     <td>@tour.Id</td>
                     <td>@Html.ActionLink(tour.Name, "Edit", new { id = tour.Id })</td>
-                    <td>@tour.UpdateDate.ToString("f")</td>
+                    <td>@tour.UpdateDate.ToString("f",null)</td>
                     <td>@tour.Steps.Count</td>
                 </tr>
             }
