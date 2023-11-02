@@ -1,9 +1,12 @@
 ﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
+using GIFrameworkMaps.Data.Models.Tour;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using NodaTime;
+using System;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
@@ -40,14 +43,22 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: WelcomeMessage/Create
         public IActionResult Create()
         {
-            return View();
+            Instant now = SystemClock.Instance.GetCurrentInstant();
+            DateTimeZone tz = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+            ZonedDateTime zdt = now.InZone(tz);
+            //default the update date to now
+            var model = new WelcomeMessage() { UpdateDate = zdt.LocalDateTime };
+            return View(model);
         }
 
         //POST: WelcomeMessage/Create
         [HttpPost, ActionName("Create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(WelcomeMessage welcomeMessage)
+        public async Task<IActionResult> CreatePost(WelcomeMessage welcomeMessage, DateTime UpdateDate)
         {
+            welcomeMessage.UpdateDate = LocalDateTime.FromDateTime(UpdateDate);
+            ModelState.Clear();
+            TryValidateModel(welcomeMessage);
             if (ModelState.IsValid)
             {
                 try
@@ -85,23 +96,26 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // POST: WelcomeMessage/Edit/1
         [HttpPost, ActionName("Edit")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditPost(int id)
+        public async Task<IActionResult> EditPost(int id, DateTime UpdateDate)
         {
             var welcomeMessageToUpdate = await _context.WelcomeMessages.FirstOrDefaultAsync(a => a.Id == id);
+            welcomeMessageToUpdate.UpdateDate = LocalDateTime.FromDateTime(UpdateDate);
+            ModelState.Clear();
+            TryValidateModel(welcomeMessageToUpdate);
+            if (ModelState.IsValid)
 
-            if (await TryUpdateModelAsync(
+                if (await TryUpdateModelAsync(
                 welcomeMessageToUpdate,
                 "",
                 a => a.Name, 
                 a => a.Title, 
                 a => a.Content, 
                 a => a.Frequency, 
-                a => a.UpdateDate, 
                 a => a.ModalSize,
                 a => a.DismissOnButtonOnly, 
                 a => a.DismissText))
             {
-
+                LocalDateTime formattedUpdateDateTime = LocalDateTime.FromDateTime(UpdateDate);
                 try
                 {
                     await _context.SaveChangesAsync();

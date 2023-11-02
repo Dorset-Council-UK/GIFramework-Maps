@@ -6,9 +6,8 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
-using GIFrameworkMaps.Data.Models;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
 using Microsoft.EntityFrameworkCore;
+using NodaTime;
 
 namespace GIFrameworkMaps.Web.Controllers
 {
@@ -121,7 +120,7 @@ namespace GIFrameworkMaps.Web.Controllers
                 return View("ShortLinkNotFound");
             }
             var shortLink = await _context.ShortLink.FirstOrDefaultAsync(s => s.ShortId == id);
-            shortLink.LastVisited = DateTime.UtcNow;
+            shortLink.LastVisited = NodaTime.SystemClock.Instance.GetCurrentInstant();
             _context.SaveChanges();
 
             return Redirect(redirectUrl);

@@ -155,6 +155,16 @@
           "Microsoft.VisualStudio.Web.CodeGenerators.Mvc": "7.0.11"
         }
       },
+      "NodaTime.Serialization.SystemTextJson": {
+        "type": "Direct",
+        "requested": "[1.1.2, )",
+        "resolved": "1.1.2",
+        "contentHash": "/PGLhEW+wd01IkJnVMwRTzMW7OGXkFva9vjtC9f+ohM0SIwQIMDkLVECmTD+8s/8ctpBk+ImSURmXuR2muwKBg==",
+        "dependencies": {
+          "NodaTime": "[3.0.0, 4.0.0)",
+          "System.Text.Json": "5.0.2"
+        }
+      },
       "Npgsql": {
         "type": "Direct",
         "requested": "[7.0.6, )",
@@ -174,6 +184,16 @@
           "Microsoft.EntityFrameworkCore.Abstractions": "[7.0.11, 8.0.0)",
           "Microsoft.EntityFrameworkCore.Relational": "[7.0.11, 8.0.0)",
           "Npgsql": "7.0.6"
+        }
+      },
+      "Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime": {
+        "type": "Direct",
+        "requested": "[7.0.11, )",
+        "resolved": "7.0.11",
+        "contentHash": "EKvdXnC8mHOloqyV17OUMI9Zarwa6OkMjARaWuiOAwk9mLxIn0hPtDzWyaTsgmHewUW47SXPEuTwW0BZujZwuA==",
+        "dependencies": {
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "7.0.11",
+          "Npgsql.NodaTime": "7.0.6"
         }
       },
       "Svg": {
@@ -1667,6 +1687,23 @@
         "resolved": "13.0.3",
         "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
       },
+      "NodaTime": {
+        "type": "Transitive",
+        "resolved": "3.1.5",
+        "contentHash": "z+mbQdY9mHL+JpW7WDImN9debJhqORy5jOdFnKOTeDQzwXMSEnjXE4f+UVdKnPabSLABzWz+nKz+7uUXK2Sq6Q==",
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "4.7.1"
+        }
+      },
+      "Npgsql.NodaTime": {
+        "type": "Transitive",
+        "resolved": "7.0.6",
+        "contentHash": "UIz+5gPbaynP4o9FuTaxycP+3hYfuq2CwGYXNYWOkXIJuWT02HXcIFWSDNrw9qB6tSPc8sskHBMojiw+EEsXIQ==",
+        "dependencies": {
+          "NodaTime": "3.1.5",
+          "Npgsql": "7.0.6"
+        }
+      },
       "NuGet.Common": {
         "type": "Transitive",
         "resolved": "6.6.1",
@@ -2205,6 +2242,8 @@
           "Microsoft.Graph.Beta": "[5.19.0-preview, )",
           "Newtonsoft.Json": "[13.0.3, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[7.0.11, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime": "[7.0.11, )",
+          "Npgsql.NodaTime": "[7.0.6, )",
           "OpenLocationCode": "[2.1.1, )",
           "System.Data.SqlClient": "[4.8.5, )",
           "shortid": "[4.0.0, )"
