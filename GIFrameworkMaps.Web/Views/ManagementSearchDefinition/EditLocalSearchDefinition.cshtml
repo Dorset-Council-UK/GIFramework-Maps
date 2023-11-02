@@ -10,6 +10,10 @@
         <div class="alert alert-warning" role="alert">
             Local search definitions are hard-coded into the application. Only edit a local search definition if you know what you are doing!
         </div>
+        <div>
+            <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/gui/search-definitions/" class="btn btn-outline-primary" target="_blank"
+               role="button">Stuck? Read the help documentation</a>
+        </div>
         <form asp-action="EditLocalSearchDefinition">
             <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
             <input type="hidden" asp-for="Id" />
