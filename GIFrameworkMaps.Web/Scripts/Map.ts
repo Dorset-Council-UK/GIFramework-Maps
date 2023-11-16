@@ -35,6 +35,7 @@ import { VersionViewModel } from "./Interfaces/VersionViewModel";
 import { WebLayerService } from "./WebLayerService";
 import { BookmarkMenu } from "./BookmarkMenu";
 import { LegendURLs } from "./Interfaces/LegendURLs";
+import { DebouncedFunc, debounce } from "lodash";
 
 export class GIFWMap {
     id: string;
@@ -44,10 +45,12 @@ export class GIFWMap {
     popupOverlay: GIFWPopupOverlay;
     olMap: olMap;
     customControls: any[] = [];
+    private delayPermalinkUpdate: DebouncedFunc<any>;
     constructor(id: string, config:VersionViewModel, sidebars: gifwSidebar.Sidebar[]) {
         this.id = id;
         this.config = config;
         this.sidebars = sidebars;
+        this.delayPermalinkUpdate = debounce(() => { document.getElementById(this.id).dispatchEvent(new CustomEvent('gifw-update-permalink')) },500);
     }
 
     /**
@@ -708,11 +711,11 @@ export class GIFWMap {
         if (l !== null) {
             l.setOpacity(olOpacity);
             if (!quiet) {
-                document.getElementById(this.id).dispatchEvent(new CustomEvent('gifw-update-permalink'));
+                this.delayPermalinkUpdate();
             }
         }
     }
-
+    
     /**
      * Sets the saturation of the currently active basemap
     * @param {number} saturation - The saturation level to set to (0-100)
@@ -744,12 +747,11 @@ export class GIFWMap {
                 container.style.filter = `grayscale(${olSaturation})`;
                 layer.set("saturation", saturation, quiet);
                 if (!quiet) {
-                    document.getElementById(this.id).dispatchEvent(new CustomEvent('gifw-update-permalink'));
+                    this.delayPermalinkUpdate();;
                 }
             }
         }
     }
-
 
     /**
     * Sets the opacity for an overlay
@@ -761,8 +763,7 @@ export class GIFWMap {
     */
     public setLayerOpacity(layer: olLayer.Layer<any, any>, opacity: number) {
         layer.setOpacity(opacity / 100);
-        document.getElementById(this.id).dispatchEvent(new CustomEvent('gifw-update-permalink'));
-
+        this.delayPermalinkUpdate();
     }
 
     /**
