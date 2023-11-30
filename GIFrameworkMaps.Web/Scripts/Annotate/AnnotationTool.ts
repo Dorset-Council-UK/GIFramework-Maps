@@ -145,6 +145,21 @@ PointTool.optionsHTML = `
             <input type="range" class="form-range" data-style-property="size" min="12" max="60" value="24" step="12">
         </div>
     </div>
+    <div class="form-group row mb-1">
+        <label class="col-form-label">Border</label>
+        <div>
+            <input type="color" class="form-range" data-style-property="strokeColour" list="annotationBorderColors" id="borderColors">
+                <datalist id="annotationBorderColors">
+                    <option value="#000000"></option>
+                    <option value="#FFFFFF"></option>
+                    <option value="#648fff"></option>
+                    <option value="#785EF0"></option>
+                    <option value="#DC267F"></option>
+                    <option value="#FE6100"></option>
+                    <option value="#FFB000"></option>
+                </datalist>
+        </div>
+    </div>
 `;
 
 export const CircleTool = new AnnotationTool('Circle', 'Draw a circle', 'gifw-circle-control', '<i class="bi bi-circle"></i>', 'Circle');
