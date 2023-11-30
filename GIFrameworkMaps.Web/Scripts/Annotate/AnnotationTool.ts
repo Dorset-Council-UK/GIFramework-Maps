@@ -115,8 +115,13 @@ PointTool.optionsHTML = `
                 <option value="heart">Heart</option>
                 <option selected value="pin">Pin</option>
                 <option value="square">Square</option>
+                <option value="diamond">Diamond</option>
                 <option value="star">Star</option>
                 <option value="triangle">Triangle</option>
+                <option value="house">House</option>
+                <option value="lightning">Lightning</option>
+                <option value="person">Person</option>
+                <option value="tree">Tree</option>
             </select>
         </div>
     </div>

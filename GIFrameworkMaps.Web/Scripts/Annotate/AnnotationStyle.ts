@@ -183,8 +183,7 @@ export default class AnnotationStyle extends Style {
                 `,
                 'cross': `
                     <svg xmlns="http://www.w3.org/2000/svg" width="${this.size}" height="${this.size}" fill="#${this.fillColourHex}" class="bi bi-x-lg" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M13.854 2.146a.5.5 0 0 1 0 .708l-11 11a.5.5 0 0 1-.708-.708l11-11a.5.5 0 0 1 .708 0Z"/>
-                        <path fill-rule="evenodd" d="M2.146 2.146a.5.5 0 0 0 0 .708l11 11a.5.5 0 0 0 .708-.708l-11-11a.5.5 0 0 0-.708 0Z"/>
+                        <path d="M 2.4365573,13.983865 6.5264837,7.7387676 2.820243,2.0161361 H 5.6448229 L 8.0448995,5.8611567 10.395995,2.0161361 h 2.800089 L 9.4735165,7.8285664 13.563443,13.983865 H 10.649064 L 7.9959183,9.8449572 5.3346089,13.983865 Z"/>
                     </svg>
                 `,
                 'heart': `
@@ -193,13 +192,18 @@ export default class AnnotationStyle extends Style {
                     </svg>
                 `,
                 'pin': `
-                    <svg xmlns="http://www.w3.org/2000/svg" width="${this.size}" height="${this.size}" fill="#${this.fillColourHex}" class="bi bi-pin-fill" viewBox="0 0 16 16">
-                        <path d="M4.146.146A.5.5 0 0 1 4.5 0h7a.5.5 0 0 1 .5.5c0 .68-.342 1.174-.646 1.479-.126.125-.25.224-.354.298v4.431l.078.048c.203.127.476.314.751.555C12.36 7.775 13 8.527 13 9.5a.5.5 0 0 1-.5.5h-4v4.5c0 .276-.224 1.5-.5 1.5s-.5-1.224-.5-1.5V10h-4a.5.5 0 0 1-.5-.5c0-.973.64-1.725 1.17-2.189A5.921 5.921 0 0 1 5 6.708V2.277a2.77 2.77 0 0 1-.354-.298C4.342 1.674 4 1.179 4 .5a.5.5 0 0 1 .146-.354z"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="${this.size}" height="${this.size}" fill="#${this.fillColourHex}" class="bi bi-geo-alt-fill" viewBox="0 0 16 16">
+                        <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/>
                     </svg>
                 `,
                 'square': `
                     <svg xmlns="http://www.w3.org/2000/svg" width="${this.size}" height="${this.size}" fill="#${this.fillColourHex}" class="bi bi-square-fill" viewBox="0 0 16 16">
                         <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/>
+                    </svg>
+                `,
+                'diamond': `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="${this.size}" height="${this.size}" fill="#${this.fillColourHex}" class="bi bi-diamond-fill" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M6.95.435c.58-.58 1.52-.58 2.1 0l6.515 6.516c.58.58.58 1.519 0 2.098L9.05 15.565c-.58.58-1.519.58-2.098 0L.435 9.05a1.482 1.482 0 0 1 0-2.098L6.95.435z"/>
                     </svg>
                 `,
                 'star': `
@@ -211,7 +215,28 @@ export default class AnnotationStyle extends Style {
                     <svg xmlns="http://www.w3.org/2000/svg" width="${this.size}" height="${this.size}" fill="#${this.fillColourHex}" class="bi bi-triangle-fill" viewBox="0 0 16 16">
                         <path fill-rule="evenodd" d="M7.022 1.566a1.13 1.13 0 0 1 1.96 0l6.857 11.667c.457.778-.092 1.767-.98 1.767H1.144c-.889 0-1.437-.99-.98-1.767L7.022 1.566z"/>
                     </svg>
-                `
+                `,
+                'house': `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="${this.size}" height="${this.size}" fill="#${this.fillColourHex}" class="bi bi-house-door-fill" viewBox="0 0 16 16">
+                        <path d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5"/>
+                    </svg>
+                `,
+                'lightning': `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="${this.size}" height="${this.size}" fill="#${this.fillColourHex}" class="bi bi-lightning-fill" viewBox="0 0 16 16">
+                        <path d="M5.52.359A.5.5 0 0 1 6 0h4a.5.5 0 0 1 .474.658L8.694 6H12.5a.5.5 0 0 1 .395.807l-7 9a.5.5 0 0 1-.873-.454L6.823 9.5H3.5a.5.5 0 0 1-.48-.641z"/>
+                    </svg>
+                `,
+                'person': `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="${this.size}" height="${this.size}" fill="#${this.fillColourHex}" class="bi bi-person-arms-up" viewBox="0 0 16 16">
+                        <path d="M8 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3"/>
+                        <path d="m5.93 6.704-.846 8.451a.768.768 0 0 0 1.523.203l.81-4.865a.59.59 0 0 1 1.165 0l.81 4.865a.768.768 0 0 0 1.523-.203l-.845-8.451A1.492 1.492 0 0 1 10.5 5.5L13 2.284a.796.796 0 0 0-1.239-.998L9.634 3.84a.72.72 0 0 1-.33.235c-.23.074-.665.176-1.304.176-.64 0-1.074-.102-1.305-.176a.72.72 0 0 1-.329-.235L4.239 1.286a.796.796 0 0 0-1.24.998l2.5 3.216c.317.316.475.758.43 1.204Z"/>
+                    </svg>
+                `,
+                'tree': `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="${this.size}" height="${this.size}" fill="#${this.fillColourHex}" class="bi bi-tree-fill" viewBox="0 0 16 16">
+                        <path d="M8.416.223a.5.5 0 0 0-.832 0l-3 4.5A.5.5 0 0 0 5 5.5h.098L3.076 8.735A.5.5 0 0 0 3.5 9.5h.191l-1.638 3.276a.5.5 0 0 0 .447.724H7V16h2v-2.5h4.5a.5.5 0 0 0 .447-.724L12.31 9.5h.191a.5.5 0 0 0 .424-.765L10.902 5.5H11a.5.5 0 0 0 .416-.777l-3-4.5z"/>
+                    </svg>
+                `,
             }
             this.setImage(new Icon({
                 src: `data:image/svg+xml; charset=utf8, ${encodeURIComponent(shapes[this.pointType])}`
