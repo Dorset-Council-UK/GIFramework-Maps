@@ -262,8 +262,8 @@
 @media (min-width: 768px) {
     .giframeworkMap aside#sidebar-container .sidebar-panels {
         width: 45%;
-        top: 49px;
-        max-height: calc(100% - 49px);
+        top: 48px;
+        max-height: calc(100% - 48px);
     }
     .giframeworkMap .sidebar-button.sidebar-open {
         display: block;
@@ -371,8 +371,23 @@
         width: 35%;
     }
 }
+.giframeworkMap .search-control form input{
+    border-color: var(--primary-color);
+}
+.giframeworkMap .search-control form input:active,
+.giframeworkMap .search-control form input:focus,
+.giframeworkMap .search-control .btn:active,
+.giframeworkMap .search-control .btn:focus {
+    box-shadow: 0 0 0 0.1rem var(--primary-color-transparent-50);
+}
 .giframeworkMap .search-control .btn {
     background-color: var(--bs-body-bg);
+}
+.giframeworkMap #gifw-search-configure-button {
+    border-color: var(--primary-color);
+}
+.giframeworkMap #gifw-search-configure-button:focus-visible {
+    color: var(--bs-secondary);
 }
 
 .giframeworkMap #gifw-search-results {
@@ -469,12 +484,12 @@
     z-index: 10000;
     pointer-events: none;
     font-size: 2rem;
-    background-color: rgba(255,255,255,0.7);
+    background-color: rgba(var(--bs-body-bg-rgb),0.7);
     transform: translate(-50%,-50%) !important;
     padding: 1rem;
     border-radius: 1rem;
     box-shadow: 0px 0px 19px 5px #a9a9a9;
-    backdrop-filter:blur(1px);
+    backdrop-filter: blur(1px);
 }
 .giframeworkMap .dropzone.dragover{
     background:radial-gradient(transparent,lightgrey);
@@ -595,6 +610,7 @@
 
 .giframeworkMap .btn-outline-secondary:hover {
     background-color: var(--bs-gray);
+    color:white;
 }
 
 .giframeworkMap .form-check-input:checked {

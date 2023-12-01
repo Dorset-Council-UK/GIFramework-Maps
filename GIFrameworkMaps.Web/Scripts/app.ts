@@ -12,6 +12,7 @@ import { Welcome } from "./Welcome";
 import { Util } from "./Util";
 import { VersionViewModel } from "./Interfaces/VersionViewModel";
 import { Tour } from "./Tour";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 
 /*variables passed from index.cshtml. Use sparingly*/
 declare var gifw_appinsights_key: string;
@@ -39,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (configure_cookie_control == "Civic Cookie Control" && typeof CookieControl != "undefined") {
         document.getElementById("CookieControlLink").addEventListener("click", CookieControl.open);
     }
-
+    new ThemeSwitcher(document.getElementById('gifw-theme-switcher'), "Theme");
 
     let mapId = 'giframeworkMap';
 
