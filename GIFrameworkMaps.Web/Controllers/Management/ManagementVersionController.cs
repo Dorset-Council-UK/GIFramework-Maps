@@ -206,9 +206,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/AddContact/1
         public async Task<IActionResult> AddContact(int id)
         {
-            VersionAddContactModel ViewModel = new VersionAddContactModel();
-            ViewModel.ContactEntry = new VersionContact { VersionId = id, VersionContactId = -1 };
-            ViewModel.ListOfUsers = await _repository.GetUsers();
+            VersionAddContactModel ViewModel = new()
+            {
+                ContactEntry = new VersionContact { VersionId = id, VersionContactId = -1 },
+                ListOfUsers = await _repository.GetUsers()
+            };
             return View(ViewModel);
         }
 
@@ -266,9 +268,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/EditContact/1?VersionContactId=1
         public async Task<IActionResult> EditContact(int id, int VersionContactId)
         {
-            VersionAddContactModel ViewModel = new VersionAddContactModel();
-            ViewModel.ContactEntry = _context.VersionContact.FirstOrDefault(u => u.VersionId == id && u.VersionContactId == VersionContactId);
-            ViewModel.ListOfUsers = await _repository.GetUsers();
+            VersionAddContactModel ViewModel = new()
+            {
+                ContactEntry = _context.VersionContact.FirstOrDefault(u => u.VersionId == id && u.VersionContactId == VersionContactId),
+                ListOfUsers = await _repository.GetUsers()
+            };
             return View("AddContact", ViewModel);
         }
 

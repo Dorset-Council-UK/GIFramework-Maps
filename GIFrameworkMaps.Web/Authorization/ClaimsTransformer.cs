@@ -9,12 +9,10 @@ namespace GIFrameworkMaps.Web.Authorization
 {
     public class ClaimsTransformer : IClaimsTransformation
     {
-        private readonly IConfiguration _configuration;
         private readonly ICommonRepository _commonRepository;
 
-        public ClaimsTransformer(IConfiguration configuration, ICommonRepository commonRepository)
+        public ClaimsTransformer(ICommonRepository commonRepository)
         {
-            _configuration = configuration;
             _commonRepository = commonRepository;
         }
         public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
@@ -28,7 +26,7 @@ namespace GIFrameworkMaps.Web.Authorization
             
             foreach(var role in roles)
             {
-                Claim customRoleClaim = new Claim(claimsIdentity.RoleClaimType, role.Role.RoleName);
+                Claim customRoleClaim = new(claimsIdentity.RoleClaimType, role.Role.RoleName);
                 claimsIdentity.AddClaim(customRoleClaim);
             }
             //fetch roles from extension_roles claim

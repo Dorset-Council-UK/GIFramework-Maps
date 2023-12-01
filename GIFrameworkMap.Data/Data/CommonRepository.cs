@@ -71,7 +71,7 @@ namespace GIFrameworkMaps.Data
         /// <param name="slugParts">A list of the slug parts (which must contain at least one).</param>
         /// <returns></returns>
         /// <remarks>Have created this as a generic method so it could be reused.</remarks>
-        private string CreateSlug(params string[] slugParts)
+        private static string CreateSlug(params string[] slugParts)
         {
             return slugParts[0].ToLower() + 
                 //Append more slug parts if there are any left and the next is non-blank.
