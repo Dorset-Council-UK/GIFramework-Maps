@@ -305,15 +305,50 @@ namespace GIFrameworkMaps.Data
             return localSearchDefinition;
         }
 
-        public async Task<Microsoft.Graph.Beta.Models.UserCollectionResponse?> GetUsers()
+        public async Task<List<Microsoft.Graph.Beta.Models.User>> GetUsers()
         {
+            string cachekey = "AllGraphUsers";
+            if(_memoryCache.TryGetValue(cachekey, out List <Microsoft.Graph.Beta.Models.User>? cachedUsers))
+            {
+                if (cachedUsers != null)
+                {
+                    return cachedUsers;
+                }
+            }
+            List<Microsoft.Graph.Beta.Models.User> allUsers = new();
             var graphClient = GetGraphClient();
             if (graphClient != null)
             {
                 var users = await graphClient.Users.GetAsync();
-                return users;
+                if (users != null && users.Value != null)
+                {
+                    allUsers.AddRange(users.Value);
+                    string? skipLink = users.OdataNextLink;
+                    bool hasNextPage = !string.IsNullOrEmpty(skipLink);
+                    while (hasNextPage)
+                    {
+
+                        var nextPage = await graphClient.Users.WithUrl(skipLink).GetAsync();
+                        if (nextPage != null && nextPage.Value != null)
+                        {
+                            allUsers.AddRange(nextPage.Value);
+                            skipLink = nextPage.OdataNextLink;
+                            hasNextPage = !string.IsNullOrEmpty(skipLink);
+                        }
+                        
+
+                    }
+                }
+                else
+                {
+                    throw new System.Exception("Graph client could not be initialized");
+                }
             }
-            return null;
+            if (allUsers.Any())
+            {
+                _memoryCache.Set(cachekey, allUsers, System.TimeSpan.FromMinutes(5));
+            }
+            return allUsers;
         }
 
         public async Task<Microsoft.Graph.Beta.Models.User?> GetUser(string id)

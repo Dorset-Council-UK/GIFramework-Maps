@@ -18,7 +18,7 @@
                     {
                     <option value="" data-abbreviations=""></option>
                     }
-                    @foreach (User user in Model.ListOfUsers.Value.OrderBy(u => u.DisplayName))
+                    @foreach (User user in Model.ListOfUsers.OrderBy(u => u.DisplayName))
                     {
                         
                         if (user.Id == Model.ContactEntry.UserId)
