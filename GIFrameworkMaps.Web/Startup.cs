@@ -245,7 +245,7 @@ namespace GIFrameworkMaps.Web
                     Name = "Default",
                     Description = "The default style",
                     PrimaryColour = "05476d",
-                    LogoURL = "https://static.geowessex.com/explorer/dorsetexplorer-assets/giframework-maps-icon.svg"
+                    LogoURL = "https://gistaticprod.blob.core.windows.net/giframeworkmaps/giframework-maps-icon.svg"
                 };
 
                 var version = new Data.Models.Version
@@ -271,7 +271,7 @@ namespace GIFrameworkMaps.Web
                 var printConfig = new Data.Models.Print.PrintConfiguration
                 {
                     Name = "Default",
-                    LogoURL = "https://static.geowessex.com/explorer/dorsetexplorer-assets/print-logos/dc-logo-colour-with-clearzone.png"
+                    LogoURL = "https://gistaticprod.blob.core.windows.net/giframeworkmaps/print-logos/gifw-logo-colour-with-clearzone.png"
                 };
                 context.VersionPrintConfiguration.Add(new Data.Models.VersionPrintConfiguration
                 {
@@ -350,7 +350,7 @@ namespace GIFrameworkMaps.Web
                 {
                     Name = "Plus Codes",
                     Title = "Plus Code",
-                    AttributionHtml = "<a href=\"https://maps.google.com/pluscodes/learn/\" target=\"_blank\" rel=\"noopener\" title=\"Learn more about Plus Codes\"><img src=\"https://static.dev.geowessex.com/explorer/dorsetexplorer-assets/third-party/pluscodes_lockup.png\" width=\"100\"/></a>",
+                    AttributionHtml = "<a href=\"https://maps.google.com/pluscodes/learn/\" target=\"_blank\" rel=\"noopener\" title=\"Learn more about Plus Codes\"><img src=\"https://gistaticprod.blob.core.windows.net/giframeworkmaps/third-party-logos/pluscodes_lockup.png\" width=\"100\"/></a>",
                     MaxResults = 1,
                     EPSG = 4326,
                     SupressGeom = false,
