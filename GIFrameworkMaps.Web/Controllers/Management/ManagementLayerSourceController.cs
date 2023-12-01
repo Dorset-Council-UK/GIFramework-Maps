@@ -93,8 +93,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 return NotFound();
             }
 
-            LayerSourceOption opt = new LayerSourceOption { LayerSourceId = layerSource.Id};
-            var editModel = new LayerSourceOptionEditModel { LayerSourceOption=opt, LayerSource = layerSource };
+            LayerSourceOption opt = new() { LayerSourceId = layerSource.Id};
+            LayerSourceOptionEditModel editModel = new()  { LayerSourceOption=opt, LayerSource = layerSource };
             return View(editModel);
         }
 
