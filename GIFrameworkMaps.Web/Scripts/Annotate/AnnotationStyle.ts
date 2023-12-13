@@ -143,6 +143,7 @@ export default class AnnotationStyle extends Style {
         clone.strokeColourHex = this.strokeColourHex;
         clone.strokeStyle = this.strokeStyle;
         clone.strokeWidth = this.strokeWidth;
+        clone.pointHasBorder = this.pointHasBorder;
         if (this.activeTool) {
             clone.rebuildForTool(this.activeTool);
         }
@@ -297,7 +298,11 @@ export default class AnnotationStyle extends Style {
         this.fontColour = `rgb(${rgbFontColour.r}, ${rgbFontColour.g}, ${rgbFontColour.b})`;
         let rgbStrokeColour = Util.Color.hexToRgb(this.strokeColourHex);
         this.strokeColour = `rgb(${rgbStrokeColour.r}, ${rgbStrokeColour.g}, ${rgbStrokeColour.b})`;
-        this.pointHasBorder = e.detail.style.pointHasBorder || this.pointHasBorder;
+        if (e.detail.style.pointHasBorder != undefined && e.detail.style.pointHasBorder != null) {
+            this.pointHasBorder = e.detail.style.pointHasBorder;
+        } else {
+            this.pointHasBorder;
+        }
         this.rebuildForTool(this.activeTool);
     }
 
