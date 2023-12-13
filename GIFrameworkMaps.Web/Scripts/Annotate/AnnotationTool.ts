@@ -146,9 +146,12 @@ PointTool.optionsHTML = `
         </div>
     </div>
     <div class="form-group row mb-1">
-        <label class="col-form-label">Border</label>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="point-border-options" data-style-property="pointHasBorder" />
+            <label for="point-border-options" class="col-form-check-label">Border</label>
+        </div>
         <div>
-            <input type="color" class="form-range" data-style-property="strokeColour" list="annotationBorderColors" id="borderColors">
+            <input type="color" class="form-range" data-style-property="strokeColour" list="annotationBorderColors" id="border-colors">
                 <datalist id="annotationBorderColors">
                     <option value="#000000"></option>
                     <option value="#FFFFFF"></option>

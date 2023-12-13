@@ -102,7 +102,7 @@ export default class AnnotationStylePanel implements SidebarPanel {
                 return;
             }
             if (this.optionsPanel) {
-                let controls = this.optionsPanel.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input, select');
+                const controls = this.optionsPanel.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input, select');
                 controls.forEach((control) => {
                     switch (control.getAttribute('data-style-property')) {
                         case 'fillColour':
@@ -136,6 +136,10 @@ export default class AnnotationStylePanel implements SidebarPanel {
                         case 'strokeWidth':
                             control.value = this.activeStyle.strokeWidth.toString();
                             break;
+                        case 'pointHasBorder':
+                            control.value = this.activeStyle.pointHasBorder.toString();
+                           /* (control as HTMLInputElement).checked = (this.activeStyle.strokeColour !== this.activeStyle.fillColour);*/
+                            break;
                         default:
                             break;
                     }
@@ -147,6 +151,10 @@ export default class AnnotationStylePanel implements SidebarPanel {
                         if (control.getAttribute('data-style-property') == 'labelText') {
                             control.setAttribute('input-text', control.value); // Strangely, the text value does not get passed with the control to this.updateStyle, and so I have had to create this new attribute...
                         }
+                        if (control.getAttribute('data-style-property') == 'pointHasBorder') {
+                            const strokeColourEle: HTMLElement = document.querySelector('input[data-style-property="strokeColour"]');
+                            strokeColourEle.style.display = (control as HTMLInputElement).checked ? 'block' : 'none';
+                        }
                         this.updateStyle(control);
                         document.getElementById(this.gifwMapInstance.id).dispatchEvent(new CustomEvent('gifw-annotate-style-update', {
                             detail: {
@@ -155,6 +163,7 @@ export default class AnnotationStylePanel implements SidebarPanel {
                         }) as AnnotationStyleEvent);
                     });
                 });
+                
             }
         }
     }
@@ -190,6 +199,13 @@ export default class AnnotationStylePanel implements SidebarPanel {
                 break;
             case 'strokeWidth':
                 this.activeStyle.strokeWidth = parseFloat(control.value);
+                break;
+            /*TODO LUCY
+            add an additional case statement for pointHasBorder
+            set this.activeStyle.pointHasBorder to value of control.checked (you may have to cast 'control as HTMLInputElement' for 'checked' to be allowed)
+            */
+            case 'pointHasBorder':
+                this.activeStyle.pointHasBorder = (control as HTMLInputElement).checked;
                 break;
             default:
                 return;
