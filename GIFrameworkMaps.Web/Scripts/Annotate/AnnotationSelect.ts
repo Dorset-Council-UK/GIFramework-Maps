@@ -237,13 +237,27 @@ export default class AnnotationSelect extends Select {
         let backdropGeometry = olPolygon.fromExtent(mapExtent);
         let resolution = this.gifwMapInstance.olMap.getView().getResolution();
         let featureHalfWidth = 0;
-        if (feature.get('gifw-css-width')) {
-            featureHalfWidth = feature.get('gifw-css-width') / 2;
-        }
-        let buffer = resolution / 1000 * (bufferSize + featureHalfWidth) * window.devicePixelRatio;
 
         let clone = feature.clone();
         let featureGeom = clone.getGeometry();
+        if (feature.get('gifw-css-width')) {
+            featureHalfWidth = feature.get('gifw-css-width') / 2;
+        } else if (featureGeom.getType() == 'Point') {
+            const featureStyle = (feature.getStyle() as Style);
+            if (featureStyle.getImage() !== null) {
+                featureHalfWidth = featureStyle.getImage().getSize()[0] / 2;
+            } else if (featureStyle.getText() !== null) {
+                const canvas = document.createElement("canvas");
+                const context = canvas.getContext("2d");
+                context.font = featureStyle.getText().getFont();
+                const metrics = context.measureText(featureStyle.getText().getText() as string);
+                featureHalfWidth = (metrics.width / 2) - 10;
+                //TODO - An improvement to this would be to draw a rectangle underneath the text at the width/height of the text
+            }
+            
+        }
+        let buffer = resolution / 1000 * (bufferSize + featureHalfWidth) * window.devicePixelRatio;
+
         featureGeom.transform('EPSG:3857', 'EPSG:4326');
         clone.setGeometry(featureGeom);
         let formatter = new GeoJSON({
