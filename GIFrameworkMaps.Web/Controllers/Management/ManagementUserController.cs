@@ -115,7 +115,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     if (!existingRolesHS.Contains(role.Id))
                     {
-                        ApplicationUserRole roleToAdd = new ApplicationUserRole() { ApplicationRoleId = role.Id, UserId = userToUpdate.Id };
+                        ApplicationUserRole roleToAdd = new() { ApplicationRoleId = role.Id, UserId = userToUpdate.Id };
                         _context.Add(roleToAdd);
                     }
                 }
@@ -153,7 +153,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     if (!existingVersionsHS.Contains(version.Id))
                     {
-                        VersionUser versionToAdd = new VersionUser() { VersionId = version.Id, UserId = userToUpdate.Id };
+                        VersionUser versionToAdd = new() { VersionId = version.Id, UserId = userToUpdate.Id };
                         _context.Add(versionToAdd);
                     }
                 }

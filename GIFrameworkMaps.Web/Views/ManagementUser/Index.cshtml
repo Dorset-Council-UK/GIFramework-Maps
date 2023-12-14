@@ -1,4 +1,4 @@
-﻿@model Microsoft.Graph.Beta.Models.UserCollectionResponse
+﻿@model List<Microsoft.Graph.Beta.Models.User>
 @{
     ViewData["Title"] = "Users";
 }
@@ -9,7 +9,7 @@
 <p class="lead">Manage user permissions</p>
 
 
-@if (Model != null)
+@if (Model != null && Model.Count != 0)
 {
     <table id="userTable" class="table table-bordered table-striped mt-2">
         <thead>
@@ -20,7 +20,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var user in Model.Value.OrderBy(u => u.DisplayName))
+            @foreach (var user in Model.OrderBy(u => u.DisplayName))
             {
                 <tr>
                     <td>@user.Id</td>
