@@ -58,12 +58,12 @@ export default class AnnotationExport {
             </div>
             </div>
         `;
-        let exportTitle = this.optionsContainer.querySelector<HTMLInputElement>('.gifw-annotation-export-title');
-        let exportFormat = this.optionsContainer.querySelector<HTMLInputElement>('.gifw-annotation-export-format');
-        let exportForm = this.optionsContainer.querySelector<HTMLFormElement>('.gifw-annotation-export-form');
+        const exportTitle = this.optionsContainer.querySelector<HTMLInputElement>('.gifw-annotation-export-title');
+        const exportFormat = this.optionsContainer.querySelector<HTMLInputElement>('.gifw-annotation-export-format');
+        const exportForm = this.optionsContainer.querySelector<HTMLFormElement>('.gifw-annotation-export-form');
         exportForm.addEventListener('submit', () => {
             this.run(exportFormat.value, exportTitle.value);
-            let optionsModal = Modal.getOrCreateInstance(this.optionsContainer);
+            const optionsModal = Modal.getOrCreateInstance(this.optionsContainer);
             optionsModal.hide();
         });
     }
@@ -87,16 +87,16 @@ export default class AnnotationExport {
     }
 
     public run(formatName: string = 'GeoJSON', title: string = 'Annotations') {
-        let format = AnnotationExport.formats[formatName];
+        const format = AnnotationExport.formats[formatName];
         if (!format) {
             alert('Unsupported file format chosen for export.');
             return;
         }
-        let formatter = format.formatter;
-        let features = this.source.getFeatures();
-        let cleanedFeatures: Feature<Geometry>[] = [];
+        const formatter = format.formatter;
+        const features = this.source.getFeatures();
+        const cleanedFeatures: Feature<Geometry>[] = [];
         features.forEach((f) => {
-            let cleaned = f.clone();
+            const cleaned = f.clone();
             if (cleaned.hasProperties()) {
                 Object.keys(cleaned.getProperties()).forEach((k) => {
                     if (k.startsWith('gifw')) {
@@ -104,11 +104,11 @@ export default class AnnotationExport {
                     }
                 });
             }
-            let style = cleaned.getStyle();
+            const style = cleaned.getStyle();
             if (formatter instanceof GeoJSON && style instanceof AnnotationStyle && style.getText()?.getText()?.length > 0) {
                 cleaned.setProperties({ 'name': style.getText().getText() });
             }
-            let geometry = cleaned.getGeometry();
+            const geometry = cleaned.getGeometry();
             if (geometry instanceof Circle) {
                 let approximation = Polygon.fromCircle(geometry);
                 cleaned.setGeometry(approximation); // GeoJSON & KML do not support Circle geometries
@@ -121,13 +121,13 @@ export default class AnnotationExport {
 
         // Remove the default KML pushpin icon from features with labels (text annotations)
         if (formatter instanceof KML) {
-            let parser = new DOMParser();
-            let kml = parser.parseFromString(collection, 'application/xml');
-            let placemarks = kml.querySelectorAll('Placemark');
+            const parser = new DOMParser();
+            const kml = parser.parseFromString(collection, 'application/xml');
+            const placemarks = kml.querySelectorAll('Placemark');
             placemarks.forEach((p) => {
-                let styleElement = p.querySelector('Style');
+                const styleElement = p.querySelector('Style');
                 if (styleElement) {
-                    let labelStyleElement = styleElement.querySelector('LabelStyle');
+                    const labelStyleElement = styleElement.querySelector('LabelStyle');
                     if (labelStyleElement && !(styleElement.querySelector('IconStyle'))) {
                         labelStyleElement.insertAdjacentHTML('afterend', `<IconStyle><Icon></Icon></IconStyle>`);
                     }
@@ -136,16 +136,16 @@ export default class AnnotationExport {
             collection = kml.documentElement.innerHTML;
         }
 
-        let blob = new Blob([collection], { type: format.mediaType });
-        let url = URL.createObjectURL(blob);
-        let downloadLink = document.createElement('a');
+        const blob = new Blob([collection], { type: format.mediaType });
+        const url = URL.createObjectURL(blob);
+        const downloadLink = document.createElement('a');
         downloadLink.href = url;
         downloadLink.download = `${title}${format.extension}`;
         downloadLink.click();
     }
 
     public showOptions() {
-        let optionsModal = Modal.getOrCreateInstance(this.optionsContainer);
+        const optionsModal = Modal.getOrCreateInstance(this.optionsContainer);
         optionsModal.show();
     }
 

@@ -45,7 +45,7 @@ export default class AnnotationStyle extends Style {
         this.fillColourHex = gifwMap.config.theme.primaryColour;
         this.fontColourHex = gifwMap.config.theme.primaryColour;
         this.strokeColourHex = gifwMap.config.theme.primaryColour;
-        let rgbColor = Util.Color.hexToRgb(this.fillColourHex);
+        const rgbColor = Util.Color.hexToRgb(this.fillColourHex);
         this.opacity = 0.2;
         this.fillColour = `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, ${this.opacity})`;
         this.fontColour = `rgb(${rgbColor.r},${rgbColor.g},${rgbColor.b})`;
@@ -134,7 +134,7 @@ export default class AnnotationStyle extends Style {
     }
 
     public getClone() {
-        let clone = new AnnotationStyle(this.gifwMapInstance);
+        const clone = new AnnotationStyle(this.gifwMapInstance);
         clone.activeTool = this.activeTool;
         clone.fillColour = this.fillColour;
         clone.fillColourHex = this.fillColourHex;
@@ -191,7 +191,7 @@ export default class AnnotationStyle extends Style {
             if (this.pointHasBorder) {
                 strokeStyle = `stroke:#${this.borderColourHex};stroke-width:${this.borderWidth}`
             }
-            let shapes: { [name: string]: string } = {
+            const shapes: { [name: string]: string } = {
                 'circle': `
                     <svg xmlns="http://www.w3.org/2000/svg" width="${this.size}" height="${this.size}" fill="#${this.fillColourHex}" class="bi bi-circle-fill" viewBox="0 0 16 16">
                       <circle cx="8" cy="8" r="7" style="${strokeStyle};" />
@@ -292,18 +292,18 @@ export default class AnnotationStyle extends Style {
         this.strokeColourHex = e.detail.style.strokeColourHex || this.strokeColourHex;
         this.strokeStyle = e.detail.style.strokeStyle || this.strokeStyle;
         this.strokeWidth = e.detail.style.strokeWidth || this.strokeWidth;
-        let rgbFillColour = Util.Color.hexToRgb(this.fillColourHex);
+        const rgbFillColour = Util.Color.hexToRgb(this.fillColourHex);
         this.fillColour = `rgba(${rgbFillColour.r}, ${rgbFillColour.g}, ${rgbFillColour.b}, ${this.opacity})`;
-        let rgbFontColour = Util.Color.hexToRgb(this.fontColourHex);
+        const rgbFontColour = Util.Color.hexToRgb(this.fontColourHex);
         this.fontColour = `rgb(${rgbFontColour.r}, ${rgbFontColour.g}, ${rgbFontColour.b})`;
-        let rgbStrokeColour = Util.Color.hexToRgb(this.strokeColourHex);
+        const rgbStrokeColour = Util.Color.hexToRgb(this.strokeColourHex);
         this.strokeColour = `rgb(${rgbStrokeColour.r}, ${rgbStrokeColour.g}, ${rgbStrokeColour.b})`;
         if (e.detail.style.pointHasBorder != undefined && e.detail.style.pointHasBorder != null) {
             this.pointHasBorder = e.detail.style.pointHasBorder;
         } else {
             this.pointHasBorder = this.pointHasBorder;
         }
-        let rgbBorderColour = Util.Color.hexToRgb(this.borderColourHex);
+        const rgbBorderColour = Util.Color.hexToRgb(this.borderColourHex);
         this.borderColour = `rgb(${rgbBorderColour.r}, ${rgbBorderColour.g}, ${rgbBorderColour.b})`;
         this.borderColourHex = e.detail.style.borderColourHex || this.borderColourHex;
         this.borderWidth = e.detail.style.borderWidth || this.borderWidth;

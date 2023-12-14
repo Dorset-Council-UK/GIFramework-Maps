@@ -14,7 +14,7 @@ export default class AnnotationDraw extends Draw {
     tip: string;
 
     constructor(type: olGeomType, annotationLayer: AnnotationLayer, annotationStyle: AnnotationStyle) {
-        let tip = 'Click to start drawing';
+        const tip = 'Click to start drawing';
         super({
             source: annotationLayer.getSource(),
             type: type,
@@ -72,7 +72,7 @@ export default class AnnotationDraw extends Draw {
                 annotationLayer.setVisible(true);
             }
             e.feature.setStyle(annotationStyle);
-            let timestamp = new Date().toLocaleString('en-GB', { timeZone: 'UTC' });
+            const timestamp = new Date().toLocaleString('en-GB', { timeZone: 'UTC' });
             e.feature.set('gifw-popup-title', `${type} added at ${timestamp}`);
             e.feature.set('gifw-geometry-type', type);
             this.addPopupOptionsToFeature(e.feature, annotationLayer, `<h1>Annotation</h1><p>${type} added at ${timestamp}</p>`);
@@ -90,17 +90,17 @@ export default class AnnotationDraw extends Draw {
     }
 
     private addPopupOptionsToFeature(feature: Feature<any>, annotationLayer: AnnotationLayer, popupContent: string) {
-        let removeAction = new GIFWPopupAction("Remove drawing", () => {
+        const removeAction = new GIFWPopupAction("Remove drawing", () => {
             annotationLayer.getSource().removeFeature(feature);
             if (annotationLayer.getSource().getFeatures().length === 0) {
                 annotationLayer.setVisible(false);
             }
         }, true, true);
-        let removeAllAction = new GIFWPopupAction("Remove all drawings", () => {
+        const removeAllAction = new GIFWPopupAction("Remove all drawings", () => {
             annotationLayer.getSource().clear();
             annotationLayer.setVisible(false);
         }, true, true);
-        let popupOpts = new GIFWPopupOptions(popupContent, [removeAction, removeAllAction]);
+        const popupOpts = new GIFWPopupOptions(popupContent, [removeAction, removeAllAction]);
         feature.set('gifw-popup-opts', popupOpts)
     }
 
