@@ -7,6 +7,6 @@ namespace GIFrameworkMaps.Data.Models.ViewModels.Management
         public int VersionId { get; set; }
         public List<VersionLayer> VersionLayers {  get; set; }
 
-        public virtual Version Version { get; set; }
+        public virtual Version? Version { get; set; }
     }
 }

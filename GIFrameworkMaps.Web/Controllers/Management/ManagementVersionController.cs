@@ -191,6 +191,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
                 var editModel = new VersionEditModel() { Version = version };
                 RebuildViewModel(ref editModel, version);
+                editModel.UserDetails = new Dictionary<string, Microsoft.Graph.Beta.Models.User>();
                 foreach (var v in editModel.Version.VersionContacts)
                 {
                     editModel.UserDetails.Add(v.UserId, await _repository.GetUser(v.UserId));
@@ -419,6 +420,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         {
             if (!selectedBasemaps.Any())
             {
+                versionToUpdate.VersionBasemaps = new List<VersionBasemap>();
                 return;
             }
 
@@ -434,7 +436,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 if (selectedBasemapsHS.Contains(basemap.Id))
                 {
                     if (!versionBasemaps.Contains(basemap.Id))
-                    {                        
+                    {
+                        if (!versionToUpdate.VersionBasemaps.Any())
+                        {
+                            versionToUpdate.VersionBasemaps = new List<VersionBasemap>();
+                        }
                         versionToUpdate.VersionBasemaps.Add(new VersionBasemap { 
                             VersionId = versionToUpdate.Id, 
                             BasemapId = basemap.Id, 
