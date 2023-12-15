@@ -49,10 +49,10 @@ export default class Annotate extends olControl {
 
     private renderAnnotationControls() {
 
-        let annotateButton = document.createElement('button');
+        const annotateButton = document.createElement('button');
         annotateButton.innerHTML = '<i class="bi bi-pencil"></i>';
         annotateButton.setAttribute('title', 'Open annotation controls');
-        let annotateContainer = document.createElement('div');
+        const annotateContainer = document.createElement('div');
         annotateContainer.className = 'gifw-annotation-control ol-unselectable ol-control';
         annotateContainer.appendChild(annotateButton);
         this.element.appendChild(annotateContainer);
@@ -65,10 +65,10 @@ export default class Annotate extends olControl {
             TextTool
         ];
 
-        let exportButton = document.createElement('button');
+        const exportButton = document.createElement('button');
         exportButton.innerHTML = '<i class="bi bi-save"></i>';
         exportButton.setAttribute('title', 'Export annotations');
-        let exportContainer = document.createElement('div');
+        const exportContainer = document.createElement('div');
         exportContainer.className = 'gifw-export-annotation-control gifw-annotation-control ol-unselectable ol-control ol-hidden';
         exportContainer.appendChild(exportButton);
         this.element.appendChild(exportContainer);
@@ -82,10 +82,10 @@ export default class Annotate extends olControl {
             }
         });
 
-        let modifyButton = document.createElement('button');
+        const modifyButton = document.createElement('button');
         modifyButton.innerHTML = '<i class="bi bi-brush-fill"></i>';
         modifyButton.setAttribute('title', 'Modify annotations');
-        let modifyContainer = document.createElement('div');
+        const modifyContainer = document.createElement('div');
         modifyContainer.className = 'gifw-modify-annotation-control gifw-annotation-control ol-unselectable ol-control ol-hidden';
         modifyContainer.appendChild(modifyButton);
         this.element.appendChild(modifyContainer);
@@ -101,10 +101,10 @@ export default class Annotate extends olControl {
             }
         });
 
-        let clearAnnotationsButton = document.createElement('button');
+        const clearAnnotationsButton = document.createElement('button');
         clearAnnotationsButton.innerHTML = '<i class="bi bi-trash"></i>';
         clearAnnotationsButton.setAttribute('title', 'Delete all annotations');
-        let clearAnnotationsContainer = document.createElement('div');
+        const clearAnnotationsContainer = document.createElement('div');
         clearAnnotationsContainer.className = 'gifw-clear-annotation-control gifw-annotation-control ol-unselectable ol-control ol-hidden';
         clearAnnotationsContainer.appendChild(clearAnnotationsButton);
         this.element.appendChild(clearAnnotationsContainer);

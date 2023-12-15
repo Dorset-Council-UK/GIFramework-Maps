@@ -102,7 +102,7 @@ export default class AnnotationStylePanel implements SidebarPanel {
                 return;
             }
             if (this.optionsPanel) {
-                let controls = this.optionsPanel.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input, select');
+                const controls = this.optionsPanel.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input, select');
                 controls.forEach((control) => {
                     switch (control.getAttribute('data-style-property')) {
                         case 'fillColour':
@@ -136,6 +136,17 @@ export default class AnnotationStylePanel implements SidebarPanel {
                         case 'strokeWidth':
                             control.value = this.activeStyle.strokeWidth.toString();
                             break;
+                        case 'pointHasBorder':
+                            (control as HTMLInputElement).checked = this.activeStyle.pointHasBorder;
+                            const borderOptions: HTMLElement = document.querySelector('#gifw-annotations-border-options');
+                            borderOptions.style.display = (control as HTMLInputElement).checked ? 'block' : 'none';
+                            break;
+                        case 'borderColour':
+                            control.value = `#${this.activeStyle.borderColourHex}`;
+                            break;
+                        case 'borderWidth':
+                            control.value = this.activeStyle.borderWidth.toString();
+                            break; 
                         default:
                             break;
                     }
@@ -147,6 +158,10 @@ export default class AnnotationStylePanel implements SidebarPanel {
                         if (control.getAttribute('data-style-property') == 'labelText') {
                             control.setAttribute('input-text', control.value); // Strangely, the text value does not get passed with the control to this.updateStyle, and so I have had to create this new attribute...
                         }
+                        if (control.getAttribute('data-style-property') == 'pointHasBorder') {
+                            const borderOptions: HTMLElement = document.querySelector('#gifw-annotations-border-options');
+                            borderOptions.style.display = (control as HTMLInputElement).checked ? 'block' : 'none';
+                        }
                         this.updateStyle(control);
                         document.getElementById(this.gifwMapInstance.id).dispatchEvent(new CustomEvent('gifw-annotate-style-update', {
                             detail: {
@@ -155,6 +170,7 @@ export default class AnnotationStylePanel implements SidebarPanel {
                         }) as AnnotationStyleEvent);
                     });
                 });
+                
             }
         }
     }
@@ -190,6 +206,15 @@ export default class AnnotationStylePanel implements SidebarPanel {
                 break;
             case 'strokeWidth':
                 this.activeStyle.strokeWidth = parseFloat(control.value);
+                break;
+            case 'pointHasBorder':
+                this.activeStyle.pointHasBorder = (control as HTMLInputElement).checked;
+                break;
+            case 'borderColour':
+                this.activeStyle.borderColourHex = control.value.slice(1);
+                break;
+            case 'borderWidth':
+                this.activeStyle.borderWidth = parseFloat(control.value);
                 break;
             default:
                 return;
