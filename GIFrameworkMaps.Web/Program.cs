@@ -12,13 +12,15 @@ using Microsoft.Identity.Web;
 using GIFrameworkMaps.Data;
 using Microsoft.EntityFrameworkCore;
 using GIFrameworkMaps.Web.Authorization;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.HttpOverrides;
 using Yarp.ReverseProxy.Forwarder;
-using Microsoft.Extensions.Logging.ApplicationInsights;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
+using NodaTime.Serialization.SystemTextJson;
+using NodaTime;
+using Npgsql;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,7 +54,10 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
 });
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+});
 builder.Services.AddResponseCaching();
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
@@ -60,10 +65,9 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDbContext<ApplicationDbContext>(
     options => {
-        options.UseNpgsql("name=ConnectionStrings:GIFrameworkMaps", x => x.MigrationsHistoryTable("__EFMigrationsHistory", "giframeworkmaps"));
-        options.EnableSensitiveDataLogging(true);
+        options.UseNpgsql("name=ConnectionStrings:GIFrameworkMaps", x => { x.MigrationsHistoryTable("__EFMigrationsHistory", "giframeworkmaps"); x.UseNodaTime(); });
+        options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
     });
-
 /*TODO Not sure about this line. Is this correct?
  Seems to be the only way to get AutoMapper set up in the Data Access project*/
 builder.Services.AddAutoMapper(typeof(GIFrameworkMaps.Data.ApplicationDbContext));

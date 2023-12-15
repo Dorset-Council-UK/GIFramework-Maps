@@ -7,6 +7,11 @@
 
 <a asp-action="Index">Cancel</a>
 
+<div>
+    <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/gui/tours/" class="btn btn-outline-primary" target="_blank"
+       role="button">Stuck? Read the help documentation</a>
+</div>
+
 <form asp-action="Edit">
     <div class="row mt-4">
         <div class="col-md-6">
@@ -35,7 +40,7 @@
 
             <div class="mb-3">
                 <label asp-for="UpdateDate" class="control-label"></label>
-                <input asp-for="UpdateDate" type="datetime-local" class="form-control" />
+                @Html.EditorFor(model => model.UpdateDate, "DateTimeLocal")
                 <div class="form-text">A date when this tour has been updated enough to re-show it to the user.</div>
                 <span asp-validation-for="UpdateDate" class="text-danger"></span>
             </div>

@@ -35,35 +35,35 @@ namespace GIFrameworkMaps.Tests
 
             var versions = new List<Version>
             {
-                new Version { Name = "General version",Slug= "general",Id=1 },
-                new Version { Name = "Valid Version Test",Slug= "valid/version",Id=2 },
-                new Version { Name = "Valid Version Test 2",Slug= "valid/version/two",Id=3 },
-                new Version { Name = "Requires Login",Slug= "requires/login",Id=4 ,RequireLogin=true},
-                new Version { Name = "Requires Login 2",Slug= "requires/login/two",Id=5, RequireLogin=true }
+                new() { Name = "General version",Slug= "general",Id=1 },
+                new() { Name = "Valid Version Test",Slug= "valid/version",Id=2 },
+                new() { Name = "Valid Version Test 2",Slug= "valid/version/two",Id=3 },
+                new() { Name = "Requires Login",Slug= "requires/login",Id=4 ,RequireLogin=true},
+                new() { Name = "Requires Login 2",Slug= "requires/login/two",Id=5, RequireLogin=true }
             };
 
             var roles = new List<ApplicationRole>
             {
-                new ApplicationRole{Id=1,RoleName="GIFWAdmin"}
+                new() {Id=1,RoleName="GIFWAdmin"}
             };
 
             var userRoles = new List<ApplicationUserRole>
             {
-                new ApplicationUserRole{UserId = "36850518-dd0a-48e0-9004-cdaf30d82746",Role=roles.First()}
+                new() {UserId = "36850518-dd0a-48e0-9004-cdaf30d82746",Role=roles.First()}
             };
 
             var users = new List<VersionUser>
             {
-                new VersionUser{UserId="36850518-dd0a-48e0-9004-cdaf30d82746",VersionId=4 }
+                new() {UserId="36850518-dd0a-48e0-9004-cdaf30d82746",VersionId=4 }
             };
 
             var bookmarks = new List<Bookmark>
             {
-                new Bookmark{UserId="36850518-dd0a-48e0-9004-cdaf30d82746",Name="Test Bookmark",X=(decimal)-283267.6475493251, Y=(decimal)6570725.6916950345, Zoom = 18, Id = 1 },
-                new Bookmark{UserId="36850518-dd0a-48e0-9004-cdaf30d82746",Name="Test Bookmark 2",X=(decimal)-283945.864, Y=(decimal)61023565.9784, Zoom = 8, Id = 2 },
-                new Bookmark{UserId="36850518-dd0a-48e0-9004-cdaf30d82746",Name="Test Bookmark 3",X=(decimal)1005456.2345, Y=(decimal)0.456, Zoom = 10, Id = 3 },
-                new Bookmark{UserId="17819f99-b8d5-4495-8c48-964f5692afdc",Name="Test Bookmark 4",X=(decimal)-283267.6475493251, Y=(decimal)6570725.6916950345, Zoom = 10, Id = 4 },
-                new Bookmark{UserId="17819f99-b8d5-4495-8c48-964f5692afdc",Name="Test Bookmark 5",X=(decimal)-3894566.44, Y=(decimal)55427657.45, Zoom = 7, Id = 5 },
+                new() {UserId="36850518-dd0a-48e0-9004-cdaf30d82746",Name="Test Bookmark",X=(decimal)-283267.6475493251, Y=(decimal)6570725.6916950345, Zoom = 18, Id = 1 },
+                new() {UserId="36850518-dd0a-48e0-9004-cdaf30d82746",Name="Test Bookmark 2",X=(decimal)-283945.864, Y=(decimal)61023565.9784, Zoom = 8, Id = 2 },
+                new() {UserId="36850518-dd0a-48e0-9004-cdaf30d82746",Name="Test Bookmark 3",X=(decimal)1005456.2345, Y=(decimal)0.456, Zoom = 10, Id = 3 },
+                new() {UserId="17819f99-b8d5-4495-8c48-964f5692afdc",Name="Test Bookmark 4",X=(decimal)-283267.6475493251, Y=(decimal)6570725.6916950345, Zoom = 10, Id = 4 },
+                new() {UserId="17819f99-b8d5-4495-8c48-964f5692afdc",Name="Test Bookmark 5",X=(decimal)-3894566.44, Y=(decimal)55427657.45, Zoom = 7, Id = 5 },
             };
 
             var versionsMockSet = versions.AsQueryable().BuildMockDbSet();
@@ -106,7 +106,6 @@ namespace GIFrameworkMaps.Tests
         [TestCase("VaLID", "VERSION", "tWo", ExpectedResult = "Valid Version Test 2")]
         public string GetVersionBySlug_ValidSlug(string slug1, string slug2, string slug3)
         {
-
             return sut.GetVersionBySlug(slug1, slug2, slug3).Name;
 
         }

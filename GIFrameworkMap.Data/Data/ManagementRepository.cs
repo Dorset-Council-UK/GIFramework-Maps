@@ -5,10 +5,8 @@ using GIFrameworkMaps.Data.Models.Search;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Graph.Beta;
 using Azure.Identity;
@@ -19,17 +17,15 @@ namespace GIFrameworkMaps.Data
     public class ManagementRepository : IManagementRepository
     {
         //dependancy injection
-        private readonly ILogger<ManagementRepository> _logger;
         private readonly IApplicationDbContext _context;
         private readonly IMemoryCache _memoryCache;
         private readonly IConfiguration _configuration;
 
-        public ManagementRepository(ILogger<ManagementRepository> logger, 
+        public ManagementRepository(
             IApplicationDbContext context, 
             IMemoryCache memoryCache,
             IConfiguration configuration)
         {
-            _logger = logger;
             _context = context;
             _memoryCache = memoryCache;
             _configuration = configuration;
@@ -44,7 +40,7 @@ namespace GIFrameworkMaps.Data
             return attributions;
         }
 
-        public async Task<Attribution> GetAttribution(int id)
+        public async Task<Attribution?> GetAttribution(int id)
         {
             var attribution = await _context.Attribution.FirstOrDefaultAsync(a => a.Id == id);
 
@@ -60,7 +56,7 @@ namespace GIFrameworkMaps.Data
             return versions;
         }
 
-        public async Task<Models.Version> GetVersion(int id)
+        public async Task<Models.Version?> GetVersion(int id)
         {
             var version = await _context.Versions.FirstOrDefaultAsync(a => a.Id == id);
 
@@ -76,7 +72,7 @@ namespace GIFrameworkMaps.Data
             return bounds;
         }
 
-        public async Task<Bound> GetBound(int id)
+        public async Task<Bound?> GetBound(int id)
         {
             var bound = await _context.Bound.FirstOrDefaultAsync(a => a.Id == id);
 
@@ -92,7 +88,7 @@ namespace GIFrameworkMaps.Data
             return themes;
         }
 
-        public async Task<Theme> GetTheme(int id)
+        public async Task<Theme?> GetTheme(int id)
         {
             var theme = await _context.Theme.FirstOrDefaultAsync(a => a.Id == id);
 
@@ -108,7 +104,7 @@ namespace GIFrameworkMaps.Data
             return welcomeMessages;
         }
 
-        public async Task<WelcomeMessage> GetWelcomeMessage(int id)
+        public async Task<WelcomeMessage?> GetWelcomeMessage(int id)
         {
             var welcomeMessage = await _context.WelcomeMessages.FirstOrDefaultAsync(a => a.Id == id);
 
@@ -124,13 +120,13 @@ namespace GIFrameworkMaps.Data
             return webLayerServiceDefinitions;
         }
 
-        public async Task<Layer> GetLayer(int id)
+        public async Task<Layer?> GetLayer(int id)
         {
             var layer = await _context.Layer
                 .Include(l => l.LayerSource)
-                .ThenInclude(l => l.LayerSourceType)
+                .ThenInclude(l => l!.LayerSourceType)
                 .Include(l => l.LayerSource)
-                .ThenInclude(l => l.LayerSourceOptions)
+                .ThenInclude(l => l!.LayerSourceOptions)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             return layer;
@@ -151,7 +147,7 @@ namespace GIFrameworkMaps.Data
             return layers;
         }
 
-        public async Task<LayerSource> GetLayerSource(int id)
+        public async Task<LayerSource?> GetLayerSource(int id)
         {
             var layerSource = await _context.LayerSource
                 .Include(s => s.LayerSourceOptions)
@@ -170,14 +166,14 @@ namespace GIFrameworkMaps.Data
             return layerSources;
         }
 
-        public async Task<LayerSourceOption> GetLayerSourceOption(int id)
+        public async Task<LayerSourceOption?> GetLayerSourceOption(int id)
         {
             var layerSource = await _context.LayerSourceOption
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             return layerSource;
         }
-        public async Task<WebLayerServiceDefinition> GetWebLayerServiceDefinition(int id)
+        public async Task<WebLayerServiceDefinition?> GetWebLayerServiceDefinition(int id)
         {
             var webLayerServiceDefinition = await _context.WebLayerServiceDefinitions.FirstOrDefaultAsync(a => a.Id == id);
 
@@ -194,7 +190,7 @@ namespace GIFrameworkMaps.Data
             return tours;
         }
 
-        public async Task<TourDetails> GetTour(int id)
+        public async Task<TourDetails?> GetTour(int id)
         {
             var tour = await _context.TourDetails.Include(a => a.Steps).FirstOrDefaultAsync(a => a.Id == id);
 
@@ -210,7 +206,7 @@ namespace GIFrameworkMaps.Data
             return steps;
         }
 
-        public async Task<TourStep> GetStep(int id)
+        public async Task<TourStep?> GetStep(int id)
         {
             var step = await _context.TourStep.FirstOrDefaultAsync(a => a.Id == id);
 
@@ -218,7 +214,7 @@ namespace GIFrameworkMaps.Data
         }
 
 
-        public async Task<Category> GetLayerCategory(int id)
+        public async Task<Category?> GetLayerCategory(int id)
         {
             var layerCategory = await _context.Category
                 .Include(c => c.Layers)
@@ -254,7 +250,7 @@ namespace GIFrameworkMaps.Data
             return searchDefinitions;
         }
 
-        public async Task<SearchDefinition> GetSearchDefinition(int id)
+        public async Task<SearchDefinition?> GetSearchDefinition(int id)
         {
             var searchDefinition = await _context.SearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
 
@@ -270,7 +266,7 @@ namespace GIFrameworkMaps.Data
             return APISearchDefinitions;
         }
 
-        public async Task<APISearchDefinition> GetAPISearchDefinition(int id)
+        public async Task<APISearchDefinition?> GetAPISearchDefinition(int id)
         {
             var APISearchDefinition = await _context.APISearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
 
@@ -286,7 +282,7 @@ namespace GIFrameworkMaps.Data
             return databaseSearchDefinitions;
         }
 
-        public async Task<DatabaseSearchDefinition> GetDatabaseSearchDefinition(int id)
+        public async Task<DatabaseSearchDefinition?> GetDatabaseSearchDefinition(int id)
         {
             var databaseSearchDefinition = await _context.DatabaseSearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
 
@@ -302,25 +298,60 @@ namespace GIFrameworkMaps.Data
             return localSearchDefinitions;
         }
 
-        public async Task<LocalSearchDefinition> GetLocalSearchDefinition(int id)
+        public async Task<LocalSearchDefinition?> GetLocalSearchDefinition(int id)
         {
             var localSearchDefinition = await _context.LocalSearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
 
             return localSearchDefinition;
         }
 
-        public async Task<Microsoft.Graph.Beta.Models.UserCollectionResponse> GetUsers()
+        public async Task<List<Microsoft.Graph.Beta.Models.User>> GetUsers()
         {
+            string cachekey = "AllGraphUsers";
+            if(_memoryCache.TryGetValue(cachekey, out List <Microsoft.Graph.Beta.Models.User>? cachedUsers))
+            {
+                if (cachedUsers != null)
+                {
+                    return cachedUsers;
+                }
+            }
+            List<Microsoft.Graph.Beta.Models.User> allUsers = new();
             var graphClient = GetGraphClient();
             if (graphClient != null)
             {
                 var users = await graphClient.Users.GetAsync();
-                return users;
+                if (users != null && users.Value != null)
+                {
+                    allUsers.AddRange(users.Value);
+                    string? skipLink = users.OdataNextLink;
+                    bool hasNextPage = !string.IsNullOrEmpty(skipLink);
+                    while (hasNextPage)
+                    {
+
+                        var nextPage = await graphClient.Users.WithUrl(skipLink).GetAsync();
+                        if (nextPage != null && nextPage.Value != null)
+                        {
+                            allUsers.AddRange(nextPage.Value);
+                            skipLink = nextPage.OdataNextLink;
+                            hasNextPage = !string.IsNullOrEmpty(skipLink);
+                        }
+                        
+
+                    }
+                }
+                else
+                {
+                    throw new System.Exception("Graph client could not be initialized");
+                }
             }
-            return null;
+            if (allUsers.Any())
+            {
+                _memoryCache.Set(cachekey, allUsers, System.TimeSpan.FromMinutes(5));
+            }
+            return allUsers;
         }
 
-        public async Task<Microsoft.Graph.Beta.Models.User> GetUser(string id)
+        public async Task<Microsoft.Graph.Beta.Models.User?> GetUser(string id)
         {
             var graphClient = GetGraphClient();
             if (graphClient != null)
@@ -331,7 +362,7 @@ namespace GIFrameworkMaps.Data
             return null;
         }
 
-        private GraphServiceClient GetGraphClient()
+        private GraphServiceClient? GetGraphClient()
         {
             if (!string.IsNullOrEmpty(_configuration.GetSection("AzureAd")["ClientId"]))
             {
@@ -363,8 +394,7 @@ namespace GIFrameworkMaps.Data
         /// <returns>True or false depending on success or not</returns>
         public bool PurgeCache()
         {
-            var memoryCache = _memoryCache as MemoryCache;
-            if(memoryCache != null)
+            if (_memoryCache is MemoryCache memoryCache)
             {
                 memoryCache.Compact(1);
                 return true;
@@ -374,8 +404,10 @@ namespace GIFrameworkMaps.Data
 
         public AnalyticsViewModel GetAnalyticsModel()
         {
-            AnalyticsViewModel viewModel = new AnalyticsViewModel();
-            viewModel.AvailableAnalytics = _context.AnalyticsDefinitions.Include(a => a.VersionAnalytics).ToList();
+            AnalyticsViewModel viewModel = new()
+            {
+                AvailableAnalytics = _context.AnalyticsDefinitions.Include(a => a.VersionAnalytics).ToList()
+            };
 
             return viewModel;
         }

@@ -8,7 +8,7 @@ namespace GIFrameworkMaps.Data.Models.ViewModels
     {
         public int Id { get; set; }
         public bool IsDefault { get; set; }
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public int SortOrder { get; set; }
         public int? MinZoom { get; set; }
         public int? MaxZoom { get; set; }
@@ -23,6 +23,6 @@ namespace GIFrameworkMaps.Data.Models.ViewModels
         public bool DefaultFilterEditable { get; set; }
         public bool ProxyMetaRequests { get; set; }
         public bool ProxyMapRequests { get; set; }
-        public LayerSource LayerSource { get; set;}
+        public LayerSource? LayerSource { get; set;}
     }
 }

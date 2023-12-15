@@ -10,7 +10,7 @@ namespace GIFrameworkMaps.Data.Models
     {
         public int VersionId { get; set; }
         public int PrintConfigurationId { get; set; }
-        public Version Version { get; set; }
-        public Print.PrintConfiguration PrintConfiguration { get; set; }
+        public Version? Version { get; set; }
+        public Print.PrintConfiguration? PrintConfiguration { get; set; }
     }
 }

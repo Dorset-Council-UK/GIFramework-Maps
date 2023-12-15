@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using NodaTime;
 
 namespace GIFrameworkMaps.Data.Models.Tour
 {
@@ -14,7 +12,7 @@ namespace GIFrameworkMaps.Data.Models.Tour
 
         [Required]
         [DisplayName("Name of the tour")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [DefaultValue(-1)]
         [Range(-1, int.MaxValue)]
@@ -22,9 +20,9 @@ namespace GIFrameworkMaps.Data.Models.Tour
         public int Frequency { get; set; }
 
         [DisplayName("Update date")]
-        public DateTimeOffset UpdateDate { get; set; }
+        public LocalDateTime UpdateDate { get; set; }
 
-        public List<TourStep> Steps { get; set; }
+        public List<TourStep> Steps { get; set; } = new();
 
     }
 }

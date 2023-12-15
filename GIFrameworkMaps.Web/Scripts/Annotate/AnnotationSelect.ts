@@ -26,7 +26,7 @@ import { StyleFunction } from "ol/style/Style";
 export default class AnnotationSelect extends Select {
 
     gifwMapInstance: GIFWMap;
-    backdropLayer: VectorLayer<VectorSource<Geometry>>;
+    backdropLayer: VectorLayer<VectorSource<Feature<Geometry>>>;
     modifyInteraction: Modify;
     selectedFeatures: Collection<Feature<Geometry>>; // Required to store features upon forcing dispatch of a select event outside of standard OL handling
     snapInteraction: Snap;

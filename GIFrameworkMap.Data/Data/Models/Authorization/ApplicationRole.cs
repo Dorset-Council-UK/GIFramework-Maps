@@ -12,6 +12,6 @@ namespace GIFrameworkMaps.Data.Models.Authorization
         public int Id { get; set; }
         [MaxLength(200)]
         [Required]
-        public string RoleName { get; set; }
+        public string? RoleName { get; set; }
     }
 }

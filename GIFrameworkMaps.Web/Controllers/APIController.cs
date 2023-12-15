@@ -109,18 +109,16 @@ namespace GIFrameworkMaps.Web.Controllers
                 source_svg.GetElementById("shape").Stroke = new SvgColourServer(System.Drawing.ColorTranslator.FromHtml("#" + border_colour));
                 source_svg.GetElementById("shape").StrokeWidth = 15;
             }
-
-            var outputImage = new System.Drawing.Bitmap(width, height);
+            #pragma warning disable CA1416
+            //warning disabled as tracked in GitHub issue https://github.com/Dorset-Council-UK/GIFramework-Maps/issues/47
             source_svg.Width = width;
             source_svg.Height = height;
-            outputImage = source_svg.Draw();
+            var outputImage = source_svg.Draw();
             // stream it
-            using (var ms = new MemoryStream())
-            {
-                outputImage.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                return File(ms.ToArray(), "image/png");
-            }
-
+            using var ms = new MemoryStream();
+            outputImage.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            return File(ms.ToArray(), "image/png");
+            #pragma warning restore CA1416
         }
 
         public IActionResult WebManifest(int id)
@@ -138,29 +136,31 @@ namespace GIFrameworkMaps.Web.Controllers
             string appName = _configuration.GetValue<string>("GIFrameworkMaps:appName");
             if (version != null && version.Theme != null)
             {
-                ManifestIcon largeIcon = new ManifestIcon
+                ManifestIcon largeIcon = new()
                 {
                     Source = string.IsNullOrEmpty(version.Theme.CustomFaviconURL) ? Url.Content("~/android-chrome-512x512.png") : $"{version.Theme.CustomFaviconURL}/android-chrome-512x512.png",
                     Sizes = "512x512",
                     Type = "image/png"
                 };
 
-                ManifestIcon regularIcon = new ManifestIcon
+                ManifestIcon regularIcon = new()
                 {
                     Source = string.IsNullOrEmpty(version.Theme.CustomFaviconURL) ? Url.Content("~/android-chrome-192x192.png") : $"{version.Theme.CustomFaviconURL}/android-chrome-192x192.png",
                     Sizes = "192x192",
                     Type = "image/png"
                 };
 
-                List<ManifestIcon> iconsList = new List<ManifestIcon>();
-                iconsList.Add(largeIcon);
-                iconsList.Add(regularIcon);
+                List<ManifestIcon> iconsList = new()
+                {
+                    largeIcon,
+                    regularIcon
+                };
 
 
                 var host = Request.Host.ToUriComponent();
                 var pathBase = Request.PathBase.ToUriComponent();
 
-                ManifestFile manifest = new ManifestFile
+                ManifestFile manifest = new()
                 {
                     Id = version.Slug,
                     StartURL = $"{Request.Scheme}://{host}{pathBase}/{(version.Slug == "general" ? "" : version.Slug)}",
@@ -194,7 +194,7 @@ namespace GIFrameworkMaps.Web.Controllers
 
                 if (authResult.Succeeded)
                 {
-                    var versionViewModel = _repository.GetVersionViewModel(id);
+                    var versionViewModel = _repository.GetVersionViewModel(version);
 
                     var host = Request.Host.ToUriComponent();
                     var pathBase = Request.PathBase.ToUriComponent();

@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 [assembly: InternalsVisibleTo("GIFrameworkMaps.Tests")]
 namespace GIFrameworkMaps.Data
 {
-    public class CoordHelper
+    public partial class CoordHelper
     {
         /// <summary>
         /// Checks whether a BNG 12 figure grid ref pair is within the UK
@@ -16,7 +16,7 @@ namespace GIFrameworkMaps.Data
         /// <returns>True if valid. False otherwise.</returns>
         internal static bool ValidateBNG12Figure(decimal x, decimal y)
         {
-            if((x >= 0 && x <= 700000) && (y >= 0 && y<=1300000)) {
+            if(x >= 0 && x <= 700000 && y >= 0 && y<=1300000) {
                 return true;
             }
             return false;
@@ -30,7 +30,7 @@ namespace GIFrameworkMaps.Data
         /// <returns>True if valid. False otherwise.</returns>
         internal static bool ValidateLatLon(decimal latitude, decimal longitude)
         {
-            if((latitude >= -180 && latitude <= 180) && (longitude >= -180 && longitude <= 180))
+            if(latitude >= -180 && latitude <= 180 && longitude >= -180 && longitude <= 180)
             {
                 return true;
             }
@@ -40,7 +40,7 @@ namespace GIFrameworkMaps.Data
         internal static bool ValidateSphericalMercator(decimal x, decimal y)
         {
             
-            if((x >= -20026376.39M && x <= 20026376.39M) && (y >= -20048966.10M && y<= 20048966.10M))
+            if(x >= -20026376.39M && x <= 20026376.39M && y >= -20048966.10M && y<= 20048966.10M)
             {
                 return true;
             }
@@ -56,15 +56,15 @@ namespace GIFrameworkMaps.Data
         {
             string x, y;
             gridRef = gridRef.Replace(" ", "");
-            var alpha = gridRef.Substring(0, 2);
+            var alpha = gridRef[..2];
             var xy = TranslateOSGBAlphaCharactersToNumerics(alpha.ToUpper());
             if(xy != null)
             {
                 x = xy[0].ToString();
                 y = xy[1].ToString();
-                gridRef = gridRef.Substring(2);
-                x += gridRef.Substring(0, gridRef.Length / 2);
-                y += gridRef.Substring(gridRef.Length / 2);
+                gridRef = gridRef[2..];
+                x += gridRef[..(gridRef.Length / 2)];
+                y += gridRef[(gridRef.Length / 2)..];
                 for(int i = x.Length; i < 6; i++)
                 {
                     x += "0";
@@ -93,20 +93,19 @@ namespace GIFrameworkMaps.Data
             /*the third part will be the numbers until the last number in the string*/
             /*This could perhaps be better done with regular expressions*/
             var firstBreak = dmsCoord.IndexOfAny(new char[] { ' ', '°' });
-            var degrees = dmsCoord.Substring(0, firstBreak);
+            var degrees = dmsCoord[..firstBreak];
 
             var startPointOfSecondSection = dmsCoord.IndexOfAny("0123456789".ToCharArray(),firstBreak);
             var secondBreak = dmsCoord.IndexOfAny(new char[] { ' ', '\'', '′' },startPointOfSecondSection);
-            var minutes = dmsCoord.Substring(startPointOfSecondSection, (secondBreak - startPointOfSecondSection));
+            var minutes = dmsCoord[startPointOfSecondSection..secondBreak];
 
             var startPointOfThirdSection = dmsCoord.IndexOfAny("0123456789".ToCharArray(), secondBreak);
             var thirdBreak = dmsCoord.LastIndexOfAny("0123456789".ToCharArray())+1;
-            var seconds = dmsCoord.Substring(startPointOfThirdSection, (thirdBreak - startPointOfThirdSection));
+            var seconds = dmsCoord[startPointOfThirdSection..thirdBreak];
 
-            Regex pattern = new Regex("[NSEW]");
+            Regex pattern = NSEWRegex();
             var hemisphereIndicator = pattern.Match(dmsCoord.ToUpper());
-            decimal d, m, s;
-            if(decimal.TryParse(degrees,out d) && decimal.TryParse(minutes,out m) && decimal.TryParse(seconds, out s))
+            if (decimal.TryParse(degrees, out decimal d) && decimal.TryParse(minutes, out decimal m) && decimal.TryParse(seconds, out decimal s))
             {
                 return ConvertDegreeAngleToDecimal(d, m, s, hemisphereIndicator.Success ? hemisphereIndicator.Value : "");
             }
@@ -122,10 +121,10 @@ namespace GIFrameworkMaps.Data
         /// <param name="hemisphere">The hemisphere character (N/S/E/W)</param>
         /// <returns>A decimal coordinate</returns>
         /// <remarks>Adapted from https://stackoverflow.com/a/28640937/863487 by Matt Cashatt CC BY-SA 3.0</remarks>
-        internal static decimal ConvertDegreeAngleToDecimal(decimal degrees, decimal minutes, decimal seconds, string? hemisphere = "")
+        internal static decimal ConvertDegreeAngleToDecimal(decimal degrees, decimal minutes, decimal seconds, string hemisphere = "")
         {
 
-            var multiplier = (hemisphere.Contains('S') || hemisphere.Contains('W')) ? -1 : 1; //handle south and west
+            var multiplier = hemisphere.Contains('S') || hemisphere.Contains('W') ? -1 : 1; //handle south and west
 
             //Decimal degrees = 
             //   whole number of degrees, 
@@ -135,7 +134,7 @@ namespace GIFrameworkMaps.Data
             minutes /= 60;
             seconds /= 3600;
 
-            return Decimal.Round((degrees + minutes + seconds) * multiplier,5);
+            return decimal.Round((degrees + minutes + seconds) * multiplier,5);
         }
 
         /// <summary>
@@ -143,7 +142,7 @@ namespace GIFrameworkMaps.Data
         /// </summary>
         /// <param name="alpha">The alpha characters e.g. ST (upper case)</param>
         /// <returns>An array of 2 integers representing the X and Y numeric</returns>
-        public static int[] TranslateOSGBAlphaCharactersToNumerics(string alpha)
+        public static int[]? TranslateOSGBAlphaCharactersToNumerics(string alpha)
         {
             int[] return_array = new int[2];
             switch (alpha)
@@ -528,6 +527,7 @@ namespace GIFrameworkMaps.Data
             return return_array;
         }
 
-
+        [GeneratedRegex("[NSEW]")]
+        private static partial Regex NSEWRegex();
     }
 }

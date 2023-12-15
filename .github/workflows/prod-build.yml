@@ -31,7 +31,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: npm install
-      run: npm install
+      run: npm install --force
       working-directory: 'GIFrameworkMaps.Web'
     - name: Install webpack
       run: npm i -g webpack webpack-cli

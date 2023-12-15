@@ -14,7 +14,6 @@ import { GIFWPopupOptions } from './Popups/PopupOptions';
 import { GIFWPopupAction } from './Popups/PopupAction';
 import { SearchQuery } from './Interfaces/Search/SearchQuery';
 import { RequiredSearch } from './Interfaces/Search/RequiredSearch';
-import Geometry from 'ol/geom/Geometry';
 import { LayerGroupType } from './Interfaces/LayerGroupType';
 import { UserSettings } from './UserSettings';
 
@@ -361,7 +360,7 @@ export class Search {
             zoomToExtent = olProj.transformExtent(result.bbox, sourceProj, targetProj);
 
         } else if (result.geom) {
-            let geoJson: Feature<Geometry>[] = new GeoJSON().readFeatures(JSON.parse(result.geom), {dataProjection:sourceProj,featureProjection:targetProj});
+            let geoJson = new GeoJSON().readFeatures(JSON.parse(result.geom), {dataProjection:sourceProj,featureProjection:targetProj});
             zoomToExtent = geoJson[0].getGeometry().getExtent();
             geoJson.forEach(g => {
                 olExtent.extend(zoomToExtent, g.getGeometry().getExtent());
@@ -432,15 +431,15 @@ export class Search {
     private drawResultOnMap(result: SearchResult, category: SearchResultCategory) {
 
         if (result.geom) {
-            let geoJson: Feature<Geometry>[] = new GeoJSON().readFeatures(JSON.parse(result.geom));
+            let geoJson = new GeoJSON().readFeatures(JSON.parse(result.geom));
             
             geoJson.forEach(g => {
-                g.set('name', result.displayText);
+                (g as Feature).set('name', result.displayText);
 
                 let popupContent = `<h1>${category.categoryName}</h1><p>${result.displayText}</p>`;
                 let popupTitle = `${result.displayText} (${category.categoryName})`;
 
-                this.drawSearchResultFeatureOnMap(g,popupContent,popupTitle, this._polyStyle,result.epsg)
+                this.drawSearchResultFeatureOnMap((g as Feature),popupContent,popupTitle, this._polyStyle,result.epsg)
             })
         } else if(result.x && result.y) {            
             let resultIcon = new Feature({

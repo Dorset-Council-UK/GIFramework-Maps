@@ -5,34 +5,39 @@
 
 <h1>@ViewData["Title"]</h1>
 
+<div>
+    <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/gui/system/#site-analytics-and-cookie-control" class="btn btn-outline-primary" target="_blank"
+       role="button">Stuck? Read the help documentation</a>
+</div>
+
 @using (Html.BeginForm("Edit", "ManagementAnalytics", null, FormMethod.Post, true, null))
 {
     <div class="row mt-4">
         <div class="col-md-6">
             <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
             <div class="mb-3">
-                <label asp-for="analyticDefinition.ProductName" class="control-label"></label>
-                <select asp-for="analyticDefinition.ProductName" asp-items="Model.availableProducts" class="form-select">
+                <label asp-for="AnalyticDefinition.ProductName" class="control-label"></label>
+                <select asp-for="AnalyticDefinition.ProductName" asp-items="Model.AvailableProducts" class="form-select">
                     <option value="">Please select</option>
                 </select>
-                <span asp-validation-for="analyticDefinition.ProductName" class="text-danger"></span>
+                <span asp-validation-for="AnalyticDefinition.ProductName" class="text-danger"></span>
             </div>
             <div class="mb-3">
-                <label asp-for="analyticDefinition.ProductKey" class="control-label"></label>
-                <input asp-for="analyticDefinition.ProductKey" class="form-control" />
-                <span asp-validation-for="analyticDefinition.ProductKey" class="text-danger"></span>
+                <label asp-for="AnalyticDefinition.ProductKey" class="control-label"></label>
+                <input asp-for="AnalyticDefinition.ProductKey" class="form-control" />
+                <span asp-validation-for="AnalyticDefinition.ProductKey" class="text-danger"></span>
             </div>
             <div class="mb-3">
-                <label asp-for="analyticDefinition.CookieControl" class="control-label"></label>
-                <select asp-for="analyticDefinition.CookieControl" asp-items="Model.availableCookieControl" class="form-select">
+                <label asp-for="AnalyticDefinition.CookieControl" class="control-label"></label>
+                <select asp-for="AnalyticDefinition.CookieControl" asp-items="Model.AvailableCookieControl" class="form-select">
                     <option value="">None</option>
                 </select>
-                <span asp-validation-for="analyticDefinition.CookieControl" class="text-danger"></span>
+                <span asp-validation-for="AnalyticDefinition.CookieControl" class="text-danger"></span>
             </div>
             <div class="mb-3">
-                <label asp-for="analyticDefinition.Enabled" class="control-label"></label>
-                <input asp-for="analyticDefinition.Enabled" class="form-check-input" type="checkbox" />
-                <span asp-validation-for="analyticDefinition.Enabled" class="text-danger"></span>
+                <label asp-for="AnalyticDefinition.Enabled" class="control-label"></label>
+                <input asp-for="AnalyticDefinition.Enabled" class="form-check-input" type="checkbox" />
+                <span asp-validation-for="AnalyticDefinition.Enabled" class="text-danger"></span>
             </div>
         </div>
         <div class="col-md-6">
@@ -41,7 +46,7 @@
                     Versions
                 </div>
                 <div class="card-body">
-                    @if (Model.SelectedVersions != null && Model.SelectedVersions.Count == 0)
+                    @if (Model.SelectedVersions.Count == 0)
                     {
                         <p class="card-text">Will apply to all versions unless you select from the list below.</p>
                     } 
@@ -53,8 +58,8 @@
     <div class="row mt-4">
         <div class="col-md-6">
             <div class="mb-3">
-                <input type="hidden" asp-for="analyticDefinition.Id" />
-                <input type="hidden" asp-for="analyticDefinition.DateModified" />
+                <input type="hidden" asp-for="AnalyticDefinition.Id" />
+                <input type="hidden" asp-for="AnalyticDefinition.DateModified" />
                 <div class="mb-3">
                     <input type="submit" value="Save Record" class="btn btn-primary" />
                 </div>

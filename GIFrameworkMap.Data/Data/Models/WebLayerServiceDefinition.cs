@@ -13,24 +13,24 @@ namespace GIFrameworkMaps.Data.Models
         public int Id { get; set; }
 
         [Required]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [DisplayName("Description (optional)")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         [Required]
         [DisplayName("URL")]
         [RegularExpression("(https?:\\/\\/)([\\w\\-])+\\.{1}([a-zA-Z]{2,63})([\\/\\w-]*)*\\/?\\??([^#\\n\\r]*)?#?([^\\n\\r]*)")]
-        public string Url { get; set; }
+        public string? Url { get; set; }
 
         [Required]
         public ServiceType Type { get; set; }
 
         [DisplayName("Version (optional)")]
-        public string Version { get; set; }
+        public string? Version { get; set; }
 
         [DisplayName("Category (optional)")]
-        public string Category { get; set; }
+        public string? Category { get; set; }
 
         [Required]
         [DisplayName("Sort order")]

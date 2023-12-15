@@ -1,9 +1,16 @@
-﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.LayerSourceEditModel
+﻿@using GIFrameworkMaps.Data;
+@model GIFrameworkMaps.Data.Models.ViewModels.Management.LayerSourceEditModel
 @{
     ViewData["Title"] = $"Edit layer source '{Model.LayerSource.Name}'";
 }
 
 <h1>@ViewData["Title"]</h1>
+
+<div>
+    <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/gui/layers/#add-a-new-layer-manually" class="btn btn-outline-primary" target="_blank"
+       role="button">Stuck? Read the help documentation</a>
+</div>
+
 <div class="row mt-2 mb-2">
     <div class="col-md-8 col-lg-6">
         <form asp-action="Edit">
@@ -71,7 +78,7 @@
                 <a href="@Url.Action("CreateOption",new {id = Model.LayerSource.Id})" class="btn btn-outline-secondary">Add option</a>
             </div>
             <div class="tab-pane fade" id="layers-tab-pane" role="tabpanel" aria-labelledby="layers-tab" tabindex="0">
-                @if(Model.LayersUsingSource != null && Model.LayersUsingSource.Count != 0)
+                @if(Model.LayersUsingSource.NotNullOrEmpty())
                 {
                     <ul class="list-group">
                         @foreach (var layer in Model.LayersUsingSource)

@@ -1,7 +1,7 @@
-﻿using System;
+﻿using NodaTime;
+using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.CompilerServices;
 
 namespace GIFrameworkMaps.Data.Models
 {
@@ -11,13 +11,13 @@ namespace GIFrameworkMaps.Data.Models
 
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [Required]
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         [Required]
-        public string Content { get; set; }
+        public string? Content { get; set; }
 
         [DefaultValue(-1)]
         [Range(-1, int.MaxValue)]
@@ -25,15 +25,15 @@ namespace GIFrameworkMaps.Data.Models
         public int Frequency { get; set; }
 
         [DisplayName("Update date")]
-        public DateTimeOffset UpdateDate { get; set; }
+        public LocalDateTime UpdateDate { get; set; }
 
         [DefaultValue("modal-lg")]
         [DisplayName("How large do you want your welcome message to be?")]
-        public string ModalSize { get; set; }
+        public string? ModalSize { get; set; }
 
         [DisplayName("Dismiss button text")]
-        public string DismissText{ get; set; }
+        public string? DismissText{ get; set; }
 
-        public Boolean DismissOnButtonOnly { get; set; }
+        public bool DismissOnButtonOnly { get; set; }
     }
 }

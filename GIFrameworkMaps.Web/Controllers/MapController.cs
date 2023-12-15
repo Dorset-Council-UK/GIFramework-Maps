@@ -6,9 +6,8 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
-using GIFrameworkMaps.Data.Models;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
 using Microsoft.EntityFrameworkCore;
+using NodaTime;
 
 namespace GIFrameworkMaps.Web.Controllers
 {
@@ -51,8 +50,8 @@ namespace GIFrameworkMaps.Web.Controllers
             _logger.LogInformation("User requested version {slug1}/{slug2}/{slug3}",
                 //Sanitise user input to prevent log forging
                 slug1.Replace(Environment.NewLine, ""),
-                slug2 != null ? slug2.Replace(Environment.NewLine, "") : null,
-                slug3 != null ? slug3.Replace(Environment.NewLine, "") : null);
+                slug2?.Replace(Environment.NewLine, ""),
+                slug3?.Replace(Environment.NewLine, ""));
             var version = _repository.GetVersionBySlug(slug1,slug2,slug3);
             if (version != null)
             {
@@ -71,9 +70,10 @@ namespace GIFrameworkMaps.Web.Controllers
                 var authResult = await _authorization.AuthorizeAsync(User,version, "CanAccessVersion");
 
                 if (authResult.Succeeded)
-                { 
+                {
                     //now we get the full details
-                    var viewModel = _repository.GetVersionViewModel(version.Id);
+                    var fullVersionDetails = _repository.GetVersion(version.Id);
+                    var viewModel = _repository.GetVersionViewModel(fullVersionDetails);
                     ViewData["AnalyticsModel"] = _adminRepository.GetAnalyticsModel();
 
                     var host = Request.Host.ToUriComponent();
@@ -120,7 +120,7 @@ namespace GIFrameworkMaps.Web.Controllers
                 return View("ShortLinkNotFound");
             }
             var shortLink = await _context.ShortLink.FirstOrDefaultAsync(s => s.ShortId == id);
-            shortLink.LastVisited = DateTime.UtcNow;
+            shortLink.LastVisited = NodaTime.SystemClock.Instance.GetCurrentInstant();
             _context.SaveChanges();
 
             return Redirect(redirectUrl);
