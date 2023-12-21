@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -430,14 +431,64 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         // POST: Version/DeleteLayerCustomisation/123
         [HttpPost, ActionName("DeleteLayerCustomisation")]
-        public async Task<IActionResult> DeleteLayerCustomisationDelete(int id)
+        public async Task<IActionResult> DeleteLayerCustomisationPost(int id)
         {
             var customisation = await _context.VersionLayer.Where(r => r.Id == id).FirstOrDefaultAsync();
-            _context.Remove(customisation);
-            await _context.SaveChangesAsync();
-            TempData["Message"] = "Customisation removed";
-            TempData["MessageType"] = "success";
-            return RedirectToAction("LayerCustomisation", new { id = customisation.VersionId });
+            try
+            {
+                
+                _context.Remove(customisation);
+                await _context.SaveChangesAsync();
+                TempData["Message"] = "Customisation removed";
+                TempData["MessageType"] = "success";
+                return RedirectToAction("LayerCustomisation", new { id = customisation.VersionId });
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Layer customisation removal failed");
+                ModelState.AddModelError("", "Unable to save changes. " +
+                    "Try again, and if the problem persists, " +
+                    "contact your system administrator.");
+            }
+            return View(customisation);
+        }
+
+        // GET Version/RemoveAllCustomisations/1
+        public IActionResult RemoveAllCustomisations(int id)
+        {
+            var version = _commonRepository.GetVersion(id);
+            if (version != null)
+            {
+                return View(version);
+            }
+            else
+            {
+                TempData["Message"] = "Version could not be found";
+                TempData["MessageType"] = "danger";
+                return RedirectToAction("Index");
+            }
+        }
+        // POST Version/RemoveAllCustomisations/1
+        [HttpPost, ActionName("RemoveAllCustomisations")]
+        public async Task<IActionResult> RemoveAllCustomisationsPost(int id)
+        {
+            try
+            {
+                await _context.VersionLayer.Where(r => r.VersionId == id).ExecuteDeleteAsync();
+                await _context.SaveChangesAsync();
+                TempData["Message"] = "Customisations removed";
+                TempData["MessageType"] = "success";
+                return RedirectToAction("Edit", new { id = id });
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Layer customisation removal failed");
+                ModelState.AddModelError("", "Unable to save changes. " +
+                    "Try again, and if the problem persists, " +
+                    "contact your system administrator.");
+            }
+            var version = _commonRepository.GetVersion(id);
+            return View(version);
         }
 
         // GET: Version/Delete/1

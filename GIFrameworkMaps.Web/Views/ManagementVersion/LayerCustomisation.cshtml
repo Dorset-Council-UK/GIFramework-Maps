@@ -12,56 +12,60 @@
 <p class="lead">Please use the options below to set layer specific options for this version.</p>
 @if (Model.VersionCategories.Any())
 {
-        <table id="layerTable" class="table table-bordered mt-2">
-            <thead>
-                <tr>
-                    <th>Layer</th>
-                    <th>Category</th>
-                    <th>Has customisation</th>
-                    <th>On by default</th>
-                    <th>Opacity</th>
-                    <th>Saturation</th>
-                    <th>Sort order</th>
-                    <th>Max Zoom</th>
-                    <th>Min Zoom</th>
-                </tr>
-            </thead>
-            <tbody>
-            @foreach(var category in (from c in Model.VersionCategories.OrderBy(c => c.Category.Name) select c.Category.Layers))
+    var anyCustomisations = Model.VersionLayerCustomisations.Any();
+    if (anyCustomisations)
+    {
+        <a asp-action="RemoveAllCustomisations" asp-route-id="@Model.Id" class="btn btn-danger">Remove all customisations</a>
+    }
+    <table id="layerTable" class="table table-bordered mt-2">
+        <thead>
+            <tr>
+                <th>Layer</th>
+                <th>Category</th>
+                <th>Has customisation</th>
+                <th>On by default</th>
+                <th>Opacity</th>
+                <th>Saturation</th>
+                <th>Sort order</th>
+                <th>Max Zoom</th>
+                <th>Min Zoom</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach(var category in (from c in Model.VersionCategories.OrderBy(c => c.Category.Name) select c.Category.Layers))
+        {
+            @foreach(var layer in category.OrderBy(c => c.Layer.Name))
             {
-                @foreach(var layer in category.OrderBy(c => c.Layer.Name))
-                {
-                    var customisations = (from l in Model.VersionLayerCustomisations where l.LayerId == layer.LayerId && l.CategoryId == layer.CategoryId select l).FirstOrDefault();
-                    var hasCustomisations = customisations != null;
-                    <tr class="@(hasCustomisations ? "table-primary" : "")">
-                        <td><a asp-action="EditLayerCustomisation" asp-route-id="@Model.Id" asp-route-categoryid="@layer.CategoryId" asp-route-layerid="@layer.LayerId">@layer.Layer.Name</a></td>
-                        <td>@layer.Category.Name</td>
-                        @if (hasCustomisations)
-                        {
-                            <td>Yes</td>
-                            <td>@(customisations.IsDefault ? "Yes" : "No")</td>
-                            <td>@(customisations.DefaultOpacity.HasValue ? customisations.DefaultOpacity : "Not set")</td>
-                            <td>@(customisations.DefaultSaturation.HasValue ? customisations.DefaultSaturation : "Not set")</td>
-                            <td>@(customisations.SortOrder.HasValue ? customisations.SortOrder : "Not set")</td>
-                            <td>@(customisations.MaxZoom.HasValue ? customisations.MaxZoom : "Not set")</td>
-                            <td>@(customisations.MinZoom.HasValue ? customisations.MinZoom : "Not set")</td>
-                        }
-                        else
-                        {
-                            <td>No</td>
-                            <td> - </td>
-                            <td> - </td>
-                            <td> - </td>
-                            <td> - </td>
-                            <td> - </td>
-                            <td> - </td>
-                        }
-                        
-                    </tr>
-                }
+                var customisations = (from l in Model.VersionLayerCustomisations where l.LayerId == layer.LayerId && l.CategoryId == layer.CategoryId select l).FirstOrDefault();
+                var hasCustomisations = customisations != null;
+                <tr class="@(hasCustomisations ? "table-primary" : "")">
+                    <td><a asp-action="EditLayerCustomisation" asp-route-id="@Model.Id" asp-route-categoryid="@layer.CategoryId" asp-route-layerid="@layer.LayerId">@layer.Layer.Name</a></td>
+                    <td>@layer.Category.Name</td>
+                    @if (hasCustomisations)
+                    {
+                        <td>Yes</td>
+                        <td>@(customisations.IsDefault ? "Yes" : "No")</td>
+                        <td>@(customisations.DefaultOpacity.HasValue ? customisations.DefaultOpacity : "Not set")</td>
+                        <td>@(customisations.DefaultSaturation.HasValue ? customisations.DefaultSaturation : "Not set")</td>
+                        <td>@(customisations.SortOrder.HasValue ? customisations.SortOrder : "Not set")</td>
+                        <td>@(customisations.MaxZoom.HasValue ? customisations.MaxZoom : "Not set")</td>
+                        <td>@(customisations.MinZoom.HasValue ? customisations.MinZoom : "Not set")</td>
+                    }
+                    else
+                    {
+                        <td>No</td>
+                        <td> - </td>
+                        <td> - </td>
+                        <td> - </td>
+                        <td> - </td>
+                        <td> - </td>
+                        <td> - </td>
+                    }  
+                </tr>
             }
-            </tbody>
-        </table>
+        }
+        </tbody>
+    </table>
 
 }
 else
