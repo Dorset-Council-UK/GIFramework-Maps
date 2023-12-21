@@ -130,7 +130,7 @@ namespace GIFrameworkMaps.Data
                                         .ThenInclude(cl => cl.Layer)
                                         .ThenInclude(l => l!.LayerSource)
                                         .ThenInclude(l => l!.Attribution)
-                                    .Include(v => v.VersionLayers)
+                                    .Include(v => v.VersionLayerCustomisations)
                                     .AsSplitQuery()
                                     .AsNoTrackingWithIdentityResolution()
                                     .FirstOrDefault(v => v.Id == versionId);
@@ -158,9 +158,10 @@ namespace GIFrameworkMaps.Data
                 _mapper.Map<List<Data.Models.VersionCategory>, List<Data.Models.ViewModels.CategoryViewModel>>(version.VersionCategories);
 
             //Set version layer overrides
+            //TODO - Should be a smarter way to do this
             foreach(var category in categories)
             {
-                List<VersionLayer> layerLookup = version.VersionLayers.Where(v => v.CategoryId == category.Id).ToList();
+                List<VersionLayer> layerLookup = version.VersionLayerCustomisations.Where(v => v.CategoryId == category.Id).ToList();
                 if (layerLookup.Count > 0)
                 {
                     foreach(Models.ViewModels.LayerViewModel l in category.Layers)

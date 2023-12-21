@@ -22,15 +22,18 @@ namespace GIFrameworkMaps.Web.Controllers.Management
          * */
         private readonly ILogger<ManagementVersionController> _logger;
         private readonly IManagementRepository _repository;
+        private readonly ICommonRepository _commonRepository;
         private readonly ApplicationDbContext _context;
         public ManagementVersionController(
             ILogger<ManagementVersionController> logger,
             IManagementRepository repository,
+            ICommonRepository commonRepository,
             ApplicationDbContext context
             )
         {
             _logger = logger;
             _repository = repository;
+            _commonRepository = commonRepository;
             _context = context;
         }
 
@@ -122,10 +125,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     .ThenInclude(v => v.Basemap)
                 .Include(v => v.VersionCategories)
                     .ThenInclude(v => v.Category)
-                .Include(v => v.VersionLayers)
+                .Include(v => v.VersionLayerCustomisations)
                 .FirstOrDefaultAsync(v => v.Id == id);
 
-            int[] issueLayers = { };
+            int[] issueLayers = System.Array.Empty<int>();
 
             var editModel = new VersionEditModel() { Version = versionToUpdate };
 
@@ -152,7 +155,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     UpdateVersionBasemaps(selectedBasemaps, defaultBasemap, versionToUpdate);
                     UpdateVersionCategories(selectedCategories, versionToUpdate);
-                    UpdateVersionLayers(selectedCategories, versionToUpdate, issueLayers);
+                    //UpdateVersionLayers(selectedCategories, versionToUpdate, issueLayers);
                     await _context.SaveChangesAsync();
                     TempData["Message"] = "Version edited";
                     TempData["MessageType"] = "success";
@@ -303,80 +306,138 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return RedirectToAction("ContactAlert", new { Id = id });
         }
 
-        // GET: Version/EditLayers/1
-        public IActionResult EditLayers(int id)
+        // GET: Version/LayerCustomisation/1
+        public async Task<IActionResult> LayerCustomisation(int id)
         {
-            VersionLayersEditModel ViewModel = new VersionLayersEditModel();
-            ViewModel.VersionId = id;
-            ViewModel.Version = _context.Versions.AsNoTracking().FirstOrDefault(r => r.Id == id);
-            if (ViewModel.Version != null)
+            //get list of all layers and customisations
+            var version = _commonRepository.GetVersion(id);
+            //TODO - fetch this as part of the above?
+            version.VersionLayerCustomisations = await _context.VersionLayer.
+                Include(r => r.Layer)
+                .Include(r => r.Category)
+                .Where(r => r.VersionId == version.Id)
+                .AsNoTrackingWithIdentityResolution()
+                .ToListAsync();
+            if (version != null)
             {
-                ViewModel.VersionLayers = _context.VersionLayer.Include(r => r.Layer).Include(r => r.Category).Where(r => r.VersionId == id).ToList();
-                return View(ViewModel);
+                return View(version);
             } else
             {
                 TempData["Message"] = "Version not found";
                 TempData["MessageType"] = "danger";
                 return RedirectToAction("Edit", new { Id = id });
             }
-            
         }
 
-        // POST: Version/EditLayers
-        [HttpPost]
-        public async Task<IActionResult> EditLayers(VersionLayersEditModel model)
+        // GET Version/EditLayerCustomisation/123?layerId=234&categoryId=345
+        public async Task<IActionResult> EditLayerCustomisation(int id, int layerId, int categoryId)
         {
-            try
+            //get the layer details and any existing customisations
+            var version = _commonRepository.GetVersion(id);
+            var layer = await _repository.GetLayer(layerId);
+            var category = await _repository.GetLayerCategory(categoryId);
+            //TODO - fetch this as part of the above?
+            var customisation = await _context.VersionLayer.Include(r => r.Layer).Where(r => r.VersionId == version.Id && r.LayerId == layerId && r.CategoryId == categoryId).FirstOrDefaultAsync();
+
+            var viewModel = new CustomiseLayerEditModel() { Layer = layer, Version = version, Category = category, LayerCustomisation = customisation };
+
+            return View(viewModel);
+        }
+
+        // POST: Version/EditLayerCustomisation
+        [HttpPost, ActionName("EditLayerCustomisation")]
+        public async Task<IActionResult> EditLayerCustomisationPost(CustomiseLayerEditModel model)
+        {
+            //forces version, layer and category to not be validated
+            var skipped = ModelState.Keys.Where(key => key.StartsWith(nameof(model.Version)) || key.StartsWith(nameof(model.Layer)) || key.StartsWith(nameof(model.Category)));
+            foreach (var key in skipped)
+                ModelState.Remove(key);
+
+            if (model.LayerCustomisation.Id == 0)
             {
+                //create
                 if (ModelState.IsValid)
                 {
-                    foreach (VersionLayer layer in model.VersionLayers)
+                    try
                     {
-                        VersionLayer? dbEntry = _context.VersionLayer.FirstOrDefault(r => r.Id == layer.Id);
-                        if(dbEntry == null)
-                        {
-                            //Add
-                            _context.VersionLayer.Add(layer);
-                        } else
-                        {
-                            //Update
-                            dbEntry.IsDefault = layer.IsDefault;
-                            dbEntry.SortOrder = layer.SortOrder;
-                            dbEntry.DefaultOpacity = layer.DefaultOpacity;
-                            dbEntry.DefaultSaturation = layer.DefaultSaturation;
-                            dbEntry.MinZoom = layer.MinZoom;
-                            dbEntry.MaxZoom = layer.MaxZoom;
-                        }
+                        model.LayerCustomisation.LayerId = model.Layer.Id;
+                        model.LayerCustomisation.VersionId = model.Version.Id;
+                        model.LayerCustomisation.CategoryId = model.Category.Id;
+                        _context.Add(model.LayerCustomisation);
+                        await _context.SaveChangesAsync();
+                        TempData["Message"] = "Customisation saved";
+                        TempData["MessageType"] = "success";
+                        return RedirectToAction(nameof(LayerCustomisation), new { id = model.Version.Id });
                     }
-                    await _context.SaveChangesAsync();
-
-                    //We have saved an update so we just refresh the whole list
-                    model.VersionLayers = _context.VersionLayer.Include(r => r.Layer).Include(r => r.Category).Where(r => r.VersionId == model.VersionId).ToList();
-                    //Reset the model and return to the edit page
-                    model.Version = _context.Versions.AsNoTracking().FirstOrDefault(r => r.Id == model.VersionId);
-                    return View(model);
-                } 
-            } catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "Updating version layers failed");
-                ModelState.AddModelError("", "Unable to save changes. " +
-                    "Try again, and if the problem persists, " +
-                    "contact your system administrator.");
-            }
-            //In the case of failure we need to return the model but we scan to see if any version layers did not get posted back and add them if required.
-            var fullList = _context.VersionLayer.Include(r => r.Layer).Include(r => r.Category).Where(r => r.VersionId == model.VersionId).ToList();
-            HashSet<int> dbList = new HashSet<int>(fullList.Select(r => r.Id).ToList());
-            HashSet<int> postList = new HashSet<int>(model.VersionLayers.Select(r => r.Id).ToList());
-            foreach (var entry in dbList)
-            {
-                if (!postList.Contains(entry))
-                {
-                    //Not posted back for some reason so we add it back here
-                    model.VersionLayers.Add(fullList.FirstOrDefault(r => r.Id == entry));
+                    catch (DbUpdateException ex)
+                    {
+                        _logger.LogError(ex, "Layer customisation failed");
+                        ModelState.AddModelError("", "Unable to save changes. " +
+                            "Try again, and if the problem persists, " +
+                            "contact your system administrator.");
+                    }
                 }
             }
-            model.Version = _context.Versions.AsNoTracking().FirstOrDefault(r => r.Id == model.VersionId);
-            return View(model);
+            else
+            {
+                //edit
+                var customisationToUpdate = await _context.VersionLayer.Where(c => c.Id == model.LayerCustomisation.Id).FirstOrDefaultAsync();
+
+                if (await TryUpdateModelAsync(
+                    customisationToUpdate,
+                    "LayerCustomisation",
+                    a => a.IsDefault,
+                    a => a.MaxZoom,
+                    a => a.MinZoom,
+                    a => a.SortOrder,
+                    a => a.DefaultOpacity,
+                    a => a.DefaultSaturation
+                    ))
+                {
+                    try
+                    {
+                        await _context.SaveChangesAsync();
+                        TempData["Message"] = "Customisation saved";
+                        TempData["MessageType"] = "success";
+                        return RedirectToAction(nameof(LayerCustomisation), new { id = model.Version.Id });
+                    }
+                    catch (DbUpdateException ex)
+                    {
+                        _logger.LogError(ex, "Layer customisation failed");
+                        ModelState.AddModelError("", "Unable to save changes. " +
+                            "Try again, and if the problem persists, " +
+                            "contact your system administrator.");
+                    }
+                }
+            }
+
+            var version = _commonRepository.GetVersion(model.Version.Id);
+            var layer = await _repository.GetLayer(model.Layer.Id);
+            var category = await _repository.GetLayerCategory(model.Category.Id);
+            var viewModel = new CustomiseLayerEditModel() { Layer = layer, Version = version, Category = category, LayerCustomisation = model.LayerCustomisation };
+
+            return View(viewModel);
+
+
+        }
+
+        // GET: Version/DeleteLayerCustomisation/123
+        public async Task<IActionResult> DeleteLayerCustomisation(int id)
+        {
+            var customisation = await _context.VersionLayer.Include(r => r.Layer).Include(r => r.Category).Where(r => r.Id == id).FirstOrDefaultAsync();
+            return View(customisation);
+        }
+
+        // POST: Version/DeleteLayerCustomisation/123
+        [HttpPost, ActionName("DeleteLayerCustomisation")]
+        public async Task<IActionResult> DeleteLayerCustomisationDelete(int id)
+        {
+            var customisation = await _context.VersionLayer.Where(r => r.Id == id).FirstOrDefaultAsync();
+            _context.Remove(customisation);
+            await _context.SaveChangesAsync();
+            TempData["Message"] = "Customisation removed";
+            TempData["MessageType"] = "success";
+            return RedirectToAction("LayerCustomisation", new { id = customisation.VersionId });
         }
 
         // GET: Version/Delete/1
@@ -505,51 +566,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     {
                         VersionCategory versionCategoryToRemove = versionToUpdate.VersionCategories.FirstOrDefault(i => i.CategoryId == category.Id);
                         _context.Remove(versionCategoryToRemove);
-                    }
-                }
-            }
-        }
-
-        private void UpdateVersionLayers(int[] selectedCategories, Data.Models.Version versionToUpdate, int[] issueLayers)
-        {
-            //This function will populate the VersionLayers with new layers if they are not already present.
-            if(selectedCategories != null)
-            {
-                if (versionToUpdate.VersionLayers == null)
-                {
-                    versionToUpdate.VersionLayers = new List<VersionLayer>();
-                }
-                foreach(int c in selectedCategories)
-                {
-                    //Pickup the layers for this category
-                    Category? layerList = _context.Category.Include(r => r.Layers).FirstOrDefault(r => r.Id == c);
-                    if (layerList != null)
-                    {
-                        HashSet<int> layerHash = new HashSet<int>(layerList.Layers.Select(r => r.LayerId).ToList());
-                        HashSet<int> existingHash = new HashSet<int>(versionToUpdate.VersionLayers.Where(r => r.CategoryId == c).Select(r => r.LayerId).ToList());
-                        HashSet<int> fullHash = new HashSet<int>(versionToUpdate.VersionLayers.Select(r => r.LayerId).ToList());
-
-                        foreach (int  layerId in layerHash)
-                        {
-                            if (!existingHash.Contains(layerId))
-                            {
-                                if (fullHash.Contains(layerId))
-                                {
-                                    //This layer has already been added by another category and therefore is a duplicate layer so we can't add it
-                                    //We just return it to be handled as required
-                                    issueLayers.Append(layerId);
-                                } else
-                                {
-                                    versionToUpdate.VersionLayers.Add(new VersionLayer
-                                    {
-                                        LayerId = layerId,
-                                        CategoryId = c
-                                    });
-                                }
-                            }
-
-                            //TODO - handle layers being removed from a category?
-                        } 
                     }
                 }
             }

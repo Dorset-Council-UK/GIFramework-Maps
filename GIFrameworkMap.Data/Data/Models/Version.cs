@@ -44,7 +44,7 @@ namespace GIFrameworkMaps.Data.Models
         public List<VersionCategory> VersionCategories { get; set; } = new();
         public List<VersionAnalytic> VersionAnalytics { get; set; } = new();
         public List<VersionContact> VersionContacts { get; set; } = new();
-        public List<VersionLayer> VersionLayers { get; set; } = new();  
+        public List<VersionLayer> VersionLayerCustomisations { get; set; } = new();  
         //navigation properties
         public virtual Bound? Bound { get; set; }
         public virtual Theme? Theme { get; set; }
