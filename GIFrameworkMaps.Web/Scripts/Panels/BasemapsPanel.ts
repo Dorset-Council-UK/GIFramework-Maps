@@ -7,6 +7,7 @@ import { Basemap } from "../Interfaces/Basemap";
 import { MetadataViewer } from "../Metadata/MetadataViewer";
 import { Layer } from "../Interfaces/Layer";
 import { Projection } from "ol/proj";
+import { PanelHelper } from "./PanelHelper";
 
 export class BasemapsPanel implements SidebarPanel {
     container: string;
@@ -101,10 +102,9 @@ export class BasemapsPanel implements SidebarPanel {
                 );
             }
         }
+        const opacityControls = PanelHelper.renderSliderControl(basemapConfiguration.id, basemap.getOpacity() * 100, 'opacity', 'basemap', this.gifwMapInstance);
 
-        const opacityControls = this.renderSliderControl(basemapConfiguration, basemap.getOpacity()*100, 'opacity');
-
-        const saturationControls = this.renderSliderControl(basemapConfiguration, basemap.get('saturation'), 'saturation');
+        const saturationControls = PanelHelper.renderSliderControl(basemapConfiguration.id, basemap.get('saturation'), 'saturation', 'basemap', this.gifwMapInstance);
 
         const aboutLink = this.renderAboutLink(basemapConfiguration);
 
@@ -112,101 +112,6 @@ export class BasemapsPanel implements SidebarPanel {
         meta.appendChild(saturationControls);
         meta.appendChild(aboutLink);
         return meta;
-    }
-
-    /**
-     * Renders a slider control for a particular basemap
-     * @param basemapConfiguration The basemap that will be controlled by this slider
-     * @param startingValue The starting value of the slider
-     * @param type The type of control. Either 'opacity' or 'saturation'
-     * @returns HTML Element with the label, slider control and checkbox in a container
-     */
-    private renderSliderControl(basemapConfiguration: Basemap, startingValue: number = 100, type: "saturation"|"opacity") {
-        const controlsContainer = document.createElement('div');
-        //label
-        const controlLabel = document.createElement('label');
-        controlLabel.textContent = type.charAt(0).toUpperCase() + type.slice(1)
-        controlLabel.htmlFor = `basemaps-${type}-${basemapConfiguration.id}`;
-        controlLabel.className = 'form-label';
-        //row/columns for slider control
-        const controlSliderRow = document.createElement('div');
-        controlSliderRow.className = "row";
-        const controlSliderContainer = document.createElement('div');
-        controlSliderContainer.className = "col";
-        const controlOutputContainer = document.createElement('div');
-        controlOutputContainer.className = "col-auto";
-        //<output> for slider control
-        const controlOutputElement = document.createElement('output');
-        controlOutputElement.id = `basemaps-${type}-output-${basemapConfiguration.id}`;
-        controlOutputElement.className = 'badge bg-primary';
-        controlOutputElement.style.width = '3rem';
-        controlOutputElement.innerText = `${(startingValue)}%`;
-        //The slider control
-        const control = document.createElement('input');
-        control.type = 'range';
-        control.id = `basemaps-${type}-${basemapConfiguration.id}`;
-        control.className = 'form-range';
-        control.dataset.gifwControlsBasemap = basemapConfiguration.id;
-        control.value = startingValue.toString()
-        //build controls
-        controlSliderContainer.appendChild(control);
-        controlOutputContainer.appendChild(controlOutputElement);
-        controlSliderRow.appendChild(controlSliderContainer);
-        controlSliderRow.appendChild(controlOutputContainer);
-        //checkbox
-        const toggleMinimumCheckbox = document.createElement('input');
-        toggleMinimumCheckbox.type = 'checkbox';
-        toggleMinimumCheckbox.id = `basemaps-${type}-check-${basemapConfiguration.id}`;
-        toggleMinimumCheckbox.className = 'form-check-input';
-        if (startingValue === 0) {
-            toggleMinimumCheckbox.checked = true;
-        }
-        toggleMinimumCheckbox.dataset.gifwControlsBasemap = basemapConfiguration.id;
-        //checkbox label
-        const toggleMinimumCheckboxLabel = document.createElement('label');;
-        toggleMinimumCheckboxLabel.htmlFor = `basemaps-${type}-check-${basemapConfiguration.id}`;
-        toggleMinimumCheckboxLabel.className = 'form-check-label';
-        toggleMinimumCheckboxLabel.textContent = type === "saturation" ? "Greyscale" : "Invisible";
-        //checkbox container
-        const toggleMinimumCheckboxContainer = document.createElement('div');
-        toggleMinimumCheckboxContainer.className = 'form-check';
-        //build checkbox
-        toggleMinimumCheckboxContainer.appendChild(toggleMinimumCheckbox);
-        toggleMinimumCheckboxContainer.appendChild(toggleMinimumCheckboxLabel);
-
-        //add controls to container
-        controlsContainer.appendChild(controlLabel);
-        controlsContainer.appendChild(controlSliderRow);
-        controlsContainer.appendChild(toggleMinimumCheckboxContainer);
-
-        //add event listeners
-        control.addEventListener('input', e => {
-            const value = parseInt((e.currentTarget as HTMLInputElement).value);
-            controlOutputElement.innerText = `${(value)}%`
-            if (value === 0) {
-                toggleMinimumCheckbox.checked = true;
-            } else {
-                toggleMinimumCheckbox.checked = false;
-            }
-            if (type === "saturation") {
-                this.gifwMapInstance.setSaturationOfActiveBasemap(value);
-            } else {
-                this.gifwMapInstance.setTransparencyOfActiveBasemap(value);
-            }
-
-        });
-        toggleMinimumCheckbox.addEventListener('change', e => {
-            const element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
-
-            if (element.checked) {
-                control.value = "0";
-            } else {
-                control.value = "100";
-            }
-            const evt = new InputEvent('input');
-            control.dispatchEvent(evt);
-        });
-        return controlsContainer;
     }
 
     /**
