@@ -77,13 +77,13 @@ export class BasemapsPanel implements SidebarPanel {
     }
 
     private renderBasemapMeta(basemap: olLayer<any, any>, basemapConfiguration: Basemap): HTMLElement {
-        let meta = document.createElement('div');
+        const meta = document.createElement('div');
         meta.className = `basemaps-meta border-start border-bottom border-2 d-block ${basemap.getVisible() ? 'd-block' : 'd-none'}`;
         meta.id = `basemaps-meta-${basemapConfiguration.id}`;
 
-        let source = basemap.getSource();
+        const source = basemap.getSource();
         if (source.getProjection) {
-            let proj = source.getProjection() as Projection;
+            const proj = source.getProjection() as Projection;
             if (proj && (proj.getCode() !== this.gifwMapInstance.olMap.getView().getProjection().getCode())) {
                 meta.insertAdjacentHTML(
                     'afterbegin',
@@ -92,11 +92,11 @@ export class BasemapsPanel implements SidebarPanel {
             }
         }
 
-        let opacityControls = this.renderOpacityControls(basemapConfiguration, basemap.getOpacity());
+        const opacityControls = this.renderSliderControl(basemapConfiguration, basemap.getOpacity()*100, 'opacity');
 
-        let saturationControls = this.renderSaturationControls(basemapConfiguration, basemap.get('saturation'));
+        const saturationControls = this.renderSliderControl(basemapConfiguration, basemap.get('saturation'), 'saturation');
 
-        let aboutLink = this.renderAboutLink(basemapConfiguration);
+        const aboutLink = this.renderAboutLink(basemapConfiguration);
 
         meta.appendChild(opacityControls);
         meta.appendChild(saturationControls);
@@ -104,135 +104,99 @@ export class BasemapsPanel implements SidebarPanel {
         return meta;
     }
 
-    private renderOpacityControls(basemapConfiguration: Basemap, startingOpacity: number): HTMLElement {
-
-        let opacityControlsContainer = document.createElement('div');
-
-        let opacityLabel = document.createElement('label');
-        opacityLabel.textContent = 'Transparency'
-        opacityLabel.htmlFor = `basemaps-transparency-${basemapConfiguration.id}`;
-        opacityLabel.className = 'form-label';
-
-        let opacityControl = document.createElement('input');
-        opacityControl.type = 'range';
-        opacityControl.id = `basemaps-transparency-${basemapConfiguration.id}`;
-        opacityControl.className = 'form-range';
-        opacityControl.dataset.gifwControlsTransparencyBasemap = basemapConfiguration.id;
-        opacityControl.value = (startingOpacity * 100).toString();
-        opacityControl.addEventListener('input', e => {
-            let linkedInvisibleCheckbox: HTMLInputElement = document.querySelector(this.container).querySelector(`input[data-gifw-controls-invisible-basemap="${basemapConfiguration.id}"]`);
-            let opacity = parseInt((e.currentTarget as HTMLInputElement).value);
-            if (opacity === 0) {
-                linkedInvisibleCheckbox.checked = true;
-            } else {
-                linkedInvisibleCheckbox.checked = false;
-            }
-            this.gifwMapInstance.setTransparencyOfActiveBasemap(opacity);
-        });
-
-        let invisibleCheckbox = document.createElement('input');
-        invisibleCheckbox.type = 'checkbox';
-        invisibleCheckbox.id = `basemaps-invisible-check-${basemapConfiguration.id}`;
-        invisibleCheckbox.className = 'form-check-input';
-        if (startingOpacity === 0) {
-            invisibleCheckbox.checked = true;
+    /**
+     * Renders a slider control for a particular basemap
+     * @param basemapConfiguration - The basemap that will be controlled by this slider
+     * @param startingValue - The starting value of the slider
+     * @param type - The type of control. Either 'opacity' or 'saturation'
+     * @returns HTML Element with the label, slider control and checkbox in a container
+     */
+    private renderSliderControl(basemapConfiguration: Basemap, startingValue: number = 100, type: "saturation"|"opacity") {
+        const controlsContainer = document.createElement('div');
+        //label
+        const controlLabel = document.createElement('label');
+        controlLabel.textContent = type.charAt(0).toUpperCase() + type.slice(1)
+        controlLabel.htmlFor = `basemaps-${type}-${basemapConfiguration.id}`;
+        controlLabel.className = 'form-label';
+        //row/columns for slider control
+        const controlSliderRow = document.createElement('div');
+        controlSliderRow.className = "row";
+        const controlSliderContainer = document.createElement('div');
+        controlSliderContainer.className = "col";
+        const controlOutputContainer = document.createElement('div');
+        controlOutputContainer.className = "col-auto";
+        //<output> for slider control
+        const controlOutputElement = document.createElement('output');
+        controlOutputElement.id = `basemaps-${type}-output-${basemapConfiguration.id}`;
+        controlOutputElement.className = 'badge bg-primary';
+        controlOutputElement.style.width = '3rem';
+        controlOutputElement.innerText = `${(startingValue)}%`;
+        //The slider control
+        const control = document.createElement('input');
+        control.type = 'range';
+        control.id = `basemaps-${type}-${basemapConfiguration.id}`;
+        control.className = 'form-range';
+        control.dataset.gifwControlsBasemap = basemapConfiguration.id;
+        control.value = startingValue.toString()
+        //build controls
+        controlSliderContainer.appendChild(control);
+        controlOutputContainer.appendChild(controlOutputElement);
+        controlSliderRow.appendChild(controlSliderContainer);
+        controlSliderRow.appendChild(controlOutputContainer);
+        //checkbox
+        const toggleMinimumCheckbox = document.createElement('input');
+        toggleMinimumCheckbox.type = 'checkbox';
+        toggleMinimumCheckbox.id = `basemaps-${type}-check-${basemapConfiguration.id}`;
+        toggleMinimumCheckbox.className = 'form-check-input';
+        if (startingValue === 0) {
+            toggleMinimumCheckbox.checked = true;
         }
-        invisibleCheckbox.dataset.gifwControlsInvisibleBasemap = basemapConfiguration.id;
-        invisibleCheckbox.addEventListener('change', e => {
-            let element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
+        toggleMinimumCheckbox.dataset.gifwControlsBasemap = basemapConfiguration.id;
+        //checkbox label
+        const toggleMinimumCheckboxLabel = document.createElement('label');;
+        toggleMinimumCheckboxLabel.htmlFor = `basemaps-${type}-check-${basemapConfiguration.id}`;
+        toggleMinimumCheckboxLabel.className = 'form-check-label';
+        toggleMinimumCheckboxLabel.textContent = type === "saturation" ? "Greyscale" : "Invisible";
+        //checkbox container
+        const toggleMinimumCheckboxContainer = document.createElement('div');
+        toggleMinimumCheckboxContainer.className = 'form-check';
+        //build checkbox
+        toggleMinimumCheckboxContainer.appendChild(toggleMinimumCheckbox);
+        toggleMinimumCheckboxContainer.appendChild(toggleMinimumCheckboxLabel);
 
-            let basemapId = element.dataset.gifwControlsInvisibleBasemap;
-            let linkedTransparencySlider: HTMLInputElement = document.querySelector(this.container).querySelector(`input[data-gifw-controls-transparency-basemap="${basemapId}"]`);
+        //add controls to container
+        controlsContainer.appendChild(controlLabel);
+        controlsContainer.appendChild(controlSliderRow);
+        controlsContainer.appendChild(toggleMinimumCheckboxContainer);
+
+        //add event listeners
+        control.addEventListener('input', e => {
+            const value = parseInt((e.currentTarget as HTMLInputElement).value);
+            controlOutputElement.innerText = `${(value)}%`
+            if (value === 0) {
+                toggleMinimumCheckbox.checked = true;
+            } else {
+                toggleMinimumCheckbox.checked = false;
+            }
+            if (type === "saturation") {
+                this.gifwMapInstance.setSaturationOfActiveBasemap(value);
+            } else {
+                this.gifwMapInstance.setTransparencyOfActiveBasemap(value);
+            }
+
+        });
+        toggleMinimumCheckbox.addEventListener('change', e => {
+            const element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
+
             if (element.checked) {
-                linkedTransparencySlider.value = "0";
+                control.value = "0";
             } else {
-                linkedTransparencySlider.value = "100";
+                control.value = "100";
             }
-            let evt = new InputEvent('input');
-            linkedTransparencySlider.dispatchEvent(evt);
+            const evt = new InputEvent('input');
+            control.dispatchEvent(evt);
         });
-
-        let invisibleCheckboxLabel = document.createElement('label');;
-        invisibleCheckboxLabel.htmlFor = `basemaps-invisible-check-${basemapConfiguration.id}`;
-        invisibleCheckboxLabel.className = 'form-check-label';
-        invisibleCheckboxLabel.textContent = "Invisible";
-
-        let invisibleCheckboxContainer = document.createElement('div');
-        invisibleCheckboxContainer.className = 'form-check';
-
-        invisibleCheckboxContainer.appendChild(invisibleCheckbox);
-        invisibleCheckboxContainer.appendChild(invisibleCheckboxLabel);
-
-        opacityControlsContainer.appendChild(opacityLabel);
-        opacityControlsContainer.appendChild(opacityControl);
-        opacityControlsContainer.appendChild(invisibleCheckboxContainer);
-
-        return opacityControlsContainer;
-    }
-
-    private renderSaturationControls(basemapConfiguration: Basemap, startingSaturation: number = 100) {
-        let saturationControlsContainer = document.createElement('div');
-
-        let saturationLabel = document.createElement('label');
-        saturationLabel.textContent = 'Saturation'
-        saturationLabel.htmlFor = `basemaps-saturation-${basemapConfiguration.id}`;
-        saturationLabel.className = 'form-label';
-
-        let saturationControl = document.createElement('input');
-        saturationControl.type = 'range';
-        saturationControl.id = `basemaps-saturation-${basemapConfiguration.id}`;
-        saturationControl.className = 'form-range';
-        saturationControl.dataset.gifwControlsSaturationBasemap = basemapConfiguration.id;
-        saturationControl.value = (startingSaturation).toString();
-        saturationControl.addEventListener('input', e => {
-            let linkedGreyscaleCheckbox: HTMLInputElement = document.querySelector(this.container).querySelector(`input[data-gifw-controls-greyscale-basemap="${basemapConfiguration.id}"]`);
-            let saturation = parseInt((e.currentTarget as HTMLInputElement).value);
-            if (saturation === 0) {
-                linkedGreyscaleCheckbox.checked = true;
-            } else {
-                linkedGreyscaleCheckbox.checked = false;
-            }
-            this.gifwMapInstance.setSaturationOfActiveBasemap(saturation);
-        });
-
-        let greyscaleCheckbox = document.createElement('input');
-        greyscaleCheckbox.type = 'checkbox';
-        greyscaleCheckbox.id = `basemaps-saturation-check-${basemapConfiguration.id}`;
-        greyscaleCheckbox.className = 'form-check-input';
-        if (startingSaturation === 0) {
-            greyscaleCheckbox.checked = true;
-        }
-        greyscaleCheckbox.dataset.gifwControlsGreyscaleBasemap = basemapConfiguration.id;
-        greyscaleCheckbox.addEventListener('change', e => {
-            let element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
-
-            let basemapId = element.dataset.gifwControlsGreyscaleBasemap;
-            let linkedGreyscaleSlider: HTMLInputElement = document.querySelector(this.container).querySelector(`input[data-gifw-controls-saturation-basemap="${basemapId}"]`);
-            if (element.checked) {
-                linkedGreyscaleSlider.value = "0";
-            } else {
-                linkedGreyscaleSlider.value = "100";
-            }
-            let evt = new InputEvent('input');
-            linkedGreyscaleSlider.dispatchEvent(evt);
-        });
-
-        let greyscaleCheckboxLabel = document.createElement('label');;
-        greyscaleCheckboxLabel.htmlFor = `basemaps-saturation-check-${basemapConfiguration.id}`;
-        greyscaleCheckboxLabel.className = 'form-check-label';
-        greyscaleCheckboxLabel.textContent = "Greyscale";
-
-        let invisibleCheckboxContainer = document.createElement('div');
-        invisibleCheckboxContainer.className = 'form-check';
-
-        invisibleCheckboxContainer.appendChild(greyscaleCheckbox);
-        invisibleCheckboxContainer.appendChild(greyscaleCheckboxLabel);
-
-        saturationControlsContainer.appendChild(saturationLabel);
-        saturationControlsContainer.appendChild(saturationControl);
-        saturationControlsContainer.appendChild(invisibleCheckboxContainer);
-
-        return saturationControlsContainer;
+        return controlsContainer;
     }
 
     private renderAboutLink(basemapConfiguration: Basemap): HTMLElement {
