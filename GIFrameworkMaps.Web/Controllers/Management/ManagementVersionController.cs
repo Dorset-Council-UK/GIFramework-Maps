@@ -478,7 +478,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Customisations removed";
                 TempData["MessageType"] = "success";
-                return RedirectToAction("Edit", new { id = id });
+                return RedirectToAction("Edit", new { id });
             }
             catch (DbUpdateException ex)
             {

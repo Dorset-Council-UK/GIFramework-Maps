@@ -157,27 +157,38 @@ namespace GIFrameworkMaps.Data
             List<Data.Models.ViewModels.CategoryViewModel> categories =
                 _mapper.Map<List<Data.Models.VersionCategory>, List<Data.Models.ViewModels.CategoryViewModel>>(version.VersionCategories);
 
-            //Set version layer overrides
-            //TODO - Should be a smarter way to do this
-            foreach(var category in categories)
+            //remove duplicates
+            var allLayers = (from cat in version.VersionCategories from layers in cat.Category.Layers select layers).ToList();
+            var dupes = allLayers.GroupBy(l => l.LayerId).Where(l => l.Count() > 1).ToList();
+            foreach(var duplicate in dupes)
             {
-                List<VersionLayer> layerLookup = version.VersionLayerCustomisations.Where(v => v.CategoryId == category.Id).ToList();
-                if (layerLookup.Count > 0)
+                foreach(var layer in duplicate.Skip(1))
                 {
-                    foreach(Models.ViewModels.LayerViewModel l in category.Layers)
+                    //remove layer
+                    _logger.LogWarning("Unhandled duplicate layer detected. Removing layer ID {layerId} from category {categoryId}", layer.LayerId, layer.CategoryId);
+                    var matchedCategory = categories.Where(c => c.Id == layer.CategoryId).FirstOrDefault();
+                    matchedCategory?.Layers.RemoveAll(l => l.Id == layer.LayerId);
+
+                }
+            }
+
+            //Set version layer overrides
+            foreach (var customisation in version.VersionLayerCustomisations)
+            {
+                var matchedCategory = categories.Where(c => c.Id == customisation.CategoryId).FirstOrDefault();
+                if(matchedCategory != null) {
+                    var matchedLayer = matchedCategory.Layers.Where(c => c.Id == customisation.LayerId).FirstOrDefault();
+                    if(matchedLayer != null)
                     {
-                        VersionLayer? overrideSettings = layerLookup.FirstOrDefault(v => v.LayerId == l.Id);
-                        if (overrideSettings != null)
-                        {
-                            l.IsDefault = (bool)(overrideSettings.IsDefault);
-                            l.DefaultOpacity = (int)(overrideSettings.DefaultOpacity == null ? l.DefaultOpacity : overrideSettings.DefaultOpacity);
-                            l.DefaultSaturation = (int)(overrideSettings.DefaultSaturation == null ? l.DefaultSaturation : overrideSettings.DefaultSaturation);
-                            l.SortOrder = (int)(overrideSettings.SortOrder == null ? l.SortOrder : overrideSettings.SortOrder);
-                            l.MinZoom = (overrideSettings.MinZoom == null ? l.MinZoom : overrideSettings.MinZoom);
-                            l.MaxZoom = (overrideSettings.MaxZoom == null ? l.MaxZoom : overrideSettings.MaxZoom);
-                        }
+                        matchedLayer.IsDefault = customisation.IsDefault;
+                        matchedLayer.DefaultOpacity = (int)(customisation.DefaultOpacity == null ? matchedLayer.DefaultOpacity : customisation.DefaultOpacity);
+                        matchedLayer.DefaultSaturation = (int)(customisation.DefaultSaturation == null ? matchedLayer.DefaultSaturation : customisation.DefaultSaturation);
+                        matchedLayer.SortOrder = (int)(customisation.SortOrder == null ? matchedLayer.SortOrder : customisation.SortOrder);
+                        matchedLayer.MinZoom = (customisation.MinZoom == null ? matchedLayer.MinZoom : customisation.MinZoom);
+                        matchedLayer.MaxZoom = (customisation.MaxZoom == null ? matchedLayer.MaxZoom : customisation.MaxZoom);
                     }
                 }
+                
             }
 
             var viewModel = _mapper.Map<Data.Models.ViewModels.VersionViewModel>(version);
