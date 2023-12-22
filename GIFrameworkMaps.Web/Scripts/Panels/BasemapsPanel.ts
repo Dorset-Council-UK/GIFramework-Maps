@@ -17,16 +17,14 @@ export class BasemapsPanel implements SidebarPanel {
     init() {
         this.renderBasemapsPanel();
         this.attachCloseButton();
-        //this.attachBasemapSelectors();
-        //this.attachMetaControls();
     };
     render() {
         this.renderBasemapsPanel();
     };
     /*TODO - Make this generic*/
     private attachCloseButton():void {
-        let container = document.querySelector(this.container);
-        let closeButton = container.querySelector('button[data-gifw-dismiss-sidebar]');
+        const container = document.querySelector(this.container);
+        const closeButton = container.querySelector('button[data-gifw-dismiss-sidebar]');
         if (closeButton !== null) {
             closeButton.addEventListener('click', (e) => {
                 Sidebar.close();
@@ -35,34 +33,40 @@ export class BasemapsPanel implements SidebarPanel {
     };
 
     private renderBasemapsPanel(): void {
-        let container = document.querySelector(this.container);
-        let basemapsListContainer = container.querySelector('#basemaps-list-container');
+        const container = document.querySelector(this.container);
+        const basemapsListContainer = container.querySelector('#basemaps-list-container');
         /*TODO - Update rendering to only do a full render once, then just update on following renders*/
         basemapsListContainer.innerHTML = '';
-        let basemaps = this.gifwMapInstance.getLayerGroupOfType(LayerGroupType.Basemap)
+        const basemaps = this.gifwMapInstance.getLayerGroupOfType(LayerGroupType.Basemap)
             .olLayerGroup
             .getLayersArray()
             .sort((basemapA, basemapB) => {
-                let sortA = this.gifwMapInstance.config.basemaps.filter(b => b.id === basemapA.get('layerId'))[0].sortOrder;
-                let sortB = this.gifwMapInstance.config.basemaps.filter(b => b.id === basemapB.get('layerId'))[0].sortOrder;
+                const sortA = this.gifwMapInstance.config.basemaps.filter(b => b.id === basemapA.get('layerId'))[0].sortOrder;
+                const sortB = this.gifwMapInstance.config.basemaps.filter(b => b.id === basemapB.get('layerId'))[0].sortOrder;
                 return sortA - sortB;
             });
 
         basemaps.forEach(basemap => {
-            let basemapConfiguration = this.gifwMapInstance.config.basemaps.filter(b => b.id === basemap.get('layerId'))[0];
+            const basemapConfiguration = this.gifwMapInstance.config.basemaps.filter(b => b.id === basemap.get('layerId'))[0];
             basemapsListContainer.append(this.renderBasemapTile(basemap, basemapConfiguration));
             basemapsListContainer.append(this.renderBasemapMeta(basemap, basemapConfiguration));
         })
     }
 
+    /**
+     * Create the basemap tile element
+     * @param basemap The OpenLayers layer we are creating a tile for
+     * @param basemapConfiguration The GIFramework Basemaps configuration for the basemap
+     * @returns Bootstrap Card element
+     */
     private renderBasemapTile(basemap: olLayer<any, any>, basemapConfiguration: Basemap): HTMLElement {
-        let card = document.createElement('div')
+        const card = document.createElement('div')
         card.className = `card text-white basemaps-selector ${basemap.getVisible() ? 'active' : ''}`;
         card.style.backgroundImage = `${basemapConfiguration.previewImageURL ? `url(${basemapConfiguration.previewImageURL})` : ''}`;
         card.id = `basemaps-selector-${basemapConfiguration.id}`;
-        let cardBody = document.createElement('div');
+        const cardBody = document.createElement('div');
         cardBody.className = 'card-body';
-        let cardBodyLink = document.createElement('a');
+        const cardBodyLink = document.createElement('a');
         cardBodyLink.href = '#';
         cardBodyLink.textContent = basemapConfiguration.name;
         cardBodyLink.className = 'card-title stretched-link';
@@ -76,6 +80,12 @@ export class BasemapsPanel implements SidebarPanel {
         return card;
     }
 
+    /**
+     * Create the meta elements for a particular basemap, including projection warnings, opacity/saturation sliders and metadata links
+     * @param basemap The OpenLayers layer we are creating a tile for
+     * @param basemapConfiguration The GIFramework Basemaps configuration for the basemap
+     * @returns HTML Div element containing relevant meta information
+     */
     private renderBasemapMeta(basemap: olLayer<any, any>, basemapConfiguration: Basemap): HTMLElement {
         const meta = document.createElement('div');
         meta.className = `basemaps-meta border-start border-bottom border-2 d-block ${basemap.getVisible() ? 'd-block' : 'd-none'}`;
@@ -106,9 +116,9 @@ export class BasemapsPanel implements SidebarPanel {
 
     /**
      * Renders a slider control for a particular basemap
-     * @param basemapConfiguration - The basemap that will be controlled by this slider
-     * @param startingValue - The starting value of the slider
-     * @param type - The type of control. Either 'opacity' or 'saturation'
+     * @param basemapConfiguration The basemap that will be controlled by this slider
+     * @param startingValue The starting value of the slider
+     * @param type The type of control. Either 'opacity' or 'saturation'
      * @returns HTML Element with the label, slider control and checkbox in a container
      */
     private renderSliderControl(basemapConfiguration: Basemap, startingValue: number = 100, type: "saturation"|"opacity") {
@@ -199,37 +209,46 @@ export class BasemapsPanel implements SidebarPanel {
         return controlsContainer;
     }
 
+    /**
+     * Create the about link for a basemap
+     * @param basemapConfiguration The GIFramework Basemaps configuration for the basemap
+     * @returns HTML Paragraph that opens metadata information for the basemap
+     */
     private renderAboutLink(basemapConfiguration: Basemap): HTMLElement {
-        let link = document.createElement('a');
+        const link = document.createElement('a');
         link.href = `#basemaps-meta-${basemapConfiguration.id}`;
         link.textContent = 'about';
         link.title = `Learn more about the ${basemapConfiguration.name} basemap`;
         link.dataset.gifwAboutBasemap = basemapConfiguration.id;
         link.addEventListener('click', e => {
             //open modal for metadata
-            let eTarget = e.currentTarget as HTMLElement;
-            let layerGroup = this.gifwMapInstance.getLayerGroupOfType(LayerGroupType.Basemap);
-            let layerConfig = (layerGroup.layers as Layer[]).filter(l => l.id == eTarget.dataset.gifwAboutBasemap);
+            const eTarget = e.currentTarget as HTMLElement;
+            const layerGroup = this.gifwMapInstance.getLayerGroupOfType(LayerGroupType.Basemap);
+            const layerConfig = (layerGroup.layers as Layer[]).filter(l => l.id == eTarget.dataset.gifwAboutBasemap);
             let proxyEndpoint = "";
             if (layerConfig[0].proxyMetaRequests) {
                 proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
             }
             if (layerConfig && layerConfig.length === 1) {
-                let olLayer = this.gifwMapInstance.getActiveBasemap();
+                const olLayer = this.gifwMapInstance.getActiveBasemap();
                 MetadataViewer.showMetadataModal(layerConfig[0], olLayer, undefined, proxyEndpoint);
             }
             e.preventDefault();
         })
 
-        let para = document.createElement('p');
+        const para = document.createElement('p');
         para.className = 'text-end';
         para.appendChild(link);
         return para;
     }
 
+    /**
+     * Toggles a basemap on and turns off other basemaps, as well as hiding and showing relevant elements in the panel
+     * @param basemapId The id of the basemap to toggle
+     */
     private toggleBasemap(basemapId: string) {
-        let basemapSelector = document.getElementById(`basemaps-selector-${basemapId}`);
-        let basemapMeta = document.getElementById(`basemaps-meta-${basemapId}`);
+        const basemapSelector = document.getElementById(`basemaps-selector-${basemapId}`);
+        const basemapMeta = document.getElementById(`basemaps-meta-${basemapId}`);
         if (basemapSelector.classList.contains('active')) {
             //basemap is already active
         } else {
@@ -245,9 +264,9 @@ export class BasemapsPanel implements SidebarPanel {
             basemapSelector.classList.add('active');
             basemapMeta.classList.remove('d-none');
 
-            let layerGroup = this.gifwMapInstance.olMap.getLayers().getArray().filter(g => g.get('type') === 'base')[0];
-            let basemap = layerGroup.getLayersArray().filter(l => l.get('layerId') == basemapId)[0];
-            let otherBasemaps = layerGroup.getLayersArray().filter(l => l.get('layerId') != basemapId);
+            const layerGroup = this.gifwMapInstance.olMap.getLayers().getArray().filter(g => g.get('type') === 'base')[0];
+            const basemap = layerGroup.getLayersArray().filter(l => l.get('layerId') == basemapId)[0];
+            const otherBasemaps = layerGroup.getLayersArray().filter(l => l.get('layerId') != basemapId);
             basemap.setVisible(true)
             otherBasemaps.forEach(b => {
                 b.setVisible(false);
