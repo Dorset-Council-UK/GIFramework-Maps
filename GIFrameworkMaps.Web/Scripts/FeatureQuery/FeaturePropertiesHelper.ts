@@ -6,15 +6,15 @@ export class FeaturePropertiesHelper {
 
     public static getMostAppropriateTitleFromProperties(props: any) {
 
-        let properties = Util.Helper.getKeysFromObject(props);
+        const properties = Util.Helper.getKeysFromObject(props);
 
-        let titleProperty = this._prioritisedTitleFields.find(t => properties.map(p => p.toLowerCase()).includes(t.toLowerCase()))
+        const titleProperty = this._prioritisedTitleFields.find(t => properties.map(p => p.toLowerCase()).includes(t.toLowerCase()))
         return titleProperty;
     }
     public static getFirstAllowedPropertyFromProperties(props: object[]): [string, object] {
-        let propArr = Object.entries(props);
+        const propArr = Object.entries(props);
 
-        let firstProp = propArr.find(p => this.isUserDisplayablePropertyAndValue(p[0], p[1]));
+        const firstProp = propArr.find(p => this.isUserDisplayablePropertyAndValue(p[0], p[1]));
 
         return firstProp;
 

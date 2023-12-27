@@ -27,10 +27,10 @@ export namespace Util {
             x = Math.round(x);
             y = Math.round(y);
             //Get the alpha
-            let xRounded = Math.floor(x / 100000) * 100000;
-            let yRounded = Math.floor(y / 100000) * 100000;
+            const xRounded = Math.floor(x / 100000) * 100000;
+            const yRounded = Math.floor(y / 100000) * 100000;
             let alpha = '';
-            for (var prefix in Util.Projection.prefixes) {
+            for (const prefix in Util.Projection.prefixes) {
                 if (Util.Projection.prefixes[prefix].xBase == xRounded && Util.Projection.prefixes[prefix].yBase == yRounded) {
                     alpha = prefix;
                 }
@@ -42,29 +42,29 @@ export namespace Util {
 
             } else {
                 //Get the numeric part
-                let easting: any = x - Util.Projection.prefixes[alpha].xBase;
-                let northing: any = y - Util.Projection.prefixes[alpha].yBase;
+                const easting: any = x - Util.Projection.prefixes[alpha].xBase;
+                const northing: any = y - Util.Projection.prefixes[alpha].yBase;
 
                 //To string
-                let eastingAsString = easting.toString();
-                let northingAsString = northing.toString();
+                const eastingAsString = easting.toString();
+                const northingAsString = northing.toString();
 
                 //Make up spaces
-                var xPrefix = "";
+                let xPrefix = "";
                 if (eastingAsString.length < 5) {
-                    for (var i = 0; i < (5 - eastingAsString.length); i++) {
+                    for (let i = 0; i < (5 - eastingAsString.length); i++) {
                         xPrefix += "0";
                     }
                 }
-                var yPrefix = "";
+                let yPrefix = "";
                 if (northingAsString.length < 5) {
-                    for (var i = 0; i < (5 - northingAsString.length); i++) {
+                    for (let i = 0; i < (5 - northingAsString.length); i++) {
                         yPrefix += "0";
                     }
                 }
 
                 //Combine back together
-                let numeric = `${xPrefix}${eastingAsString}${includeSpaces ? ' ': ''}${yPrefix}${northingAsString}`;
+                const numeric = `${xPrefix}${eastingAsString}${includeSpaces ? ' ': ''}${yPrefix}${northingAsString}`;
 
                 //Set the the parsed point
                 return `${alpha}${includeSpaces ? ' ' : ''}${numeric}`
@@ -166,8 +166,8 @@ export namespace Util {
     }
 
     export class Browser {
-        static PrefersReducedMotion():Boolean {
-            let reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+        static PrefersReducedMotion():boolean {
+            const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
             if (!reduceMotionQuery) {
                 //the media query is unavailable
                 return false;
@@ -177,11 +177,11 @@ export namespace Util {
         }
 
         static extractParamsFromHash(hash: string): Record<string, string> {
-            if (hash.startsWith('#')) { hash = hash.substring(1) };
-            let hashParams: Record<string, string> = {}
+            if (hash.startsWith('#')) { hash = hash.substring(1) }
+            const hashParams: Record<string, string> = {}
             hash.split('&').map(hk => {
                 //split method taken from https://stackoverflow.com/a/4607799/863487
-                let hashParamKVP = hk.split(/=(.*)/s).slice(0, 2);
+                const hashParamKVP = hk.split(/=(.*)/s).slice(0, 2);
                 if (hashParamKVP.length === 2) {
                     hashParams[hashParamKVP[0].toLowerCase()] = decodeURI(hashParamKVP[1])
                 }
@@ -199,7 +199,7 @@ export namespace Util {
             
             try {
                 storage = window[type as any] as unknown as Storage;
-                var x = '__storage_test__';
+                const x = '__storage_test__';
                 storage.setItem(x, x);
                 storage.removeItem(x);
                 return true;
@@ -226,7 +226,7 @@ export namespace Util {
          * */
         static combineURLSearchParams(a:URLSearchParams, b:URLSearchParams, overwrite = false): URLSearchParams {
             const fn = overwrite ? a.set : a.append;
-            for (let [key, value] of new URLSearchParams(b)) {
+            for (const [key, value] of new URLSearchParams(b)) {
                 fn.call(a, key, value);
             }
             return a;
@@ -239,7 +239,7 @@ export namespace Util {
             return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
         }
         static hexToRgb(hex:string) {
-            let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
             return result ? {
                 r: parseInt(result[1], 16),
                 g: parseInt(result[2], 16),
@@ -250,7 +250,7 @@ export namespace Util {
 
     export class Helper {
         static addLoadingOverlayToElement(ele: HTMLElement, position:InsertPosition): void {
-            let loadingOverlayHTML = 
+            const loadingOverlayHTML = 
                 `<div class="gifw-loading-overlay" style="min-height: 7rem;">
                     <div class="position-absolute start-50 translate-middle" style="margin-top: 1rem;">
                         <div class="spinner-border mx-auto" style="width: 3rem;height: 3rem;" role="status">
@@ -266,13 +266,13 @@ export namespace Util {
         }
 
         static removeLoadingOverlayFromElement(ele: HTMLElement): void {
-            let loadingOverlay = (ele.querySelector('.gifw-loading-overlay') as HTMLElement);
+            const loadingOverlay = (ele.querySelector('.gifw-loading-overlay') as HTMLElement);
             if (loadingOverlay) {
                 loadingOverlay.remove();
             }
         }
 
-        static addFullScreenLoader(mapId: string, loadingText? :string, cancellable? :boolean, cancelCallback?: Function) {
+        static addFullScreenLoader(mapId: string, loadingText?: string, cancellable?: boolean, cancelCallback?: () => void) {
             let loadingTakeoverHTML =
                 `<div class="w-100 h-100 position-fixed top-0 start-0 gifw-full-screen-loader">
                     <div class="position-absolute top-50 start-50 translate-middle" style="
@@ -288,12 +288,12 @@ export namespace Util {
                 loadingTakeoverHTML += `<button class="btn btn-lg btn-danger">Cancel</button>`;
             }
             loadingTakeoverHTML += `</div></div>`
-            let mapEle = document.getElementById(`${mapId}Container`);
+            const mapEle = document.getElementById(`${mapId}Container`);
             mapEle.insertAdjacentHTML('afterbegin', loadingTakeoverHTML);
 
             if (cancellable && cancelCallback) {
-                let cancelButton = mapEle.querySelector('.gifw-full-screen-loader button');
-                cancelButton.addEventListener('click', e => {
+                const cancelButton = mapEle.querySelector('.gifw-full-screen-loader button');
+                cancelButton.addEventListener('click', () => {
                     cancelCallback();
                     this.removeFullScreenLoader(mapId);
                 }, { once: true });
@@ -301,7 +301,7 @@ export namespace Util {
         }
 
         static removeFullScreenLoader(mapId: string) {
-            let mapEle = document.getElementById(`${mapId}Container`);
+            const mapEle = document.getElementById(`${mapId}Container`);
             if (mapEle.querySelector('.gifw-full-screen-loader')) {
                 //just in case there is more than one
                 mapEle.querySelectorAll('.gifw-full-screen-loader').forEach(e => { e.remove() });
@@ -318,7 +318,7 @@ export namespace Util {
             return str.endsWith('/') ?
                 str.slice(0, -1) :
                 str;
-        };
+        }
 
         /**
          * Base64 encode a unicode string
@@ -327,7 +327,7 @@ export namespace Util {
          */
         static b64EncodeUnicode(str:string) {
             return btoa(encodeURIComponent(str));
-        };
+        }
 
         /**
          * Decode a Base64 string to a unicode string
@@ -336,7 +336,7 @@ export namespace Util {
          */
         static UnicodeDecodeB64(str:string) {
             return decodeURIComponent(atob(str));
-        };
+        }
 
         static delay(ms: number) {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -360,15 +360,15 @@ export namespace Util {
             return parents;
         }
 
-        static getKeysFromObject(obj: {}) {
-            let keys: string[] = [];
+        static getKeysFromObject(obj: object) {
+            const keys: string[] = [];
             for (const [key] of Object.entries(obj)) {
                 keys.push(key);
             }
             return keys;
         }
 
-        static getValueFromObjectByKey(obj: {}, keyName: string) {
+        static getValueFromObjectByKey(obj: object, keyName: string) {
 
             for (const [key, value] of Object.entries(obj)) {
                 if (key.toLowerCase() === keyName.toLowerCase()) {
@@ -444,7 +444,7 @@ export namespace Util {
         * @copyright https://stackoverflow.com/a/12900504/863487 CC-BY-SA 4.0
         */
         static getExtension(path:string): string {
-            var basename = path.split(/[\\/]/).pop(),  // extract file name from full path ...
+            const basename = path.split(/[\\/]/).pop(),  // extract file name from full path ...
                 // (supports `\\` and `/` separators)
                 pos = basename.lastIndexOf(".");       // get last position of `.`
 
@@ -455,8 +455,8 @@ export namespace Util {
         }
 
         static getFileNameWithoutExtension(path: string): string {
-            let ext = this.getExtension(path);
-            let fileName = path.replace(`.${ext}`, '');
+            const ext = this.getExtension(path);
+            const fileName = path.replace(`.${ext}`, '');
             return fileName;
         }
     }
@@ -469,7 +469,7 @@ export namespace Util {
          * 
          */
         static getDefaultStyleByGeomType(geomType: string, theme: Theme) : olStyle {
-            let rgbColor = Util.Color.hexToRgb(theme.primaryColour);
+            const rgbColor = Util.Color.hexToRgb(theme.primaryColour);
             let strokeColor = 'rgb(0,0,0)';
             let fillColor = 'rgba(255, 255, 255, 0.2)';
             let fillColorSolid = 'rgb(255, 255, 255)';
@@ -530,7 +530,7 @@ export namespace Util {
 
         public show() {
             if (this.type === AlertType.Popup) {
-                let popup = Modal.getOrCreateInstance(this.errorElement, {});
+                const popup = Modal.getOrCreateInstance(this.errorElement, {});
                 this.errorElement.querySelector('.modal-title').textContent = this.title;
                 this.errorElement.querySelector('.modal-body').innerHTML = this.content;
                 //colourize
@@ -553,7 +553,7 @@ export namespace Util {
                 }
                 popup.show();
             } else if (this.type === AlertType.Toast) {
-                let toast = Toast.getOrCreateInstance(this.errorElement);
+                const toast = Toast.getOrCreateInstance(this.errorElement);
                 
                 this.errorElement.querySelector('.toast-body span').innerHTML = this.content;
 
@@ -585,16 +585,16 @@ export namespace Util {
 
         public hide() {
             if (this.type === AlertType.Popup) {
-                let popup = new Modal(this.errorElement, {});
+                const popup = new Modal(this.errorElement, {});
                 popup.hide();
             } else if (this.type === AlertType.Toast) {
-                let toast = Toast.getOrCreateInstance(this.errorElement);
+                const toast = Toast.getOrCreateInstance(this.errorElement);
                 toast.hide();
             }
         }
 
         static showPopupError(title: string, content: string) {
-            let alert = new Util.Alert(
+            const alert = new Util.Alert(
                 Util.AlertType.Popup,
                 Util.AlertSeverity.Danger,
                 title,
@@ -605,7 +605,7 @@ export namespace Util {
         }
 
         static showTimedToast(title: string, content: string, severity: AlertSeverity = AlertSeverity.Info) {
-            let alert = new Util.Alert(
+            const alert = new Util.Alert(
                 Util.AlertType.Toast,
                 severity,
                 title,
@@ -653,15 +653,15 @@ export namespace Util {
 
             //get turned on layers
             if (map.anyOverlaysOn()) {
-                let layerGroup = map.getLayerGroupOfType(LayerGroupType.Overlay);
+                const layerGroup = map.getLayerGroupOfType(LayerGroupType.Overlay);
 
-                let layers: olLayer<any, any>[] = layerGroup.olLayerGroup.getLayersArray();
+                const layers: olLayer<any, any>[] = layerGroup.olLayerGroup.getLayersArray();
 
-                let switchedOnLayers = layers.filter(l => l.getVisible() === true && l.get('gifw-is-user-layer') !== true);
+                const switchedOnLayers = layers.filter(l => l.getVisible() === true && l.get('gifw-is-user-layer') !== true);
                 if (switchedOnLayers.length !== 0) {
                     hash += '&layers=';
-                    let layerIds = switchedOnLayers.sort((a, b) => b.getZIndex() - a.getZIndex()).map(x => {
-                        let layerSource = x.getSource();
+                    const layerIds = switchedOnLayers.sort((a, b) => b.getZIndex() - a.getZIndex()).map(x => {
+                        const layerSource = x.getSource();
                         let styleName: string = '';
                         if (layerSource instanceof TileWMS || layerSource instanceof ImageWMS) {
                             styleName = layerSource.getParams()?.STYLES || "";
@@ -673,28 +673,28 @@ export namespace Util {
             }
 
             //get basemap
-            let activeBasemap = map.getActiveBasemap();
+            const activeBasemap = map.getActiveBasemap();
             hash += `&basemap=${activeBasemap.get('layerId')}/${(activeBasemap.getOpacity()*100).toFixed(0)}/${activeBasemap.get('saturation')}`;
 
             if (includeSearchResults) {
                 //get the search results pin
-                let searchResultsLayer = map.getLayerById("__searchresults__");
+                const searchResultsLayer = map.getLayerById("__searchresults__");
 
-                let source: VectorSource = (searchResultsLayer as VectorLayer<any>).getSource();
-                let features = source.getFeatures();
+                const source: VectorSource = (searchResultsLayer as VectorLayer<any>).getSource();
+                const features = source.getFeatures();
                 if (features.length === 1) {
-                    let searchResultFeature = features[0];
-                    let geom = searchResultFeature.getGeometry();
+                    const searchResultFeature = features[0];
+                    const geom = searchResultFeature.getGeometry();
                     if (geom instanceof Point) {
-                        let coords = (geom as SimpleGeometry).getCoordinates();
-                        let popupOptions = (searchResultFeature.get('gifw-popup-opts') as GIFWPopupOptions);
-                        let searchResultData = {
+                        const coords = (geom as SimpleGeometry).getCoordinates();
+                        const popupOptions = (searchResultFeature.get('gifw-popup-opts') as GIFWPopupOptions);
+                        const searchResultData = {
                             content: popupOptions.content,
                             title: searchResultFeature.get('gifw-popup-title')
                         }
                         try {
 
-                            let encodedSRData = Helper.b64EncodeUnicode(JSON.stringify(searchResultData));
+                            const encodedSRData = Helper.b64EncodeUnicode(JSON.stringify(searchResultData));
                             hash += `&sr=${coords[0]},${coords[1]}&srdata=${encodedSRData}`;
                         } catch (e) {
                             console.warn('Could not generate search result component for permalink');
@@ -703,7 +703,7 @@ export namespace Util {
                     }
                 }
             }
-            let baseUrl = `${window.location.origin}${window.location.pathname}`;
+            const baseUrl = `${window.location.origin}${window.location.pathname}`;
             return `${baseUrl}${hash}`;
         }
 

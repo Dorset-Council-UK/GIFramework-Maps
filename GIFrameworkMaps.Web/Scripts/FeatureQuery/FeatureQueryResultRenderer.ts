@@ -44,7 +44,7 @@ export class FeatureQueryResultRenderer {
         this._vectorSource = new VectorSource();
 
         this._highlighterLayer = this._gifwMapInstance.addNativeLayerToMap(this._vectorSource, "Feature Highlights", this._highlightStyle, false, LayerGroupType.SystemNative,9999,false);
-        this._highlighterLayer.on('change', e => {
+        this._highlighterLayer.on('change', () => {
             if ((this._highlighterLayer.getSource() as VectorSource<any>).getFeatures().length === 0) {
                 this._highlighterLayer.setVisible(false);
             } else {
@@ -57,7 +57,7 @@ export class FeatureQueryResultRenderer {
     public showFeaturePopup(coords: number[], layer: Layer<any, any>, feature: (Feature<Geometry> | RenderFeature), parentResponses?: FeatureQueryResponse[]) {
         let popupOptions: GIFWPopupOptions;
         if (layer instanceof VectorLayer) {
-            let popupActions: GIFWPopupAction[] = [];
+            const popupActions: GIFWPopupAction[] = [];
             if (feature.getGeometry()) {
                 popupActions.push(
                     new GIFWPopupAction(
@@ -86,32 +86,32 @@ export class FeatureQueryResultRenderer {
                 }
                 
             } else {
-                let content = this.getPopupContentFromFeature(feature, null, layer);
+                const content = this.getPopupContentFromFeature(feature, null, layer);
                 popupOptions = new GIFWPopupOptions(content, popupActions, [0, 0]);
             }
         } else {
 
             //get layer template
-            let layerId = layer.get("layerId");
-            let gifwLayer = this._gifwMapInstance.getLayerConfigById(layerId, [LayerGroupType.Overlay]);
+            const layerId = layer.get("layerId");
+            const gifwLayer = this._gifwMapInstance.getLayerConfigById(layerId, [LayerGroupType.Overlay]);
 
-            let props = feature.getProperties();
+            const props = feature.getProperties();
             let popupContent = '';
             try {
                 if (!gifwLayer.infoTemplate) {
                     //use generic template
                     let genericTemplate = "";
-                    let keys = Util.Helper.getKeysFromObject(props);
+                    const keys = Util.Helper.getKeysFromObject(props);
                     
                     keys.forEach(k => {
-                        let value = Util.Helper.getValueFromObjectByKey(props, k);
+                        const value = Util.Helper.getValueFromObjectByKey(props, k);
                         if (FeaturePropertiesHelper.isUserDisplayablePropertyAndValue(k,value)) {
                             genericTemplate += `<tr><th>${k}</th><td>{{${k}}}</td>`;
                         }
                     })
                     if (genericTemplate !== "") {
                         genericTemplate = `<table class="table table-sm"><tbody>${genericTemplate}</tbody></table>`;
-                        let titleProperty = FeaturePropertiesHelper.getMostAppropriateTitleFromProperties(props);
+                        const titleProperty = FeaturePropertiesHelper.getMostAppropriateTitleFromProperties(props);
                         if (titleProperty) {
                             genericTemplate = `<h1>{{${titleProperty}}}</h1>${genericTemplate}`;
                         } else {
@@ -126,7 +126,7 @@ export class FeatureQueryResultRenderer {
 
                 }
                 popupContent = FeatureQueryTemplateHelper.renderTemplate(gifwLayer.infoTemplate, props);
-                let popupActions: GIFWPopupAction[] = [];
+                const popupActions: GIFWPopupAction[] = [];
                 if (feature.getGeometry()) {
                     popupActions.push(
                         new GIFWPopupAction(
@@ -162,21 +162,21 @@ export class FeatureQueryResultRenderer {
     }
 
     public showFeatureArrayPopup(coords: number[], responsesWithData: FeatureQueryResponse[]) {
-        let popupContent = document.createElement('div');
+        const popupContent = document.createElement('div');
         popupContent.className = 'gifw-result-list';
-        let popupHeader = '<h1>Search results</h1>';
+        const popupHeader = '<h1>Search results</h1>';
         popupContent.innerHTML = popupHeader;
         responsesWithData.forEach(r => {
-            let layerId = r.layer.get("layerId");
-            let gifwLayer = this._gifwMapInstance.getLayerConfigById(layerId, [LayerGroupType.Overlay]);
-            let layerHeader = document.createElement('h2')
+            const layerId = r.layer.get("layerId");
+            const gifwLayer = this._gifwMapInstance.getLayerConfigById(layerId, [LayerGroupType.Overlay]);
+            const layerHeader = document.createElement('h2')
             layerHeader.textContent = r.layer.get("name");
             popupContent.append(layerHeader);
-            let featureList = document.createElement('ul');
+            const featureList = document.createElement('ul');
             featureList.className = "list-unstyled";
 
             r.features.forEach(f => {
-                let listItem = document.createElement("li");
+                const listItem = document.createElement("li");
                 let listItemContent = '';
                 if (f.get('gifw-popup-title')) {
                     //attempt to get a suitable title for this vector feature
@@ -187,20 +187,20 @@ export class FeatureQueryResultRenderer {
                 }
 
                 if(listItemContent === '') {
-                    let titleProperty = FeaturePropertiesHelper.getMostAppropriateTitleFromProperties(f.getProperties());
+                    const titleProperty = FeaturePropertiesHelper.getMostAppropriateTitleFromProperties(f.getProperties());
                     if (titleProperty) {
                         listItemContent = Util.Helper.getValueFromObjectByKey(f.getProperties(), titleProperty) as string;
                     } else {
                         //fall back to first property
-                        let firstProp = FeaturePropertiesHelper.getFirstAllowedPropertyFromProperties(f.getProperties() as object[])
+                        const firstProp = FeaturePropertiesHelper.getFirstAllowedPropertyFromProperties(f.getProperties() as object[])
                         listItemContent = firstProp[1].toString();
                     }
                 }
 
-                let listItemLink = document.createElement("a");
+                const listItemLink = document.createElement("a");
                 listItemLink.text = listItemContent;
                 listItemLink.href = "#";
-                listItemLink.addEventListener('click', e => {
+                listItemLink.addEventListener('click', () => {
                     this.showFeaturePopup(coords, r.layer, f, responsesWithData);
                 })
                 listItem.appendChild(listItemLink);
@@ -209,7 +209,7 @@ export class FeatureQueryResultRenderer {
             popupContent.append(featureList);
         });
 
-        let popupOptions = new GIFWPopupOptions(popupContent, [], [0, 0]);
+        const popupOptions = new GIFWPopupOptions(popupContent, [], [0, 0]);
         this.renderPopupFromOptions(popupOptions, coords);
         this.highlightFeatures(responsesWithData.map(r => r.features).flat());
 
@@ -217,7 +217,7 @@ export class FeatureQueryResultRenderer {
     }
 
     private renderPopupFromOptions(popupOptions: GIFWPopupOptions, coords: number[]) {
-        let popup = this._gifwMapInstance.popupOverlay.overlay.getElement();
+        const popup = this._gifwMapInstance.popupOverlay.overlay.getElement();
 
         if (typeof popupOptions.content === 'string') {
             popup.querySelector('#gifw-popup-content').innerHTML = popupOptions.content;
@@ -227,11 +227,11 @@ export class FeatureQueryResultRenderer {
         }
 
         if (popupOptions && popupOptions.actions !== undefined && popupOptions.actions.length !== 0) {
-            let optionsListContainer = document.createElement('ul');
+            const optionsListContainer = document.createElement('ul');
             optionsListContainer.className = 'list-unstyled mb-0 mt-2 border-top';
             popupOptions.actions.forEach(action => {
-                let actionItem = document.createElement('li');
-                let actionLink = document.createElement('a');
+                const actionItem = document.createElement('li');
+                const actionLink = document.createElement('a');
                 actionLink.href = '#';
                 actionLink.textContent = action.text;
                 actionLink.addEventListener('click', (e) => {
@@ -310,8 +310,8 @@ export class FeatureQueryResultRenderer {
     }
 
     public showNoFeaturesPopup(coords: number[]) {
-        let popup = this._gifwMapInstance.popupOverlay.overlay.getElement();
-        let popupContent = `<p>No features found at this location</p>`;
+        const popup = this._gifwMapInstance.popupOverlay.overlay.getElement();
+        const popupContent = `<p>No features found at this location</p>`;
 
         popup.querySelector('#gifw-popup-content').innerHTML = popupContent;
         this._gifwMapInstance.popupOverlay.overlay.setPosition(coords);
@@ -319,14 +319,14 @@ export class FeatureQueryResultRenderer {
     }
 
     public showLoadingPopup(layerNames: string[], coords: Coordinate): void {
-        let popup = this._gifwMapInstance.popupOverlay.overlay.getElement();
+        const popup = this._gifwMapInstance.popupOverlay.overlay.getElement();
         let loadingContent = '<h1>Searching layers</h1><ul class="list-unstyled">'
         let namesCounter = 0;
         layerNames.some(name => {
             loadingContent += `<li><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div> ${name}</li>`
             namesCounter++;
             if (namesCounter >= 3) {
-                let remainingLayers = layerNames.length - 3;
+                const remainingLayers = layerNames.length - 3;
                 if (remainingLayers > 0) {
                     loadingContent += `<li>...and ${remainingLayers} more</li>`
                 }

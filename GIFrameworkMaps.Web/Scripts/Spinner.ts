@@ -9,17 +9,17 @@
     }
 
     static decrementCounter(spinner: HTMLDivElement) {
-        let count = spinner.getAttribute("counter");
+        const count = spinner.getAttribute("counter");
         if (!count) {
             spinner.setAttribute("counter", "0");
         } else {
-            let newCountInt = parseInt(count) - 1;
+            const newCountInt = parseInt(count) - 1;
             spinner.setAttribute("counter", newCountInt.toString());
         }
     }
 
     static hasCounter(spinner: HTMLElement) {
-        let count = spinner.getAttribute("counter");
+        const count = spinner.getAttribute("counter");
         if (!count || parseInt(count) <= 0) {
             return false;
         }
@@ -27,11 +27,11 @@
     }
 
     static incrementCounter(spinner: HTMLDivElement) {
-        let count = spinner.getAttribute("counter");
+        const count = spinner.getAttribute("counter");
         if (!count) {
             spinner.setAttribute("counter", "1");
         } else {
-            let newCountInt = parseInt(count) + 1;
+            const newCountInt = parseInt(count) + 1;
             spinner.setAttribute("counter", newCountInt.toString());
         }
     }

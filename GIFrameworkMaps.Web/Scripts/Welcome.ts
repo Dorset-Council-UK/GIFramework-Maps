@@ -23,7 +23,7 @@ export class Welcome {
      * @returns {boolean} Boolean indicating whether the welcome message was shown to the user
      * */
     public showWelcomeMessageIfAppropriate(): boolean {
-        let modal = document.querySelector('#welcome-modal')
+        const modal = document.querySelector('#welcome-modal')
         if (modal && this.showWelcome()) {
             Modal.getOrCreateInstance(modal).show();
             this.setLastViewedTime();
@@ -42,18 +42,20 @@ export class Welcome {
                 //always
                 return true;
             default:
-                //specified days
-                let comparisonDate = DateTime.now().minus({ days: this.config.frequency }).toJSDate();
-                return this.getLastViewedTime() < comparisonDate;
+                {
+                    //specified days
+                    const comparisonDate = DateTime.now().minus({ days: this.config.frequency }).toJSDate();
+                    return this.getLastViewedTime() < comparisonDate;
+                }
         }
 
     }
 
     private getLastViewedTime(): Date { 
-        let lastViewedTimeSetting = UserSettings.getItem(this._localStorageKey, this._versionId);
+        const lastViewedTimeSetting = UserSettings.getItem(this._localStorageKey, this._versionId);
         if (lastViewedTimeSetting) {
             //attempt to convert the stored string into a real date
-            let lastViewedTime = DateTime.fromISO(lastViewedTimeSetting);
+            const lastViewedTime = DateTime.fromISO(lastViewedTimeSetting);
             if (lastViewedTime.invalidReason === null) {
                 return lastViewedTime.toJSDate();
             } else {

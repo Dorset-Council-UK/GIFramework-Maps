@@ -3,11 +3,11 @@ import { Util } from "./Util";
 
 export class BroadcastReceiver {
     static init(versionSlug:string, appRoot:string) {
-        let connection = new signalR.HubConnectionBuilder().withUrl(`${document.location.protocol}//${Util.Helper.stripTrailingSlash(appRoot)}/broadcasthub`).build();
+        const connection = new signalR.HubConnectionBuilder().withUrl(`${document.location.protocol}//${Util.Helper.stripTrailingSlash(appRoot)}/broadcasthub`).build();
 
         connection.on("ReceiveBroadcast", function (messageType, messageSeverity, message, version) {
             if (version === "all" || version === versionSlug) {
-                var msg = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                const msg = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
                 switch (messageType) {
                     case "Toast":
                         BroadcastReceiver.showToast(messageSeverity,msg);
@@ -38,7 +38,7 @@ export class BroadcastReceiver {
                 alertSeverity = Util.AlertSeverity.Success
                 break;
         }
-        let broadcastAlert = new Util.Alert(Util.AlertType.Toast, alertSeverity, "Message from administrators", msg, "#gifw-broadcast-toast")
+        const broadcastAlert = new Util.Alert(Util.AlertType.Toast, alertSeverity, "Message from administrators", msg, "#gifw-broadcast-toast")
         broadcastAlert.show();
 
     }
@@ -58,7 +58,7 @@ export class BroadcastReceiver {
                 break;
         }
         //broadcastToast.show();
-        let broadcastAlert = new Util.Alert(Util.AlertType.Popup, alertSeverity, "Message from administrators", msg, "#gifw-broadcast-modal")
+        const broadcastAlert = new Util.Alert(Util.AlertType.Popup, alertSeverity, "Message from administrators", msg, "#gifw-broadcast-modal")
         broadcastAlert.show();
     }
 

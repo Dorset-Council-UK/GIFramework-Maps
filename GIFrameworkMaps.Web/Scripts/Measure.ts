@@ -46,7 +46,7 @@ export class Measure extends olControl {
     _keyboardEventAbortController: AbortController;
     constructor(gifwMapInstance: GIFWMap) {
 
-        let measureControlElement = document.createElement('div');
+        const measureControlElement = document.createElement('div');
 
         super({
             element: measureControlElement
@@ -68,7 +68,7 @@ export class Measure extends olControl {
         this._measureLayer = this.gifwMapInstance.addNativeLayerToMap(this._vectorSource, "Measurements", (feature:Feature<any>) => {
             return this.getStyleForMeasureFeature(feature, true);
         }, false, LayerGroupType.SystemNative, undefined,undefined,"__measurements__");
-        this._measureLayer.on('change', e => {
+        this._measureLayer.on('change', () => {
             if ((this._measureLayer.getSource() as VectorSource<any>).getFeatures().length === 0) {
                 this._clearMeasurementControlElement.querySelector('button').setAttribute('disabled', '');
             } else {
@@ -86,7 +86,7 @@ export class Measure extends olControl {
             })
         })
 
-        document.getElementById(this.gifwMapInstance.id).addEventListener('gifw-line-measure-start', e => {
+        document.getElementById(this.gifwMapInstance.id).addEventListener('gifw-line-measure-start', () => {
             this.gifwMapInstance.deactivateInteractions();
             this.gifwMapInstance.hidePopup();
             //add ol-control-active class
@@ -94,7 +94,7 @@ export class Measure extends olControl {
             this.activateMeasure("LineString");
         })
 
-        document.getElementById(this.gifwMapInstance.id).addEventListener('gifw-area-measure-start', e => {
+        document.getElementById(this.gifwMapInstance.id).addEventListener('gifw-area-measure-start', () => {
             this.gifwMapInstance.deactivateInteractions();
             this.gifwMapInstance.hidePopup();
             //add ol-control-active class
@@ -102,39 +102,39 @@ export class Measure extends olControl {
             this.activateMeasure("Polygon");
         })
 
-        document.getElementById(this.gifwMapInstance.id).addEventListener('gifw-measure-deactivate', e => {
+        document.getElementById(this.gifwMapInstance.id).addEventListener('gifw-measure-deactivate', () => {
             this.deactivateMeasure();
         })
     }
 
     private renderMeasureControls() {
 
-        let rulerButton = document.createElement('button');
+        const rulerButton = document.createElement('button');
         rulerButton.innerHTML = '<i class="bi bi-rulers"></i>';
         rulerButton.setAttribute('title', 'Open measure controls');
-        let rulerElement = document.createElement('div');
+        const rulerElement = document.createElement('div');
         rulerElement.className = 'gifw-measure-control ol-unselectable ol-control';
         rulerElement.appendChild(rulerButton);
 
-        let lineMeasureButton = document.createElement('button');
+        const lineMeasureButton = document.createElement('button');
         lineMeasureButton.innerHTML = '<svg width="20" height="20" fill="currentColor" class="bi bi-ruler-line" viewBox="0 0 16 16"><path d="M3.11.6 16 11.909l-3.11 3.545L0 4.145ZM1.384 4.055l11.416 10.016L14.617 12l-.332-.298-.298.34-.362-.324.292-.333-.672-.589-.747.852-.369-.323.748-.852-.672-.589-.291.332-.368-.316.298-.34-.672-.589-.753.86-.369-.324.754-.859-.671-.589-.298.34-.362-.324.292-.332-.672-.59-.747.853-.369-.324.748-.852-.672-.589-.291.332-.368-.316.298-.34-.672-.589-.753.86-.369-.323.754-.86-.671-.589-.298.34-.362-.324.292-.332-.672-.59-.747.853-.369-.323.748-.853-.672-.589-.291.332-.368-.316.298-.34-.339-.29Z" aria-label="Line measurement icon"/></svg>';
         lineMeasureButton.setAttribute('title', 'Measure a line');
-        let lineMeasureElement = document.createElement('div');
+        const lineMeasureElement = document.createElement('div');
         lineMeasureElement.className = 'gifw-line-measure-control gifw-measure-control ol-unselectable ol-control ol-hidden';
         lineMeasureElement.appendChild(lineMeasureButton);
 
-        let areaMeasureButton = document.createElement('button');
+        const areaMeasureButton = document.createElement('button');
         areaMeasureButton.innerHTML = '<svg width="20" height="20" fill="currentColor" class="bi bi-ruler-area" viewBox="0 0 16 16"><path d="M1.07 0q.216 0 .4.088.194.081.342.229l13.875 13.825q.312.31.313.741 0 .222-.088.416-.08.193-.228.341-.14.149-.333.231-.192.09-.414.09L.039 16 0 1.078Q0 .856.08.663.17.463.31.32.457.172.649.09.849 0 1.071 0zm.032 14.93 13.832-.037-1.41-1.405-.34.35-.379-.378.34-.35-.69-.687-.872.884-.379-.377.88-.877-.691-.688-.347.342-.38-.377.348-.342-.69-.688-.872.877-.378-.377.871-.878-.69-.688-.34.35-.379-.377.34-.35-.69-.688-.872.885-.378-.377.878-.878-.69-.688-.347.342-.379-.377.347-.342-.69-.688-.871.878-.38-.378.872-.877-.69-.688-.34.35-.378-.378.34-.35-.691-.687-.871.885-.38-.378.88-.877-.69-.688-.348.342-.378-.377.347-.342-1.41-1.406Zm2.12-2.135-.017-6.4 6.407 6.384z" aria-label="Area measurement icon"></path></svg>';
         areaMeasureButton.setAttribute('title', 'Measure an area');
-        let areaMeasureElement = document.createElement('div');
+        const areaMeasureElement = document.createElement('div');
         areaMeasureElement.className = 'gifw-area-measure-control gifw-measure-control ol-unselectable ol-control ol-hidden';
         areaMeasureElement.appendChild(areaMeasureButton);
 
-        let clearMeasuresButton = document.createElement('button');
+        const clearMeasuresButton = document.createElement('button');
         clearMeasuresButton.innerHTML = '<i class="bi bi-trash"></i>';
         clearMeasuresButton.setAttribute('title', 'Delete all measurements');
         clearMeasuresButton.setAttribute('disabled', '');
-        let clearMeasuresElement = document.createElement('div');
+        const clearMeasuresElement = document.createElement('div');
         clearMeasuresElement.className = 'gifw-clear-measure-control gifw-measure-control ol-unselectable ol-control ol-hidden';
         clearMeasuresElement.appendChild(clearMeasuresButton);
 
@@ -151,12 +151,12 @@ export class Measure extends olControl {
 
     private addUIEvents() {
 
-        let rulerButton = this._measureToggleControlElement.querySelector('button');
-        let areaMeasureButton = this._areaMeasurementControlElement.querySelector('button');
-        let lineMeasureButton = this._lineMeasurementControlElement.querySelector('button');
-        let clearMeasureButton = this._clearMeasurementControlElement.querySelector('button');
+        const rulerButton = this._measureToggleControlElement.querySelector('button');
+        const areaMeasureButton = this._areaMeasurementControlElement.querySelector('button');
+        const lineMeasureButton = this._lineMeasurementControlElement.querySelector('button');
+        const clearMeasureButton = this._clearMeasurementControlElement.querySelector('button');
 
-        rulerButton.addEventListener('click', e => {
+        rulerButton.addEventListener('click', () => {
             //toggle visibility of sub controls
             if (this._lineMeasurementControlElement.classList.contains('ol-hidden')) {
                 //show controls
@@ -179,7 +179,7 @@ export class Measure extends olControl {
 
         })
 
-        areaMeasureButton.addEventListener('click', e => {
+        areaMeasureButton.addEventListener('click', () => {
             if (this._areaMeasurementControlElement.classList.contains('ol-control-active')) {
                 //deactivate
                 this.gifwMapInstance.resetInteractionsToDefault();
@@ -190,7 +190,7 @@ export class Measure extends olControl {
 
         })
 
-        lineMeasureButton.addEventListener('click', e => {
+        lineMeasureButton.addEventListener('click', () => {
             if (this._lineMeasurementControlElement.classList.contains('ol-control-active')) {
                 //deactivate
                 this.gifwMapInstance.resetInteractionsToDefault();
@@ -200,7 +200,7 @@ export class Measure extends olControl {
             }
         })
 
-        clearMeasureButton.addEventListener('click', e => {
+        clearMeasureButton.addEventListener('click', () => {
             this.gifwMapInstance.resetInteractionsToDefault();
             clearMeasureButton.blur();
             if ((this._measureLayer.getSource() as VectorSource<any>).getFeatures().length === 0) {
@@ -287,7 +287,7 @@ export class Measure extends olControl {
         });
 
 
-        this._drawControl.on('drawabort', (e) => {
+        this._drawControl.on('drawabort', () => {
             tip = idleTip;
         });
 
@@ -315,31 +315,31 @@ export class Measure extends olControl {
     }
 
     private addMeasurementInfoToPopup(feature: Feature<any>) {
-        let measurements = this.getMeasurementFromGeometry(feature.getGeometry());
+        const measurements = this.getMeasurementFromGeometry(feature.getGeometry());
 
-        let popupContent = `<h1>${measurements.name} Measurement</h1>
+        const popupContent = `<h1>${measurements.name} Measurement</h1>
                             <h2>Metric</h2>
                             <p>${measurements.metric} ${measurements.metricUnit}</p>
                             <h2>Imperial</h2>
                             <p>${measurements.imperial} ${measurements.imperialUnit}</p>`;
 
-        let removeAction = new GIFWPopupAction("Remove measurement", () => {
+        const removeAction = new GIFWPopupAction("Remove measurement", () => {
             (this._measureLayer.getSource() as VectorSource<any>).removeFeature(feature);
             if ((this._measureLayer.getSource() as VectorSource<any>).getFeatures().length === 0) {
                 this._measureLayer.setVisible(false);
             }
         });
-        let removeAllAction = new GIFWPopupAction("Remove all measurements", () => {
+        const removeAllAction = new GIFWPopupAction("Remove all measurements", () => {
             (this._measureLayer.getSource() as VectorSource<any>).clear();
             this._measureLayer.setVisible(false);
         });
-        let popupOpts = new GIFWPopupOptions(popupContent, [removeAction, removeAllAction]);
+        const popupOpts = new GIFWPopupOptions(popupContent, [removeAction, removeAllAction]);
         feature.set('gifw-popup-opts', popupOpts)
         feature.set('gifw-popup-title', `${measurements.metric} ${measurements.metricUnit} ${measurements.name} Measurement`)
     }
 
     private getMeasurementFromGeometry(geom: Geometry): MeasurementResult {
-        let type = geom.getType();
+        const type = geom.getType();
         let metric, imperial, metricOutput, imperialOutput: number;
         let metricUnit, imperialUnit, measurementName: string;
         if (type === "LineString") {
@@ -394,7 +394,7 @@ export class Measure extends olControl {
             
         }
 
-        let areaResult: MeasurementResult = {
+        const areaResult: MeasurementResult = {
             metric: metricOutput,
             imperial: imperialOutput,
             name: measurementName,
@@ -410,7 +410,7 @@ export class Measure extends olControl {
         const type = geometry.getType();
         let point, label, line;
         if (!drawType || drawType === type) {
-            let measurements = this.getMeasurementFromGeometry(geometry);
+            const measurements = this.getMeasurementFromGeometry(geometry);
             if (type === 'Polygon') {
                 point = geometry.getInteriorPoint();
                 label = `${measurements.metric} ${measurements.metricUnit}`;
@@ -425,7 +425,7 @@ export class Measure extends olControl {
             let count = 0;
             line.forEachSegment((a: number, b: number) => {
                 const segment = new LineString([a, b]);
-                let measurements = this.getMeasurementFromGeometry(segment);
+                const measurements = this.getMeasurementFromGeometry(segment);
                 const label = `${measurements.metric} ${measurements.metricUnit}`;
                 if (this._segmentStyles.length - 1 < count) {
                     this._segmentStyles.push(this.getSegmentStyle());
@@ -482,7 +482,7 @@ export class Measure extends olControl {
     }
 
     private getBasicStyle(): Style {
-        let rgbColor = Util.Color.hexToRgb(this.gifwMapInstance.config.theme.primaryColour);
+        const rgbColor = Util.Color.hexToRgb(this.gifwMapInstance.config.theme.primaryColour);
         return new Style({
             fill: new Fill({
                 color: `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, 0.2)`

@@ -17,7 +17,7 @@ export class FeatureQuery extends olControl {
     _keyboardEventAbortController: AbortController;
 
     constructor(gifwMapInstance: GIFWMap, active: boolean = true) {
-        let infoControlElement = document.createElement('div');
+        const infoControlElement = document.createElement('div');
 
         super({
             element: infoControlElement
@@ -51,13 +51,13 @@ export class FeatureQuery extends olControl {
             if (this.pointActive) {
                 this._featureQuerySearch.doInfoSearch(evt.coordinate, evt.pixel);
             } else if (this.bufferActive) {
-                this._featureQuerySearch.doBufferSearch(evt.coordinate, evt.pixel);
+                this._featureQuerySearch.doBufferSearch(evt.coordinate);
             }
         });
 
         
 
-        let mapContainer = document.getElementById(this.gifwMapInstance.id);
+        const mapContainer = document.getElementById(this.gifwMapInstance.id);
         mapContainer.addEventListener('gifw-feature-query-deactivate', () => {
             this.deactivate();
         });
@@ -65,20 +65,20 @@ export class FeatureQuery extends olControl {
             document.getElementById(this.gifwMapInstance.id).dispatchEvent(new Event('gifw-info-point-activate'));
         });
 
-        mapContainer.addEventListener('gifw-info-point-activate', e => {
+        mapContainer.addEventListener('gifw-info-point-activate', () => {
 
             this.activatePointSearch();
 
         })
 
-        mapContainer.addEventListener('gifw-info-area-activate', e => {
+        mapContainer.addEventListener('gifw-info-area-activate', () => {
 
             this.activateAreaSearch();
 
             
         })
 
-        mapContainer.addEventListener('gifw-info-buffer-activate', e => {
+        mapContainer.addEventListener('gifw-info-buffer-activate', () => {
 
             this.activateBufferSearch();
         })
@@ -89,31 +89,31 @@ export class FeatureQuery extends olControl {
 
     private renderInfoSearchControls() {
 
-        let infoButton = document.createElement('button');
+        const infoButton = document.createElement('button');
         infoButton.innerHTML = `<i class="bi bi-info-circle"></i>`;
         infoButton.setAttribute('title', 'Open info search controls');
-        let infoButtonElement = document.createElement('div');
+        const infoButtonElement = document.createElement('div');
         infoButtonElement.className = 'gifw-info-control ol-unselectable ol-control';
         infoButtonElement.appendChild(infoButton);
 
-        let infoPointButton = document.createElement('button');
+        const infoPointButton = document.createElement('button');
         infoPointButton.innerHTML = `<img src="${document.location.protocol}//${this.gifwMapInstance.config.appRoot}img/svg-icons/feature-query-point-icon.svg" alt="Click to query features icon" />`;
         infoPointButton.setAttribute('title', 'Query features by clicking');
-        let infoPointElement = document.createElement('div');
+        const infoPointElement = document.createElement('div');
         infoPointElement.className = 'gifw-info-point-control gifw-info-control ol-unselectable ol-control ol-hidden ol-control-active';
         infoPointElement.appendChild(infoPointButton);
 
-        let infoAreaButton = document.createElement('button');
+        const infoAreaButton = document.createElement('button');
         infoAreaButton.innerHTML = '<i class="bi bi-pentagon"></i>';
         infoAreaButton.setAttribute('title', 'Query features by drawing a polygon');
-        let infoAreaElement = document.createElement('div');
+        const infoAreaElement = document.createElement('div');
         infoAreaElement.className = 'gifw-info-polygon-control gifw-info-control ol-unselectable ol-control ol-hidden';
         infoAreaElement.appendChild(infoAreaButton);
 
-        let infoBufferButton = document.createElement('button');
+        const infoBufferButton = document.createElement('button');
         infoBufferButton.innerHTML = '<i class="bi bi-circle"></i>';
         infoBufferButton.setAttribute('title', 'Query features by a buffer');
-        let infoBufferElement = document.createElement('div');
+        const infoBufferElement = document.createElement('div');
         infoBufferElement.className = 'gifw-info-buffer-control gifw-info-control ol-unselectable ol-control ol-hidden';
         infoBufferElement.appendChild(infoBufferButton);
 
@@ -129,12 +129,12 @@ export class FeatureQuery extends olControl {
 
     private addUIEvents() {
 
-        let infoButton = this._infoToggleControlElement.querySelector('button');
-        let infoPointButton = this._infoPointControlElement.querySelector('button');
-        let infoAreaButton = this._infoAreaControlElement.querySelector('button');
-        let infoBufferButton = this._infoBufferControlElement.querySelector('button');
+        const infoButton = this._infoToggleControlElement.querySelector('button');
+        const infoPointButton = this._infoPointControlElement.querySelector('button');
+        const infoAreaButton = this._infoAreaControlElement.querySelector('button');
+        const infoBufferButton = this._infoBufferControlElement.querySelector('button');
 
-        infoButton.addEventListener('click', e => {
+        infoButton.addEventListener('click', () => {
             //toggle visibility of sub controls
             if (this._infoPointControlElement.classList.contains('ol-hidden')) {
                 //show controls
@@ -154,7 +154,7 @@ export class FeatureQuery extends olControl {
 
         })
 
-        infoPointButton.addEventListener('click', e => {
+        infoPointButton.addEventListener('click', () => {
             if (this._infoPointControlElement.classList.contains('ol-control-active')) {
                 //deactivate
                 document.getElementById(this.gifwMapInstance.id).dispatchEvent(new Event('gifw-info-point-deactivate'));
@@ -164,7 +164,7 @@ export class FeatureQuery extends olControl {
 
         })
 
-        infoAreaButton.addEventListener('click', e => {
+        infoAreaButton.addEventListener('click', () => {
             if (this._infoAreaControlElement.classList.contains('ol-control-active')) {
                 //deactivate
                 document.getElementById(this.gifwMapInstance.id).dispatchEvent(new Event('gifw-info-area-deactivate'))
@@ -174,7 +174,7 @@ export class FeatureQuery extends olControl {
             }
         })
 
-        infoBufferButton.addEventListener('click', e => {
+        infoBufferButton.addEventListener('click', () => {
             if (this._infoBufferControlElement.classList.contains('ol-control-active')) {
                 //deactivate
                 document.getElementById(this.gifwMapInstance.id).dispatchEvent(new Event('gifw-info-buffer-deactivate'))

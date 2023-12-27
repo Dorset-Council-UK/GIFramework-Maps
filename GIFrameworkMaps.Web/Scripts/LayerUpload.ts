@@ -9,9 +9,9 @@ export class LayerUpload {
     dropTarget: HTMLElement;
     inputTarget: HTMLInputElement;
     gifwMapInstance: GIFWMap;
-    onCompleteCallback: Function;
+    onCompleteCallback: () => void;
     maxFileSize: number;
-    constructor(gifwMapInstance: GIFWMap, dropTarget?: HTMLElement | string, inputTarget?: HTMLInputElement | string, onCompleteCallback?: Function, maxFileSize:number = 50) {
+    constructor(gifwMapInstance: GIFWMap, dropTarget?: HTMLElement | string, inputTarget?: HTMLInputElement | string, onCompleteCallback?: () => void, maxFileSize:number = 50) {
         if (dropTarget) {
             if (typeof dropTarget === "string") {
                 this.dropTarget = document.getElementById(dropTarget);
@@ -56,19 +56,19 @@ export class LayerUpload {
 
         // Prevent default behavior (Prevent file from being opened)
         ev.preventDefault();
-        let files: File[] = [];
+        const files: File[] = [];
         if (ev.dataTransfer.items) {
             // Use DataTransferItemList interface to access the file(s)
-            for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+            for (let i = 0; i < ev.dataTransfer.items.length; i++) {
                 // If dropped items aren't files, reject them
                 if (ev.dataTransfer.items[i].kind === 'file') {
-                    let file = ev.dataTransfer.items[i].getAsFile();
+                    const file = ev.dataTransfer.items[i].getAsFile();
                     files.push(file);
                 }
             }
         } else {
             // Use DataTransfer interface to access the file(s)
-            for (var i = 0; i < ev.dataTransfer.files.length; i++) {
+            for (let i = 0; i < ev.dataTransfer.files.length; i++) {
                 files.push(ev.dataTransfer.files[i]);
             }
         }
@@ -108,7 +108,7 @@ export class LayerUpload {
      * @returns void
      */
     private inputHandler(ev: Event) {
-        let files = (<HTMLInputElement>ev.target).files;
+        const files = (<HTMLInputElement>ev.target).files;
         this.processFiles(Array.from(files));
 
     }
@@ -122,25 +122,25 @@ export class LayerUpload {
     private processFiles(files: File[]) {
         if (files.length !== 0) {
 
-            let failures: string[] = [];
-            let promises: Promise<VectorLayer<any>>[] = [];
+            const failures: string[] = [];
+            const promises: Promise<VectorLayer<any>>[] = [];
             files.forEach(f => {
-                let format = this.getFormatFromFile(f);
+                const format = this.getFormatFromFile(f);
                 if (format && this.validateFileSize(f)) {
-                    let reader = this.getFileReaderForFile(f);
-                    let readerPromise = new Promise<VectorLayer<any>>((resolve, reject) => {
+                    const reader = this.getFileReaderForFile(f);
+                    const readerPromise = new Promise<VectorLayer<any>>((resolve, reject) => {
                         reader.addEventListener('load', e => {
                             try {
-                                let result = (e.currentTarget as FileReader).result;
-                                let added_layer = this.createAndAddLayerFromFile(result, format, Util.File.getFileNameWithoutExtension(f.name));
+                                const result = (e.currentTarget as FileReader).result;
+                                const added_layer = this.createAndAddLayerFromFile(result, format, Util.File.getFileNameWithoutExtension(f.name));
                                 if (this.validateAddedLayer(added_layer)) {
                                     resolve(added_layer);
                                 } else {
-                                    this.gifwMapInstance.removeLayerById(added_layer.get('layerId'));;
+                                    this.gifwMapInstance.removeLayerById(added_layer.get('layerId'));
                                     reject(`Couldn't add file ${Util.File.getFileNameWithoutExtension(f.name)} because it appears to be invalid`);
                                 }
                                     
-                            } catch (ex: any) {
+                            } catch (ex) {
                                 console.error(ex);
                                 reject(`There was an unexpected problem processing file ${Util.File.getFileNameWithoutExtension(f.name)}`);
                             }
@@ -166,7 +166,7 @@ export class LayerUpload {
             if (this.onCompleteCallback) {
                 this.onCompleteCallback();
             }
-            let processingToast = new Util.Alert(
+            const processingToast = new Util.Alert(
                 Util.AlertType.Toast,
                 Util.AlertSeverity.Info,
                 `Layers being processed`,
@@ -175,7 +175,7 @@ export class LayerUpload {
             processingToast.show();
 
             Promise.allSettled(promises).then((layersPromise) => {
-                let addedLayers: VectorLayer<any>[] = [];
+                const addedLayers: VectorLayer<any>[] = [];
                 let totalNewExtent: Extent;
                 layersPromise.forEach(lp => {
                     if (lp.status === "fulfilled") {
@@ -197,16 +197,16 @@ export class LayerUpload {
                         layerOutsideBounds = true;
                     }
 
-                    let completeToast = new Util.Alert(Util.AlertType.Toast,
+                    const completeToast = new Util.Alert(Util.AlertType.Toast,
                         Util.AlertSeverity.Info,
                         `👍 Layer${addedLayers.length !== 1 ? "s" : ""} added`,
                         `${addedLayers.length === 1 ? `'${addedLayers[0].get('name')}' has` : `${addedLayers.length} layers have`} been added to the map. You can find ${addedLayers.length === 1 ? "it" : "them"} in the Layers panel, under 'My Layers'. <a href="#" data-gifw-zoom-to-extent>Zoom to extent of ${addedLayers.length === 1 ? "layer" : "all added layers"}</a>`,
                         '#gifw-error-toast');
                     completeToast.show();
-                    let zoomToLink = completeToast.errorElement.querySelector('a[data-gifw-zoom-to-extent]');
+                    const zoomToLink = completeToast.errorElement.querySelector('a[data-gifw-zoom-to-extent]');
                     zoomToLink.addEventListener('click', e => {
                         e.preventDefault();
-                        let curExtent = this.gifwMapInstance.olMap.getView().calculateExtent();
+                        const curExtent = this.gifwMapInstance.olMap.getView().calculateExtent();
                         if (this.gifwMapInstance.isExtentAvailableInCurrentMap(totalNewExtent)) {
                             if (!Util.Browser.PrefersReducedMotion() && containsExtent(curExtent, totalNewExtent)) {
                                 this.gifwMapInstance.olMap.getView().fit(totalNewExtent, { padding: [50, 50, 50, 50], duration: 1000 });
@@ -215,7 +215,7 @@ export class LayerUpload {
                             }
                             completeToast.hide();
                         } else {
-                            let errDialog = new Util.Error
+                            const errDialog = new Util.Error
                                 (
                                     Util.AlertType.Popup,
                                     Util.AlertSeverity.Danger,
@@ -239,7 +239,7 @@ export class LayerUpload {
                         }
 
 
-                        let errDialog = new Util.Error
+                        const errDialog = new Util.Error
                             (
                                 Util.AlertType.Popup,
                                 Util.AlertSeverity.Danger,
@@ -249,7 +249,7 @@ export class LayerUpload {
                         errDialog.show();
                     } else {
                         if (layerOutsideBounds) {
-                            let errDialog = new Util.Error
+                            const errDialog = new Util.Error
                                 (
                                     Util.AlertType.Popup,
                                     Util.AlertSeverity.Danger,
@@ -266,7 +266,7 @@ export class LayerUpload {
                     failures.forEach(f => {
                         errorInfo += `<li>${f}</li>`;
                     })
-                    let errDialog = new Util.Error
+                    const errDialog = new Util.Error
                         (
                             Util.AlertType.Popup,
                             Util.AlertSeverity.Danger,
@@ -279,14 +279,14 @@ export class LayerUpload {
         }
     }
     private validateFileSize(f: File) {
-        let sizeInMB:number = (f.size / 1024 / 1024);
+        const sizeInMB:number = (f.size / 1024 / 1024);
         return (sizeInMB <= this.maxFileSize);
     }
 
     private getFileReaderForFile(file:File) {
         const reader = new FileReader();
 
-        let format = this.getFormatFromFile(file);
+        const format = this.getFormatFromFile(file);
 
         if (format) {
             return reader;
@@ -298,10 +298,10 @@ export class LayerUpload {
     }
 
     private createLayerSourceFromFile(fileContents: string | ArrayBuffer, format: KML | GPX | GeoJSON | TopoJSON | IGC) {
-        let view = this.gifwMapInstance.olMap.getView();
-        let projection = view.getProjection();
-        let features = format.readFeatures(fileContents, { featureProjection: projection });
-        let source = new VectorSource({
+        const view = this.gifwMapInstance.olMap.getView();
+        const projection = view.getProjection();
+        const features = format.readFeatures(fileContents, { featureProjection: projection });
+        const source = new VectorSource({
             format: format,
             features: features
         })
@@ -319,14 +319,14 @@ export class LayerUpload {
      */
     private createAndAddLayerFromFile(result: string | ArrayBuffer, format: KML | GPX | GeoJSON | TopoJSON | IGC, fileName: string) {
         
-        let source = this.createLayerSourceFromFile(result, format);
+        const source = this.createLayerSourceFromFile(result, format);
         
         return this.gifwMapInstance.addNativeLayerToMap(source, fileName);
 
     }
 
     private getFormatFromFile(file: File) {
-        let fileType = Util.File.getExtension(file.name);
+        const fileType = Util.File.getExtension(file.name);
         let format: KML | GPX | GeoJSON | TopoJSON | IGC;
         switch (fileType) {
             case "kml":

@@ -160,7 +160,7 @@ export class GIFWGeolocation extends olControl {
      * Adds the event listeners for the geolocation controls
      */
     private addUIEvents() {
-        this._trackControlElement.addEventListener('click', e => {
+        this._trackControlElement.addEventListener('click', () => {
             if (this._trackControlElement.classList.contains('ol-control-active')) {
                 this.deactivateGeolocation();
             } else {
@@ -168,11 +168,11 @@ export class GIFWGeolocation extends olControl {
             }
         })
 
-        this._recentreControlElement.addEventListener('click', e => {
+        this._recentreControlElement.addEventListener('click', () => {
             this.recentreMapOnLocation();
         });  
 
-        document.querySelector('#geolocation-options-modal .btn-primary').addEventListener('click', e => {
+        document.querySelector('#geolocation-options-modal .btn-primary').addEventListener('click', () => {
             this.drawPath = (document.querySelector('#geolocation-options-modal #geolocationDrawTrack') as HTMLInputElement).checked;
             this.useWakeLock = (document.querySelector('#geolocation-options-modal #geolocationScreenLock') as HTMLInputElement).checked;
             this.minAccuracyThreshold = parseInt((document.querySelector('#geolocation-options-modal #geolocationAccuracyThreshold') as HTMLSelectElement).selectedOptions[0].value);

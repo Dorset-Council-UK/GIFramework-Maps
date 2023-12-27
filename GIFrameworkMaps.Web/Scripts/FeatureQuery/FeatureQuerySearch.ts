@@ -57,17 +57,17 @@ export class FeatureQuerySearch {
     }
 
     public doInfoSearch(searchCoord: number[], searchPixel: number[]) {
-        let searchGeom = new olPoint(searchCoord);
-        let searchableLayers = this.getSearchableLayers(searchGeom);
+        const searchGeom = new olPoint(searchCoord);
+        const searchableLayers = this.getSearchableLayers(searchGeom);
         if (searchableLayers.length !== 0) {
 
-            let searchPromises: Promise<FeatureQueryResponse>[] = [];
-            let layerNames: string[] = [];
+            const searchPromises: Promise<FeatureQueryResponse>[] = [];
+            const layerNames: string[] = [];
             searchableLayers.forEach(layer => {
-                let source = layer.getSource();
+                const source = layer.getSource();
                 if (source instanceof TileWMS || source instanceof ImageWMS) {
 
-                    let featureInfoURL = source.getFeatureInfoUrl(
+                    const featureInfoURL = source.getFeatureInfoUrl(
                         searchCoord,
                         this._gifwMapInstance.olMap.getView().getResolution(),
                         this._gifwMapInstance.olMap.getView().getProjection(),
@@ -76,12 +76,12 @@ export class FeatureQuerySearch {
                             'FEATURE_COUNT': 100
                         }
                     )
-                    let request: FeatureQueryRequest = { layer: layer, searchUrl: featureInfoURL };
+                    const request: FeatureQueryRequest = { layer: layer, searchUrl: featureInfoURL };
                     searchPromises.push(this.getFeatureInfoForLayer(request));
                     layerNames.push(layer.get("name"));
                 } else if (source instanceof Vector) {
 
-                    let features = new Set<Feature<Geometry> | RenderFeature>();
+                    const features = new Set<Feature<Geometry> | RenderFeature>();
                     this._gifwMapInstance.olMap.getFeaturesAtPixel(searchPixel, { layerFilter: (l) => { return l === layer } }).forEach((f) => {
                         features.add(f);
                     });
@@ -92,8 +92,8 @@ export class FeatureQuerySearch {
 
                     layerNames.push(layer.get("name"));
 
-                    let promise = new Promise<FeatureQueryResponse>((resolve, reject) => {
-                        let infoClickResponse: FeatureQueryResponse = {
+                    const promise = new Promise<FeatureQueryResponse>((resolve) => {
+                        const infoClickResponse: FeatureQueryResponse = {
                             features: Array.from(features),
                             layer: layer
                         }
@@ -115,18 +115,18 @@ export class FeatureQuerySearch {
     }
 
     public async doAreaInfoSearch(searchPolygon: olPolygon) {
-        let searchableLayers = this.getSearchableLayers(searchPolygon);
+        const searchableLayers = this.getSearchableLayers(searchPolygon);
         if (searchableLayers.length !== 0) {
 
-            let layerNames: string[] = [];
+            const layerNames: string[] = [];
             searchableLayers.forEach(l => {
                 layerNames.push(l.get('name'));
             })
-            let coordLen = searchPolygon.getCoordinates()[0].length;
+            const coordLen = searchPolygon.getCoordinates()[0].length;
 
-            let popupCoord = searchPolygon.getCoordinates()[0][coordLen - 2];
+            const popupCoord = searchPolygon.getCoordinates()[0][coordLen - 2];
             this._searchResultRenderer.showLoadingPopup(layerNames, popupCoord);
-            let searchPromises = await this.getSearchPromisesForLayers(searchableLayers, searchPolygon);
+            const searchPromises = await this.getSearchPromisesForLayers(searchableLayers, searchPolygon);
 
             Promise.allSettled(searchPromises).then((promises) => {
                 this.resolveSearchPromises(promises, popupCoord);
@@ -137,18 +137,18 @@ export class FeatureQuerySearch {
     }
 
     private resolveSearchPromises(promises: PromiseSettledResult<FeatureQueryResponse>[], popupCoord: Coordinate) {
-        let completedPromises = promises.filter(p => p.status === 'fulfilled') as PromiseFulfilledResult<FeatureQueryResponse>[];
-        let responsesWithData: FeatureQueryResponse[] = [];
+        const completedPromises = promises.filter(p => p.status === 'fulfilled') as PromiseFulfilledResult<FeatureQueryResponse>[];
+        const responsesWithData: FeatureQueryResponse[] = [];
         completedPromises.forEach(p => {
-            let response = p.value;
+            const response = p.value;
             if (response.features.length !== 0) {
                 responsesWithData.push(response);
             }
         })
 
         if (responsesWithData.length !== 0) {
-            let numLayers = responsesWithData.length;
-            let hasFeatures = responsesWithData.some(r => r.features.length > 0);
+            const numLayers = responsesWithData.length;
+            const hasFeatures = responsesWithData.some(r => r.features.length > 0);
             if (hasFeatures) {
                 if (numLayers === 1 && responsesWithData[0].features.length === 1) {
                     this._searchResultRenderer.showFeaturePopup(popupCoord, responsesWithData[0].layer, responsesWithData[0].features[0]);
@@ -163,15 +163,15 @@ export class FeatureQuerySearch {
             this._searchResultRenderer.showNoFeaturesPopup(popupCoord);
         }
 
-        let failedPromises = promises.filter(p => p.status !== 'fulfilled');
+        const failedPromises = promises.filter(p => p.status !== 'fulfilled');
 
         if (failedPromises.length !== 0) {
-            let msgs: string[] = [];
+            const msgs: string[] = [];
             failedPromises.forEach(failedPromise => {
                 console.error(failedPromise.status);
                 msgs.push(failedPromise.status);
             })
-            let err = new Util.Error(
+            const err = new Util.Error(
                 responsesWithData.length === 0 ? Util.AlertType.Popup : Util.AlertType.Toast,
                 Util.AlertSeverity.Danger,
                 `Feature request failed`,
@@ -180,12 +180,12 @@ export class FeatureQuerySearch {
         }
     }
 
-    public doBufferSearch(searchCoord: number[], searchPixel: number[]) {
+    public doBufferSearch(searchCoord: number[]) {
 
 
-        let popup = this._gifwMapInstance.popupOverlay.overlay.getElement();
+        const popup = this._gifwMapInstance.popupOverlay.overlay.getElement();
 
-        let queryForm = `<div class="mb-3">
+        const queryForm = `<div class="mb-3">
                                 <label for="infoBufferRadius" class="form-label">Buffer</label>
                                 <div class="row g-0">
                                     <div class="col-6">
@@ -200,16 +200,16 @@ export class FeatureQuerySearch {
                                     </div>
                             </div>`
 
-        let outerForm = document.createElement('form');
+        const outerForm = document.createElement('form');
         outerForm.innerHTML = queryForm;
 
-        let submitButton = document.createElement('button');
+        const submitButton = document.createElement('button');
         submitButton.innerText = 'Search';
         submitButton.className = 'btn btn-outline-primary btn-sm';
         submitButton.type = 'submit';
         outerForm.appendChild(submitButton);
 
-        let cancelButton = document.createElement('button');
+        const cancelButton = document.createElement('button');
         cancelButton.innerText = 'Cancel';
         cancelButton.className = 'btn btn-text btn-sm ms-2';
         cancelButton.type = 'button';
@@ -222,24 +222,24 @@ export class FeatureQuerySearch {
             if (outerForm.checkValidity()) {
                 this._gifwMapInstance.popupOverlay.overlay.un('change:position', () => this.activatePointSearch());
                 //create the geometry
-                let formatter = new GeoJSON({
+                const formatter = new GeoJSON({
                     dataProjection: 'EPSG:4326'
                 });
-                let radius = (outerForm.querySelector('input[type=number]') as HTMLInputElement).valueAsNumber;
-                let units = (outerForm.querySelector('select') as HTMLSelectElement).value;
-                let turfUnit = units as turfUnits;
+                const radius = (outerForm.querySelector('input[type=number]') as HTMLInputElement).valueAsNumber;
+                const units = (outerForm.querySelector('select') as HTMLSelectElement).value;
+                const turfUnit = units as turfUnits;
 
                 //submit to the area query searcher
-                let featureGeom = new olPoint(searchCoord);
+                const featureGeom = new olPoint(searchCoord);
                 featureGeom.transform(this._gifwMapInstance.olMap.getView().getProjection(), 'EPSG:4326');
 
-                let point = turfPoint(featureGeom.getCoordinates());
-                let buffer = Buffer(point, radius, { units: turfUnit });
+                const point = turfPoint(featureGeom.getCoordinates());
+                const buffer = Buffer(point, radius, { units: turfUnit });
 
-                let bufferedFeature = formatter.readFeature(buffer) as Feature<olPolygon>;
-                let bufferedGeometry = bufferedFeature.getGeometry();
+                const bufferedFeature = formatter.readFeature(buffer) as Feature<olPolygon>;
+                const bufferedGeometry = bufferedFeature.getGeometry();
                 bufferedGeometry.transform('EPSG:4326', this._gifwMapInstance.olMap.getView().getProjection());
-                let feature = new Feature(bufferedGeometry);
+                const feature = new Feature(bufferedGeometry);
                 this.addAreaQueryInfoToPopup(feature);
                 this._vectorSource.addFeature(feature);
                 if (!this._queryLayer.getVisible()) {
@@ -251,7 +251,7 @@ export class FeatureQuerySearch {
             }
         });
 
-        cancelButton.addEventListener('click', e => {
+        cancelButton.addEventListener('click', () => {
             this.activatePointSearch();
             this._gifwMapInstance.hidePopup();
         })
@@ -334,7 +334,7 @@ export class FeatureQuerySearch {
         });
 
 
-        this._drawControl.on('drawabort', (e) => {
+        this._drawControl.on('drawabort', () => {
             tip = idleTip;
         });
 
@@ -355,12 +355,12 @@ export class FeatureQuerySearch {
     }
 
     private async getSearchPromisesForLayers(searchableLayers: Layer<any, any>[], searchPolygon: olPolygon): Promise<Promise<FeatureQueryResponse>[]> {
-        let searchPromises: Promise<FeatureQueryResponse>[] = [];
+        const searchPromises: Promise<FeatureQueryResponse>[] = [];
         for (const layer of searchableLayers) {
-            let source = layer.getSource();
+            const source = layer.getSource();
             if (source instanceof TileWMS || source instanceof ImageWMS) {
-                let sourceParams = source.getParams();
-                let featureTypeName = sourceParams.LAYERS;
+                const sourceParams = source.getParams();
+                const featureTypeName = sourceParams.LAYERS;
                 //get feature type description and capabilities from server
                 let baseUrl: string;
                 if (source instanceof TileWMS) {
@@ -369,21 +369,21 @@ export class FeatureQuerySearch {
                     baseUrl = source.getUrl();
                 }
 
-                let authKey = Util.Helper.getValueFromObjectByKey(sourceParams, "authkey");
+                const authKey = Util.Helper.getValueFromObjectByKey(sourceParams, "authkey");
                 let additionalParams = {};
                 if (authKey) {
                     additionalParams = { authkey: authKey };
                 }
                 const gifwLayer = this._gifwMapInstance.getLayerConfigById(layer.get('layerId'));
                 const layerHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(gifwLayer.layerSource);
-                let serverCapabilities = await Metadata.getBasicCapabilities(baseUrl, additionalParams, undefined, layerHeaders);
+                const serverCapabilities = await Metadata.getBasicCapabilities(baseUrl, additionalParams, undefined, layerHeaders);
 
                 if (serverCapabilities &&
                     serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType && c.url !== '').length !== 0 &&
                     serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WFS_GetFeature && c.url !== '').length !== 0
                 ) {
                     //has all relevant capabilities
-                    let describeFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType)[0];
+                    const describeFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType)[0];
 
                     let proxyEndpoint = "";
                     
@@ -391,15 +391,15 @@ export class FeatureQuerySearch {
                         proxyEndpoint = `${document.location.protocol}//${this._gifwMapInstance.config.appRoot}proxy`;
                     }
                     const httpHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(gifwLayer.layerSource);
-                    let featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, featureTypeName, describeFeatureCapability.method,undefined,proxyEndpoint,undefined,httpHeaders);
+                    const featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, featureTypeName, describeFeatureCapability.method,undefined,proxyEndpoint,undefined,httpHeaders);
                     if (featureDescription) {
-                        let geomColumnName = featureDescription.featureTypes[0].properties.filter(p => p.type.indexOf("gml:") === 0);
+                        const geomColumnName = featureDescription.featureTypes[0].properties.filter(p => p.type.indexOf("gml:") === 0);
                         if (geomColumnName.length !== 0) {
 
                             //get any relevant filters and apply to the request
-                            let params = source.getParams();
-                            let olFilters = this.convertTextFiltersToOLFilters(params, featureDescription);
-                            let wfsFilters = [intersectsFilter(geomColumnName[0].name, searchPolygon), ...olFilters];
+                            const params = source.getParams();
+                            const olFilters = this.convertTextFiltersToOLFilters(params, featureDescription);
+                            const wfsFilters = [intersectsFilter(geomColumnName[0].name, searchPolygon), ...olFilters];
 
                             let finalFilter;
                             if (wfsFilters.length > 1) {
@@ -408,7 +408,7 @@ export class FeatureQuerySearch {
                                 finalFilter = wfsFilters[0];
                             }
 
-                            let wfsFeatureInfoRequest = new WFS().writeGetFeature({
+                            const wfsFeatureInfoRequest = new WFS().writeGetFeature({
                                 srsName: 'EPSG:3857',
                                 featureTypes: [featureTypeName],
                                 featureNS: featureDescription.targetNamespace,
@@ -417,28 +417,28 @@ export class FeatureQuerySearch {
                                     finalFilter
                             });
 
-                            let getFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WFS_GetFeature)[0];
+                            const getFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WFS_GetFeature)[0];
 
-                            let request: FeatureQueryRequest = {
+                            const request: FeatureQueryRequest = {
                                 layer: layer, wfsRequest: wfsFeatureInfoRequest, searchUrl: getFeatureCapability.url, searchMethod: getFeatureCapability.method
                             };
                             searchPromises.push(this.getFeatureInfoForLayer(request));
                         } else {
-                            let promise = new Promise<FeatureQueryResponse>((resolve, reject) => {
+                            const promise = new Promise<FeatureQueryResponse>((resolve, reject) => {
                                 reject('could not determine geometry column name from list');
                             });
                             searchPromises.push(promise);
                         }
                     } else {
                         //server did not return a valid featureDescription response
-                        let promise = new Promise<FeatureQueryResponse>((resolve, reject) => {
+                        const promise = new Promise<FeatureQueryResponse>((resolve, reject) => {
                             reject('server did not return a valid featureDescription response');
                         });
                         searchPromises.push(promise);
                     }
                 } else {
                     //server is incapable of doing what we need
-                    let promise = new Promise<FeatureQueryResponse>((resolve, reject) => {
+                    const promise = new Promise<FeatureQueryResponse>((resolve, reject) => {
                         reject('server did not return a valid capabilities document');
                     });
                     searchPromises.push(promise);
@@ -446,31 +446,31 @@ export class FeatureQuerySearch {
                 }
             } else if (source instanceof Vector) {
 
-                let features = new Set<Feature<Geometry> | RenderFeature>();
+                const features = new Set<Feature<Geometry> | RenderFeature>();
 
-                let searchPolygonClone = new Feature(searchPolygon).clone();
-                let searchFeatureGeom = searchPolygonClone.getGeometry();
+                const searchPolygonClone = new Feature(searchPolygon).clone();
+                const searchFeatureGeom = searchPolygonClone.getGeometry();
                 searchFeatureGeom.transform('EPSG:3857', 'EPSG:4326');
                 searchPolygonClone.setGeometry(searchFeatureGeom);
-                let formatter = new GeoJSON({
+                const formatter = new GeoJSON({
                     dataProjection: 'EPSG:4326'
                 });
-                let turfSearchPolygon = formatter.writeFeatureObject(searchPolygonClone);
+                const turfSearchPolygon = formatter.writeFeatureObject(searchPolygonClone);
 
-                let sourceCandidates = source.getFeaturesInExtent(searchPolygon.getExtent());
+                const sourceCandidates = source.getFeaturesInExtent(searchPolygon.getExtent());
                 if (sourceCandidates?.length !== 0) {
                     sourceCandidates.forEach(f => {
                         /*This test makes sure we don't query the polygon we are using for the search*/
                         if (f.getGeometry() !== searchPolygon) {
-                            let featureType = f.getGeometry().getType();
-                            let sourceFeatureClone = f.clone();
-                            let sourceFeatureGeom = sourceFeatureClone.getGeometry();
+                            const featureType = f.getGeometry().getType();
+                            const sourceFeatureClone = f.clone();
+                            const sourceFeatureGeom = sourceFeatureClone.getGeometry();
                             sourceFeatureGeom.transform('EPSG:3857', 'EPSG:4326');
                             sourceFeatureClone.setGeometry(sourceFeatureGeom);
-                            let formatter = new GeoJSON({
+                            const formatter = new GeoJSON({
                                 dataProjection: 'EPSG:4326'
                             });
-                            let turfSourceFeature = formatter.writeFeatureObject(sourceFeatureClone);
+                            const turfSourceFeature = formatter.writeFeatureObject(sourceFeatureClone);
                             if (featureType === 'Polygon' || featureType === 'MultiPolygon') {
 
                                 if (intersect(turfSearchPolygon as any, turfSourceFeature as any) !== null) {
@@ -490,8 +490,8 @@ export class FeatureQuerySearch {
                 }
 
 
-                let promise = new Promise<FeatureQueryResponse>((resolve, reject) => {
-                    let infoClickResponse: FeatureQueryResponse = {
+                const promise = new Promise<FeatureQueryResponse>((resolve) => {
+                    const infoClickResponse: FeatureQueryResponse = {
                         features: Array.from(features),
                         layer: layer
                     }
@@ -502,14 +502,14 @@ export class FeatureQuerySearch {
 
             }
 
-        };
+        }
         return searchPromises;
     }
 
     private getFeatureInfoForLayer(request: FeatureQueryRequest): Promise<FeatureQueryResponse> {
-        let abortController = new AbortController();
-        let timer = window.setTimeout(() => abortController.abort(), this._maxTimeout);
-        let promise = new Promise<FeatureQueryResponse>((resolve, reject) => {
+        const abortController = new AbortController();
+        const timer = window.setTimeout(() => abortController.abort(), this._maxTimeout);
+        const promise = new Promise<FeatureQueryResponse>((resolve, reject) => {
             let fetchUrl = request.searchUrl;
             if (request.layer.get('gifw-proxy-meta-request') === true) {
                 fetchUrl = this._gifwMapInstance.createProxyURL(request.searchUrl);
@@ -531,9 +531,9 @@ export class FeatureQuerySearch {
                     return response.text();
                 }).then(data => {
                     //if the request was a WFS, use the GML reader, else use the WMSGetFeatureInfo reader
-                    let features = request.wfsRequest ? new GML3().readFeatures(data) : new WMSGetFeatureInfo().readFeatures(data);
+                    const features = request.wfsRequest ? new GML3().readFeatures(data) : new WMSGetFeatureInfo().readFeatures(data);
 
-                    let response: FeatureQueryResponse = {
+                    const response: FeatureQueryResponse = {
                         layer: request.layer,
                         features: features
                     }
@@ -554,57 +554,57 @@ export class FeatureQuerySearch {
 
     public addAreaQueryInfoToPopup(feature: Feature<any>) {
 
-        let timeOpts: Intl.DateTimeFormatOptions = {
+        const timeOpts: Intl.DateTimeFormatOptions = {
             hour: 'numeric', minute: 'numeric'
         };
 
-        let formattedTime = new Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale, timeOpts).format(new Date());
+        const formattedTime = new Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale, timeOpts).format(new Date());
 
-        let popupContent = `<h1>Polygon query</h1>
+        const popupContent = `<h1>Polygon query</h1>
                             <p>Created at ${formattedTime}</p>`;
 
-        let searchAgainAction = new GIFWPopupAction("Search again using this polygon", () => {
+        const searchAgainAction = new GIFWPopupAction("Search again using this polygon", () => {
             this.doAreaInfoSearch(feature.getGeometry());
         }, false);
 
-        let removeAction = new GIFWPopupAction("Remove query polygon", () => {
+        const removeAction = new GIFWPopupAction("Remove query polygon", () => {
             (this._queryLayer.getSource() as VectorSource<any>).removeFeature(feature);
             if ((this._queryLayer.getSource() as VectorSource<any>).getFeatures().length === 0) {
                 this._queryLayer.setVisible(false);
             }
         });
-        let removeAllAction = new GIFWPopupAction("Remove all query polygons", () => {
+        const removeAllAction = new GIFWPopupAction("Remove all query polygons", () => {
             (this._queryLayer.getSource() as VectorSource<any>).clear();
             this._queryLayer.setVisible(false);
         });
-        let popupOpts = new GIFWPopupOptions(popupContent, [searchAgainAction, removeAction, removeAllAction]);
+        const popupOpts = new GIFWPopupOptions(popupContent, [searchAgainAction, removeAction, removeAllAction]);
         feature.set('gifw-popup-opts', popupOpts)
         feature.set('gifw-popup-title', `Polygon query created at ${formattedTime}`)
     }
 
     private getSearchableLayers(searchGeom: Geometry) {
-        let roundedZoom = Math.ceil(this._gifwMapInstance.olMap.getView().getZoom());
+        const roundedZoom = Math.ceil(this._gifwMapInstance.olMap.getView().getZoom());
 
 
-        let layerGroups = this._gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative]);
+        const layerGroups = this._gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative]);
 
         let layers: Layer<any, any>[] = [];
         layerGroups.forEach(lg => {
             layers = layers.concat(lg.olLayerGroup.getLayersArray());
         })
-        let visibleLayers = layers.filter(
+        const visibleLayers = layers.filter(
             l => l.getVisible() === true &&
                 l.get("gifw-queryable") !== false &&
                 !((l.getMaxZoom() < roundedZoom) || (l.getMinZoom() >= roundedZoom))
 
         );
 
-        let searchableLayers: Layer<any, any>[] = [];
+        const searchableLayers: Layer<any, any>[] = [];
 
         visibleLayers.forEach(l => {
             //check layer is actually visible and can be clicked
             let outsideExtent = false;
-            let layerExtent = l.getExtent();
+            const layerExtent = l.getExtent();
             if (layerExtent) {
                 outsideExtent = !searchGeom.intersectsExtent(layerExtent);
             }
@@ -628,14 +628,14 @@ export class FeatureQuerySearch {
             }
         }
 
-        let wfsFilters = [];
+        const wfsFilters = [];
 
         if (timeFilter) {
-            let dateTimeColumns = featureDescription.featureTypes[0].properties.filter(p => p.type.indexOf("xsd:date") === 0 || p.type.indexOf("xsd:time") === 0);
+            const dateTimeColumns = featureDescription.featureTypes[0].properties.filter(p => p.type.indexOf("xsd:date") === 0 || p.type.indexOf("xsd:time") === 0);
             if (dateTimeColumns.length === 1) {
                 //split the date if possible
                 let filter: any = equalToFilter(dateTimeColumns[0].name, timeFilter);
-                let dateTimeValues = timeFilter.split('/');
+                const dateTimeValues = timeFilter.split('/');
                 if (dateTimeValues.length === 2) {
                     //This is a nasty hack to allow date times to use between whilst still working on WFS 1.1.0.
                     //No guarantee this will work, but this whole section is a bit hacky
@@ -650,8 +650,8 @@ export class FeatureQuerySearch {
             }
         }
         if (cqlFilter) {
-            let cqlFormat = new CQL();
-            let filter = cqlFormat.read(cqlFilter);
+            const cqlFormat = new CQL();
+            const filter = cqlFormat.read(cqlFilter);
             wfsFilters.push(filter);
         }
 

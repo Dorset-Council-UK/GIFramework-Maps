@@ -26,14 +26,14 @@ export class GIFWMousePositionControl {
 
     public init():olControl.MousePosition {
         let mousePositionProjection = olProj.get('EPSG:27700');
-        let preferredProjectionEPSG = UserSettings.getItem('MousePositionProjection-Code');
+        const preferredProjectionEPSG = UserSettings.getItem('MousePositionProjection-Code');
         if (preferredProjectionEPSG) {
             
-            let preferredProjection = olProj.get(this.getProjectionString(preferredProjectionEPSG));
+            const preferredProjection = olProj.get(this.getProjectionString(preferredProjectionEPSG));
             if (preferredProjection) {
                 mousePositionProjection = preferredProjection;
                 this.projection = preferredProjectionEPSG;
-                let preferredProjectionDecimals = UserSettings.getItem('MousePositionProjection-Decimals');
+                const preferredProjectionDecimals = UserSettings.getItem('MousePositionProjection-Decimals');
                 if (parseInt(preferredProjectionDecimals) > 0 && parseInt(preferredProjectionDecimals) <= 5) {
                     this.decimals = parseInt(preferredProjectionDecimals);
                 } else {
@@ -43,7 +43,7 @@ export class GIFWMousePositionControl {
                 UserSettings.removeItem('MousePositionProjection-Code');
             }            
         }
-        let mousePosition = new olControl.MousePosition({
+        const mousePosition = new olControl.MousePosition({
             projection: mousePositionProjection,
             coordinateFormat: (coord) => {
                 return this.coordTemplate(this.formatCoordinates(this.projection, this.decimals, coord));
@@ -60,7 +60,7 @@ export class GIFWMousePositionControl {
         document.getElementById('giframeworkMap').addEventListener('click', e => {
             if ((e.target as HTMLAnchorElement).id === 'coordinate-configurator') {
                 //open modal for metadata
-                let coordConfiguratorModal = new Modal(document.getElementById('coordinate-configurator-modal'), {});
+                const coordConfiguratorModal = new Modal(document.getElementById('coordinate-configurator-modal'), {});
                 (document.getElementById('coordConfigProjection') as HTMLSelectElement).value = this.projection;
                 (document.getElementById('coordConfigDecimals') as HTMLInputElement).value = this.decimals.toString();
                 if (this.projection !== "277001") {
@@ -72,16 +72,16 @@ export class GIFWMousePositionControl {
         });
         document.getElementById('coordConfigForm').addEventListener('submit', e => {
 
-            let newProj = (document.getElementById('coordConfigProjection') as HTMLSelectElement).value;
-            let decimals = (document.getElementById('coordConfigDecimals') as HTMLInputElement).value;
+            const newProj = (document.getElementById('coordConfigProjection') as HTMLSelectElement).value;
+            const decimals = (document.getElementById('coordConfigDecimals') as HTMLInputElement).value;
             this.setDisplayProjection(newProj, parseInt(decimals));
-            let coordConfiguratorModal = Modal.getInstance(document.getElementById('coordinate-configurator-modal'));
+            const coordConfiguratorModal = Modal.getInstance(document.getElementById('coordinate-configurator-modal'));
             coordConfiguratorModal.hide();
             e.preventDefault();
         });
 
         document.getElementById('coordConfigProjection').addEventListener('change', e => {
-            let defaultDecimalPlaces = (e.target as HTMLSelectElement).options[(e.target as HTMLSelectElement).selectedIndex].dataset.gifwDefaultDecimals;
+            const defaultDecimalPlaces = (e.target as HTMLSelectElement).options[(e.target as HTMLSelectElement).selectedIndex].dataset.gifwDefaultDecimals;
             if (defaultDecimalPlaces === undefined) {
                 (document.getElementById('coordConfigDecimals') as HTMLInputElement).value = "0";
                 (document.getElementById('coordConfigDecimals') as HTMLInputElement).disabled = true;
@@ -94,7 +94,7 @@ export class GIFWMousePositionControl {
     }
 
     public setDisplayProjection(code: string, decimals: number) {
-        let coordTemplate = this.coordTemplate;
+        const coordTemplate = this.coordTemplate;
         this.control.setProjection(this.getProjectionString(code));
         this.control.setCoordinateFormat((coord) => {
             return coordTemplate(this.formatCoordinates(code, decimals, coord));
@@ -116,8 +116,8 @@ export class GIFWMousePositionControl {
     }
 
     public formatCoordinates(code: string, decimals: number, coord: number[]): string {
-        let x = coord[0];
-        let y = coord[1];
+        const x = coord[0];
+        const y = coord[1];
         if (code === '277001') {
             //this is a funny one that requires specific handling, hence the fake EPSG Code
             //do coord conversion
@@ -135,8 +135,8 @@ export class GIFWMousePositionControl {
     }
 
     public formatCoordinatesAsArray(code: string, decimals: number, coord: number[]): string[] {
-        let x = coord[0];
-        let y = coord[1];
+        const x = coord[0];
+        const y = coord[1];
         if (code === '277001') {
             //this is a funny one that requires specific handling, hence the fake EPSG Code
             //do coord conversion
@@ -144,9 +144,9 @@ export class GIFWMousePositionControl {
         } else if (code === "43261") {
             //this is a funny one that requires specific handling, hence the fake EPSG Code
             //do coord conversion
-            let fullString = toStringHDMS([x, y], decimals);
+            const fullString = toStringHDMS([x, y], decimals);
             //don't judge me for this nastiness.
-            let splitString = fullString.split(/(N|S)/);
+            const splitString = fullString.split(/(N|S)/);
             return [`${splitString[0]}${splitString[1]}`,`${splitString[2].trim()}`]
         } else if (code === "4326") {
             /*lat/lon requires flipping the x/y values*/
@@ -157,6 +157,6 @@ export class GIFWMousePositionControl {
     }
 
     private coordTemplate(coordString: string): string {
-        return `<a href="#" class="stretched-link text-body text-decoration-none" title="Click to configure" id="coordinate-configurator">${coordString}</a>`;;
+        return `<a href="#" class="stretched-link text-body text-decoration-none" title="Click to configure" id="coordinate-configurator">${coordString}</a>`;
     }
 }

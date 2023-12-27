@@ -58,14 +58,14 @@ export default class AnnotationStylePanel implements SidebarPanel {
     *
     */
     private attachCloseButton(): void {
-        let container = document.querySelector(this.container);
-        let closeButton = container.querySelector('button[data-gifw-dismiss-sidebar]');
+        const container = document.querySelector(this.container);
+        const closeButton = container.querySelector('button[data-gifw-dismiss-sidebar]');
         if (closeButton !== null) {
-            closeButton.addEventListener('click', (e) => {
+            closeButton.addEventListener('click', () => {
                 Sidebar.close();
             });
         }
-    };
+    }
 
     public setListeners(sidebar: Sidebar) {
         document.getElementById(this.gifwMapInstance.id).addEventListener('gifw-annotate-update-panel', (e: AnnotationStyleEvent) => {
@@ -77,11 +77,11 @@ export default class AnnotationStylePanel implements SidebarPanel {
                 this.render();
             }
         });
-        document.getElementById(this.gifwMapInstance.id).addEventListener('gifw-annotate-deactivate', (e) => {
+        document.getElementById(this.gifwMapInstance.id).addEventListener('gifw-annotate-deactivate', () => {
             this.activeStyle = undefined;
             this.render();
         });
-        document.getElementById(this.gifwMapInstance.id).addEventListener('gifw-annotate-activate', (e) => {
+        document.getElementById(this.gifwMapInstance.id).addEventListener('gifw-annotate-activate', () => {
             sidebar.open();
         });
     }
@@ -137,10 +137,12 @@ export default class AnnotationStylePanel implements SidebarPanel {
                             control.value = this.activeStyle.strokeWidth.toString();
                             break;
                         case 'pointHasBorder':
-                            (control as HTMLInputElement).checked = this.activeStyle.pointHasBorder;
-                            const borderOptions: HTMLElement = document.querySelector('#gifw-annotations-border-options');
-                            borderOptions.style.display = (control as HTMLInputElement).checked ? 'block' : 'none';
-                            break;
+                            {
+                                (control as HTMLInputElement).checked = this.activeStyle.pointHasBorder;
+                                const borderOptions: HTMLElement = document.querySelector('#gifw-annotations-border-options');
+                                borderOptions.style.display = (control as HTMLInputElement).checked ? 'block' : 'none';
+                                break;
+                            }
                         case 'borderColour':
                             control.value = `#${this.activeStyle.borderColourHex}`;
                             break;
@@ -150,7 +152,7 @@ export default class AnnotationStylePanel implements SidebarPanel {
                         default:
                             break;
                     }
-                    control.addEventListener('input', (e) => {
+                    control.addEventListener('input', () => {
                         this.activeStyle = this.activeStyle.getClone(); // clone the active style so as not to unintentionally restyle existing features
                         this.gifwMapInstance.olMap.once('pointermove', () => {
                             control.blur();
@@ -202,7 +204,7 @@ export default class AnnotationStylePanel implements SidebarPanel {
                 this.activeStyle.strokeColourHex = control.value.slice(1);
                 break;
             case 'strokeStyle':
-                this.activeStyle.strokeStyle = control.value as any;
+                this.activeStyle.strokeStyle = control.value as 'solid' | 'dashed' | 'dotted';
                 break;
             case 'strokeWidth':
                 this.activeStyle.strokeWidth = parseFloat(control.value);

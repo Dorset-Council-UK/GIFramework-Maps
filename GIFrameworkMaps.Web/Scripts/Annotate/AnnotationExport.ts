@@ -110,7 +110,7 @@ export default class AnnotationExport {
             }
             const geometry = cleaned.getGeometry();
             if (geometry instanceof Circle) {
-                let approximation = Polygon.fromCircle(geometry);
+                const approximation = Polygon.fromCircle(geometry);
                 cleaned.setGeometry(approximation); // GeoJSON & KML do not support Circle geometries
             }
             cleanedFeatures.push(cleaned);

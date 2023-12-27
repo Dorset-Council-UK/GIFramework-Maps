@@ -15,7 +15,7 @@ export type PageOrientationOption = "p" | "l";
 type TitleBoxDimensions = { TotalHeight: number, TotalWidth: number, TitleHeight: number, SubtitleHeight:number };
 export class Export {
     pageSettings: PDFPageSettings;
-    printConfigUrl: string;;
+    printConfigUrl: string;
     printConfiguration: PrintConfiguration;
     _timeoutId: number;
     _maxProcessingTime: number = 60000;
@@ -32,7 +32,7 @@ export class Export {
             this.printConfiguration = await resp.json();
         } else {
             console.error("Failed to get print configuration", resp.statusText);
-            let errDialog = new Util.Error(Util.AlertType.Popup, Util.AlertSeverity.Danger, "Error getting print configs", "<p>There was an error getting the print config for this version</p><p>This means the print functionality will not work. Please refresh the page to try again</p>")
+            const errDialog = new Util.Error(Util.AlertType.Popup, Util.AlertSeverity.Danger, "Error getting print configs", "<p>There was an error getting the print config for this version</p><p>This means the print functionality will not work. Please refresh the page to try again</p>")
             errDialog.show();
             document.getElementById('gifw-print-form').innerHTML =
                 `<div class="text-center">
@@ -80,8 +80,8 @@ export class Export {
         if (legend === "pinned-left") {
             legendMargin = (pageOrientation === "l" ? chosenPageSettings.inlineLegendLandscapeMaxWidth : chosenPageSettings.inlineLegendPortraitMaxWidth) | 0;
         }
-        let mapWidth = width - (((pageMargin + legendMargin) * resolution) / 25.4); //pixels
-        let mapHeight = height - ((pageMargin * resolution) / 25.4); // pixels
+        const mapWidth = width - (((pageMargin + legendMargin) * resolution) / 25.4); //pixels
+        const mapHeight = height - ((pageMargin * resolution) / 25.4); // pixels
         const originalMapSize = olMap.getSize();
         const viewResolution = olMap.getView().getResolution();
 
@@ -124,8 +124,8 @@ export class Export {
                 });
                 // Set print size to standard
                 legendMargin = 0;
-                let mapWidth = width - (((pageMargin + legendMargin) * resolution) / 25.4); //pixels
-                let mapHeight = height - ((pageMargin * resolution) / 25.4); // pixels
+                const mapWidth = width - (((pageMargin + legendMargin) * resolution) / 25.4); //pixels
+                const mapHeight = height - ((pageMargin * resolution) / 25.4); // pixels
                 this.setMapSizeForPrinting(olMap, mapWidth, mapHeight, pageOrientation, resolution, scale)
 
             }
@@ -171,7 +171,7 @@ export class Export {
 
             this.createBackgroundCanvas(mapContext, width, height);
 
-            let canvases: NodeListOf<HTMLCanvasElement> = document.querySelectorAll('.ol-layers canvas');
+            const canvases: NodeListOf<HTMLCanvasElement> = document.querySelectorAll('.ol-layers canvas');
             canvases.forEach(canvas => {
                 this.createLayerCanvas(canvas, mapContext);
             });
@@ -212,10 +212,10 @@ export class Export {
                 const logoResp = await this.getLogo()
                 const imgData = <string>logoResp;
                 this.createLogoBox(pdf, pageMargin, imgData);
-            } catch (ex: any) {
+            } catch (ex) {
                 console.warn(`Getting the logo for a print failed.`);
                 console.error(ex);
-            };
+            }
             
             const timestamp = new Date().toISOString();
             const title = (document.getElementById('gifw-print-title') as HTMLInputElement).value;
@@ -227,7 +227,7 @@ export class Export {
             });
             await pdf.save(`${title.length !== 0 ? title.substring(0, 20) : 'Map'}_${timestamp}.pdf`, { returnPromise: true });
             
-        } catch (ex: any) {
+        } catch (ex) {
             console.error(ex);
             success = false;
         } finally {
@@ -250,14 +250,14 @@ export class Export {
     private setMapSizeForPrinting(olMap: Map, mapWidth: number, mapHeight: number, pageOrientation:"p"|"l",resolution:number, scale?:number): void {
         
 
-        let extent = olMap.getView().calculateExtent();
-        let center = olMap.getView().getCenter();
-        let minX = extent[0];
-        let minY = extent[1];
-        let maxX = extent[2];
-        let maxY = extent[3];
-        let centX = center[0];
-        let centY = center[1];
+        const extent = olMap.getView().calculateExtent();
+        const center = olMap.getView().getCenter();
+        const minX = extent[0];
+        const minY = extent[1];
+        const maxX = extent[2];
+        const maxY = extent[3];
+        const centX = center[0];
+        const centY = center[1];
         //We slightly abuse the 'fit' extent functionality to make prints fit
         //better regardless of user screen size. The extent is calculated based
         //on the left and right hand extents of the map only when in landscape, and
@@ -335,7 +335,7 @@ export class Export {
             const transform = canvas.style.transform;
             // Get the transform parameters from the style's transform matrix
             const matrix = transform
-                .match(/^matrix\(([^\(]*)\)$/)[1]
+                .match(/^matrix\(([^(]*)\)$/)[1]
                 .split(',')
                 .map(Number);
             // Apply the transform to the export map context
@@ -455,7 +455,7 @@ export class Export {
         map.customControls.forEach(c => {
             if (c instanceof GIFWMousePositionControl) {
                 let center = olMap.getView().getCenter();
-                let destinationProjection = c.getProjectionString(c.projection);
+                const destinationProjection = c.getProjectionString(c.projection);
                 center = olProj.transform(center, olMap.getView().getProjection(), olProj.get(destinationProjection));
                 renderedCoordinates = c.formatCoordinatesAsArray(c.projection, c.decimals, center)
             }
@@ -469,7 +469,7 @@ export class Export {
             renderedCoordinates.forEach(c => {
                 maxCoordTextWidth = Math.max(maxCoordTextWidth, pdf.getTextWidth(c));
             })
-            let startingCoordsYPosition = (pdf.internal.pageSize.height - 6) - ((pdf.getTextDimensions(renderedCoordinates[0]).h) * renderedCoordinates.length - 1)
+            const startingCoordsYPosition = (pdf.internal.pageSize.height - 6) - ((pdf.getTextDimensions(renderedCoordinates[0]).h) * renderedCoordinates.length - 1)
             pdf.rect(
                 (pageMargin / 2),
                 startingCoordsYPosition - (pageMargin / 2),
@@ -519,8 +519,8 @@ export class Export {
         })
 
         const attrTotalLines = attrLines.length;
-        let startingAttrXPosition = pdf.internal.pageSize.width - pageMargin;
-        let startingAttrYPosition = (pdf.internal.pageSize.height - 4) - ((pdf.getTextDimensions(attributionText).h + 1) * attrTotalLines - 1)
+        const startingAttrXPosition = pdf.internal.pageSize.width - pageMargin;
+        const startingAttrYPosition = (pdf.internal.pageSize.height - 4) - ((pdf.getTextDimensions(attributionText).h + 1) * attrTotalLines - 1)
 
         pdf.setFillColor(255, 255, 255);
         pdf.setDrawColor(0, 0, 0);
@@ -578,8 +578,8 @@ export class Export {
                         const layerNameWidth = pdf.getTextDimensions(layerName).w;
                         const img = p.value[1];
                         const imgProps = pdf.getImageProperties(img);
-                        let widthInMM = (imgProps.width * 25.4) / 96;
-                        let heightInMM = (imgProps.height * 25.4) / 96;
+                        const widthInMM = (imgProps.width * 25.4) / 96;
+                        const heightInMM = (imgProps.height * 25.4) / 96;
                         pdf.text(layerName, currentX + 2, currentY);
                         currentY += pdf.getTextDimensions(layerName).h
                         pdf.addImage(img, currentX + 2, currentY, widthInMM, heightInMM);
@@ -788,7 +788,7 @@ export class Export {
      * @author https://stackoverflow.com/a/18650249/863487
      */
     private blobToBase64(blob: Blob): Promise<string | ArrayBuffer> {
-        return new Promise((resolve, _) => {
+        return new Promise((resolve) => {
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result);
             reader.readAsDataURL(blob);
@@ -807,7 +807,7 @@ export class Export {
         let newHeight = imgProps.height;
         const maxLogoWidth = 40;
         const maxLogoHeight = 8;
-        let ratio = imgProps.height / imgProps.width;
+        const ratio = imgProps.height / imgProps.width;
 
         if (imgProps.height > maxLogoHeight || imgProps.width > maxLogoWidth) {
             if (imgProps.height > imgProps.width) {

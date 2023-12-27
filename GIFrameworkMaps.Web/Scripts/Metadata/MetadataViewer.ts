@@ -38,9 +38,9 @@ export class MetadataViewer {
             const cswMetadataEndpoint = layer.layerSource.layerSourceOptions.filter(l => l.name == "cswendpoint");
             if (cswMetadataEndpoint && cswMetadataEndpoint.length !== 0) {
                 const cswMetadataURL = new URL(cswMetadataEndpoint[0].value);
-                let descriptionParams = layer.layerSource.layerSourceOptions.filter(l => l.name == "cswparams");
+                const descriptionParams = layer.layerSource.layerSourceOptions.filter(l => l.name == "cswparams");
                 if (descriptionParams.length == 1) {
-                    let cswParams = JSON.parse(descriptionParams[0].value);
+                    const cswParams = JSON.parse(descriptionParams[0].value);
                     if (cswParams) {
                         let combinedParams = new URLSearchParams(cswParams);
                         if (cswMetadataURL.searchParams) {
@@ -58,25 +58,25 @@ export class MetadataViewer {
                     fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
                 }
 
-                let response = await fetch(fetchUrl);
+                const response = await fetch(fetchUrl);
                 if (!response.ok) {
-                    throw new Error(`Couldn\'t retrieve metadata document from CSW endpoint. Status: ${response.status}`)
+                    throw new Error(`Couldn't retrieve metadata document from CSW endpoint. Status: ${response.status}`)
                 }
-                let data = await response.text();
+                const data = await response.text();
 
-                let parser = new DOMParser();
-                let doc = parser.parseFromString(data, "application/xml");
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data, "application/xml");
                 if (!doc.childNodes[0].hasChildNodes()) {
                     throw new Error(`Metadata document returned no information`)
                 }
-                let keywordTags = doc.getElementsByTagName("dc:subject");
-                let refTags = doc.getElementsByTagName("dct:references");
-                let keywords = [];
-                let refs: CSWMetadataLinks[] = [];
-                for (let keyword of keywordTags) {
+                const keywordTags = doc.getElementsByTagName("dc:subject");
+                const refTags = doc.getElementsByTagName("dct:references");
+                const keywords = [];
+                const refs: CSWMetadataLinks[] = [];
+                for (const keyword of keywordTags) {
                     keywords.push(keyword.innerHTML)
-                };
-                for (let ref of refTags) {
+                }
+                for (const ref of refTags) {
                     if (ref.innerHTML !== "" && ref.getAttribute("scheme") !== null) {
                         
                         if (olLayer.getSource() instanceof TileWMS || olLayer.getSource() instanceof ImageWMS) {
@@ -111,8 +111,8 @@ export class MetadataViewer {
                             }
                         }
                     }
-                };
-                let CSWMetadata: CSWMetadata = {
+                }
+                const CSWMetadata: CSWMetadata = {
                     title: doc.getElementsByTagName("dc:title")[0]?.innerHTML || layer.name,
                     abstract: doc.getElementsByTagName("dct:abstract")[0]?.innerHTML || "No description provided",
                     accessRights: doc.getElementsByTagName("dct:accessRights")[0]?.innerHTML,
@@ -148,7 +148,7 @@ export class MetadataViewer {
                 if (layers) {
                     const matchedLayer = layers.filter(l => l.name === featureTypeName);
                     if (matchedLayer.length !== 0) {
-                        let CSWMetadata: CSWMetadata = {
+                        const CSWMetadata: CSWMetadata = {
                             title: matchedLayer[0].title || layer.name,
                             abstract: matchedLayer[0].abstract || "No description provided",
                             accessRights: '',
@@ -171,7 +171,7 @@ export class MetadataViewer {
 
     static getMetadataFromLayerSource(layer: Layer) {
         if (layer.layerSource.description !== '') {
-            let CSWMetadata: CSWMetadata = {
+            const CSWMetadata: CSWMetadata = {
                 title: layer.name,
                 abstract: layer.layerSource.description || "No description provided",
                 accessRights: '',
@@ -216,9 +216,9 @@ export class MetadataViewer {
 
     private static renderMetadataKeywords(keywords: string[]): string {
         if (keywords && keywords.length !== 0) {
-            let keywordContainer = document.createElement('div');
+            const keywordContainer = document.createElement('div');
             keywords.forEach(k => {
-                let badge = Badge.create(k, ["rounded-pill", "border", "bg-primary", "me-2"]);
+                const badge = Badge.create(k, ["rounded-pill", "border", "bg-primary", "me-2"]);
                 keywordContainer.appendChild(badge);
             });
 
@@ -274,10 +274,10 @@ export class MetadataViewer {
     }
 
     static async showMetadataModal(layerConfig: Layer, olLayer: olLayer, isFiltered: boolean = false, proxyEndpoint:string = "") {
-        let metaModal = new Modal(document.getElementById('meta-modal'), {});
-        let metaModalContent = document.querySelector('#meta-modal .modal-body');
+        const metaModal = new Modal(document.getElementById('meta-modal'), {});
+        const metaModalContent = document.querySelector('#meta-modal .modal-body');
         if (layerConfig) {
-            let descriptionHTML: string = `<h5 class="card-title placeholder-glow">
+            const descriptionHTML: string = `<h5 class="card-title placeholder-glow">
                                                 <span class="placeholder col-6"></span>
                                             </h5>
                                             <p class="card-text placeholder-glow">
@@ -291,7 +291,7 @@ export class MetadataViewer {
             metaModalContent.innerHTML = descriptionHTML;
             metaModal.show();
 
-            let metadata = await MetadataViewer.getCSWMetadataForLayer(layerConfig, olLayer, proxyEndpoint);
+            const metadata = await MetadataViewer.getCSWMetadataForLayer(layerConfig, olLayer, proxyEndpoint);
             if (metadata) {
                 metaModalContent.innerHTML = MetadataViewer.createCSWMetadataHTML(metadata, isFiltered);
                 return;

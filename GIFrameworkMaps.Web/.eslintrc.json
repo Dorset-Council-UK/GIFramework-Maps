@@ -7,7 +7,9 @@
   "plugins": [ "@typescript-eslint" ],
   "extends": [ "eslint:recommended", "plugin:@typescript-eslint/recommended" ],
   "rules": {
-
+    //TODO remove this rule customisation once all 'any's have been removed/fixed
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-namespace": "warn"
   },
   "env": {
     "browser": true,

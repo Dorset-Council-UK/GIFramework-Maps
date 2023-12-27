@@ -4,7 +4,7 @@ import { Draw } from "ol/interaction";
 import { Fill, Style, Text } from "ol/style";
 import { GIFWPopupAction } from "../Popups/PopupAction";
 import { GIFWPopupOptions } from "../Popups/PopupOptions";
-import { Type as olGeomType } from "ol/geom/Geometry";
+import Geometry, { Type as olGeomType } from "ol/geom/Geometry";
 import AnnotationLayer from "./AnnotationLayer";
 import AnnotationStyle from "./AnnotationStyle";
 
@@ -84,12 +84,12 @@ export default class AnnotationDraw extends Draw {
             }
         });
 
-        this.on('drawabort', (e) => {
+        this.on('drawabort', () => {
             this.tip = 'Click to start drawing';
         })
     }
 
-    private addPopupOptionsToFeature(feature: Feature<any>, annotationLayer: AnnotationLayer, popupContent: string) {
+    private addPopupOptionsToFeature(feature: Feature<Geometry>, annotationLayer: AnnotationLayer, popupContent: string) {
         const removeAction = new GIFWPopupAction("Remove drawing", () => {
             annotationLayer.getSource().removeFeature(feature);
             if (annotationLayer.getSource().getFeatures().length === 0) {

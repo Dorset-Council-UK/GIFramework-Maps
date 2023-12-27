@@ -22,21 +22,21 @@ export class Sidebar {
     }
 
     public open(): void {
-        let sidebarPanelsContainer = document.querySelector('#gifw-sidebar-right');
-        let sidebar: HTMLDivElement = sidebarPanelsContainer.querySelector('#' + this.id);
+        const sidebarPanelsContainer = document.querySelector('#gifw-sidebar-right');
+        const sidebar: HTMLDivElement = sidebarPanelsContainer.querySelector('#' + this.id);
 
-        var otherSidebars: NodeListOf<HTMLDivElement> = sidebarPanelsContainer.querySelectorAll('.sidebar');
+        const otherSidebars: NodeListOf<HTMLDivElement> = sidebarPanelsContainer.querySelectorAll('.sidebar');
         otherSidebars.forEach(function (sb) {
             sb.style.display = 'none';
         });
-        var otherSidebarButtons = document.querySelectorAll('.giframeworkMap .sidebar-button');
+        const otherSidebarButtons = document.querySelectorAll('.giframeworkMap .sidebar-button');
         otherSidebarButtons.forEach(function (sb) {
             sb.classList.toggle('sidebar-open', true);
             sb.classList.remove('active');
         });
 
-        let sidebarButton: HTMLButtonElement = document.querySelector('.giframeworkMap .sidebar-button button[data-gi-sidebar-target="' + this.id + '"]');
-        let sidebarButtonContainer: HTMLElement = sidebarButton?.parentElement;
+        const sidebarButton: HTMLButtonElement = document.querySelector('.giframeworkMap .sidebar-button button[data-gi-sidebar-target="' + this.id + '"]');
+        const sidebarButtonContainer: HTMLElement = sidebarButton?.parentElement;
         sidebarPanelsContainer.classList.toggle('show', true);
         sidebarButtonContainer?.classList.toggle('active', true);
         sidebarButton?.blur();
@@ -55,16 +55,16 @@ export class Sidebar {
         
     }
     public toggle(): void {
-        var targetSidebarId = this.id;
-        var sidebarPanelsContainer = document.querySelector('#gifw-sidebar-right');
-        var sidebar:HTMLDivElement = sidebarPanelsContainer.querySelector('#' + targetSidebarId);
+        const targetSidebarId = this.id;
+        const sidebarPanelsContainer = document.querySelector('#gifw-sidebar-right');
+        const sidebar:HTMLDivElement = sidebarPanelsContainer.querySelector('#' + targetSidebarId);
 
         if (sidebar.style.display === 'none') {
             this.close();
             this.open();
         } else {
             this.close();
-        };
+        }
     }
     public addButton(): void {
         this.control = new GIFWSidebarControl.SidebarControl(this);
@@ -73,13 +73,13 @@ export class Sidebar {
 
 
     static close() {
-        var sidebarPanelsContainer = document.querySelector('#gifw-sidebar-right');
+        const sidebarPanelsContainer = document.querySelector('#gifw-sidebar-right');
         sidebarPanelsContainer.classList.toggle('show', false);
-        var otherSidebars: NodeListOf<HTMLDivElement> = sidebarPanelsContainer.querySelectorAll('.sidebar');
+        const otherSidebars: NodeListOf<HTMLDivElement> = sidebarPanelsContainer.querySelectorAll('.sidebar');
         otherSidebars.forEach(function (sb) {
             sb.style.display = 'none';
         });
-        var otherSidebarButtons: NodeListOf<HTMLButtonElement> = document.querySelectorAll('.giframeworkMap .sidebar-button button[data-gi-sidebar-target]');
+        const otherSidebarButtons: NodeListOf<HTMLButtonElement> = document.querySelectorAll('.giframeworkMap .sidebar-button button[data-gi-sidebar-target]');
         otherSidebarButtons.forEach(function (sb) {
             sb.parentElement.classList.toggle('sidebar-open', false);
             sb.parentElement.classList.toggle('active', false);

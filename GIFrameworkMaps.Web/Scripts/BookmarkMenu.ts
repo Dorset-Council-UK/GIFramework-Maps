@@ -37,10 +37,10 @@ export class BookmarkMenu {
         });
         //attach event listeners to change the icon of the bookmark menu on show/hide
         const dropdownMenuEle = document.querySelector('#gifw-bookmarks-list').parentElement;
-        dropdownMenuEle.addEventListener('show.bs.dropdown', event => {
+        dropdownMenuEle.addEventListener('show.bs.dropdown', () => {
             dropdownMenuEle.querySelector('a i').className = "bi bi-bookmark-fill";
         })
-        dropdownMenuEle.addEventListener('hide.bs.dropdown', event => {
+        dropdownMenuEle.addEventListener('hide.bs.dropdown', () => {
             dropdownMenuEle.querySelector('a i').className = "bi bi-bookmark";
         })
     }
@@ -164,10 +164,10 @@ export class BookmarkMenu {
      * @param bookmark The bookmark to zoom to
      */
     private zoomToBookmark(bookmark:Bookmark) {
-        let coord = [bookmark.x, bookmark.y];
-        let point = new Point(coord);
-        let curZoom = this.gifwMapInstance.olMap.getView().getZoom();
-        let zoomDiff = Math.max(bookmark.zoom, curZoom) - Math.min(bookmark.zoom, curZoom);
+        const coord = [bookmark.x, bookmark.y];
+        const point = new Point(coord);
+        const curZoom = this.gifwMapInstance.olMap.getView().getZoom();
+        const zoomDiff = Math.max(bookmark.zoom, curZoom) - Math.min(bookmark.zoom, curZoom);
 
         const zoomToExtent = point.getExtent();
         const animationSpeed = Util.Mapping.calculateAnimationSpeed(zoomDiff);
@@ -216,7 +216,7 @@ export class BookmarkMenu {
      * Shows an error indicating the bookmark the user clicked is outside the bounds of the current map view
      */
     private showBookmarkOutsideBoundsError(): void {
-        let errDialog = new Util.Error
+        const errDialog = new Util.Error
             (
                 Util.AlertType.Popup,
                 Util.AlertSeverity.Danger,

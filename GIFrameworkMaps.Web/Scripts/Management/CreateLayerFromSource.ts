@@ -7,7 +7,7 @@ import { CapabilityType } from "../Interfaces/OGCMetadata/BasicServerCapabilitie
 import { Metadata } from "../Metadata/Metadata";
 import { FeatureQueryTemplateHelper } from "../FeatureQuery/FeatureQueryTemplateHelper";
 //global var defined in view. Replace me with another method :)
-declare var proxyEndpoint: string;
+declare let proxyEndpoint: string;
 export class CreateLayerFromSource {
     htmlTags = [
         { tagId: 'h1', openTag: '<h1>', closeTag: '</h1>' },
@@ -25,7 +25,7 @@ export class CreateLayerFromSource {
     layerSourceURL: string;
     layerSourceName: string;
     proxyEndpoint: string;
-    _cachedExampleFeature: any;
+    _cachedExampleFeature: unknown;
     constructor() {
         this.templateInput = document.querySelector('textarea[data-template-target]') as HTMLTextAreaElement;
         this.listTemplateInput = document.querySelector('input[data-list-template-target]') as HTMLInputElement;
@@ -90,13 +90,13 @@ export class CreateLayerFromSource {
         const checkbox = document.querySelector('input[data-queryable-check]') as HTMLInputElement;
         if (checkbox) {
             this.setTemplateVisibility();
-            checkbox.addEventListener('change', e => { this.setTemplateVisibility() });
+            checkbox.addEventListener('change', () => { this.setTemplateVisibility() });
         }
     }
 
     private async getPropertySuggestions() {
         if (this.layerSourceURL !== '' && this.layerSourceName !== '') {
-            let availableLayers = await Metadata.getLayersFromCapabilities(this.layerSourceURL, "", this.getProxyEndpoint());
+            const availableLayers = await Metadata.getLayersFromCapabilities(this.layerSourceURL, "", this.getProxyEndpoint());
             if (availableLayers && availableLayers.length !== 0) {
                 const curLayer = availableLayers.filter(l => l.name === this.layerSourceName);
                 if (curLayer.length === 1) {
@@ -116,14 +116,14 @@ export class CreateLayerFromSource {
     private async getAttributesForLayer() {
 
         if (this.layerSourceURL !== '' && this.layerSourceName !== '') {
-            let serverCapabilities = await Metadata.getBasicCapabilities(this.layerSourceURL, {}, this.getProxyEndpoint());
+            const serverCapabilities = await Metadata.getBasicCapabilities(this.layerSourceURL, {}, this.getProxyEndpoint());
 
             if (serverCapabilities &&
                 serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType && c.url !== '').length !== 0
             ) {
                 //has all relevant capabilities
-                let describeFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType)[0];
-                let featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, this.layerSourceName, describeFeatureCapability.method, undefined, "");
+                const describeFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType)[0];
+                const featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, this.layerSourceName, describeFeatureCapability.method, undefined, "");
                 if (featureDescription && featureDescription.featureTypes.length === 1) {
                     return featureDescription.featureTypes[0].properties.filter(f => f.type.indexOf("gml:") === -1 && FeaturePropertiesHelper.isUserDisplayableProperty(f.name));
                 }
@@ -141,7 +141,7 @@ export class CreateLayerFromSource {
                 const openTagButton = openTagInstance.querySelector('button') as HTMLButtonElement;
                 openTagButton.textContent = tag.openTagText || tag.openTag;
                 openTagButton.dataset.tag = tag.openTag;
-                openTagButton.addEventListener('click', e => {
+                openTagButton.addEventListener('click', () => {
                     this.insertAtCaret(tag.openTag, this.templateInput);
                 })
                 htmlTagsContainer.appendChild(openTagInstance);
@@ -151,7 +151,7 @@ export class CreateLayerFromSource {
                     const closeTagButton = closeTagInstance.querySelector('button') as HTMLButtonElement;
                     closeTagButton.textContent = tag.closeTag;
                     closeTagButton.dataset.tag = tag.closeTag;
-                    closeTagButton.addEventListener('click', e => {
+                    closeTagButton.addEventListener('click', () => {
                         this.insertAtCaret(tag.closeTag, this.templateInput);
                     })
                     htmlTagsContainer.appendChild(closeTagInstance);
@@ -172,7 +172,7 @@ export class CreateLayerFromSource {
                     const templateAttrBtn = templateButtonInstance.querySelector('button') as HTMLButtonElement;
                     templateAttrBtn.textContent = featureAttribute.name;
                     templateAttrBtn.dataset.attributeName = featureAttribute.name;
-                    templateAttrBtn.addEventListener('click', e => {
+                    templateAttrBtn.addEventListener('click', () => {
                         this.insertAtCaret(`{{${featureAttribute.name}}}`, this.templateInput)
                     })
                     templateAttributesContainer.querySelector('ul').appendChild(templateButtonInstance);
@@ -181,7 +181,7 @@ export class CreateLayerFromSource {
                     const listTemplateAttrBtn = listTemplateButtonInstance.querySelector('button') as HTMLButtonElement;
                     listTemplateAttrBtn.textContent = featureAttribute.name;
                     listTemplateAttrBtn.dataset.attributeName = featureAttribute.name;
-                    listTemplateAttrBtn.addEventListener('click', e => {
+                    listTemplateAttrBtn.addEventListener('click', () => {
                         this.insertAtCaret(`{{${featureAttribute.name}}}`, this.listTemplateInput)
                     })
                     listTemplateAttributesContainer.querySelector('ul').appendChild(listTemplateButtonInstance);
@@ -200,14 +200,14 @@ export class CreateLayerFromSource {
         let attributes = attributeDetails.flatMap(a => a.name);
         let template = '';
         //try and find a suitable name column
-        let titleProperty = FeaturePropertiesHelper.getMostAppropriateTitleFromProperties(attributes);
+        const titleProperty = FeaturePropertiesHelper.getMostAppropriateTitleFromProperties(attributes);
         if (titleProperty) {
             template = `<h1>{{${titleProperty}}}</h1>\r`;
             //remove attribute from list
             attributes = attributes.filter(a => a != titleProperty);
         } else {
             //fall back to first property
-            let firstProp = FeaturePropertiesHelper.getFirstAllowedPropertyFromProperties(attributes as unknown as object[]);
+            const firstProp = FeaturePropertiesHelper.getFirstAllowedPropertyFromProperties(attributes as unknown as object[]);
             template = `<h1>{{${firstProp[1].toString()}}}</h1>\r`;
             attributes = attributes.filter(a => a != firstProp[1].toString());
         }
@@ -241,17 +241,17 @@ export class CreateLayerFromSource {
         if (this._cachedExampleFeature) {
             return this._cachedExampleFeature;
         }
-        let serverCapabilities = await Metadata.getBasicCapabilities(this.layerSourceURL, {}, this.getProxyEndpoint());
+        const serverCapabilities = await Metadata.getBasicCapabilities(this.layerSourceURL, {}, this.getProxyEndpoint());
 
         if (serverCapabilities &&
             serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType && c.url !== '').length !== 0 &&
             serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WFS_GetFeature && c.url !== '').length !== 0
         ) {
             //has all relevant capabilities
-            let describeFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType)[0];
-            let featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, this.layerSourceName, describeFeatureCapability.method, undefined, "");
+            const describeFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType)[0];
+            const featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, this.layerSourceName, describeFeatureCapability.method, undefined, "");
             /*TODO - Make this work with other projections*/
-            let wfsFeatureInfoRequest = new WFS().writeGetFeature({
+            const wfsFeatureInfoRequest = new WFS().writeGetFeature({
                 srsName:'EPSG:3857',
                 featureTypes: [this.layerSourceName],
                 featureNS: featureDescription.targetNamespace,
@@ -259,11 +259,11 @@ export class CreateLayerFromSource {
                 count: 1,
                 maxFeatures: 1
             });
-            let getFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WFS_GetFeature)[0];
-            let request: FeatureQueryRequest = {
+            const getFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WFS_GetFeature)[0];
+            const request: FeatureQueryRequest = {
                 layer: undefined, wfsRequest: wfsFeatureInfoRequest, searchUrl: getFeatureCapability.url, searchMethod: getFeatureCapability.method
             };
-            let resp = await this.getFeatureInfoForLayer(request);
+            const resp = await this.getFeatureInfoForLayer(request);
 
             const props = resp.features[0].getProperties();
             if (props) {
@@ -275,10 +275,10 @@ export class CreateLayerFromSource {
     }
 
     private getFeatureInfoForLayer(request: FeatureQueryRequest): Promise<FeatureQueryResponse> {
-        let abortController = new AbortController();
-        let timer = window.setTimeout(() => abortController.abort(), 10000);
-        let promise = new Promise<FeatureQueryResponse>((resolve, reject) => {
-            let fetchUrl = request.searchUrl;
+        const abortController = new AbortController();
+        const timer = window.setTimeout(() => abortController.abort(), 10000);
+        const promise = new Promise<FeatureQueryResponse>((resolve, reject) => {
+            const fetchUrl = request.searchUrl;
 
             fetch(fetchUrl, {
                 method: request.wfsRequest ? "POST" : "GET",
@@ -293,9 +293,9 @@ export class CreateLayerFromSource {
                     }
                     return response.text();
                 }).then(data => {
-                    let features = new GML3().readFeatures(data)
+                    const features = new GML3().readFeatures(data)
 
-                    let response: FeatureQueryResponse = {
+                    const response: FeatureQueryResponse = {
                         layer: request.layer,
                         features: features
                     }

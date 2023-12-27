@@ -1,5 +1,5 @@
-﻿declare var CookieControl: any;
-declare var configure_cookie_control: string;
+﻿declare let CookieControl: any;
+declare let configure_cookie_control: string;
 
 function loadCookieControl() {
     //This allows the use of a cookie control

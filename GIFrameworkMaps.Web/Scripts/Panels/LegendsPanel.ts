@@ -11,7 +11,7 @@ export class LegendsPanel implements SidebarPanel {
     }
     init() {
         this.attachCloseButton();
-        this.gifwMapInstance.olMap.on('moveend', e => {
+        this.gifwMapInstance.olMap.on('moveend', () => {
             //check to see if legends panel is visible before calling for a re-render
             //simple visibility check from https://stackoverflow.com/a/21696585/863487
             if ((document.querySelector(this.container) as HTMLElement).offsetParent !== null) {
@@ -19,20 +19,20 @@ export class LegendsPanel implements SidebarPanel {
             }
         });
         this.render();
-    };
+    }
     render() {
         this.updateLegend();
-    };
+    }
     /*TODO - Make this generic*/
     private attachCloseButton():void {
-        let container = document.querySelector(this.container);
-        let closeButton = container.querySelector('button[data-gifw-dismiss-sidebar]');
+        const container = document.querySelector(this.container);
+        const closeButton = container.querySelector('button[data-gifw-dismiss-sidebar]');
         if (closeButton !== null) {
-            closeButton.addEventListener('click', (e) => {
+            closeButton.addEventListener('click', () => {
                 Sidebar.close();
             });
         }
-    };
+    }
 
     private updateLegend(): void {
 
@@ -81,37 +81,37 @@ export class LegendsPanel implements SidebarPanel {
 
     }
     private showErrorForLegend(layerName:string) {
-        let legendImage = document.querySelector(this.container).querySelector('img.legend-image[data-legend-name="' + layerName + '"]');
+        const legendImage = document.querySelector(this.container).querySelector('img.legend-image[data-legend-name="' + layerName + '"]');
         if (legendImage) {
             legendImage.insertAdjacentHTML('afterend', `<div class="alert alert-warning p-2"><i class="bi bi-exclamation-triangle"></i> The legend for this layer failed to load</div>`)
             legendImage.remove();
         }
     }
     private showNoFeaturesMessageForLegend(layerName: string) {
-        let legendImage = document.querySelector(this.container).querySelector('img.legend-image[data-legend-name="' + layerName + '"]');
+        const legendImage = document.querySelector(this.container).querySelector('img.legend-image[data-legend-name="' + layerName + '"]');
         if (legendImage) {
             legendImage.insertAdjacentHTML('afterend',`<div class="alert alert-info p-2"><i class="bi bi-info-circle"></i> No features in view</div>`)
             legendImage.remove();
         }
     }
     private hideLoadingForLegend(layerName: string) {
-        let loadingElement = document.querySelector(this.container).querySelector('div.legend-loading[data-legend-name="' + layerName + '"]');
+        const loadingElement = document.querySelector(this.container).querySelector('div.legend-loading[data-legend-name="' + layerName + '"]');
         if (loadingElement) {
             loadingElement.remove();
         }
     }
     private updateNoLegendsList(nonLegendableLayers:string[] = [], hasLegendableLayers:boolean = false) {
-        let noLegendsContainer = (document.querySelector(this.container).querySelector('#gifw-no-legends-container') as HTMLDivElement);
+        const noLegendsContainer = (document.querySelector(this.container).querySelector('#gifw-no-legends-container') as HTMLDivElement);
         if (hasLegendableLayers) {
             (noLegendsContainer.querySelector('#gifw-no-legends-no-layers-text') as HTMLDivElement).style.display = 'none';
         } else {
             (noLegendsContainer.querySelector('#gifw-no-legends-no-layers-text') as HTMLDivElement).style.display = 'block';
         }
-        let nonLegendableLayersList = noLegendsContainer.querySelector('ul');
+        const nonLegendableLayersList = noLegendsContainer.querySelector('ul');
         nonLegendableLayersList.innerHTML = '<li>Basemaps</li>';
         if (nonLegendableLayers.length !== 0) {
             nonLegendableLayers.forEach(l => {
-                let item = document.createElement('li');
+                const item = document.createElement('li');
                 item.textContent = l;
                 nonLegendableLayersList.appendChild(item);
             });

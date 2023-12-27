@@ -29,5 +29,5 @@ export class SidebarControl extends olControl.Control {
             sidebar.toggle.call(sidebar);
             // This'll set the `this` value inside of `getSelection` to `self`
         }, false);
-    };
+    }
 }

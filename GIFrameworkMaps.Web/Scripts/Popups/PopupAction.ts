@@ -1,10 +1,10 @@
 ﻿export class GIFWPopupAction {
     text: string;
     callback: () => void;
-    closeOverlayOnClick: Boolean;
-    fixed: Boolean;
+    closeOverlayOnClick: boolean;
+    fixed: boolean;
 
-    constructor(text: string, callback: () => void, closeOverlayOnClick: Boolean = true, fixed: Boolean = true) {
+    constructor(text: string, callback: () => void, closeOverlayOnClick: boolean = true, fixed: boolean = true) {
         this.text = text;
         this.callback = callback;
         this.closeOverlayOnClick = closeOverlayOnClick;

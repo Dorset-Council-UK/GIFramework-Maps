@@ -3,7 +3,7 @@ import { LayerResource } from "../Interfaces/OGCMetadata/LayerResource";
 import { Metadata } from "../Metadata/Metadata";
 
 export class SelectWebService {
-    _fuseInstance: Fuse<any>;
+    _fuseInstance: Fuse<LayerResource>;
 
     constructor() {
 
@@ -14,16 +14,16 @@ export class SelectWebService {
         const listConnectBtn = document.getElementById('web-service-list-connect');
         const urlConnectBtn = document.getElementById('web-service-text-connect');
 
-        listConnectBtn.addEventListener('click', (e) => {
+        listConnectBtn.addEventListener('click', () => {
             //get selected value
             const webServiceList = document.getElementById('service-select');
             const url = (webServiceList as HTMLSelectElement).selectedOptions[0].value;
-            let version = (webServiceList as HTMLSelectElement).selectedOptions[0].dataset.wmsVersion || "1.1.0";
-            let proxyEndpoint = (webServiceList as HTMLSelectElement).selectedOptions[0].dataset.proxyVia;
+            const version = (webServiceList as HTMLSelectElement).selectedOptions[0].dataset.wmsVersion || "1.1.0";
+            const proxyEndpoint = (webServiceList as HTMLSelectElement).selectedOptions[0].dataset.proxyVia;
             this.renderLayersListFromService(url, version, proxyEndpoint);
         })
 
-        urlConnectBtn.addEventListener('click', (e) => {
+        urlConnectBtn.addEventListener('click', () => {
             //parse URL and fetch
             const webServiceInput = document.getElementById('service-url') as HTMLInputElement;
             const webServiceUseProxy = document.getElementById('use-proxy') as HTMLInputElement;
@@ -34,7 +34,7 @@ export class SelectWebService {
 
         const searchInput: HTMLInputElement = document.getElementById('layer-list-search') as HTMLInputElement;
         
-        searchInput.addEventListener('input', (e) => {
+        searchInput.addEventListener('input', () => {
             this.filterLayersListByText(searchInput.value.trim());
         });
     }
@@ -42,9 +42,9 @@ export class SelectWebService {
     private async renderLayersListFromService(url: string, version?: string, proxyEndpoint?: string) {
         const loadingSpinner = document.getElementById('layers-loading-spinner');
         loadingSpinner.style.display = 'block';
-        let availableLayers = await Metadata.getLayersFromCapabilities(url, version, proxyEndpoint);
+        const availableLayers = await Metadata.getLayersFromCapabilities(url, version, proxyEndpoint);
 
-        let layersListContainer = document.getElementById('layer-list-container');
+        const layersListContainer = document.getElementById('layer-list-container');
         const errMsg = document.getElementById('web-layer-search-error');
 
         const searchInput: HTMLInputElement = document.getElementById('layer-list-search') as HTMLInputElement;
@@ -83,7 +83,7 @@ export class SelectWebService {
         header.textContent = layer.title;
         desc.textContent = layer.abstract;
         const preferredProjections = ["EPSG:3857", "EPSG:900913", "EPSG:27700", "EPSG:4326", "CRS:84"]
-        let preferredProjection = preferredProjections.find(p => layer.projections.includes(p));
+        const preferredProjection = preferredProjections.find(p => layer.projections.includes(p));
         if (preferredProjection) {
             //move the preferred projection to the top
             layer.projections.sort(function (x, y) { return x == preferredProjection ? -1 : y == preferredProjection ? 1 : 0; });
@@ -100,7 +100,7 @@ export class SelectWebService {
             opt.text = format;
             formatSelectInput.options.add(opt);
         })
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', () => {
             const form = document.getElementById('create-source-form') as HTMLFormElement;
             (form.querySelector('input[name="layerDetails"]') as HTMLInputElement).value = JSON.stringify(layer);
             (form.querySelector('input[name="projection"]') as HTMLInputElement).value = epsgSelectInput.selectedOptions[0].value;
@@ -123,7 +123,7 @@ export class SelectWebService {
             })
         } else {
 
-            let results = this._fuseInstance.search(text);
+            const results = this._fuseInstance.search(text);
             if (results.length === 0) {
                 //no results. show all with error
                 allItems.forEach(layer => {
@@ -133,7 +133,7 @@ export class SelectWebService {
                 errMsg.style.display = '';
             } else {
                 errMsg.style.display = 'none';
-                let matchingLayers = results.map(r => (r.item as LayerResource).name);
+                const matchingLayers = results.map(r => (r.item as LayerResource).name);
                 allItems.forEach(layer => {
                     if (matchingLayers.includes(layer.id)) {
                         (layer as HTMLDivElement).style.display = '';

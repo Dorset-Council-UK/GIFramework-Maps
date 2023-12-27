@@ -15,7 +15,7 @@ import Not from "ol/format/filter/Not";
 
 type PatternName = 'PROPERTY' | 'COMPARISON' | 'VALUE' | 'LOGICAL' | 'LPAREN' | 'RPAREN'
     | 'SPATIAL' | 'NOT' | 'BETWEEN' | 'GEOMETRY' | 'END' | 'COMMA' | 'IS_NULL';
-type Pattern = RegExp | Function;
+type Pattern = RegExp | ((arg0: string) => void);
 type PatternsObject = {
     [name: string]: Pattern;
 };
@@ -85,9 +85,9 @@ export class CQL {
         NOT: /^NOT/i,
         BETWEEN: /^BETWEEN/i,
         GEOMETRY: (text:string) => {
-            let type = /^(POINT|LINESTRING|POLYGON|MULTIPOINT|MULTILINESTRING|MULTIPOLYGON|GEOMETRYCOLLECTION)/.exec(text);
+            const type = /^(POINT|LINESTRING|POLYGON|MULTIPOINT|MULTILINESTRING|MULTIPOLYGON|GEOMETRYCOLLECTION)/.exec(text);
             if (type) {
-                let len = text.length;
+                const len = text.length;
                 let idx = text.indexOf("(", type[0].length);
                 if (idx > -1) {
                     let depth = 1;
@@ -308,7 +308,7 @@ export class CQL {
         } = this;
         let i;
         let token;
-        let len = patternNames.length;
+        const len = patternNames.length;
         for (i = 0; i < len; i++) {
             token = patternNames[i];
             const pattern = patterns[token];
@@ -373,14 +373,16 @@ export class CQL {
                 case 'BETWEEN':
                 case 'IS_NULL':
                 case 'LOGICAL':
-                    const p = precedence[token.type];
-                    while (operatorStack.length > 0 &&
-                        (precedence[operatorStack[operatorStack.length - 1].type] <= p)
-                    ) {
-                        postfix.push(operatorStack.pop());
+                    {
+                        const p = precedence[token.type];
+                        while (operatorStack.length > 0 &&
+                            (precedence[operatorStack[operatorStack.length - 1].type] <= p)
+                        ) {
+                            postfix.push(operatorStack.pop());
+                        }
+                        operatorStack.push(token);
+                        break;
                     }
-                    operatorStack.push(token);
-                    break;
                 case 'SPATIAL':
                 case 'NOT':
                 case 'LPAREN':
@@ -416,94 +418,118 @@ export class CQL {
             if (token) {
                 switch (token.type) {
                     case 'LOGICAL':
-                        const rhs = buildTree(),
-                            lhs = buildTree();
+                        {
+                            const rhs = buildTree(),
+                                lhs = buildTree();
 
-                        //TODO - Make this pretty
-                        //if one of the sides of this argument is itself an and, that's a problem
-                        let lhsFilters: Filter[];
-                        if (lhs instanceof And || lhs instanceof Or) {
-                            //spread it!
-                            lhsFilters = lhs.conditions;
-                        } else {
-                            lhsFilters = [lhs];
-                        }
+                            //TODO - Make this pretty
+                            //if one of the sides of this argument is itself an and, that's a problem
+                            let lhsFilters: Filter[];
+                            if (lhs instanceof And || lhs instanceof Or) {
+                                //spread it!
+                                lhsFilters = lhs.conditions;
+                            } else {
+                                lhsFilters = [lhs];
+                            }
 
-                        let rhsFilters: Filter[];
-                        if (rhs instanceof And || rhs instanceof Or) {
-                            //spread it!
-                            rhsFilters = rhs.conditions;
-                        } else {
-                            rhsFilters = [rhs];
-                        }
-                        if (token.text.toUpperCase() === 'AND') {
+                            let rhsFilters: Filter[];
+                            if (rhs instanceof And || rhs instanceof Or) {
+                                //spread it!
+                                rhsFilters = rhs.conditions;
+                            } else {
+                                rhsFilters = [rhs];
+                            }
+                            if (token.text.toUpperCase() === 'AND') {
 
 
-                            return olFilter.and(...lhsFilters, ...rhsFilters);
-                        } else {
-                            return olFilter.or(...lhsFilters, ...rhsFilters);
+                                return olFilter.and(...lhsFilters, ...rhsFilters);
+                            } else {
+                                return olFilter.or(...lhsFilters, ...rhsFilters);
+                            }
                         }
                     case 'NOT':
-                        const operand = buildTree();
-                        return olFilter.not(operand);
+                        {
+                            const operand = buildTree();
+                            return olFilter.not(operand);
+                        }
                     case 'BETWEEN':
-                        let min: any;
-                        let max: any;
-
-                        postfix.pop(); // unneeded AND token here
-                        max = buildTree();
-                        min = buildTree();
-                        property = buildTree();
-                        return olFilter.between(property, min, max);
+                        {
+                            postfix.pop(); // unneeded AND token here
+                            const max = buildTree();
+                            const min = buildTree();
+                            const property = buildTree();
+                            return olFilter.between(property, min, max);
+                        }
                     case 'COMPARISON':
-                        value = buildTree();
-                        property = buildTree();
-                        const operator = this.operators[token.text.toUpperCase()];
-                        return operator(property,value)
+                        {
+                            const value = buildTree();
+                            const property = buildTree();
+                            const operator = this.operators[token.text.toUpperCase()];
+                            return operator(property, value)
+                        }
                     case 'IS_NULL':
-                        property = buildTree();
-                        return olFilter.isNull(property);
+                        {
+                            const property = buildTree();
+                            return olFilter.isNull(property);
+                        }
                     case 'VALUE':
-                        const num = parseFloat(token.text);
-                        if (isNaN(num)) {
-                            return token.text.replace(/['"]/g, '');
-                        } else {
-                            return num;
+                        {
+                            const num = parseFloat(token.text);
+                            if (isNaN(num)) {
+                                return token.text.replace(/['"]/g, '');
+                            } else {
+                                return num;
+                            }
                         }
                     case "SPATIAL":
-                        switch (token.text.toUpperCase()) {
-                            case "BBOX":
-                                var maxy = buildTree(),
-                                    maxx = buildTree(),
-                                    miny = buildTree(),
-                                    minx = buildTree(),
-                                    prop = buildTree();
-                                return olFilter.bbox(prop, [minx, miny, maxx, maxy]);
-                            case "INTERSECTS":
-                                var value = buildTree(),
-                                    property = buildTree();
+                        {
+                            switch (token.text.toUpperCase()) {
+                                case "BBOX":
+                                    {
+                                        const maxy = buildTree(),
+                                            maxx = buildTree(),
+                                            miny = buildTree(),
+                                            minx = buildTree(),
+                                            prop = buildTree();
+                                        return olFilter.bbox(prop, [minx, miny, maxx, maxy]);
+                                    }
+                                case "INTERSECTS":
+                                    {
+                                        const value = buildTree(),
+                                            property = buildTree();
 
-                                return olFilter.intersects(property, value);
-                            case "WITHIN":
-                                var value = buildTree(),
-                                    property = buildTree();
+                                        return olFilter.intersects(property, value);
+                                    }
+                                case "WITHIN":
+                                    {
+                                        const value = buildTree(),
+                                            property = buildTree();
 
-                                return olFilter.within(property, value);
-                            case "CONTAINS":
-                                var value = buildTree(),
-                                    property = buildTree();
+                                        return olFilter.within(property, value);
+                                    }
+                                case "CONTAINS":
+                                    {
+                                        const value = buildTree(),
+                                            property = buildTree();
 
-                                return olFilter.contains(property, value);
-                            case "DWITHIN":
-                                var distance = buildTree(),
-                                    value = buildTree(),
-                                    property = buildTree();
-                                //assumption of metres is not ideal
-                                return olFilter.dwithin(property, value, distance,"m");
+                                        return olFilter.contains(property, value);
+                                    }
+                                case "DWITHIN":
+                                    {
+                                        const distance = buildTree(),
+                                            value = buildTree(),
+                                            property = buildTree();
+                                        //assumption of metres is not ideal
+                                        return olFilter.dwithin(property, value, distance, "m");
+                                    }
+                            }
+                            break;
                         }
                     case "GEOMETRY":
-                        let wktReader = new WKT();
-                        return wktReader.readFeature(token.text);
+                        {
+                            const wktReader = new WKT();
+                            return wktReader.readFeature(token.text);
+                        }
                     default:
                         return token.text;
                 }
@@ -514,7 +540,7 @@ export class CQL {
         const result = buildTree();
         if (postfix.length > 0) {
             let msg = 'Remaining tokens after building AST: \n';
-            for (var i = postfix.length - 1; i >= 0; i--) {
+            for (let i = postfix.length - 1; i >= 0; i--) {
                 msg += postfix[i].type + ': ' + postfix[i].text + '\n';
             }
             throw new Error(msg);
@@ -537,59 +563,65 @@ export class CQL {
         return buildAst(tokenizedText);
     }
 
-    write(filter: Filter | undefined, isChild?: boolean): string | undefined {
+    write(filter: Filter | undefined): string | undefined {
 
-        let filterTagName = filter.getTagName();
-        let filterType = this.filterTypes.find(f => f.tagName === filterTagName);
+        const filterTagName = filter.getTagName();
+        const filterType = this.filterTypes.find(f => f.tagName === filterTagName);
 
         const operator = filterType.cqlTag;
 
         switch (filterType.type) {
             case "singleValue":
-                var value = (filter as EqualTo).expression;
-                var propName = (filter as EqualTo).propertyName;
-                if (filterType.tagName === "PropertyIsLike") {
-                    value = CQL.convertOLWildcardPatternToCQLPattern((filter as IsLike).pattern);
+                {
+                    let value = (filter as EqualTo).expression;
+                    const propName = (filter as EqualTo).propertyName;
+                    if (filterType.tagName === "PropertyIsLike") {
+                        value = CQL.convertOLWildcardPatternToCQLPattern((filter as IsLike).pattern);
+                    }
+                    if (typeof value === 'string') {
+                        value = `'${value}'`;
+                    }
+                    return `${propName} ${operator} ${value}`
                 }
-                if (typeof value === 'string') {
-                    value = `'${value}'`;
-                }
-                return `${propName} ${operator} ${value}`
             case "twoValue":
-                //for dates we need to add '' around the value, but OL assumed the lowerBoundary
-                //will be a number, so we do some type checking coercian
-                var lowerBoundary = (filter as IsBetween).lowerBoundary;
-                var coercedLowerBoundary: any = lowerBoundary;
-                if (typeof lowerBoundary === 'string') {
-                    coercedLowerBoundary = `'${lowerBoundary}'`;
+                {
+                    //for dates we need to add '' around the value, but OL assumed the lowerBoundary
+                    //will be a number, so we do some type checking coercian
+                    const lowerBoundary = (filter as IsBetween).lowerBoundary;
+                    let coercedLowerBoundary: string | number = lowerBoundary;
+                    if (typeof lowerBoundary === 'string') {
+                        coercedLowerBoundary = `'${lowerBoundary}'`;
+                    }
+                    const upperBoundary = (filter as IsBetween).upperBoundary;
+                    let coercedUpperBoundary: string | number = upperBoundary;
+                    if (typeof upperBoundary === 'string') {
+                        coercedUpperBoundary = `'${upperBoundary}'`;
+                    }
+
+                    const propName = (filter as IsBetween).propertyName;
+                    return `${propName} ${operator} ${coercedLowerBoundary} AND ${coercedUpperBoundary}`;
                 }
-                var upperBoundary = (filter as IsBetween).upperBoundary;
-                var coercedUpperBoundary: any = upperBoundary;
-                if (typeof upperBoundary === 'string') {
-                    coercedUpperBoundary = `'${upperBoundary}'`;
-                }
-                if (typeof value === 'string') {
-                    value = `'${value}'`;
-                }
-                var propName = (filter as IsBetween).propertyName;
-                return `${propName} ${operator} ${coercedLowerBoundary} AND ${coercedUpperBoundary}`;
             case "nullValue":
-                var propName = (filter as IsNull).propertyName;
-                return `${propName} ${operator}`;
+                {
+                    const propName = (filter as IsNull).propertyName;
+                    return `${propName} ${operator}`;
+                }
             case "negation":
                 return `NOT(${this.write((filter as Not).condition)})`;
             case "logical":
-                var cql: string = `(`;
-                var first = true;
-                (filter as And).conditions.forEach(condition => {
-                    if (!first) {
-                        cql += ` ${operator} `;
-                    }
-                    cql += this.write(condition);
-                    first = false
-                })
-                cql += `)`;
-                return cql;
+                {
+                    let cql: string = `(`;
+                    let first = true;
+                    (filter as And).conditions.forEach(condition => {
+                        if (!first) {
+                            cql += ` ${operator} `;
+                        }
+                        cql += this.write(condition);
+                        first = false
+                    })
+                    cql += `)`;
+                    return cql;
+                }
         }
 
 
@@ -644,7 +676,7 @@ export class CQL {
 
         /*Slightly more cumbersome implementation */
         let convertedPattern = pattern;
-        let underscores = [...pattern.matchAll(/_/g)];
+        const underscores = [...pattern.matchAll(/_/g)];
         for (const underscore of underscores) {
             //find the character before. If its the escape character, do NOT change this
             if (underscore.index === 0 || convertedPattern.charAt(underscore.index - 1) !== "!") {
@@ -652,7 +684,7 @@ export class CQL {
                 convertedPattern = convertedPattern.substring(0, underscore.index) + "." + convertedPattern.substring(underscore.index + 1)
             }
         }
-        let percentages = [...pattern.matchAll(/%/g)];
+        const percentages = [...pattern.matchAll(/%/g)];
         for (const percentage of percentages) {
             //find the character before. If its the escape character, do NOT change this
             if (percentage.index === 0 || convertedPattern.charAt(percentage.index - 1) !== "!") {
@@ -673,7 +705,7 @@ export class CQL {
 
         /*Slightly more cumbersome implementation */
         let convertedPattern = pattern;
-        let periods = [...pattern.matchAll(/\./g)];
+        const periods = [...pattern.matchAll(/\./g)];
         for (const period of periods) {
             //find the character before. If its the escape character, do NOT change this
             if (period.index === 0 || convertedPattern.charAt(period.index - 1) !== "!") {
@@ -681,7 +713,7 @@ export class CQL {
                 convertedPattern = convertedPattern.substring(0, period.index) + "_" + convertedPattern.substring(period.index + 1)
             }
         }
-        let asterisks = [...pattern.matchAll(/\*/g)];
+        const asterisks = [...pattern.matchAll(/\*/g)];
         for (const asterisk of asterisks) {
             //find the character before. If its the escape character, do NOT change this
             if (asterisk.index === 0 || convertedPattern.charAt(asterisk.index - 1) !== "!") {

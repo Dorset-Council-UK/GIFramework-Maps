@@ -30,7 +30,7 @@ export class LayersPanel implements SidebarPanel {
     container: string;
     gifwMapInstance: GIFWMap;
     listSortOrder: LayerListSortingOption = LayerListSortingOption.Default;
-    _fuseInstance: Fuse<any>;
+    _fuseInstance: Fuse<Category | Layer>;
     private previousZoom: number;
     private loadingLayers: {
         [name: string]: {
@@ -70,10 +70,10 @@ export class LayersPanel implements SidebarPanel {
             this.removeLayerFromList((e as CustomEvent).detail);
             this.renderActiveLayerList();
         })
-    };
+    }
     render() {
         this.updateControlState();
-    };
+    }
 
     /**
     * Renders (or re-renders) the Layers tab
@@ -82,27 +82,27 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private renderLayerList(): void {
-        let layerList = new LayerList(this)
-        let layerListContainer = document.querySelector(this.container).querySelector('.layer-switcher-tree');
+        const layerList = new LayerList(this)
+        const layerListContainer = document.querySelector(this.container).querySelector('.layer-switcher-tree');
         layerListContainer.innerHTML = '';
         layerListContainer.appendChild(layerList.createLayerList());
-        let collapseElementList = [].slice.call(layerListContainer.querySelectorAll('.collapse'))
+        const collapseElementList = [].slice.call(layerListContainer.querySelectorAll('.collapse'))
         collapseElementList.map((collapseEl: Element) => {
             collapseEl.addEventListener('hide.bs.collapse', (e) => {
-                let categoryId = (e.currentTarget as HTMLElement).id.replace('category-','')
+                const categoryId = (e.currentTarget as HTMLElement).id.replace('category-','')
                 this.gifwMapInstance.config.categories.filter(c => c.id.toString() === categoryId)[0].open = false;
                 
             })
             collapseEl.addEventListener('show.bs.collapse', (e) => {
-                let categoryId = (e.currentTarget as HTMLElement).id.replace('category-', '')
+                const categoryId = (e.currentTarget as HTMLElement).id.replace('category-', '')
                 this.gifwMapInstance.config.categories.filter(c => c.id.toString() === categoryId)[0].open = true;
             })
             return new Collapse(collapseEl, { toggle: false });
         })
         /*re-run the search*/
         this.createOrUpdateFuseInstance();
-        let container = document.querySelector(this.container);
-        let searchInput: HTMLInputElement = container.querySelector('#gifw-layer-switcher-search');
+        const container = document.querySelector(this.container);
+        const searchInput: HTMLInputElement = container.querySelector('#gifw-layer-switcher-search');
         this.filterLayersListByText(searchInput.value.trim());
     }
 
@@ -113,26 +113,26 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private renderActiveLayerList(): void {
-        let container = document.querySelector(this.container);
-        let activeLayersContainer = container.querySelector('#gifw-layer-control-active-layers');
+        const container = document.querySelector(this.container);
+        const activeLayersContainer = container.querySelector('#gifw-layer-control-active-layers');
         if (this.gifwMapInstance.anyOverlaysOn()) {
-            let layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
+            const layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
 
             let layers: olLayer<any, any>[] = [];
             layerGroups.forEach(lg => {
                 layers = layers.concat(lg.olLayerGroup.getLayersArray());
             })
 
-            let switchedOnLayers = layers.filter(l => l.getVisible() === true);
+            const switchedOnLayers = layers.filter(l => l.getVisible() === true);
 
             //let curZoom = Math.ceil(this.gifwMapInstance.olMap.getView().getZoom());
             activeLayersContainer.innerHTML = '<p class="text-muted mt-2">Drag layers using the drag handle <i class="bi bi-arrows-move"></i> to reorder them on the map</p>';
-            let accordion = document.createElement('div');
+            const accordion = document.createElement('div');
             accordion.classList.add("accordion","mt-2","active-layers-list");
             switchedOnLayers.sort((a, b) => b.getZIndex() - a.getZIndex()).forEach(l => {
-                let layerId = l.get('layerId');
-                let layerConfig = this.gifwMapInstance.getLayerConfigById(layerId, [LayerGroupType.Overlay, LayerGroupType.SystemNative, LayerGroupType.UserNative]);
-                let layerHtml = `
+                const layerId = l.get('layerId');
+                const layerConfig = this.gifwMapInstance.getLayerConfigById(layerId, [LayerGroupType.Overlay, LayerGroupType.SystemNative, LayerGroupType.UserNative]);
+                const layerHtml = `
                     <div class="accordion-item" data-gifw-layer-id="${layerId}" id="active-layer-${layerId}">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#layer-styling-${layerId}" aria-expanded="false" aria-controls="layer-styling-${layerId}">
@@ -170,15 +170,14 @@ export class LayersPanel implements SidebarPanel {
             })
             activeLayersContainer.insertAdjacentElement('beforeend', accordion);
             this.setLayerVisibilityState();
-            let _this = this;
             Sortable.create(accordion, {
                 swapThreshold: 0.70,
                 animation: 150,
                 filter: '.disabled, input',
                 preventOnFilter: false,
                 handle: '.handle',
-                onChange: function (e) {
-                    _this.updateLayerOrderingFromList();
+                onChange: () => {
+                    this.updateLayerOrderingFromList();
                 }
             });
             this.attachStyleControls();
@@ -195,19 +194,19 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private attachControls(): void {
-        let container = document.querySelector(this.container);
+        const container = document.querySelector(this.container);
         /*SEARCH*/
         this.createOrUpdateFuseInstance();
 
-        let searchInput: HTMLInputElement = container.querySelector('#gifw-layer-switcher-search');
-        searchInput.addEventListener('input', (e) => {
+        const searchInput: HTMLInputElement = container.querySelector('#gifw-layer-switcher-search');
+        searchInput.addEventListener('input', () => {
             this.filterLayersListByText(searchInput.value.trim());
         });
 
         /*SORT*/
-        let sortSelect: HTMLSelectElement = container.querySelector('#gifw-layer-switcher-sort');
+        const sortSelect: HTMLSelectElement = container.querySelector('#gifw-layer-switcher-sort');
         sortSelect.value = this.listSortOrder;
-        sortSelect.addEventListener('change', (e) => {
+        sortSelect.addEventListener('change', () => {
             if (sortSelect.value === 'default') {
                 this.listSortOrder = LayerListSortingOption.Default;
             } else {
@@ -220,14 +219,14 @@ export class LayersPanel implements SidebarPanel {
 
 
         /*TURN OFF LAYERS BUTTON*/
-        let turnOffAllButton = container.querySelector('#gifw-layers-turn-off');
+        const turnOffAllButton = container.querySelector('#gifw-layers-turn-off');
         
         turnOffAllButton.addEventListener('click', () => {
             this.turnOffAllLayers();
         });    
 
         /*LEGEND BUTTON*/
-        let showLegendButton = container.querySelector('#gifw-layers-view-legend');
+        const showLegendButton = container.querySelector('#gifw-layers-view-legend');
         showLegendButton.addEventListener('click', () => {
             this.gifwMapInstance.openSidebarById('legends')
         });
@@ -237,11 +236,11 @@ export class LayersPanel implements SidebarPanel {
 
         /*ADD DATA BUTTON*/
         
-        let addDataUploadButton = document.querySelector('#gifw-upload-data-button');
-        let addLayerModal = Modal.getOrCreateInstance('#add-layer-modal');
+        const addDataUploadButton = document.querySelector('#gifw-upload-data-button');
+        const addLayerModal = Modal.getOrCreateInstance('#add-layer-modal');
         addDataUploadButton.addEventListener('click', () => {
             addLayerModal.hide();
-            let addLayerUploadModal = Modal.getOrCreateInstance('#add-layer-upload-data-modal');
+            const addLayerUploadModal = Modal.getOrCreateInstance('#add-layer-upload-data-modal');
             addLayerUploadModal.show();
         })
 
@@ -250,15 +249,15 @@ export class LayersPanel implements SidebarPanel {
             document.querySelector('#add-layer-upload-data-modal .dropzone') as HTMLElement,
             document.querySelector('#add-layer-upload-data-modal .dropzone input[type="file"]') as HTMLInputElement,
             () => {
-                let addLayerUploadModal = Modal.getOrCreateInstance('#add-layer-upload-data-modal');
+                const addLayerUploadModal = Modal.getOrCreateInstance('#add-layer-upload-data-modal');
                 addLayerUploadModal.hide();
             }
         );
 
-        let addWebLayerButton = document.querySelector('#gifw-add-web-layer-button');
+        const addWebLayerButton = document.querySelector('#gifw-add-web-layer-button');
         addWebLayerButton.addEventListener('click', () => {
             addLayerModal.hide();
-            let addWebLayerModal = Modal.getOrCreateInstance('#add-layer-web-layer-modal');
+            const addWebLayerModal = Modal.getOrCreateInstance('#add-layer-web-layer-modal');
             addWebLayerModal.show();
         })
 
@@ -270,8 +269,8 @@ export class LayersPanel implements SidebarPanel {
             threshold: 0.2,
             keys: ['name']
         }
-        let allLayers: Layer[] = [];
-        let allCategories: Category[] = [];
+        const allLayers: Layer[] = [];
+        const allCategories: Category[] = [];
 
         this.gifwMapInstance.config.categories.forEach(c => {
             allCategories.push(c);
@@ -289,8 +288,8 @@ export class LayersPanel implements SidebarPanel {
     */
     private updateControlState(): void {
         /*TURN OFF LAYERS BUTTON*/
-        let turnOffAllButton = document.querySelector('#gifw-layers-turn-off');
-        let anyLayersOn = this.gifwMapInstance.anyOverlaysOn();
+        const turnOffAllButton = document.querySelector('#gifw-layers-turn-off');
+        const anyLayersOn = this.gifwMapInstance.anyOverlaysOn();
         if (anyLayersOn) {
             turnOffAllButton.removeAttribute('disabled');
         } else {
@@ -298,7 +297,7 @@ export class LayersPanel implements SidebarPanel {
         }
 
         /*SHOW LEGEND BUTTON*/
-        let showLegendButton = document.querySelector('#gifw-layers-view-legend');
+        const showLegendButton = document.querySelector('#gifw-layers-view-legend');
         if (anyLayersOn) {
             showLegendButton.removeAttribute('disabled');
         } else {
@@ -317,17 +316,17 @@ export class LayersPanel implements SidebarPanel {
         // When the map has fully rendered, check for active layer errors
         this.gifwMapInstance.olMap.on('rendercomplete', () => { this.raiseAlertForErrors() });
 
-        let layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
+        const layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
 
         layerGroups.forEach(lg => {
-            let layers = lg.olLayerGroup.getLayersArray();
+            const layers = lg.olLayerGroup.getLayersArray();
             layers.forEach(l => {
                 this.attachStandardEventListenersToLayer(l);
             });
         })
 
-        this.gifwMapInstance.olMap.on('moveend', e => {
-            let roundedZoom = Math.ceil(this.gifwMapInstance.olMap.getView().getZoom());
+        this.gifwMapInstance.olMap.on('moveend', () => {
+            const roundedZoom = Math.ceil(this.gifwMapInstance.olMap.getView().getZoom());
             if (roundedZoom !== this.previousZoom) {
                 this.setLayerVisibilityState();
             }
@@ -336,7 +335,7 @@ export class LayersPanel implements SidebarPanel {
     }
 
     private attachStandardEventListenersToLayer(l: olLayer<any, any>): void {
-        let layerName = l.get('name');
+        const layerName = l.get('name');
 
             l.on('change:visible', () => {
                 this.updateControlState();
@@ -346,7 +345,7 @@ export class LayersPanel implements SidebarPanel {
             });
 
         // Get the layer source and determine the string prefix used for load and error events
-        let source = l.getSource();
+        const source = l.getSource();
         let eventPrefix: string;
         if (source instanceof TileSource) {
             eventPrefix = 'tile';
@@ -358,11 +357,11 @@ export class LayersPanel implements SidebarPanel {
         if (eventPrefix) {
             source.on(eventPrefix + 'loadstart', () => {
                 if (!(source instanceof VectorSource)) {
-                    let checkbox = this.getLayerCheckbox(l);
+                    const checkbox = this.getLayerCheckbox(l);
                     if (checkbox !== null) {
                         let spinner = checkbox.parentElement.querySelector<HTMLDivElement>('.spinner');
                         if (!spinner) {
-                            let errorBadge = checkbox.parentElement.querySelector('.badge-error');
+                            const errorBadge = checkbox.parentElement.querySelector('.badge-error');
                             if (errorBadge) {
                                 errorBadge.remove();
                             }
@@ -401,10 +400,10 @@ export class LayersPanel implements SidebarPanel {
                             }
                             delete this.loadingLayers[layerName];
                         }
-                    };
-                    let checkbox = this.getLayerCheckbox(l);
+                    }
+                    const checkbox = this.getLayerCheckbox(l);
                     if (checkbox !== null) {
-                        let spinner = checkbox.parentElement.querySelector<HTMLDivElement>('.spinner');
+                        const spinner = checkbox.parentElement.querySelector<HTMLDivElement>('.spinner');
                         if (spinner) {
                             if (!(layerName in this.loadingLayers)) {
                                 spinner.remove();
@@ -424,10 +423,10 @@ export class LayersPanel implements SidebarPanel {
                             }
                             delete this.loadingLayers[layerName];
                         }
-                    };
-                    let checkbox = this.getLayerCheckbox(l);
+                    }
+                    const checkbox = this.getLayerCheckbox(l);
                     if (checkbox !== null) {
-                        let spinner = checkbox.parentElement.querySelector<HTMLDivElement>('.spinner');
+                        const spinner = checkbox.parentElement.querySelector<HTMLDivElement>('.spinner');
                         if (spinner) {
                             if (!(layerName in this.loadingLayers)) {
                                 spinner.remove();
@@ -454,9 +453,9 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private getLayerCheckbox(layer: BaseLayer) {
-        let container = document.querySelector(this.container);
-        let layerId = layer.get('layerId');
-        let layerSwitcherTree = container.querySelector('.layer-switcher-tree');
+        const container = document.querySelector(this.container);
+        const layerId = layer.get('layerId');
+        const layerSwitcherTree = container.querySelector('.layer-switcher-tree');
         return layerSwitcherTree.querySelector<HTMLInputElement>(`input[type='checkbox'][value='${layerId}']`);
     }
 
@@ -468,7 +467,7 @@ export class LayersPanel implements SidebarPanel {
     *
     */  
     private getLayerListItem(layer: BaseLayer) {
-        let cb = this.getLayerCheckbox(layer);
+        const cb = this.getLayerCheckbox(layer);
         
         return cb.closest('li');
     }
@@ -481,9 +480,9 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private getActiveLayerItem(layer: olLayer<any, any>) {
-        let container = document.querySelector(this.container);
-        let layerId = layer.get('layerId');
-        let activeLayersList = container.querySelector('.active-layers-list');
+        const container = document.querySelector(this.container);
+        const layerId = layer.get('layerId');
+        const activeLayersList = container.querySelector('.active-layers-list');
         return activeLayersList?.querySelector<HTMLElement>(`li[data-gifw-layer-id='${layerId}']`);
     }
 
@@ -494,10 +493,10 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private raiseAlertForErrors() {
-        let alertingLayers: olLayer<any, any>[] = [];
-        let layersWithErrorBadge: olLayer<any, any>[] = [];
+        const alertingLayers: olLayer<any, any>[] = [];
+        const layersWithErrorBadge: olLayer<any, any>[] = [];
 
-        let layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
+        const layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
 
         let layers: olLayer<any, any>[] = [];
         layerGroups.forEach(lg => {
@@ -505,9 +504,9 @@ export class LayersPanel implements SidebarPanel {
         })
 
         layers.forEach(l => {
-            let checkbox = this.getLayerCheckbox(l);
+            const checkbox = this.getLayerCheckbox(l);
             if (checkbox) {
-                let errorBadge = checkbox.parentElement.querySelector('.badge-error');
+                const errorBadge = checkbox.parentElement.querySelector('.badge-error');
                 // Remove layers from the error list if they no longer have an error badge
                 if (errorBadge) {
                     if (checkbox.checked) {
@@ -546,20 +545,20 @@ export class LayersPanel implements SidebarPanel {
     */
     private setLayerVisibilityState(layerArray?: olLayer<any, any>[]) {
 
-        let roundedZoom = Math.ceil(this.gifwMapInstance.olMap.getView().getZoom());
+        const roundedZoom = Math.ceil(this.gifwMapInstance.olMap.getView().getZoom());
 
         let layers: olLayer<any, any>[];
         if (layerArray) {
             layers = layerArray;
         } else {
-            let layerGroup = this.gifwMapInstance.olMap.getLayers().getArray().filter(g => g.get('type') === 'overlay')[0];
+            const layerGroup = this.gifwMapInstance.olMap.getLayers().getArray().filter(g => g.get('type') === 'overlay')[0];
             layers = layerArray || layerGroup.getLayersArray();
         }
 
         layers.forEach((l) => {
-            let checkbox = this.getLayerCheckbox(l);
+            const checkbox = this.getLayerCheckbox(l);
             if (checkbox) {
-                let invisibilityBadge = checkbox.parentElement.querySelector('.badge-invisible');
+                const invisibilityBadge = checkbox.parentElement.querySelector('.badge-invisible');
                 if (l.getOpacity() === 0 && !invisibilityBadge) {
                     checkbox.parentElement.append(Badge.Invisible());
                 } else if (l.getOpacity() > 0 && invisibilityBadge) {
@@ -569,14 +568,14 @@ export class LayersPanel implements SidebarPanel {
 
                 checkbox.parentElement.removeAttribute('title');
                 Tooltip.getInstance(checkbox.parentElement)?.dispose();
-                let outOfRangeBadge = checkbox.parentElement.querySelector('.badge-out-of-range');
+                const outOfRangeBadge = checkbox.parentElement.querySelector('.badge-out-of-range');
                 if (outOfRangeBadge) {
                     outOfRangeBadge.remove();
                 }
             }
-            let activeLayerItem = this.getActiveLayerItem(l);
+            const activeLayerItem = this.getActiveLayerItem(l);
             if (activeLayerItem) {
-                let alOutOfRangeBadge = activeLayerItem.querySelector('.badge-out-of-range');
+                const alOutOfRangeBadge = activeLayerItem.querySelector('.badge-out-of-range');
                 if (alOutOfRangeBadge) {
                     alOutOfRangeBadge.remove();
                 }
@@ -590,16 +589,16 @@ export class LayersPanel implements SidebarPanel {
         overzoomedLayers.forEach(l => this.setLayerOutOfRange(l, roundedZoom));
         underzoomedLayers.forEach(l => this.setLayerOutOfRange(l, roundedZoom));
 
-        let outOfRangeLayers = overzoomedLayers.concat(underzoomedLayers);
+        const outOfRangeLayers = overzoomedLayers.concat(underzoomedLayers);
 
         outOfRangeLayers.forEach((l) => {
-            let checkbox = this.getLayerCheckbox(l);
+            const checkbox = this.getLayerCheckbox(l);
             if (checkbox !== null) {
                 if (!checkbox.parentElement.querySelector('.badge-out-of-range')) {
                     checkbox.parentElement.append(Badge.OutOfRange());
                 }
             }
-            let activeLayerItem = this.getActiveLayerItem(l);
+            const activeLayerItem = this.getActiveLayerItem(l);
             if (activeLayerItem) {
                 if (!activeLayerItem.querySelector('.badge-out-of-range')) {
                     activeLayerItem.insertAdjacentElement('beforeend',Badge.OutOfRange());
@@ -610,15 +609,15 @@ export class LayersPanel implements SidebarPanel {
         overzoomedLayers = overzoomedLayers.filter(l => l.getMaxZoom() >= (this.previousZoom ?? 0))
         underzoomedLayers = underzoomedLayers.filter(l => l.getMinZoom() < (this.previousZoom ?? 0))
 
-        let newlyOutOfRangeLayers = overzoomedLayers.concat(underzoomedLayers);
+        const newlyOutOfRangeLayers = overzoomedLayers.concat(underzoomedLayers);
 
-        let activeOutOfRangeLayers = newlyOutOfRangeLayers.filter(l => l.getVisible());
+        const activeOutOfRangeLayers = newlyOutOfRangeLayers.filter(l => l.getVisible());
 
         if (activeOutOfRangeLayers.length > 0) {
             let notificationText = `${activeOutOfRangeLayers.length} layers are out of range and have been hidden`;
             if (activeOutOfRangeLayers.length === 1) {
-                let layerGroup = this.gifwMapInstance.getLayerGroupOfType(LayerGroupType.Overlay);
-                let layerDetails = (layerGroup.layers as Layer[]).filter(l => l.id == activeOutOfRangeLayers[0].get("layerId"));
+                const layerGroup = this.gifwMapInstance.getLayerGroupOfType(LayerGroupType.Overlay);
+                const layerDetails = (layerGroup.layers as Layer[]).filter(l => l.id == activeOutOfRangeLayers[0].get("layerId"));
                 if (layerDetails.length === 1) {
                     notificationText = `'${layerDetails[0].name}' is out of range and has been hidden`;
                 }
@@ -638,9 +637,9 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private setLayerOutOfRange(layer: olLayer<any, any>, newZoom:number) {
-        let layerId = layer.get('layerId');
+        const layerId = layer.get('layerId');
 
-        let layerCheckboxLabelContainer: HTMLElement = document.querySelector(`#layer-switcher-${layerId}`)?.parentElement;
+        const layerCheckboxLabelContainer: HTMLElement = document.querySelector(`#layer-switcher-${layerId}`)?.parentElement;
         if (layerCheckboxLabelContainer) {
             layerCheckboxLabelContainer.setAttribute('title', `This layer is out of range. Zoom ${newZoom > layer.getMaxZoom() ? 'out' : 'in'} to view.`)
 
@@ -656,7 +655,7 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private setCheckboxState(layer: olLayer<any, any>) {
-        let cb = this.getLayerCheckbox(layer);
+        const cb = this.getLayerCheckbox(layer);
         cb.checked = layer.getVisible();
     }
 
@@ -668,14 +667,14 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private attachCloseButton(): void {
-        let container = document.querySelector(this.container);
-        let closeButton = container.querySelector('button[data-gifw-dismiss-sidebar]');
+        const container = document.querySelector(this.container);
+        const closeButton = container.querySelector('button[data-gifw-dismiss-sidebar]');
         if (closeButton !== null) {
-            closeButton.addEventListener('click', (e) => {
+            closeButton.addEventListener('click', () => {
                 Sidebar.close();
             });
         }
-    };
+    }
 
     /**
     * Switches off all overlays on the map
@@ -684,7 +683,7 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private turnOffAllLayers(): void {
-        let layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
+        const layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
         let layers: olLayer<any, any>[] = [];
         layerGroups.forEach(lg => {
             layers = layers.concat(lg.olLayerGroup.getLayersArray());
@@ -706,14 +705,14 @@ export class LayersPanel implements SidebarPanel {
     /*TODO: The code to show/hide layers and folders is all a bit messy and requires targeting specific elements. 
      *This could all do with improvement in a future iteration*/
     private filterLayersListByText(text: string) {
-        let container = document.querySelector(this.container);
-        let errMsg: HTMLElement = document.querySelector('#gifw-layer-search-error');
+        const container = document.querySelector(this.container);
+        const errMsg: HTMLElement = document.querySelector('#gifw-layer-search-error');
         if (text.trim().length === 0) {
             //show all layers and clear error
             errMsg.style.display = 'none';
             this.showAllLayersInList();
         } else {
-            let results = this._fuseInstance.search(text,);
+            const results = this._fuseInstance.search(text,);
             if (results.length === 0) {
                 //show all layers along with error
                 errMsg.innerText = `No results found for '${text}'`;
@@ -722,11 +721,11 @@ export class LayersPanel implements SidebarPanel {
             } else {
                 errMsg.style.display = 'none';
                 //hide everything!
-                let layersListContainer = container.querySelector('.layer-switcher-tree');
-                let layerSwitcherCheckboxes: NodeListOf<HTMLInputElement> = layersListContainer.querySelectorAll('input[type=checkbox]');
+                const layersListContainer = container.querySelector('.layer-switcher-tree');
+                const layerSwitcherCheckboxes: NodeListOf<HTMLInputElement> = layersListContainer.querySelectorAll('input[type=checkbox]');
                 layerSwitcherCheckboxes.forEach(c => {
                     c.closest('li').style.display = 'none';
-                    let parentFolders = Util.Helper.getAllParentElements(c as HTMLElement, '.accordion-collapse');
+                    const parentFolders = Util.Helper.getAllParentElements(c as HTMLElement, '.accordion-collapse');
                     parentFolders.forEach(pf => {
                         pf.classList.remove('show');
                         pf.parentElement.classList.add('border-0');
@@ -737,18 +736,18 @@ export class LayersPanel implements SidebarPanel {
                 });
 
 
-                let layerResults = results.filter(r => r.item.layers === undefined);
-                let folderResults = results.filter(r => r.item.layers !== undefined);
+                const layerResults = results.filter(r => (r.item as Category).layers === undefined);
+                const folderResults = results.filter(r => (r.item as Category).layers !== undefined);
 
                 //go through all folders that have a result and make sure all the parent folders, child folders and layer checkboxes are visible
                 folderResults.forEach(folderResult => {
-                    let layerFolder: HTMLDivElement = document.querySelector(`#category-${folderResult.item.id}`);
+                    const layerFolder: HTMLDivElement = document.querySelector(`#category-${folderResult.item.id}`);
                     layerFolder.parentElement.classList.remove('border-0');
                     (container.querySelector(`.accordion-button[aria-controls="category-${folderResult.item.id}"]`) as HTMLElement).style.display = 'flex';
-                    let allCheckboxes: HTMLInputElement[] = [];
+                    const allCheckboxes: HTMLInputElement[] = [];
 
                     allCheckboxes.push(...(layerFolder.querySelectorAll('input[type=checkbox]') as NodeListOf<HTMLInputElement>));
-                    let parentFolders = Util.Helper.getAllParentElements(layerFolder as HTMLElement, '.accordion-collapse');
+                    const parentFolders = Util.Helper.getAllParentElements(layerFolder as HTMLElement, '.accordion-collapse');
                     parentFolders.forEach(pf => {
                         pf.classList.add('show');
                         pf.parentElement.classList.remove('border-0');
@@ -757,7 +756,7 @@ export class LayersPanel implements SidebarPanel {
                         (container.querySelector(`.accordion-button[aria-controls="${pf.id}"]`) as HTMLElement).style.display = 'flex';
                         allCheckboxes.push(...(pf.querySelectorAll('input[type=checkbox]') as NodeListOf<HTMLInputElement>));
                     })
-                    let childFolders = layerFolder.querySelectorAll('.accordion-collapse');
+                    const childFolders = layerFolder.querySelectorAll('.accordion-collapse');
                     childFolders.forEach(cf => {
                         cf.parentElement.classList.remove('border-0');
                         (container.querySelector(`.accordion-button[aria-controls="${cf.id}"]`) as HTMLElement).style.display = 'flex';
@@ -771,9 +770,9 @@ export class LayersPanel implements SidebarPanel {
                 //go through individual layer results and make their checkbox visible and make sure their parent folders are visible and open
                 layerResults.forEach(layerResult => {
                     //this is a layer
-                    let layerCheckbox: HTMLInputElement = document.querySelector(`#layer-switcher-${layerResult.item.id}`);
+                    const layerCheckbox: HTMLInputElement = document.querySelector(`#layer-switcher-${layerResult.item.id}`);
                     layerCheckbox.closest('li').style.display = 'block';
-                    let parentFolders = Util.Helper.getAllParentElements(layerCheckbox as HTMLElement, '.accordion-collapse');
+                    const parentFolders = Util.Helper.getAllParentElements(layerCheckbox as HTMLElement, '.accordion-collapse');
                     parentFolders.forEach(pf => {
                         pf.classList.add('show');
                         pf.parentElement.classList.remove('border-0');
@@ -794,10 +793,10 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private showAllLayersInList(): void {
-        let container = document.querySelector(this.container);
-        let layersListContainer = container.querySelector('.layer-switcher-tree');
-        let layerSwitcherCheckboxes: NodeListOf<HTMLInputElement> = layersListContainer.querySelectorAll('input[type=checkbox]');
-        let layerSwitcherButtons = container.querySelectorAll('.accordion-button');
+        const container = document.querySelector(this.container);
+        const layersListContainer = container.querySelector('.layer-switcher-tree');
+        const layerSwitcherCheckboxes: NodeListOf<HTMLInputElement> = layersListContainer.querySelectorAll('input[type=checkbox]');
+        const layerSwitcherButtons = container.querySelectorAll('.accordion-button');
         layerSwitcherCheckboxes.forEach(c => {
             Util.Helper.getAllParentElements(c, '.accordion-item').forEach(ai => {
                 ai.classList.remove('border-0');
@@ -817,15 +816,15 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private updateLayerOrderingFromList(): void {
-        let container = document.querySelector(this.container);
-        let activeLayersContainer = container.querySelector('#gifw-layer-control-active-layers');
+        const container = document.querySelector(this.container);
+        const activeLayersContainer = container.querySelector('#gifw-layer-control-active-layers');
 
-        let layerListItems = activeLayersContainer.querySelectorAll('.active-layers-list [data-gifw-layer-id]');
+        const layerListItems = activeLayersContainer.querySelectorAll('.active-layers-list [data-gifw-layer-id]');
         /*NOTE: As the default z-index for a layer is 0, we set this to -1 to allow newly added, unsorted layers
          * to take immediate precedence. This is far from perfect*/
         let ordering = -1;
 
-        let layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
+        const layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
         let layers: olLayer<any, any>[] = [];
 
         layerGroups.forEach(lg => {
@@ -834,8 +833,8 @@ export class LayersPanel implements SidebarPanel {
 
 
         layerListItems.forEach(item => {
-            let layerId = (item as HTMLElement).dataset.gifwLayerId;
-            let layer = layers.filter(l => l.get('layerId') == layerId);
+            const layerId = (item as HTMLElement).dataset.gifwLayerId;
+            const layer = layers.filter(l => l.get('layerId') == layerId);
             if (layer && layer.length === 1) {
                 //set the z-index
                 layer[0].setZIndex(ordering);
@@ -854,7 +853,7 @@ export class LayersPanel implements SidebarPanel {
      */
     private removeLayerFromList(layer: BaseLayer) {
         //remove the checkbox
-        let listItem = this.getLayerListItem(layer);
+        const listItem = this.getLayerListItem(layer);
         listItem.remove();
     }
     /**
@@ -874,105 +873,105 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private attachStyleControls() {
-        let container = document.querySelector(this.container);
+        const container = document.querySelector(this.container);
 
         //attach transparency slider
-        let transparencySliders: NodeListOf<HTMLInputElement> = container.querySelectorAll('input[data-gifw-controls-transparency-layer]');
+        const transparencySliders: NodeListOf<HTMLInputElement> = container.querySelectorAll('input[data-gifw-controls-transparency-layer]');
         transparencySliders.forEach(transparencySlider => {
 
             transparencySlider.addEventListener('input', e => {
-                let element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
-                let opacity = parseInt(element.value);
-                let layerId = element.dataset.gifwControlsTransparencyLayer;
-                let linkedInvisibleCheckbox: HTMLInputElement = container.querySelector(`input[data-gifw-controls-invisible-layer="${layerId}"]`);
+                const element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
+                const opacity = parseInt(element.value);
+                const layerId = element.dataset.gifwControlsTransparencyLayer;
+                const linkedInvisibleCheckbox: HTMLInputElement = container.querySelector(`input[data-gifw-controls-invisible-layer="${layerId}"]`);
                 if (opacity === 0) {
                     linkedInvisibleCheckbox.checked = true;
                 } else {
                     linkedInvisibleCheckbox.checked = false;
                 }
-                let layer = this.gifwMapInstance.getLayerById(layerId);
+                const layer = this.gifwMapInstance.getLayerById(layerId);
                 if (layer) {
                     this.gifwMapInstance.setLayerOpacity(layer as olLayer<any, any>, opacity);
                 }
             });
         });
         //attach saturation slider
-        let saturationSliders: NodeListOf<HTMLInputElement> = container.querySelectorAll('input[data-gifw-controls-saturation-layer]');
+        const saturationSliders: NodeListOf<HTMLInputElement> = container.querySelectorAll('input[data-gifw-controls-saturation-layer]');
         saturationSliders.forEach(saturationSlider => {
             saturationSlider.addEventListener('input', e => {
-                let element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
-                let saturation = parseInt(element.value);
-                let layerId = element.dataset.gifwControlsSaturationLayer;
-                let linkedGreyscaleCheckbox: HTMLInputElement = container.querySelector(`input[data-gifw-controls-greyscale-layer="${layerId}"]`);
+                const element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
+                const saturation = parseInt(element.value);
+                const layerId = element.dataset.gifwControlsSaturationLayer;
+                const linkedGreyscaleCheckbox: HTMLInputElement = container.querySelector(`input[data-gifw-controls-greyscale-layer="${layerId}"]`);
                 if (saturation === 0) {
                     linkedGreyscaleCheckbox.checked = true;
                 } else {
                     linkedGreyscaleCheckbox.checked = false;
                 }
-                let layer = this.gifwMapInstance.getLayerById(layerId);
+                const layer = this.gifwMapInstance.getLayerById(layerId);
                 if (layer) {
                     this.gifwMapInstance.setLayerSaturation(layer as olLayer<any, any>, saturation);
                 }
             });
         });
         //attach invisible button
-        let invisibleButtons: NodeListOf<HTMLInputElement> = container.querySelectorAll('input[data-gifw-controls-invisible-layer]');
+        const invisibleButtons: NodeListOf<HTMLInputElement> = container.querySelectorAll('input[data-gifw-controls-invisible-layer]');
         invisibleButtons.forEach(invisibleButton => {
             invisibleButton.addEventListener('change', e => {
-                let element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
+                const element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
 
-                let layerId = element.dataset.gifwControlsInvisibleLayer;
-                let linkedTransparencySlider: HTMLInputElement = container.querySelector(`input[data-gifw-controls-transparency-layer="${layerId}"]`);
+                const layerId = element.dataset.gifwControlsInvisibleLayer;
+                const linkedTransparencySlider: HTMLInputElement = container.querySelector(`input[data-gifw-controls-transparency-layer="${layerId}"]`);
                 if (element.checked) {
                     linkedTransparencySlider.value = "0";
                 } else {
                     linkedTransparencySlider.value = "100";
                 }
-                let evt = new InputEvent('input');
+                const evt = new InputEvent('input');
                 linkedTransparencySlider.dispatchEvent(evt);
             });
         });
         //attach greyscale button
-        let greyscaleButtons: NodeListOf<HTMLInputElement> = container.querySelectorAll('input[data-gifw-controls-greyscale-layer]');
+        const greyscaleButtons: NodeListOf<HTMLInputElement> = container.querySelectorAll('input[data-gifw-controls-greyscale-layer]');
         greyscaleButtons.forEach(greyscaleButton => {
             greyscaleButton.addEventListener('change', e => {
-                let element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
+                const element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
 
-                let layerId = element.dataset.gifwControlsGreyscaleLayer;
-                let linkedSaturationSlider: HTMLInputElement = container.querySelector(`input[data-gifw-controls-saturation-layer="${layerId}"]`);
+                const layerId = element.dataset.gifwControlsGreyscaleLayer;
+                const linkedSaturationSlider: HTMLInputElement = container.querySelector(`input[data-gifw-controls-saturation-layer="${layerId}"]`);
                 if (element.checked) {
                     linkedSaturationSlider.value = "0";
                 } else {
                     linkedSaturationSlider.value = "100";
                 }
-                let evt = new InputEvent('input');
+                const evt = new InputEvent('input');
                 linkedSaturationSlider.dispatchEvent(evt);
             });
         });
 
-        let alternateStyleButtons: NodeListOf<HTMLInputElement> = container.querySelectorAll('button[data-gifw-controls-style-layer]');
+        const alternateStyleButtons: NodeListOf<HTMLInputElement> = container.querySelectorAll('button[data-gifw-controls-style-layer]');
         alternateStyleButtons.forEach(alternateStyleButton => {
             alternateStyleButton.addEventListener('click', e => {
-                let element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
+                const element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
 
-                let layerId = element.dataset.gifwControlsStyleLayer;
+                const layerId = element.dataset.gifwControlsStyleLayer;
 
-                let layer = this.gifwMapInstance.getLayerById(layerId);
+                const layer = this.gifwMapInstance.getLayerById(layerId);
                 this.showAlternateStyleModal(layer);
                 e.preventDefault();
             });
         });
 
-        let filterButtons: NodeListOf<HTMLInputElement> = container.querySelectorAll('button[data-gifw-controls-filter-layer]');
+        const filterButtons: NodeListOf<HTMLInputElement> = container.querySelectorAll('button[data-gifw-controls-filter-layer]');
         filterButtons.forEach(filterButton => {
             filterButton.addEventListener('click', e => {
-                let element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
+                const element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
 
-                let layerId = element.dataset.gifwControlsFilterLayer;
+                const layerId = element.dataset.gifwControlsFilterLayer;
 
-                let layer = this.gifwMapInstance.getLayerConfigById(layerId,[LayerGroupType.Overlay]);
+                const layer = this.gifwMapInstance.getLayerConfigById(layerId,[LayerGroupType.Overlay]);
                 e.preventDefault();
-                let layerFilter = new LayerFilter(this, layer);
+                const layerFilter = new LayerFilter(this, layer);
                 layerFilter.showFilterDialog();
                 e.preventDefault();
             });
@@ -988,12 +987,12 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private showAlternateStyleModal(layer:BaseLayer) {
-        let styleModal = new Modal(document.getElementById('layer-update-style-modal'), {});
-        let styleModalContent: HTMLElement = document.querySelector('#layer-update-style-modal .modal-body div');
+        const styleModal = new Modal(document.getElementById('layer-update-style-modal'), {});
+        const styleModalContent: HTMLElement = document.querySelector('#layer-update-style-modal .modal-body div');
         if (layer instanceof TileLayer || layer instanceof ImageLayer) {
-            let layerSource = layer.getSource();
+            const layerSource = layer.getSource();
             if (layerSource instanceof TileWMS || layerSource instanceof ImageWMS) {
-                let descriptionHTML: string = `<h5 class="card-title placeholder-glow">
+                const descriptionHTML: string = `<h5 class="card-title placeholder-glow">
                                                 <span class="placeholder col-6"></span>
                                             </h5>
                                             <p class="card-text placeholder-glow">
@@ -1007,8 +1006,8 @@ export class LayersPanel implements SidebarPanel {
                 styleModalContent.innerHTML = descriptionHTML;
                 styleModal.show();
 
-                let sourceParams = layerSource.getParams();
-                let featureTypeName = sourceParams.LAYERS;
+                const sourceParams = layerSource.getParams();
+                const featureTypeName = sourceParams.LAYERS;
                 let baseUrl: string;
                 if (layerSource instanceof TileWMS) {
                     baseUrl = layerSource.getUrls()[0];
@@ -1016,20 +1015,20 @@ export class LayersPanel implements SidebarPanel {
                     baseUrl = layerSource.getUrl();
                 }
 
-                let authKey = Util.Helper.getValueFromObjectByKey(sourceParams, "authkey");
+                const authKey = Util.Helper.getValueFromObjectByKey(sourceParams, "authkey");
                 let additionalParams = {};
                 if (authKey) {
                     additionalParams = { authkey: authKey };
                 }
 
                 let proxyEndpoint = "";
-                let layerId = layer.get("layerId");
-                let gifwLayer = this.gifwMapInstance.getLayerConfigById(layerId, [LayerGroupType.Overlay]);
+                const layerId = layer.get("layerId");
+                const gifwLayer = this.gifwMapInstance.getLayerConfigById(layerId, [LayerGroupType.Overlay]);
                 if (gifwLayer.proxyMetaRequests) {
                     proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
                 }
                 const httpHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(gifwLayer.layerSource);
-                let styleListPromise = Metadata.getStylesForLayer(baseUrl, featureTypeName, proxyEndpoint, additionalParams, httpHeaders);
+                const styleListPromise = Metadata.getStylesForLayer(baseUrl, featureTypeName, proxyEndpoint, additionalParams, httpHeaders);
                 if (styleListPromise) {
                     styleListPromise.then(styles => {
                         styleModalContent.innerHTML = '';
@@ -1061,8 +1060,8 @@ export class LayersPanel implements SidebarPanel {
         if (styles?.length > 1) {
             stylesHtml = document.createElement('div');
             stylesHtml.className = 'list-group';
-            let currentStyleName = layerSource.getParams()?.STYLES || "";
-            let defaultStyle: Style = {
+            const currentStyleName = layerSource.getParams()?.STYLES || "";
+            const defaultStyle: Style = {
                 name: "",
                 title: "Default",
                 abstract: "The default style for this layer"
@@ -1090,7 +1089,7 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private renderStyleItem(style: Style, layerSource: ImageWMS | TileWMS, isActive: boolean = false): HTMLElement {
-        let styleLinkContainer = document.createElement('a');
+        const styleLinkContainer = document.createElement('a');
         styleLinkContainer.className = `list-group-item list-group-item-action ${isActive ? 'active' : ''}`;
         styleLinkContainer.href = '#';
         styleLinkContainer.dataset.gifwLayerStyleName = style.name;
@@ -1098,9 +1097,9 @@ export class LayersPanel implements SidebarPanel {
         styleLinkContainer.innerHTML += `<p class="mb-1">${style.abstract ? style.abstract : 'No description provided'}</p>`
 
         styleLinkContainer.addEventListener('click', e => {
-            let selectedStyleName = (e.currentTarget as HTMLElement).dataset.gifwLayerStyleName;
+            const selectedStyleName = (e.currentTarget as HTMLElement).dataset.gifwLayerStyleName;
             this.setLayerStyle(layerSource, selectedStyleName);
-            let styleModal = Modal.getInstance('#layer-update-style-modal');
+            const styleModal = Modal.getInstance('#layer-update-style-modal');
 
             styleModal.hide();
             e.preventDefault();
@@ -1135,12 +1134,12 @@ export class LayersPanel implements SidebarPanel {
      * @param layerId The ID of the layer to check
      */
     public updateLayerFilteredStatusIcon(layerId: string): void {
-        let layersListFilterButton = document.getElementById(`gifw-filter-layer-${layerId}`);
-        let activeLayersFilterButton = document.getElementById(`gifw-active-layers-filter-${layerId}`);
-        let olLayer = this.gifwMapInstance.getLayerById(layerId);
-        let layer = this.gifwMapInstance.getLayerConfigById(layerId, [LayerGroupType.Overlay]);
+        const layersListFilterButton = document.getElementById(`gifw-filter-layer-${layerId}`);
+        const activeLayersFilterButton = document.getElementById(`gifw-active-layers-filter-${layerId}`);
+        const olLayer = this.gifwMapInstance.getLayerById(layerId);
+        const layer = this.gifwMapInstance.getLayerConfigById(layerId, [LayerGroupType.Overlay]);
         if (olLayer && layer) {
-            let icon = `bi-funnel${this.getLayerFilteredStatus(layer, (olLayer as olLayer)) ? "-fill" : ""}`;
+            const icon = `bi-funnel${this.getLayerFilteredStatus(layer, (olLayer as olLayer)) ? "-fill" : ""}`;
             if (layersListFilterButton) {
                 layersListFilterButton.querySelector('.bi').className = `bi ${icon}`;
             }
@@ -1167,9 +1166,9 @@ export class LayersPanel implements SidebarPanel {
         if (olLayer.get('gifw-filter-applied')) {
             return true;
         }
-        let source = olLayer.getSource();
+        const source = olLayer.getSource();
         if (source instanceof TileWMS || source instanceof ImageWMS) {
-            let params = (source as TileWMS | ImageWMS).getParams();
+            const params = (source as TileWMS | ImageWMS).getParams();
             let cqlFilter: string;
             for (const property in params) {
                 if (property.toLowerCase() === 'cql_filter') {

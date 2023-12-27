@@ -46,8 +46,8 @@ export class LayerFilter {
         this.filterModal = new Modal(document.getElementById('layer-filtering-modal'), {});
         //bind the click handler to this so we can remove and add it properly. Bit of a hack!
         this.handleClick = this.handleClick.bind(this);
-        document.getElementById('layer-filtering-modal').addEventListener('hide.bs.modal', e => {
-            let filterModalSubmit = document.querySelector('#layer-filtering-apply');
+        document.getElementById('layer-filtering-modal').addEventListener('hide.bs.modal', () => {
+            const filterModalSubmit = document.querySelector('#layer-filtering-apply');
             filterModalSubmit.removeEventListener('click', this.handleClick);
         })
         this.cqlFormatter = new CQL();
@@ -65,10 +65,10 @@ export class LayerFilter {
                 Util.Alert.showPopupError("There was a problem", "<p>This layer cannot be filtered</p>")
                 return;
             }
-            let filterModalHeader = document.querySelector('#layer-filtering-modal .modal-title');
-            let filterModalContent = document.querySelector('#layer-filtering-modal .modal-body');
+            const filterModalHeader = document.querySelector('#layer-filtering-modal .modal-title');
+            const filterModalContent = document.querySelector('#layer-filtering-modal .modal-body');
             filterModalHeader.textContent = `Filter layer '${this.layerConfig.name}'`;
-            let descriptionHTML: string = `<h5 class="card-title placeholder-glow">
+            const descriptionHTML: string = `<h5 class="card-title placeholder-glow">
                                                 <span class="placeholder col-6"></span>
                                             </h5>
                                             <p class="card-text placeholder-glow">
@@ -85,7 +85,7 @@ export class LayerFilter {
             await this.initPropertyValueSuggestions();
 
             this.layerProperties = await this.getPropertiesForLayer();
-            let source = (this.layer as olLayer).getSource();
+            const source = (this.layer as olLayer).getSource();
 
             if (!(source instanceof TileWMS || source instanceof ImageWMS)) {
                 this.filterModal.hide();
@@ -98,15 +98,15 @@ export class LayerFilter {
                 return;
             }
             //load the filter details into the dialog
-            let params = source.getParams();
-            let cqlFilter = this.extractCQLFilterFromParams(params);
+            const params = source.getParams();
+            const cqlFilter = this.extractCQLFilterFromParams(params);
 
             let filter;
 
-            let filterContainer = document.createElement('div');
+            const filterContainer = document.createElement('div');
             filterContainer.id = "gifw-filter-list";
 
-            let defaultFilterContainer = document.createElement('div');
+            const defaultFilterContainer = document.createElement('div');
             if (this.defaultFilter && !this.layerConfig.defaultFilterEditable) {
                 defaultFilterContainer.className = "alert alert-info";
                 defaultFilterContainer.innerHTML = `This layer has a default filter which is shown below. 
@@ -122,10 +122,10 @@ export class LayerFilter {
             }
 
             if (filter) {
-                let filterHtml = this.createFilterHTMLFromExistingFilter(filter);
+                const filterHtml = this.createFilterHTMLFromExistingFilter(filter);
                 filterContainer.appendChild(filterHtml);
             } else {
-                let filterHtml = this.createEmptyFilterHTML();
+                const filterHtml = this.createEmptyFilterHTML();
                 filterContainer.appendChild(filterHtml);
             }
 
@@ -137,7 +137,7 @@ export class LayerFilter {
             filterModalContent.appendChild(defaultFilterContainer);
             filterModalContent.appendChild(filterContainer);
 
-            let clearAllLink = document.createElement('a');
+            const clearAllLink = document.createElement('a');
             clearAllLink.href = "#";
             clearAllLink.className = "text-danger";
             clearAllLink.textContent = "Remove all filters";
@@ -146,7 +146,7 @@ export class LayerFilter {
                 e.preventDefault();
             });
             filterModalContent.appendChild(clearAllLink);
-            let filterModalSubmit = document.querySelector('#layer-filtering-apply');
+            const filterModalSubmit = document.querySelector('#layer-filtering-apply');
             filterModalSubmit.addEventListener('click', this.handleClick);
         } catch (e) {
             console.error(e);
@@ -162,7 +162,7 @@ export class LayerFilter {
         if (this.validateFilter()) {
             this.applyFilter();
             this.filterModal.hide();
-        };
+        }
     }
 
     /**
@@ -180,28 +180,28 @@ export class LayerFilter {
      */
     private createFilterHTMLFromExistingFilter(filter: Filter): HTMLElement {
 
-        let filterContainer = document.createElement('div');
+        const filterContainer = document.createElement('div');
         filterContainer.className = "gifw-parent-filter-section";
         if (filter instanceof And || filter instanceof Or || filter instanceof Not) {
             if (filter instanceof Not) {
                 //we need to handle this one differently, as it is essentially
                 //an AND filter but with a bit of wrapping negation around it, but
                 //for the UI, we just show it as a dropdown same as the AND and OR
-                let filterHtml = this.createFilterHTML(filter.condition);
+                const filterHtml = this.createFilterHTML(filter.condition);
                 /*Forcibly set the logic operator to 'Not'*/
-                let opts = (filterHtml.querySelector('.logicSelector select') as HTMLSelectElement).options;
-                let targetValue = [...opts].findIndex(opt => opt.value === 'Not');
+                const opts = (filterHtml.querySelector('.logicSelector select') as HTMLSelectElement).options;
+                const targetValue = [...opts].findIndex(opt => opt.value === 'Not');
                 (filterHtml.querySelector('.logicSelector select') as HTMLSelectElement).selectedIndex = targetValue;
 
                 filterContainer.appendChild(filterHtml);
 
             } else {
-                let filterHtml = this.createFilterHTML(filter);
+                const filterHtml = this.createFilterHTML(filter);
                 filterContainer.appendChild(filterHtml);
             }
         } else {
-            let andFilterType = this.cqlFormatter.filterTypes.find(f => f.tagName === "And");
-            let filterHtml = this.createLogicalFilterHTML(filter, andFilterType);
+            const andFilterType = this.cqlFormatter.filterTypes.find(f => f.tagName === "And");
+            const filterHtml = this.createLogicalFilterHTML(filter, andFilterType);
             filterContainer.appendChild(filterHtml);
         }
         return filterContainer;
@@ -213,17 +213,17 @@ export class LayerFilter {
      * @returns HTMLElement
      */
     private createEmptyFilterHTML(child: boolean = false): HTMLElement {
-        let filterContainer = document.createElement('div');
+        const filterContainer = document.createElement('div');
         if (child) {
             filterContainer.className = "gifw-child-filter-section ms-2 ps-2 border-2 border-start"
         } else {
             filterContainer.className = "gifw-parent-filter-section";
         }
         //get available operators by property type
-        let andFilterType = this.cqlFormatter.filterTypes.find(f => f.tagName === "And");
+        const andFilterType = this.cqlFormatter.filterTypes.find(f => f.tagName === "And");
 
-        let filter = new EqualTo(this.layerProperties[0].name, "");
-        let filterHtml = this.createLogicalFilterHTML(filter, andFilterType);
+        const filter = new EqualTo(this.layerProperties[0].name, "");
+        const filterHtml = this.createLogicalFilterHTML(filter, andFilterType);
         filterContainer.appendChild(filterHtml);
         return filterContainer;
     }
@@ -232,8 +232,8 @@ export class LayerFilter {
      * Creates a HTML element for a single filter row with default starting values.
      * */
     private createEmptyFilterRow(): HTMLElement {
-        let filter = new EqualTo(this.layerProperties[0].name, "");
-        let filterHtml = this.createFilterHTML(filter);
+        const filter = new EqualTo(this.layerProperties[0].name, "");
+        const filterHtml = this.createFilterHTML(filter);
         this.updateSuggestionsListForFilter(filterHtml);
         return filterHtml;
     }
@@ -247,10 +247,10 @@ export class LayerFilter {
      * @returns HTMLDivElement
      */
     private createLogicalFilterHTML(filter: Filter, filterType: FilterType, isChild = false) {
-        let filterRow = document.createElement('div')
+        const filterRow = document.createElement('div')
         filterRow.className = "row pb-2 gifw-filter-section";
  
-        let logicalContainer = this.createConditionWrapper(filter);
+        const logicalContainer = this.createConditionWrapper(filter);
 
         if (filterType.type === "negation") {
 
@@ -258,28 +258,28 @@ export class LayerFilter {
             //an AND filter but with a bit of wrapping negation around it, but
             //for the UI, we just show it as a dropdown same as the AND and OR
             /*Forcibly set the logic operator to 'Not'*/
-            let opts = (logicalContainer.querySelector('.logicSelector select') as HTMLSelectElement).options;
-            let targetValue = [...opts].findIndex(opt => opt.value === 'Not');
+            const opts = (logicalContainer.querySelector('.logicSelector select') as HTMLSelectElement).options;
+            const targetValue = [...opts].findIndex(opt => opt.value === 'Not');
             (logicalContainer.querySelector('.logicSelector select') as HTMLSelectElement).selectedIndex = targetValue;
 
             if ((filter as Not).condition instanceof And || (filter as Not).condition instanceof Or) {
                 for (const filterCondition of ((filter as Not).condition as And).conditions) {
-                    let filterHtml = this.createFilterHTML(filterCondition, true);
+                    const filterHtml = this.createFilterHTML(filterCondition, true);
                     logicalContainer.appendChild(filterHtml);
                 }
             } else {
-                let filterHtml = this.createFilterHTML((filter as Not).condition);
+                const filterHtml = this.createFilterHTML((filter as Not).condition);
                 logicalContainer.appendChild(filterHtml);
             }
 
         } else {
             if (filter instanceof And || filter instanceof Or) {
                 for (const filterCondition of (filter as And).conditions) {
-                    let filterHtml = this.createFilterHTML(filterCondition, true);
+                    const filterHtml = this.createFilterHTML(filterCondition, true);
                     logicalContainer.appendChild(filterHtml);
                 }
             } else {
-                let filterHtml = this.createFilterHTML(filter);
+                const filterHtml = this.createFilterHTML(filter);
                 logicalContainer.appendChild(filterHtml);
             }
         }
@@ -289,7 +289,7 @@ export class LayerFilter {
         filterRow.appendChild(logicalContainer);
 
         if (isChild) {
-            let container = document.createElement('div');
+            const container = document.createElement('div');
             container.className = 'gifw-child-filter-section ms-2 ps-2 border-2 border-start';
             container.appendChild(filterRow);
             return container;
@@ -304,8 +304,8 @@ export class LayerFilter {
      * @param isChildLogical{boolean} Optional boolean to indicate if this filter is a logical child filter. Defaults to false
      */
     private createFilterHTML(filter: Filter, isChildLogical = false):HTMLElement {
-        let filterTagName = filter.getTagName();
-        let filterType = this.cqlFormatter.filterTypes.find(f => f.tagName === filterTagName);
+        const filterTagName = filter.getTagName();
+        const filterType = this.cqlFormatter.filterTypes.find(f => f.tagName === filterTagName);
         if (filterType) {
             let returnHtml: HTMLElement;
             switch (filterType.type) {
@@ -355,12 +355,12 @@ export class LayerFilter {
             }
         }
 
-        let valueFieldId = uuidv4();
-        let hiddenLabel = document.createElement('label');
+        const valueFieldId = uuidv4();
+        const hiddenLabel = document.createElement('label');
         hiddenLabel.className = "visually-hidden";
         hiddenLabel.textContent = "Expression for this filter";
         hiddenLabel.htmlFor = valueFieldId;
-        let valueField = document.createElement('input')
+        const valueField = document.createElement('input')
         valueField.className = "form-control"
         valueField.type = inputType;
         if (propertyType === "int") {
@@ -394,16 +394,16 @@ export class LayerFilter {
      * @param filterType{FilterType} The local definition of the type of filter
      */
     private createSingleValueFilterHTML(filter: Filter, filterType: FilterType) {
-        let filterRow = document.createElement('div')
+        const filterRow = document.createElement('div')
         filterRow.className = "row pb-2 gifw-filter";
 
-        let propertyCol = this.createPropertyColumnNode((filter as EqualTo).propertyName);
-        let propertySelectList = propertyCol.querySelector('select');
-        let propertyType: PropertyTypes = propertySelectList.options[propertySelectList.selectedIndex].dataset.gifwFilterPropType as PropertyTypes;
-        let operatorCol = this.createOperatorColumnNode(propertyType, filterType.friendlyName);
+        const propertyCol = this.createPropertyColumnNode((filter as EqualTo).propertyName);
+        const propertySelectList = propertyCol.querySelector('select');
+        const propertyType: PropertyTypes = propertySelectList.options[propertySelectList.selectedIndex].dataset.gifwFilterPropType as PropertyTypes;
+        const operatorCol = this.createOperatorColumnNode(propertyType, filterType.friendlyName);
         
-        let valuesCol = this.createValuesEditorNode(filterType, filter, propertyType);
-        let deleteCol = this.createDeleteButton();
+        const valuesCol = this.createValuesEditorNode(filterType, filter, propertyType);
+        const deleteCol = this.createDeleteButton();
 
         filterRow.appendChild(propertyCol);
         filterRow.appendChild(operatorCol);
@@ -420,7 +420,7 @@ export class LayerFilter {
      * @param propertyType Optional - The local definition of the Property Type
      */
     private createTwoValueEditor(filter: Filter, propertyType: PropertyTypes, datalistId: string) {
-        let valuesRow = document.createElement('div');
+        const valuesRow = document.createElement('div');
         valuesRow.className = "row";
 
         let inputType = "text";
@@ -438,12 +438,12 @@ export class LayerFilter {
             }
         }
 
-        let value1FieldId = uuidv4();
-        let hiddenLabel1 = document.createElement('label');
+        const value1FieldId = uuidv4();
+        const hiddenLabel1 = document.createElement('label');
         hiddenLabel1.className = "visually-hidden";
         hiddenLabel1.textContent = "Lower boundary for this filter";
         hiddenLabel1.htmlFor = value1FieldId;
-        let value1Field = document.createElement('input')
+        const value1Field = document.createElement('input')
         value1Field.className = "form-control"
 
         value1Field.type = inputType;
@@ -456,12 +456,12 @@ export class LayerFilter {
         value1Field.id = value1FieldId;
         value1Field.setAttribute('list', datalistId);
 
-        let value2FieldId = uuidv4();
-        let hiddenLabel2 = document.createElement('label');
+        const value2FieldId = uuidv4();
+        const hiddenLabel2 = document.createElement('label');
         hiddenLabel2.className = "visually-hidden";
         hiddenLabel2.textContent = "Upper boundary for this filter";
         hiddenLabel2.htmlFor = value2FieldId;
-        let value2Field = document.createElement('input')
+        const value2Field = document.createElement('input')
         value2Field.className = "form-control"
         value2Field.type = inputType;
         if (propertyType === "int") {
@@ -473,12 +473,12 @@ export class LayerFilter {
         value2Field.id = value2FieldId;
         value2Field.setAttribute('list', datalistId);
 
-        let value1Col = document.createElement('div');
+        const value1Col = document.createElement('div');
         value1Col.className = 'col-6 p-0';
         value1Col.appendChild(hiddenLabel1);
         value1Col.appendChild(value1Field);
 
-        let value2Col = document.createElement('div');
+        const value2Col = document.createElement('div');
         value2Col.className = 'col-6 p-0 ps-1';
         value2Col.appendChild(hiddenLabel2);
         value2Col.appendChild(value2Field);
@@ -495,17 +495,17 @@ export class LayerFilter {
      * @param filterType{FilterType} The local definition of the type of filter
      */
     private createTwoValueFilterHTML(filter: Filter, filterType: FilterType) {
-        let filterRow = document.createElement('div')
+        const filterRow = document.createElement('div')
         filterRow.className = "row pb-2 gifw-filter";
 
-        let propertyCol = this.createPropertyColumnNode((filter as EqualTo).propertyName);
-        let propertySelectList = propertyCol.querySelector('select');
-        let propertyType: PropertyTypes = propertySelectList.options[propertySelectList.selectedIndex].dataset.gifwFilterPropType as PropertyTypes;
-        let operatorCol = this.createOperatorColumnNode(propertyType, filterType.friendlyName);
+        const propertyCol = this.createPropertyColumnNode((filter as EqualTo).propertyName);
+        const propertySelectList = propertyCol.querySelector('select');
+        const propertyType: PropertyTypes = propertySelectList.options[propertySelectList.selectedIndex].dataset.gifwFilterPropType as PropertyTypes;
+        const operatorCol = this.createOperatorColumnNode(propertyType, filterType.friendlyName);
 
-        let valuesCol = this.createValuesEditorNode(filterType, filter, propertyType);
+        const valuesCol = this.createValuesEditorNode(filterType, filter, propertyType);
 
-        let deleteCol = this.createDeleteButton();
+        const deleteCol = this.createDeleteButton();
 
         filterRow.appendChild(propertyCol);
         filterRow.appendChild(operatorCol);
@@ -521,18 +521,18 @@ export class LayerFilter {
      * @param filterType{FilterType} The local definition of the type of filter
      */
     private createNullValueFilterHTML(filter: Filter, filterType: FilterType) {
-        let filterRow = document.createElement('div')
+        const filterRow = document.createElement('div')
         filterRow.className = "row pb-2 gifw-filter";
 
-        let propertyCol = this.createPropertyColumnNode((filter as EqualTo).propertyName);
-        let propertySelectList = propertyCol.querySelector('select');
-        let propertyType: PropertyTypes = propertySelectList.options[propertySelectList.selectedIndex].dataset.gifwFilterPropType as PropertyTypes;
-        let operatorCol = this.createOperatorColumnNode(propertyType,filterType.friendlyName);
+        const propertyCol = this.createPropertyColumnNode((filter as EqualTo).propertyName);
+        const propertySelectList = propertyCol.querySelector('select');
+        const propertyType: PropertyTypes = propertySelectList.options[propertySelectList.selectedIndex].dataset.gifwFilterPropType as PropertyTypes;
+        const operatorCol = this.createOperatorColumnNode(propertyType,filterType.friendlyName);
 
-        let valuesCol = document.createElement('div');
+        const valuesCol = document.createElement('div');
         valuesCol.className = "col-5 valuesEditor";
 
-        let deleteCol = this.createDeleteButton();
+        const deleteCol = this.createDeleteButton();
 
         filterRow.appendChild(propertyCol);
         filterRow.appendChild(operatorCol);
@@ -547,9 +547,9 @@ export class LayerFilter {
      * @param selectedPropertyName Optional - The name of the selected property
      */
     private createPropertyColumnNode(selectedPropertyName?: string) {
-        let propertyCol = document.createElement('div');
+        const propertyCol = document.createElement('div');
         propertyCol.className = "col-3 propertySelector";
-        let propertySelectList = this.createPropertySelectList(selectedPropertyName);
+        const propertySelectList = this.createPropertySelectList(selectedPropertyName);
         propertyCol.appendChild(propertySelectList);
         return propertyCol;
     }
@@ -559,12 +559,12 @@ export class LayerFilter {
      * @param selectedPropertyName Optional - The name of the selected property
      */
     private createPropertySelectList(selectedPropertyName?: string) {
-        let propertySelectList = document.createElement('select');
-        let propertyOptions: HTMLOptionElement[] = [];
+        const propertySelectList = document.createElement('select');
+        const propertyOptions: HTMLOptionElement[] = [];
 
 
         this.layerProperties.filter(f => f.type.indexOf("gml:") === -1).forEach(prop => {
-            let option = document.createElement('option');
+            const option = document.createElement('option');
             option.value = prop.name;
             option.text = prop.name;
             option.dataset.gifwFilterPropType = prop.localType;
@@ -577,7 +577,7 @@ export class LayerFilter {
         propertySelectList.append(...propertyOptions);
         propertySelectList.className = "form-select";
         
-        propertySelectList.addEventListener('change', e => {
+        propertySelectList.addEventListener('change', () => {
             this.updateOperatorsSelectList(propertySelectList);
         })
         return propertySelectList;
@@ -588,10 +588,10 @@ export class LayerFilter {
      * @param propertySelectList The property select list that is linked to the operator
      */
     private updateOperatorsSelectList(propertySelectList: HTMLSelectElement) {
-        let propertyType:PropertyTypes = propertySelectList.options[propertySelectList.selectedIndex].dataset.gifwFilterPropType as PropertyTypes;
-        let filterRow = propertySelectList.closest('.row');
-        let operatorsSelectList:HTMLSelectElement = filterRow.querySelector('.filterOperator select');
-        let updatedSelectList = this.createOperatorSelectList(propertyType, operatorsSelectList.options[operatorsSelectList.selectedIndex].value);
+        const propertyType:PropertyTypes = propertySelectList.options[propertySelectList.selectedIndex].dataset.gifwFilterPropType as PropertyTypes;
+        const filterRow = propertySelectList.closest('.row');
+        const operatorsSelectList:HTMLSelectElement = filterRow.querySelector('.filterOperator select');
+        const updatedSelectList = this.createOperatorSelectList(propertyType, operatorsSelectList.options[operatorsSelectList.selectedIndex].value);
         operatorsSelectList.replaceWith(updatedSelectList);
         this.updateValuesEditor(updatedSelectList);
 
@@ -603,7 +603,7 @@ export class LayerFilter {
      * @param selectedOperatorName Optional - The operator that should be selected
      */
     private createOperatorColumnNode(propertyType: PropertyTypes, selectedOperatorName?: string) {
-        let operatorCol = document.createElement('div');
+        const operatorCol = document.createElement('div');
         operatorCol.className = "col-3 filterOperator";
         
         operatorCol.appendChild(this.createOperatorSelectList(propertyType, selectedOperatorName))
@@ -616,8 +616,8 @@ export class LayerFilter {
      * @param selectedOperatorName Optional - The operator that should be selected
      */
     private createOperatorSelectList(propertyType: PropertyTypes, selectedOperatorName?: string) {
-        let operatorSelectList = document.createElement('select');
-        let operatorOptions: HTMLOptionElement[] = [];
+        const operatorSelectList = document.createElement('select');
+        const operatorOptions: HTMLOptionElement[] = [];
 
         let allowedOperators = this.cqlFormatter.filterTypes.filter(f => f.allowedPropertyTypes.includes(propertyType));
         if (allowedOperators.length === 0) {
@@ -625,7 +625,7 @@ export class LayerFilter {
             allowedOperators = this.cqlFormatter.filterTypes.filter(f => f.allowedPropertyTypes.includes("string"));
         }
         allowedOperators.forEach(operator => {
-            let option = document.createElement('option');
+            const option = document.createElement('option');
             option.value = operator.cqlTag;
             option.text = operator.friendlyName;
             if (selectedOperatorName === operator.friendlyName) {
@@ -635,7 +635,7 @@ export class LayerFilter {
         })
         operatorSelectList.append(...operatorOptions);
         operatorSelectList.className = "form-select";
-        operatorSelectList.addEventListener('change', e => {
+        operatorSelectList.addEventListener('change', () => {
             this.updateValuesEditor(operatorSelectList);
         })
         return operatorSelectList;
@@ -648,7 +648,7 @@ export class LayerFilter {
      * @param propertyType{PropertyTypes} Optional - The local definition of the Property Type
      */
     private createValuesEditorNode(filterType: FilterType, filter?: Filter, propertyType?: PropertyTypes) {
-        let valuesCol = document.createElement('div');
+        const valuesCol = document.createElement('div');
         valuesCol.className = "col-5 valuesEditor";
         valuesCol.appendChild(this.createValuesEditor(filterType, filter, propertyType));
 
@@ -663,7 +663,7 @@ export class LayerFilter {
      */
     private createValuesEditor(filterType: FilterType, filter?: Filter, propertyType?: PropertyTypes) {
         let returnEle: HTMLElement;
-        let datalistId = uuidv4();
+        const datalistId = uuidv4();
         switch (filterType.type) {
             case "singleValue":
                 returnEle = this.createSingleValueEditor(filter, propertyType, filterType, datalistId);
@@ -675,7 +675,7 @@ export class LayerFilter {
                 returnEle = document.createElement('div'); //intentionally blank
                 break;
         }
-        let datalist = document.createElement('datalist');
+        const datalist = document.createElement('datalist');
         datalist.id = datalistId;
         returnEle.appendChild(datalist);
         return returnEle;
@@ -686,14 +686,14 @@ export class LayerFilter {
      * @param operatorSelectList{HTMLSelectElement} The operator select list whose linked values editor we want to update
      */
     private updateValuesEditor(operatorSelectList: HTMLSelectElement) {
-        let operator = operatorSelectList.options[operatorSelectList.selectedIndex].value;
-        let valuesRow = operatorSelectList.closest('.row');
-        let valuesEditor: HTMLElement = valuesRow.querySelector('.valuesEditor');
-        let existingValue = valuesEditor.querySelector('input')?.value;
+        const operator = operatorSelectList.options[operatorSelectList.selectedIndex].value;
+        const valuesRow = operatorSelectList.closest('.row');
+        const valuesEditor: HTMLElement = valuesRow.querySelector('.valuesEditor');
+        const existingValue = valuesEditor.querySelector('input')?.value;
 
-        let propertySelectList: HTMLSelectElement = valuesRow.querySelector('.propertySelector select');
-        let propertyType = propertySelectList.options[propertySelectList.selectedIndex].dataset.gifwFilterPropType as PropertyTypes;
-        let updatedValuesEditor = this.createValuesEditor(this.cqlFormatter.filterTypes.filter(f => f.cqlTag === operator)[0], undefined, propertyType);
+        const propertySelectList: HTMLSelectElement = valuesRow.querySelector('.propertySelector select');
+        const propertyType = propertySelectList.options[propertySelectList.selectedIndex].dataset.gifwFilterPropType as PropertyTypes;
+        const updatedValuesEditor = this.createValuesEditor(this.cqlFormatter.filterTypes.filter(f => f.cqlTag === operator)[0], undefined, propertyType);
         let updatedValuesEditorPrimaryInput = updatedValuesEditor;
         if (updatedValuesEditorPrimaryInput.tagName.toLowerCase() !== "input") {
             updatedValuesEditorPrimaryInput = updatedValuesEditorPrimaryInput.querySelector('input');
@@ -704,7 +704,7 @@ export class LayerFilter {
             switch ((updatedValuesEditorPrimaryInput as HTMLInputElement).type) {
                 case "number":
                     //can we convert the value to a number
-                    if (!isNaN(existingValue as any)) {
+                    if (!isNaN(existingValue as unknown as number)) {
                         (updatedValuesEditorPrimaryInput as HTMLInputElement).value = existingValue;
                     }
                     break;
@@ -719,7 +719,7 @@ export class LayerFilter {
 
         valuesEditor.replaceChildren(updatedValuesEditor);
 
-        let filterRow:HTMLElement = valuesRow.closest('.gifw-filter');
+        const filterRow:HTMLElement = valuesRow.closest('.gifw-filter');
         this.updateSuggestionsListForFilter(filterRow);
     }
 
@@ -727,21 +727,21 @@ export class LayerFilter {
      * Creates the HTML and event listeners for the delete filter row button
      * */
     private createDeleteButton() {
-        let deleteContainer = document.createElement('div');
+        const deleteContainer = document.createElement('div');
         deleteContainer.className = "col-1 deleteButton";
 
-        let deleteButton = document.createElement('button');
+        const deleteButton = document.createElement('button');
         deleteButton.type = 'button';
         deleteButton.className = "btn btn-outline-danger";
         deleteButton.innerHTML = `<i class="bi bi-trash"></i>`;
         deleteButton.addEventListener('click', e => {
-            let valuesRow = (e.currentTarget as HTMLElement).closest('.row');
+            const valuesRow = (e.currentTarget as HTMLElement).closest('.row');
             valuesRow.remove();
             //is this a child group
-            let parentSection = valuesRow.closest('.gifw-child-filter-section');
+            const parentSection = valuesRow.closest('.gifw-child-filter-section');
             if (parentSection) {
                 //if yes, is this last values row
-                let remainingRows = parentSection.querySelectorAll('.gifw-filter');
+                const remainingRows = parentSection.querySelectorAll('.gifw-filter');
                 if (remainingRows.length === 0) {
                     //delete the entire group
                     parentSection.remove();
@@ -760,18 +760,18 @@ export class LayerFilter {
      */
     private createConditionWrapper(filter?: Filter) {
 
-        let logicalContainer = document.createElement('div');
+        const logicalContainer = document.createElement('div');
         logicalContainer.className = `col border border-0 p-2 m-2 rounded`;
 
-        let logicOperatorsRow = document.createElement('div');
+        const logicOperatorsRow = document.createElement('div');
         logicOperatorsRow.className = "row logicSelector";
 
-        let logicOperatorsSelectList = document.createElement('select');
+        const logicOperatorsSelectList = document.createElement('select');
         logicOperatorsSelectList.className = "form-control-select form-control-sm";
-        let logicOperatorsOptions: HTMLOptionElement[] = [];
-        let operators = this.cqlFormatter.filterTypes.filter(f => f.type === "logical" || f.type === "negation");
+        const logicOperatorsOptions: HTMLOptionElement[] = [];
+        const operators = this.cqlFormatter.filterTypes.filter(f => f.type === "logical" || f.type === "negation");
         operators.forEach(operator => {
-            let opt = document.createElement('option');
+            const opt = document.createElement('option');
             opt.value = operator.tagName;
             opt.text = operator.friendlyName;
             if (filter) {
@@ -783,10 +783,10 @@ export class LayerFilter {
         })
         logicOperatorsSelectList.append(...logicOperatorsOptions);
 
-        let logicOperatorsParagraph = document.createElement('p');
-        let startText = document.createElement('span');
+        const logicOperatorsParagraph = document.createElement('p');
+        const startText = document.createElement('span');
         startText.innerText = "Match ";
-        let endText = document.createElement('span');
+        const endText = document.createElement('span');
         endText.innerText = " of the following conditions:";
         logicOperatorsParagraph.appendChild(startText);
         logicOperatorsParagraph.appendChild(logicOperatorsSelectList);
@@ -803,14 +803,14 @@ export class LayerFilter {
      * Creates the HTML and event listeners for an Add Condition button
      * */
     private createAddConditionButton() {
-        let buttonContainer = document.createElement('div');
+        const buttonContainer = document.createElement('div');
         buttonContainer.className = "gifw-filter-action";
-        let button = document.createElement('button');
+        const button = document.createElement('button');
         button.type = "button";
         button.className = "btn btn-sm btn-outline-dark me-2";
         button.innerHTML = `<span class="bi bi-plus-circle"></span> Add condition`;
         button.addEventListener('click', e => {
-            let newCondition = this.createEmptyFilterRow();
+            const newCondition = this.createEmptyFilterRow();
             (e.currentTarget as HTMLElement).parentElement.insertBefore(newCondition, e.currentTarget as HTMLElement);
         })
         return button;
@@ -820,14 +820,14 @@ export class LayerFilter {
      * Creates the HTML and event listeners for an Add Group button
      * */
     private createAddGroupButton() {
-        let buttonContainer = document.createElement('div');
+        const buttonContainer = document.createElement('div');
         buttonContainer.className = "gifw-filter-action";
-        let button = document.createElement('button');
+        const button = document.createElement('button');
         button.type = "button";
         button.className = "btn btn-sm btn-outline-dark";
         button.innerHTML = `<span class="bi bi-view-list"></span> Add group`;
         button.addEventListener('click', e => {
-            let newSection = this.createEmptyFilterHTML(true);
+            const newSection = this.createEmptyFilterHTML(true);
             (e.currentTarget as HTMLElement).parentElement.insertBefore(newSection, e.currentTarget as HTMLElement);
         })
         return button;
@@ -841,11 +841,11 @@ export class LayerFilter {
         //loop through filters and make sure there is a value
         //everywhere there should be and that it is valid
         let valid = true;
-        let filterRows = document.querySelectorAll('.gifw-filter');
+        const filterRows = document.querySelectorAll('.gifw-filter');
         filterRows.forEach(filterRow => {
-            let filter = this.getFilterByRow(filterRow);
-            let filterType = this.cqlFormatter.filterTypes.find(f => f.tagName === filter.getTagName());
-            let invalidFeedbackEle = filterRow.querySelector('.valuesEditor .invalid-feedback');
+            const filter = this.getFilterByRow(filterRow);
+            const filterType = this.cqlFormatter.filterTypes.find(f => f.tagName === filter.getTagName());
+            const invalidFeedbackEle = filterRow.querySelector('.valuesEditor .invalid-feedback');
             if (invalidFeedbackEle) {
                 invalidFeedbackEle.remove();
             }
@@ -853,37 +853,41 @@ export class LayerFilter {
 
             switch (filterType.type) {
                 case "singleValue":
-                    let expression;
-                    if (filter instanceof IsLike) {
-                        expression = filter.pattern;
-                    } else {
-                        expression = (filter as EqualTo).expression;
-                    }
-                    if (expression === "") {
-                        this.markRowAsInvalid(filterRow, "This field needs a value")
-                        valid = false;
-                    }
-                    break;
-                case "twoValue":
-                    //determine if its a date so we can do date comparison if necessary
-                    let propertySelector: HTMLSelectElement = filterRow.querySelector('.propertySelector select');
-                    let propType = propertySelector.selectedOptions[0].dataset.gifwFilterPropType as PropertyTypes;
-
-                    if ((filter as IsBetween).upperBoundary.toString() === "" || (filter as IsBetween).lowerBoundary.toString() === "") {
-                        this.markRowAsInvalid(filterRow,"Both fields need a value")
-                        valid = false;
-                    } else if (propType === "date-time" || propType === "date") {
-                        let upperBoundaryAsDate = new Date((filter as IsBetween).upperBoundary);
-                        let lowerBoundaryAsDate = new Date((filter as IsBetween).lowerBoundary)
-                        if (lowerBoundaryAsDate >= upperBoundaryAsDate) {
-                            this.markRowAsInvalid(filterRow, "Left hand date must be less than right hand date");
+                    {
+                        let expression;
+                        if (filter instanceof IsLike) {
+                            expression = filter.pattern;
+                        } else {
+                            expression = (filter as EqualTo).expression;
+                        }
+                        if (expression === "") {
+                            this.markRowAsInvalid(filterRow, "This field needs a value")
                             valid = false;
                         }
-                    } else if ((filter as IsBetween).upperBoundary <= (filter as IsBetween).lowerBoundary) {
-                        this.markRowAsInvalid(filterRow, "Left hand value must be less than right hand value");
-                        valid = false;
+                        break;
                     }
-                    break;
+                case "twoValue":
+                    {
+                        //determine if its a date so we can do date comparison if necessary
+                        const propertySelector: HTMLSelectElement = filterRow.querySelector('.propertySelector select');
+                        const propType = propertySelector.selectedOptions[0].dataset.gifwFilterPropType as PropertyTypes;
+
+                        if ((filter as IsBetween).upperBoundary.toString() === "" || (filter as IsBetween).lowerBoundary.toString() === "") {
+                            this.markRowAsInvalid(filterRow, "Both fields need a value")
+                            valid = false;
+                        } else if (propType === "date-time" || propType === "date") {
+                            const upperBoundaryAsDate = new Date((filter as IsBetween).upperBoundary);
+                            const lowerBoundaryAsDate = new Date((filter as IsBetween).lowerBoundary)
+                            if (lowerBoundaryAsDate >= upperBoundaryAsDate) {
+                                this.markRowAsInvalid(filterRow, "Left hand date must be less than right hand date");
+                                valid = false;
+                            }
+                        } else if ((filter as IsBetween).upperBoundary <= (filter as IsBetween).lowerBoundary) {
+                            this.markRowAsInvalid(filterRow, "Left hand value must be less than right hand value");
+                            valid = false;
+                        }
+                        break;
+                    }
             }
         });
         
@@ -896,7 +900,7 @@ export class LayerFilter {
      * @param message{string} The error message to show
      */
     private markRowAsInvalid(row:Element, message: string): void {
-        let invalidHtml = document.createElement('div');
+        const invalidHtml = document.createElement('div');
         invalidHtml.className = "invalid-feedback";
         invalidHtml.innerText = message;
         row.querySelector('.valuesEditor input').insertAdjacentElement('afterend', invalidHtml);
@@ -907,7 +911,7 @@ export class LayerFilter {
                 /*TODO - Ideally this would continuously check the validation rather 
                  * than wait for them to press apply, and would plug properly into 
                  * the validation system*/
-                let invalidFeedbackEle = (e.currentTarget as Element).closest('.valuesEditor').querySelector('.invalid-feedback');
+                const invalidFeedbackEle = (e.currentTarget as Element).closest('.valuesEditor').querySelector('.invalid-feedback');
                 if (invalidFeedbackEle) {
                     invalidFeedbackEle.remove();
                 }
@@ -924,23 +928,23 @@ export class LayerFilter {
      * */
     private applyFilter() {
         //get filter rows
-        let filterGroup = document.querySelector('.gifw-parent-filter-section');
+        const filterGroup = document.querySelector('.gifw-parent-filter-section');
 
         //what type of logic filter is this?
-        let logicSelector:HTMLSelectElement = filterGroup.querySelector('.logicSelector select');
-        let logicTypeValue = logicSelector.selectedOptions[0].value;
-        let logicType = this.cqlFormatter.filterTypes.filter(f => f.tagName === logicTypeValue)[0];
+        const logicSelector:HTMLSelectElement = filterGroup.querySelector('.logicSelector select');
+        const logicTypeValue = logicSelector.selectedOptions[0].value;
+        const logicType = this.cqlFormatter.filterTypes.filter(f => f.tagName === logicTypeValue)[0];
         let topLevelFilter: Filter;
 
-        let filterGroups = filterGroup.querySelectorAll('.gifw-child-filter-section');
+        const filterGroups = filterGroup.querySelectorAll('.gifw-child-filter-section');
 
         //TODO - This is nasty, needs the DOM to be a bit cleaner and this will be easier to do
-        let directChildFilters = filterGroup.querySelector('.row > .col').querySelectorAll(':scope > .gifw-filter')
+        const directChildFilters = filterGroup.querySelector('.row > .col').querySelectorAll(':scope > .gifw-filter')
 
-        let groupFilters: Filter[] = [];
+        const groupFilters: Filter[] = [];
 
         directChildFilters.forEach(filterRow => {
-            let filter = this.getFilterByRow(filterRow);
+            const filter = this.getFilterByRow(filterRow);
             groupFilters.push(filter);
         })
         if (groupFilters.length === 0) {
@@ -956,8 +960,10 @@ export class LayerFilter {
                     topLevelFilter = new Or(...groupFilters);
                     break;
                 case "Not":
-                    let andFilter = new And(...groupFilters);
-                    topLevelFilter = new Not(andFilter);
+                    {
+                        const andFilter = new And(...groupFilters);
+                        topLevelFilter = new Not(andFilter);
+                    }
             }
         }
         //at this point, the top level filter either contains a single filter
@@ -965,16 +971,16 @@ export class LayerFilter {
         //append them as a new condition (if its a logical) or turn the top level
         //filter into a logical and push it on the end
         filterGroups.forEach(filterGroup => {
-            let logicSelector: HTMLSelectElement = filterGroup.querySelector('.logicSelector select');
-            let logicTypeValue = logicSelector.selectedOptions[0].value;
-            let logicType = this.cqlFormatter.filterTypes.filter(f => f.tagName === logicTypeValue)[0];
+            const logicSelector: HTMLSelectElement = filterGroup.querySelector('.logicSelector select');
+            const logicTypeValue = logicSelector.selectedOptions[0].value;
+            const logicType = this.cqlFormatter.filterTypes.filter(f => f.tagName === logicTypeValue)[0];
 
-            let directChildFilters = filterGroup.querySelector('.row > .col').querySelectorAll(':scope > .gifw-filter')
+            const directChildFilters = filterGroup.querySelector('.row > .col').querySelectorAll(':scope > .gifw-filter')
 
-            let groupFilters: Filter[] = [];
+            const groupFilters: Filter[] = [];
 
             directChildFilters.forEach(filterRow => {
-                let filter = this.getFilterByRow(filterRow);
+                const filter = this.getFilterByRow(filterRow);
                 groupFilters.push(filter);
             })
 
@@ -995,8 +1001,10 @@ export class LayerFilter {
                             topLevelFilter = new Or(...groupFilters);
                             break;
                         case "Not":
-                            let andFilter = new And(...groupFilters);
-                            topLevelFilter = new Not(andFilter);
+                            {
+                                const andFilter = new And(...groupFilters);
+                                topLevelFilter = new Not(andFilter);
+                            }
                     }
                 }
             } else {
@@ -1016,13 +1024,15 @@ export class LayerFilter {
                         }
                         break;
                     case "Not":
-                        let andFilter = new And(...groupFilters);
-                        let notFilter = new Not(andFilter);
-                        (topLevelFilter as And).conditions.push(notFilter)
+                        {
+                            const andFilter = new And(...groupFilters);
+                            const notFilter = new Not(andFilter);
+                            (topLevelFilter as And).conditions.push(notFilter)
+                        }
                 }
             }
         });
-        let source = (this.layer as olLayer).getSource();
+        const source = (this.layer as olLayer).getSource();
         if (topLevelFilter) {
             let cqlFilter = this.cqlFormatter.write(topLevelFilter);
             (this.layer as olLayer).set('gifw-filter-applied', topLevelFilter);
@@ -1049,63 +1059,67 @@ export class LayerFilter {
      * @returns{Filter}
      */
     private getFilterByRow(filterRow:Element) {
-        let propertySelector: HTMLSelectElement = filterRow.querySelector('.propertySelector select');
-        let propName = propertySelector.selectedOptions[0].value;
-        let propType = propertySelector.selectedOptions[0].dataset.gifwFilterPropType as PropertyTypes;
-        let operatorSelector: HTMLSelectElement = filterRow.querySelector('.filterOperator select');
-        let operatorName = operatorSelector.selectedOptions[0].value;
+        const propertySelector: HTMLSelectElement = filterRow.querySelector('.propertySelector select');
+        const propName = propertySelector.selectedOptions[0].value;
+        const propType = propertySelector.selectedOptions[0].dataset.gifwFilterPropType as PropertyTypes;
+        const operatorSelector: HTMLSelectElement = filterRow.querySelector('.filterOperator select');
+        const operatorName = operatorSelector.selectedOptions[0].value;
 
-        let filterType = this.getFilterTypeByCQLOperator(operatorName);
+        const filterType = this.getFilterTypeByCQLOperator(operatorName);
         let filter: Filter;
 
         switch (filterType.type) {
             case "singleValue":
-                var valueInput: HTMLInputElement = filterRow.querySelector('.valuesEditor input');
-                var value = valueInput.value;
-                //you must pass a number to the GreaterThan/LessThan/Between operators
-                //but dates cannot be coerced into a number, so we abuse 'any' to allow
-                //type checking to succeed with both numbers and strings which are both valid
-                var coercedValue: any = value;
-                if (propType === "int" || propType === "number") {
-                    coercedValue = Number(value);
+                {
+                    const valueInput: HTMLInputElement = filterRow.querySelector('.valuesEditor input');
+                    const value = valueInput.value;
+                    //you must pass a number to the GreaterThan/LessThan/Between operators
+                    //but dates cannot be coerced into a number, so we abuse 'any' to allow
+                    //type checking to succeed with both numbers and strings which are both valid
+                    let coercedValue: string | number = value;
+                    if (propType === "int" || propType === "number") {
+                        coercedValue = Number(value);
+                    }
+                    switch (filterType.tagName) {
+                        case "PropertyIsEqualTo":
+                            filter = new EqualTo(propName, coercedValue);
+                            break;
+                        case "PropertyIsNotEqualTo":
+                            filter = new NotEqualTo(propName, coercedValue);
+                            break;
+                        case "PropertyIsGreaterThan":
+                            filter = new GreaterThan(propName, coercedValue as number);
+                            break;
+                        case "PropertyIsGreaterThanOrEqualTo":
+                            filter = new GreaterThanOrEqualTo(propName, coercedValue as number);
+                            break;
+                        case "PropertyIsLessThan":
+                            filter = new LessThan(propName, coercedValue as number);
+                            break;
+                        case "PropertyIsLessThanOrEqualTo":
+                            filter = new LessThanOrEqualTo(propName, coercedValue as number);
+                            break;
+                        case "PropertyIsLike":
+                            filter = new IsLike(propName, coercedValue as string, "*", ".");
+                            break;
+                    }
+                    break;
                 }
-                switch (filterType.tagName) {
-                    case "PropertyIsEqualTo":
-                        filter = new EqualTo(propName, coercedValue);
-                        break;
-                    case "PropertyIsNotEqualTo":
-                        filter = new NotEqualTo(propName, coercedValue);
-                        break;
-                    case "PropertyIsGreaterThan":
-                        filter = new GreaterThan(propName, coercedValue);
-                        break;
-                    case "PropertyIsGreaterThanOrEqualTo":
-                        filter = new GreaterThanOrEqualTo(propName, coercedValue);
-                        break;
-                    case "PropertyIsLessThan":
-                        filter = new LessThan(propName, coercedValue);
-                        break;
-                    case "PropertyIsLessThanOrEqualTo":
-                        filter = new LessThanOrEqualTo(propName, coercedValue);
-                        break;
-                    case "PropertyIsLike":
-                        filter = new IsLike(propName, coercedValue, "*", ".");
-                        break;
-                }
-                break;
-            case "twoValue":
-                var valueInputs: NodeListOf<HTMLInputElement> = filterRow.querySelectorAll('.valuesEditor input');
-                var lowerBoundaryValue = valueInputs[0].value;
-                var upperBoundaryValue = valueInputs[1].value;
-                var coercedLowerBoundaryValue: any = lowerBoundaryValue;
-                var coercedUpperBoundaryValue: any = upperBoundaryValue;
-                if (propType === "int" || propType === "number") {
-                    coercedLowerBoundaryValue = Number(lowerBoundaryValue);
-                    coercedUpperBoundaryValue = Number(upperBoundaryValue);
-                }
+                case "twoValue":
+                {
+                    const valueInputs: NodeListOf<HTMLInputElement> = filterRow.querySelectorAll('.valuesEditor input');
+                    const lowerBoundaryValue = valueInputs[0].value;
+                    const upperBoundaryValue = valueInputs[1].value;
+                    let coercedLowerBoundaryValue: string | number = lowerBoundaryValue;
+                    let coercedUpperBoundaryValue: string | number = upperBoundaryValue;
+                    if (propType === "int" || propType === "number") {
+                        coercedLowerBoundaryValue = Number(lowerBoundaryValue);
+                        coercedUpperBoundaryValue = Number(upperBoundaryValue);
+                    }
 
-                filter = new IsBetween(propName, coercedLowerBoundaryValue, coercedUpperBoundaryValue);
-                break;
+                    filter = new IsBetween(propName, coercedLowerBoundaryValue as number, coercedUpperBoundaryValue as number);
+                    break;
+                }
             case "nullValue":
                 filter = new IsNull(propName);
                 break;
@@ -1128,7 +1142,7 @@ export class LayerFilter {
      * @param operatorName{string} The CQL operator name
      */
     private getFilterTypeByCQLOperator(operatorName: string) {
-        let filterType = this.cqlFormatter.filterTypes.filter(f => f.cqlTag === operatorName);
+        const filterType = this.cqlFormatter.filterTypes.filter(f => f.cqlTag === operatorName);
         if (filterType && filterType.length === 1) {
             return filterType[0];
         }
@@ -1177,11 +1191,11 @@ export class LayerFilter {
      * @returns{Property[]}
      * */
     private async getPropertiesForLayer() {
-        let source = (this.layer as olLayer).getSource();
+        const source = (this.layer as olLayer).getSource();
         if (source instanceof TileWMS || source instanceof ImageWMS) {
             //get feature type description and capabilities from server
-            let sourceParams = source.getParams();
-            let featureTypeName = sourceParams.LAYERS;
+            const sourceParams = source.getParams();
+            const featureTypeName = sourceParams.LAYERS;
             let baseUrl: string;
             if (source instanceof TileWMS) {
                 baseUrl = source.getUrls()[0];
@@ -1189,7 +1203,7 @@ export class LayerFilter {
                 baseUrl = (source as ImageWMS).getUrl();
             }
 
-            let authKey = Util.Helper.getValueFromObjectByKey(sourceParams, "authkey");
+            const authKey = Util.Helper.getValueFromObjectByKey(sourceParams, "authkey");
             let additionalParams = {};
             if (authKey) {
                 additionalParams = { authkey: authKey };
@@ -1199,15 +1213,15 @@ export class LayerFilter {
                 proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
             }
             const layerHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(this.layerConfig.layerSource);
-            let serverCapabilities = await Metadata.getBasicCapabilities(baseUrl, additionalParams, proxyEndpoint, layerHeaders);
+            const serverCapabilities = await Metadata.getBasicCapabilities(baseUrl, additionalParams, proxyEndpoint, layerHeaders);
 
             if (serverCapabilities &&
                 serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType && c.url !== '').length !== 0 &&
                 serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WFS_GetFeature && c.url !== '').length !== 0
             ) {
                 //has all relevant capabilities
-                let describeFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType)[0];
-                let featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, featureTypeName, describeFeatureCapability.method, undefined, proxyEndpoint, undefined, layerHeaders);
+                const describeFeatureCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.DescribeFeatureType)[0];
+                const featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, featureTypeName, describeFeatureCapability.method, undefined, proxyEndpoint, undefined, layerHeaders);
                 if (featureDescription && featureDescription.featureTypes.length === 1) {
                     return featureDescription.featureTypes[0].properties;
                 }
@@ -1225,21 +1239,21 @@ export class LayerFilter {
 
         if (this.useWPSSearchSuggestions) {
             //check the cache
-            let cachedValues = this._uniquePropValuesCache.filter(c => c.propertyName === propertyName);
+            const cachedValues = this._uniquePropValuesCache.filter(c => c.propertyName === propertyName);
             if (cachedValues.length !== 0) {
                 return cachedValues[0].values;
             }
 
-            let source = (this.layer as olLayer).getSource();
+            const source = (this.layer as olLayer).getSource();
             if (source instanceof TileWMS || source instanceof ImageWMS) {
                 //get feature type description and capabilities from server
-                let sourceParams = source.getParams();
-                let featureTypeName = sourceParams.LAYERS;
+                const sourceParams = source.getParams();
+                const featureTypeName = sourceParams.LAYERS;
 
-                let xmlPayload = this.getWPSPagedUniquePayload(featureTypeName, propertyName);
-                let baseUrl = this.wpsExecuteCapability.url;
+                const xmlPayload = this.getWPSPagedUniquePayload(featureTypeName, propertyName);
+                const baseUrl = this.wpsExecuteCapability.url;
                 let searchParams = new URLSearchParams();
-                let authKey = Util.Helper.getValueFromObjectByKey(sourceParams, "authkey") as string;
+                const authKey = Util.Helper.getValueFromObjectByKey(sourceParams, "authkey") as string;
                 if (authKey) {
                     searchParams = new URLSearchParams({ authkey: authKey });
                 }
@@ -1250,7 +1264,7 @@ export class LayerFilter {
                     url = this.gifwMapInstance.createProxyURL(url);
                 }
                 const httpHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(this.layerConfig.layerSource);
-                let response = await fetch(url,
+                const response = await fetch(url,
                     {
                         method: this.wpsExecuteCapability.method,
                         body: xmlPayload,
@@ -1260,7 +1274,7 @@ export class LayerFilter {
                 if (!response.ok) {
                     throw new Error(`HTTP error: ${response.status}`);
                 }
-                let uniqueValues: PagedUniqueResponse = await response.json();
+                const uniqueValues: PagedUniqueResponse = await response.json();
                 if (uniqueValues.size <= 100) {
                     //add to cache
                     this._uniquePropValuesCache.push({ propertyName: propertyName, values: uniqueValues.values.sort() });
@@ -1277,9 +1291,9 @@ export class LayerFilter {
      * @param filterRow {HTMLElement} The filter row to update the datalist for
      * */
     private async updateSuggestionsListForFilter(filterRow: HTMLElement) {
-        let propertyName = this.getSelectedPropertyNameForRow(filterRow)
-        let suggestions = await this.getValueSuggestionsForProperty(propertyName);
-        let datalist = filterRow.querySelector('datalist');
+        const propertyName = this.getSelectedPropertyNameForRow(filterRow)
+        const suggestions = await this.getValueSuggestionsForProperty(propertyName);
+        const datalist = filterRow.querySelector('datalist');
         let opts = '';
         suggestions?.forEach(suggestion => {
             opts += `<option value="${suggestion}"></option>`;
@@ -1303,7 +1317,7 @@ export class LayerFilter {
      * class variables indicating if its available
      * */
     private async initPropertyValueSuggestions(): Promise<void> {
-        let source = (this.layer as olLayer).getSource();
+        const source = (this.layer as olLayer).getSource();
         if (source instanceof TileWMS || source instanceof ImageWMS) {
             //get feature type description and capabilities from server
             let baseUrl: string;
@@ -1317,19 +1331,20 @@ export class LayerFilter {
                 proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
             }
             const httpHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(this.layerConfig.layerSource);
-            let serverCapabilities = await Metadata.getWPSCapabilities(baseUrl, proxyEndpoint, {}, httpHeaders);
+            const serverCapabilities = await Metadata.getWPSCapabilities(baseUrl, proxyEndpoint, {}, httpHeaders);
 
             if (serverCapabilities &&
                 serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WPS_DescribeProcess && c.url !== '').length !== 0 &&
                 serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WPS_Execute && c.url !== '').length !== 0
             ) {
                 //has all relevant capabilities
-                let describeProcessCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WPS_DescribeProcess)[0];
+                const describeProcessCapability = serverCapabilities.capabilities.filter(c => c.type === CapabilityType.WPS_DescribeProcess)[0];
                 
-                let hasPagedUniqueProcess = await Metadata.hasWPSProcess(describeProcessCapability.url,
+                const hasPagedUniqueProcess = await Metadata.hasWPSProcess(describeProcessCapability.url,
                                                                         describeProcessCapability.method,
                                                                         'gs:PagedUnique',
                                                                         proxyEndpoint,
+                                                                        {},
                                                                         httpHeaders
                                                                         );
                 if (hasPagedUniqueProcess) {

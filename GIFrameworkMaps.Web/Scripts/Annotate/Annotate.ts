@@ -13,6 +13,7 @@ import { AnnotationTool, CircleTool, LineTool, PointTool, PolygonTool, TextTool 
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { GIFWMap } from "../Map";
 import VectorSource from "ol/source/Vector";
+import Feature from "ol/Feature";
 
 
 export default class Annotate extends olControl {
@@ -72,7 +73,7 @@ export default class Annotate extends olControl {
         exportContainer.className = 'gifw-export-annotation-control gifw-annotation-control ol-unselectable ol-control ol-hidden';
         exportContainer.appendChild(exportButton);
         this.element.appendChild(exportContainer);
-        exportButton.addEventListener('click', (e) => {
+        exportButton.addEventListener('click', () => {
             this.gifwMapInstance.resetInteractionsToDefault();
             exportButton.blur();
             if ((this.annotationLayer.getSource()).getFeatures().length === 0) {
@@ -89,7 +90,7 @@ export default class Annotate extends olControl {
         modifyContainer.className = 'gifw-modify-annotation-control gifw-annotation-control ol-unselectable ol-control ol-hidden';
         modifyContainer.appendChild(modifyButton);
         this.element.appendChild(modifyContainer);
-        modifyButton.addEventListener('click', (e) => {
+        modifyButton.addEventListener('click', () => {
             if (modifyContainer.classList.contains('ol-control-active')) {
                 this.gifwMapInstance.resetInteractionsToDefault();
                 modifyContainer.classList.remove('ol-control-active');
@@ -108,7 +109,7 @@ export default class Annotate extends olControl {
         clearAnnotationsContainer.className = 'gifw-clear-annotation-control gifw-annotation-control ol-unselectable ol-control ol-hidden';
         clearAnnotationsContainer.appendChild(clearAnnotationsButton);
         this.element.appendChild(clearAnnotationsContainer);
-        clearAnnotationsButton.addEventListener('click', (e) => {
+        clearAnnotationsButton.addEventListener('click', () => {
             this.gifwMapInstance.resetInteractionsToDefault();
             clearAnnotationsButton.blur();
             if ((this.annotationLayer.getSource()).getFeatures().length === 0) {
@@ -124,7 +125,7 @@ export default class Annotate extends olControl {
         this._exportAnnotationControlElement = exportContainer;
         this._modifyAnnotationControlElement = modifyContainer;
         this._clearAnnotationControlElement = clearAnnotationsContainer;
-        if ((this.annotationLayer.getSource() as VectorSource<any>).getFeatures().length === 0) {
+        if ((this.annotationLayer.getSource() as VectorSource<Feature>).getFeatures().length === 0) {
             this._exportAnnotationControlElement.querySelector('button').setAttribute('disabled', '');
             this._modifyAnnotationControlElement.querySelector('button').setAttribute('disabled', '');
             this._clearAnnotationControlElement.querySelector('button').setAttribute('disabled', '');
@@ -149,7 +150,7 @@ export default class Annotate extends olControl {
         });
 
         annotateButton.addEventListener('click', () => {
-            let containers: HTMLDivElement[] = [];
+            const containers: HTMLDivElement[] = [];
             this.annotationTools.forEach((tool) => {
                 containers.push(tool.buttonContainer);
             });
@@ -210,8 +211,8 @@ export default class Annotate extends olControl {
             }
         });
 
-        this.annotationLayer.on('change', e => {
-            if ((this.annotationLayer.getSource() as VectorSource<any>).getFeatures().length === 0) {
+        this.annotationLayer.on('change', () => {
+            if ((this.annotationLayer.getSource() as VectorSource<Feature>).getFeatures().length === 0) {
                 this._exportAnnotationControlElement.querySelector('button').setAttribute('disabled', '');
                 this._modifyAnnotationControlElement.querySelector('button').setAttribute('disabled', '');
                 this._clearAnnotationControlElement.querySelector('button').setAttribute('disabled', '');

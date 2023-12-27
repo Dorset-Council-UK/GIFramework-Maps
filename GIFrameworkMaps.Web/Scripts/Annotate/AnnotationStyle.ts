@@ -300,8 +300,6 @@ export default class AnnotationStyle extends Style {
         this.strokeColour = `rgb(${rgbStrokeColour.r}, ${rgbStrokeColour.g}, ${rgbStrokeColour.b})`;
         if (e.detail.style.pointHasBorder != undefined && e.detail.style.pointHasBorder != null) {
             this.pointHasBorder = e.detail.style.pointHasBorder;
-        } else {
-            this.pointHasBorder = this.pointHasBorder;
         }
         const rgbBorderColour = Util.Color.hexToRgb(this.borderColourHex);
         this.borderColour = `rgb(${rgbBorderColour.r}, ${rgbBorderColour.g}, ${rgbBorderColour.b})`;

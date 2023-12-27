@@ -2,7 +2,7 @@ import { DateTime } from "luxon";
 import { default as nunjucks } from "nunjucks";
 export class FeatureQueryTemplateHelper {
     public static configureNunjucks() {
-        let env = nunjucks.configure({ autoescape: false });
+        const env = nunjucks.configure({ autoescape: false });
         env.addFilter('date', (str, format) => {
             try {
                 let dt = DateTime.fromISO(str);

@@ -31,19 +31,19 @@ export class PrintPanel implements SidebarPanel {
         this.attachPrintControls();
         
     }
-;
+
     render() {
-    };
+    }
     /*TODO - Make this generic*/
     private attachCloseButton():void {
-        let container = document.querySelector(this.container);
-        let closeButton = container.querySelector('button[data-gifw-dismiss-sidebar]');
+        const container = document.querySelector(this.container);
+        const closeButton = container.querySelector('button[data-gifw-dismiss-sidebar]');
         if (closeButton !== null) {
-            closeButton.addEventListener('click', (e) => {
+            closeButton.addEventListener('click', () => {
                 Sidebar.close();
             });
         }
-    };
+    }
 
     private updateValidationRules() {
         const container: HTMLElement = document.querySelector(this.container);
@@ -91,12 +91,12 @@ export class PrintPanel implements SidebarPanel {
     }
 
     private attachPrintControls(): void {
-        let container: HTMLElement = document.querySelector(this.container);
+        const container: HTMLElement = document.querySelector(this.container);
 
-        let printToScaleCheckbox: HTMLInputElement = container.querySelector('#gifw-print-scale-print');
-        let printScaleContainer: HTMLElement = container.querySelector('#gifw-print-scale-container');
+        const printToScaleCheckbox: HTMLInputElement = container.querySelector('#gifw-print-scale-print');
+        const printScaleContainer: HTMLElement = container.querySelector('#gifw-print-scale-container');
 
-        printToScaleCheckbox.addEventListener('change', e => {
+        printToScaleCheckbox.addEventListener('change', () => {
             if (printToScaleCheckbox.checked) {
                 printScaleContainer.style.display = '';
             } else {
@@ -104,18 +104,18 @@ export class PrintPanel implements SidebarPanel {
             }
         })
 
-        let printPageSizeInput: HTMLSelectElement = container.querySelector('#gifw-print-pagesize');
-        printPageSizeInput.addEventListener('change', e => {
+        const printPageSizeInput: HTMLSelectElement = container.querySelector('#gifw-print-pagesize');
+        printPageSizeInput.addEventListener('change', () => {
             this.updateValidationRules();
         })
 
-        let printButton = container.querySelector('#gifw-print-do-print');
+        const printButton = container.querySelector('#gifw-print-do-print');
         printButton.addEventListener('click', (e) => {
             if (this.validatePrintOptions()) {
                 this.doPrint();
             } else {
                 //highlight error
-                let err = new Util.Error(Util.AlertType.Popup, Util.AlertSeverity.Warning, "Cannot print", "Your title or subtitle is too long")
+                const err = new Util.Error(Util.AlertType.Popup, Util.AlertSeverity.Warning, "Cannot print", "Your title or subtitle is too long")
                 err.show();
             }
             e.preventDefault();
@@ -177,9 +177,9 @@ export class PrintPanel implements SidebarPanel {
     }
 
     private validatePrintOptions(): boolean {
-        let container: HTMLElement = document.querySelector(this.container);
-        let form = container.querySelector('form');
-        let valid = form.checkValidity();
+        const container: HTMLElement = document.querySelector(this.container);
+        const form = container.querySelector('form');
+        const valid = form.checkValidity();
         form.classList.add('was-validated')
         return valid;
     }
@@ -191,8 +191,8 @@ export class PrintPanel implements SidebarPanel {
     *
     */
     private showLoading() {
-        let container: HTMLElement = document.querySelector(this.container);
-        let printButton:HTMLButtonElement = container.querySelector('#gifw-print-do-print');
+        const container: HTMLElement = document.querySelector(this.container);
+        const printButton:HTMLButtonElement = container.querySelector('#gifw-print-do-print');
         printButton.disabled = true;
         Util.Helper.addFullScreenLoader(this.gifwMapInstance.id, "Generating your print. Please wait a sec.", true, () => { this.cancelledByUser = true;container.dispatchEvent(new Event("gifw-export-cancel")) });
     }
@@ -204,8 +204,8 @@ export class PrintPanel implements SidebarPanel {
     *
     */
     private hideLoading() {
-        let container: HTMLElement = document.querySelector(this.container);
-        let printButton: HTMLButtonElement = container.querySelector('#gifw-print-do-print');
+        const container: HTMLElement = document.querySelector(this.container);
+        const printButton: HTMLButtonElement = container.querySelector('#gifw-print-do-print');
         printButton.disabled = false;
         Util.Helper.removeFullScreenLoader(this.gifwMapInstance.id);
 
@@ -219,8 +219,8 @@ export class PrintPanel implements SidebarPanel {
     }
 
     private showLongLoadingWarning(): void {
-        let mapEle = document.getElementById(`${this.gifwMapInstance.id}Container`);
-        let cancelButton = mapEle.querySelector('.gifw-full-screen-loader button');
+        const mapEle = document.getElementById(`${this.gifwMapInstance.id}Container`);
+        const cancelButton = mapEle.querySelector('.gifw-full-screen-loader button');
         if (cancelButton) {
             cancelButton.insertAdjacentHTML('afterend', `<p class="mt-2">This map is taking a while to generate.</p><p>You can cancel it with the button above and try removing some layers or reducing the quality to speed it up.</p>`)
         }

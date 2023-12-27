@@ -103,18 +103,20 @@ export class Tour {
                 //always
                 return true;
             default:
-                //specified days
-                let comparisonDate = DateTime.now().minus({ days: this.tourConfig.frequency }).toJSDate();
-                return this.getLastViewedTime() < comparisonDate;
+                {
+                    //specified days
+                    const comparisonDate = DateTime.now().minus({ days: this.tourConfig.frequency }).toJSDate();
+                    return this.getLastViewedTime() < comparisonDate;
+                }
         }
 
     }
 
     private getLastViewedTime(): Date { 
-        let lastViewedTimeSetting = UserSettings.getItem(this._localStorageKey, this._versionId);
+        const lastViewedTimeSetting = UserSettings.getItem(this._localStorageKey, this._versionId);
         if (lastViewedTimeSetting) {
             //attempt to convert the stored string into a real date
-            let lastViewedTime = DateTime.fromISO(lastViewedTimeSetting);
+            const lastViewedTime = DateTime.fromISO(lastViewedTimeSetting);
             if (lastViewedTime.invalidReason === null) {
                 return lastViewedTime.toJSDate();
             } else {

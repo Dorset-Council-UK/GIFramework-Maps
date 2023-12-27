@@ -27,29 +27,29 @@ export class SharePanel implements SidebarPanel {
         });
 
         this.render();
-    };
+    }
     render() {
         this.updatePermalink();
-    };
+    }
     /*TODO - Make this generic*/
     private attachCloseButton():void {
-        let container = document.querySelector(this.container);
-        let closeButton = container.querySelector('button[data-gifw-dismiss-sidebar]');
+        const container = document.querySelector(this.container);
+        const closeButton = container.querySelector('button[data-gifw-dismiss-sidebar]');
         if (closeButton !== null) {
-            closeButton.addEventListener('click', (e) => {
+            closeButton.addEventListener('click', () => {
                 Sidebar.close();
             });
         }
-    };
+    }
 
     private updatePermalink(): void {
-        let permalink = Util.Mapping.generatePermalinkForMap(this.gifwMapInstance);
-        let container = document.querySelector(this.container);
-        let directLinkInput:HTMLInputElement = container.querySelector('#gifw-share-link');
+        const permalink = Util.Mapping.generatePermalinkForMap(this.gifwMapInstance);
+        const container = document.querySelector(this.container);
+        const directLinkInput:HTMLInputElement = container.querySelector('#gifw-share-link');
         directLinkInput.value = permalink;
 
-        let embedCode = `<iframe src="${permalink}&embed=true" allowfullscreen width="100%" height="500px"></iframe>`
-        let embedCodeInput: HTMLTextAreaElement = container.querySelector('#gifw-share-embed-code');
+        const embedCode = `<iframe src="${permalink}&embed=true" allowfullscreen width="100%" height="500px"></iframe>`
+        const embedCodeInput: HTMLTextAreaElement = container.querySelector('#gifw-share-embed-code');
         embedCodeInput.value = embedCode;
     }
 
@@ -58,19 +58,19 @@ export class SharePanel implements SidebarPanel {
         const copyButtons: NodeListOf<HTMLButtonElement> = container.querySelectorAll('button[data-gifw-copy-target]');
         if (copyButtons) {
             copyButtons.forEach(b => {
-                b.addEventListener('click', e => {
-                    let targetSelector = b.dataset.gifwCopyTarget;
+                b.addEventListener('click', () => {
+                    const targetSelector = b.dataset.gifwCopyTarget;
                     if (targetSelector) {
-                        let copyTarget: HTMLInputElement = container.querySelector(targetSelector);
+                        const copyTarget: HTMLInputElement = container.querySelector(targetSelector);
                         if (copyTarget) {
                             navigator.clipboard.writeText(copyTarget.value).then(() => {
                                 /* clipboard successfully set */
-                                let tooltip = Tooltip.getOrCreateInstance(b);
+                                const tooltip = Tooltip.getOrCreateInstance(b);
                                 tooltip.show();
                                 window.setTimeout(() => { tooltip.hide() }, 3000);
                             }, () => {
                                 /* clipboard write failed */
-                                let errDialog = new Util.Error(Util.AlertType.Popup,
+                                const errDialog = new Util.Error(Util.AlertType.Popup,
                                     Util.AlertSeverity.Danger,
                                     "There was a problem copying to the clipboard",
                                     "<p>We couldn't automatically copy your link to the clipboard.</p><p>You can copy it manually by selecting the text and hitting <kbd>Ctrl</kbd> - <kbd>C</kbd> on Windows or <kbd>Cmd</kbd> - <kbd>C</kbd> on a Mac. For mobiles and touch screen devices, long tap and hold on the link, then choose Select All, then Copy.</p>")
@@ -83,14 +83,14 @@ export class SharePanel implements SidebarPanel {
         }
         //since the short link copy button is in a modal, we need to attach a slightly different event handler
         const copyShortLinkButton = document.querySelector('#short-link-modal button[data-gifw-copy-target]') as HTMLButtonElement;
-        copyShortLinkButton.addEventListener('click', e => {
-            let targetSelector = copyShortLinkButton.dataset.gifwCopyTarget;
+        copyShortLinkButton.addEventListener('click', () => {
+            const targetSelector = copyShortLinkButton.dataset.gifwCopyTarget;
             if (targetSelector) {
-                let copyTarget: HTMLInputElement = document.querySelector(targetSelector);
+                const copyTarget: HTMLInputElement = document.querySelector(targetSelector);
                 if (copyTarget) {
                     navigator.clipboard.writeText(copyTarget.value).then(() => {
                         /* clipboard successfully set */
-                        let tooltip = Tooltip.getOrCreateInstance(copyShortLinkButton);
+                        const tooltip = Tooltip.getOrCreateInstance(copyShortLinkButton);
                         tooltip.show();
                         window.setTimeout(() => { tooltip.hide() }, 3000);
                     }, () => {
@@ -102,7 +102,7 @@ export class SharePanel implements SidebarPanel {
         });
 
         const shortLinkButton: HTMLButtonElement = container.querySelector('#gifw-generate-short-link');
-        shortLinkButton.addEventListener('click', async e => {
+        shortLinkButton.addEventListener('click', async () => {
             shortLinkButton.insertAdjacentElement('afterbegin', Spinner.create(['spinner-border-sm','me-2']));
             shortLinkButton.disabled = true;
             const shortLink = await this.generateShortLink();
@@ -119,7 +119,7 @@ export class SharePanel implements SidebarPanel {
     private async generateShortLink() {
         const permalink = encodeURIComponent(Util.Mapping.generatePermalinkForMap(this.gifwMapInstance));
         const fetchUrl = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}api/GenerateShortUrl?url=${permalink}`;
-        let response = await fetch(fetchUrl, {
+        const response = await fetch(fetchUrl, {
             method: "POST"
         });
         if (!response.ok) {
@@ -128,7 +128,7 @@ export class SharePanel implements SidebarPanel {
             console.error(`HTTP error: ${response.status}`);
             return;
         }
-        let data = await response.text();
+        const data = await response.text();
         return data;
     }
 

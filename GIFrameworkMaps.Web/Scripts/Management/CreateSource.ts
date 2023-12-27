@@ -1,4 +1,4 @@
-declare var attributionRendererEndpoint:string;
+declare let attributionRendererEndpoint:string;
 export class CreateSource {
     attributionRendererEndpoint: string;
     attributionSelectElement: HTMLSelectElement;
@@ -11,7 +11,7 @@ export class CreateSource {
 
     public init() {
         //attach attribution renderer to attribution selector
-        this.attributionSelectElement.addEventListener('change',e => {
+        this.attributionSelectElement.addEventListener('change', () => {
             this.renderAttributionPreview();
         })
         this.renderAttributionPreview();

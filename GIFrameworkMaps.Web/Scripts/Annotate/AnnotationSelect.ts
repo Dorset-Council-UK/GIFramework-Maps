@@ -150,7 +150,7 @@ export default class AnnotationSelect extends Select {
             this.gifwMapInstance.olMap.addInteraction(this.modifyInteraction);
             this.modifyInteraction.setActive(true);
 
-            let defaultEditingStyleFunction = this.modifyInteraction.getOverlay().getStyleFunction();
+            const defaultEditingStyleFunction = this.modifyInteraction.getOverlay().getStyleFunction();
             this.modifyInteraction.getOverlay().setStyle((feature: FeatureLike) => {
                 return this.renderVertexDeletionTip(feature, defaultEditingStyleFunction);
             })

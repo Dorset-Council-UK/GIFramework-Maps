@@ -10,7 +10,7 @@ export class GIFWPopupOverlay {
 
     public init():void {
         const closerEle = document.getElementById('gifw-popup-closer');
-        let overlay = new Overlay({
+        const overlay = new Overlay({
             element: this.element,
             autoPan: {
                 margin: 60,
@@ -18,7 +18,7 @@ export class GIFWPopupOverlay {
             }
         });
         this.overlay = overlay;
-        closerEle.addEventListener('click', e => {
+        closerEle.addEventListener('click', () => {
             overlay.setPosition(undefined);
             closerEle.blur;
             return false;

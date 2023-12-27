@@ -17,13 +17,13 @@ export class Streetview {
      */
     public init(contextMenu: GIFWContextMenu) {
 
-        let streetviewControl =
+        const streetviewControl =
         {
             text: 'Checking for Street View imagery',
             classname: 'context-menu-item google-streetview-link',
-            callback: function (obj: any) {
-                let link: HTMLElement = document.querySelector('.context-menu-item.google-streetview-link');
-                let streetviewUrl = link.dataset.gifwStreetViewUrl;
+            callback: function () {
+                const link: HTMLElement = document.querySelector('.context-menu-item.google-streetview-link');
+                const streetviewUrl = link.dataset.gifwStreetViewUrl;
                 if (streetviewUrl !== '') {
                     window.open(streetviewUrl, "_blank");
                 }
@@ -32,12 +32,12 @@ export class Streetview {
         contextMenu.control.push(streetviewControl);
         contextMenu.items.push(streetviewControl);
 
-        contextMenu.control.on('open', async (event: any) => {
-            let link = document.querySelector('.context-menu-item.google-streetview-link');
+        contextMenu.control.on('open', async (event) => {
+            const link = document.querySelector('.context-menu-item.google-streetview-link');
             link.textContent = 'Checking for Street View Imagery';
             (link as HTMLElement).dataset.gifwStreetViewUrl = '';
-            let latlon = toLonLat(event.coordinate);
-            let streetviewURL = await this.getGoogleStreetviewAtLocation(latlon[1], latlon[0]);
+            const latlon = toLonLat(event.coordinate);
+            const streetviewURL = await this.getGoogleStreetviewAtLocation(latlon[1], latlon[0]);
             if (streetviewURL !== '') {
                 link.textContent = 'Open Street View at this location';
                 (link as HTMLElement).dataset.gifwStreetViewUrl = streetviewURL;
@@ -55,7 +55,7 @@ export class Streetview {
      * @returns A URL to a Google Streetview map, or null
      */
     private async getGoogleStreetviewAtLocation(lat: number, lon: number): Promise<string> {
-        let metadata = await this.getGoogleStreetviewMetadataAtLocation(lat, lon);
+        const metadata = await this.getGoogleStreetviewMetadataAtLocation(lat, lon);
         if (await metadata.status === 'OK') {
             //build the URL
             return `https://www.google.com/maps/@?api=1&map_action=pano&pano=${metadata.pano_id}`
@@ -71,9 +71,9 @@ export class Streetview {
      * @param lon The longitude coordinate
      */
     private async getGoogleStreetviewMetadataAtLocation(lat:number,lon:number): Promise<StreetviewMetadataResponse> {
-        let url = `${this.metadataUrl}&location=${lat},${lon}`;
-        let resp = await fetch(url);
-        let metadata = await resp.json() as StreetviewMetadataResponse;
+        const url = `${this.metadataUrl}&location=${lat},${lon}`;
+        const resp = await fetch(url);
+        const metadata = await resp.json() as StreetviewMetadataResponse;
 
         return metadata;
     }

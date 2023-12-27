@@ -36,7 +36,7 @@ export class Search {
                 </div>
             </form>
         </div>`;
-    isOpen: Boolean = false;
+    isOpen: boolean = false;
     availableSearchDefs: RequiredSearch[];
     genericErrorMessage: string = 'There was an error getting your search results. The developers have been automatically informed. Please try again.';
     abortController: AbortController;
@@ -61,7 +61,7 @@ export class Search {
     }
     init(permalinkParams?: Record<string, string>) {
         //inject search box into document
-        let container = document.querySelector(this.container);
+        const container = document.querySelector(this.container);
         container.insertAdjacentHTML('beforeend', this.searchBoxHTML);
         //ajax call to get search opts
         
@@ -76,7 +76,7 @@ export class Search {
         }).catch(error => {
             console.error("Failed to get search options", error);
             document.getElementById('search-container').style.display = 'none'
-            let errDialog = new Util.Error(Util.AlertType.Popup, Util.AlertSeverity.Danger, "Error getting search options", "<p>There was an error getting the search definitions for this version</p><p>This means the search functionality will not work. Please refresh the page to try again</p>")
+            const errDialog = new Util.Error(Util.AlertType.Popup, Util.AlertSeverity.Danger, "Error getting search options", "<p>There was an error getting the search definitions for this version</p><p>This means the search functionality will not work. Please refresh the page to try again</p>")
             errDialog.show();
         });
         //attach search toggle
@@ -91,15 +91,15 @@ export class Search {
             this.handleSearch(e);
         });
         //attach config button
-        document.getElementById('gifw-search-configure-button').addEventListener('click', e => {
+        document.getElementById('gifw-search-configure-button').addEventListener('click', () => {
             this.renderSearchOptionsModal();
-            let searchConfiguratorModal = new Modal(document.getElementById('search-configurator-modal'), {});
+            const searchConfiguratorModal = new Modal(document.getElementById('search-configurator-modal'), {});
             searchConfiguratorModal.show();
         })
         //attach close button
-        let closeButton = document.querySelector('#gifw-search-results button[data-gifw-dismiss-sidebar]');
+        const closeButton = document.querySelector('#gifw-search-results button[data-gifw-dismiss-sidebar]');
         if (closeButton !== null) {
-            closeButton.addEventListener('click', (e) => {
+            closeButton.addEventListener('click', () => {
                 this.close();
                 this.hideSearchControl();
             });
@@ -125,7 +125,7 @@ export class Search {
         this._vectorSource = new VectorSource();
 
         this._resultsLayer = this.gifwMapInstance.addNativeLayerToMap(this._vectorSource, "Search results", undefined, false, LayerGroupType.SystemNative, undefined, undefined, "__searchresults__");
-        this._resultsLayer.on('change', e => {
+        this._resultsLayer.on('change', () => {
             if ((this._resultsLayer.getSource() as VectorSource<any>).getFeatures().length === 0) {
                 this._resultsLayer.setVisible(false);
             } else {
@@ -137,17 +137,17 @@ export class Search {
         //add the permalink provided search results pin if provided
         if (permalinkParams && permalinkParams.sr && permalinkParams.srdata) {
             try {
-                let decodedSearchResultData = Util.Helper.UnicodeDecodeB64(permalinkParams.srdata);
-                let searchResultData = JSON.parse(decodedSearchResultData);
-                let searchResultCoords = permalinkParams.sr.split(',');
+                const decodedSearchResultData = Util.Helper.UnicodeDecodeB64(permalinkParams.srdata);
+                const searchResultData = JSON.parse(decodedSearchResultData);
+                const searchResultCoords = permalinkParams.sr.split(',');
                 if (searchResultData && searchResultData.content && searchResultData.title && searchResultCoords.length === 2) {
-                    let resultIcon = new Feature({
+                    const resultIcon = new Feature({
                         geometry: new Point([parseFloat(searchResultCoords[0]), parseFloat(searchResultCoords[1])]),
                         name: searchResultData.title
                     });
                     this.drawSearchResultFeatureOnMap(resultIcon, searchResultData.content, searchResultData.title, this._iconStyle);
                 }
-            } catch (e: any) {
+            } catch (e) {
                 console.error('Could not decode permalink param', e);
             }
         }
@@ -179,18 +179,18 @@ export class Search {
 
     private handleSearch(event: Event): void {
 
-        let searchTermInput: HTMLInputElement = document.querySelector('#gifw-search-form input[type=search]');
+        const searchTermInput: HTMLInputElement = document.querySelector('#gifw-search-form input[type=search]');
         if (searchTermInput !== null) {
-            let searchTerm = searchTermInput.value.trim();
+            const searchTerm = searchTermInput.value.trim();
 
             if (searchTerm.length !== 0) {
                 if (!this.isOpen) {
                     this.open();
-                };
+                }
                 this.showLoading();
 
-                new Promise((resolve, reject) => {
-                    let results = this.doSearch(searchTerm);
+                new Promise((resolve) => {
+                    const results = this.doSearch(searchTerm);
                     resolve(results);
                 }).then(result => {
                     this.renderSearchResults(result as SearchResults);
@@ -224,18 +224,18 @@ export class Search {
     */
     private doSearch(searchTerm:string):Promise<SearchResults> {
 
-        let requiredSearches = this.availableSearchDefs.filter(d => { return d.enabled });
+        const requiredSearches = this.availableSearchDefs.filter(d => { return d.enabled });
         
-        let searchQuery: SearchQuery = {
+        const searchQuery: SearchQuery = {
             query: searchTerm,
             searches: requiredSearches
         };
 
-        let promise = new Promise<SearchResults>((resolve, reject) =>{
+        const promise = new Promise<SearchResults>((resolve) =>{
 
             this.isRunning = true;
             this.abortController = new AbortController();
-            let timer = setTimeout(() => this.abortController.abort(), this.timeLimit);
+            const timer = setTimeout(() => this.abortController.abort(), this.timeLimit);
 
             fetch(`${this.searchEndpointURL}`, {
                 method: "POST",
@@ -287,7 +287,7 @@ export class Search {
     */
     private renderSearchResults(searchResults: SearchResults) {
         (document.querySelector('#gifw-search-results-count') as HTMLHeadElement).innerText = `${searchResults.totalResults} results found`;
-        let searchResultsContainer = document.querySelector('#gifw-search-results-list');
+        const searchResultsContainer = document.querySelector('#gifw-search-results-list');
         //clear the existing container
         searchResultsContainer.innerHTML = '';
 
@@ -300,16 +300,16 @@ export class Search {
         }
         
 
-        let sortedCategories = searchResults.resultCategories.sort((a, b) => a.ordering - b.ordering);
+        const sortedCategories = searchResults.resultCategories.sort((a, b) => a.ordering - b.ordering);
         sortedCategories.forEach(c => {
             if (c.results.length !== 0) {
                 searchResultsContainer.insertAdjacentHTML('beforeend', `<h6>${c.categoryName}</h6>`);
-                let sortedResults = c.results.sort((a, b) => a.ordering - b.ordering);
-                let listEle = document.createElement('ul');
+                const sortedResults = c.results.sort((a, b) => a.ordering - b.ordering);
+                const listEle = document.createElement('ul');
                 listEle.className = 'list-unstyled';
                 sortedResults.forEach(r => {
-                    let listItem = document.createElement('li');
-                    let resultItem = document.createElement('a');
+                    const listItem = document.createElement('li');
+                    const resultItem = document.createElement('a');
                     resultItem.href = "#";
                     resultItem.innerText = r.displayText;
                     resultItem.addEventListener('click', e => {
@@ -343,8 +343,8 @@ export class Search {
     *
     */
     private zoomToResult(result: SearchResult) {
-        let sourceProj = olProj.get(`EPSG:${result.epsg}`);
-        let targetProj = this.gifwMapInstance.olMap.getView().getProjection();
+        const sourceProj = olProj.get(`EPSG:${result.epsg}`);
+        const targetProj = this.gifwMapInstance.olMap.getView().getProjection();
         let closeOnRender = false;
         if (this.gifwMapInstance.getPercentOfMapCoveredWithOverlays() > 50) {
             closeOnRender = true;
@@ -360,7 +360,7 @@ export class Search {
             zoomToExtent = olProj.transformExtent(result.bbox, sourceProj, targetProj);
 
         } else if (result.geom) {
-            let geoJson = new GeoJSON().readFeatures(JSON.parse(result.geom), {dataProjection:sourceProj,featureProjection:targetProj});
+            const geoJson = new GeoJSON().readFeatures(JSON.parse(result.geom), {dataProjection:sourceProj,featureProjection:targetProj});
             zoomToExtent = geoJson[0].getGeometry().getExtent();
             geoJson.forEach(g => {
                 olExtent.extend(zoomToExtent, g.getGeometry().getExtent());
@@ -370,11 +370,11 @@ export class Search {
             
         } else {
             //zoom using x, y and zoom values
-            let coord = [result.x, result.y];
-            let convertedCoord = olProj.transform(coord, sourceProj, targetProj);
-            let point = new Point(convertedCoord);
-            let curZoom = this.gifwMapInstance.olMap.getView().getZoom();
-            let zoomDiff = Math.max(result.zoom, curZoom) - Math.min(result.zoom, curZoom);
+            const coord = [result.x, result.y];
+            const convertedCoord = olProj.transform(coord, sourceProj, targetProj);
+            const point = new Point(convertedCoord);
+            const curZoom = this.gifwMapInstance.olMap.getView().getZoom();
+            const zoomDiff = Math.max(result.zoom, curZoom) - Math.min(result.zoom, curZoom);
 
             zoomToExtent = point.getExtent();
             animationSpeed = Util.Mapping.calculateAnimationSpeed(zoomDiff);
@@ -418,7 +418,7 @@ export class Search {
     }
 
     private showSearchOutsideBoundsError(): void {
-        let errDialog = new Util.Error
+        const errDialog = new Util.Error
             (
                 Util.AlertType.Popup,
                 Util.AlertSeverity.Danger,
@@ -431,47 +431,47 @@ export class Search {
     private drawResultOnMap(result: SearchResult, category: SearchResultCategory) {
 
         if (result.geom) {
-            let geoJson = new GeoJSON().readFeatures(JSON.parse(result.geom));
+            const geoJson = new GeoJSON().readFeatures(JSON.parse(result.geom));
             
             geoJson.forEach(g => {
                 (g as Feature).set('name', result.displayText);
 
-                let popupContent = `<h1>${category.categoryName}</h1><p>${result.displayText}</p>`;
-                let popupTitle = `${result.displayText} (${category.categoryName})`;
+                const popupContent = `<h1>${category.categoryName}</h1><p>${result.displayText}</p>`;
+                const popupTitle = `${result.displayText} (${category.categoryName})`;
 
                 this.drawSearchResultFeatureOnMap((g as Feature),popupContent,popupTitle, this._polyStyle,result.epsg)
             })
         } else if(result.x && result.y) {            
-            let resultIcon = new Feature({
+            const resultIcon = new Feature({
                 geometry: new Point([result.x, result.y]),
                 name: result.displayText
             });
 
-            let popupContent = `<h1>${category.categoryName}</h1><p>${result.displayText}</p>`;
+            const popupContent = `<h1>${category.categoryName}</h1><p>${result.displayText}</p>`;
             
-            let popupTitle = `${result.displayText} (${category.categoryName})`;
+            const popupTitle = `${result.displayText} (${category.categoryName})`;
 
             this.drawSearchResultFeatureOnMap(resultIcon, popupContent, popupTitle,this._iconStyle, result.epsg)
         }
     }
 
     private drawSearchResultFeatureOnMap(feature: Feature, popupContent: string | Element, popupTitle: string, style: Style, epsg:number = 3857) {
-        let removeAction = new GIFWPopupAction("Remove search result", () => {
+        const removeAction = new GIFWPopupAction("Remove search result", () => {
             this.removeSearchResultFromMap(feature);
         }, true, true);
 
-        let removeAllAction = new GIFWPopupAction("Remove all search results", () => {
+        const removeAllAction = new GIFWPopupAction("Remove all search results", () => {
             this.removeSearchResultsFromMap();
         }, true, true);
 
-        let popupOpts = new GIFWPopupOptions(popupContent, [removeAction, removeAllAction]);
+        const popupOpts = new GIFWPopupOptions(popupContent, [removeAction, removeAllAction]);
 
         feature.set('gifw-popup-opts', popupOpts);
         feature.set('gifw-popup-title', popupTitle);
 
         feature.setStyle(style);
-        let sourceProj = olProj.get(`EPSG:${epsg}`);
-        let targetProj = this.gifwMapInstance.olMap.getView().getProjection();
+        const sourceProj = olProj.get(`EPSG:${epsg}`);
+        const targetProj = this.gifwMapInstance.olMap.getView().getProjection();
         feature.getGeometry().transform(sourceProj, targetProj);
         this._resultsLayer.getSource().addFeature(feature);
     }
@@ -493,7 +493,7 @@ export class Search {
     *
     */
     private showLoading() {
-        let searchResults = document.getElementById('gifw-search-results-list');
+        const searchResults = document.getElementById('gifw-search-results-list');
         searchResults.innerHTML = '';
         (document.querySelector('#gifw-search-results-count') as HTMLHeadElement).innerText = '';
         Util.Helper.addLoadingOverlayToElement(searchResults, 'afterbegin');
@@ -508,7 +508,7 @@ export class Search {
     *
     */
     private hideLoading() {
-        let searchResults = document.getElementById('gifw-search-results-list');
+        const searchResults = document.getElementById('gifw-search-results-list');
         Util.Helper.removeLoadingOverlayFromElement(searchResults);
         (document.getElementById('gifw-search-button') as HTMLButtonElement).disabled = false;
     }
@@ -520,7 +520,7 @@ export class Search {
      * 
      * */
     private showError(errorMessage?:string): void {
-        let searchResultsContainer = document.querySelector('#gifw-search-results-list');
+        const searchResultsContainer = document.querySelector('#gifw-search-results-list');
         
         searchResultsContainer.innerHTML = `<div class="alert alert-danger">${errorMessage !== undefined ? errorMessage : this.genericErrorMessage}</div>`;
     }
@@ -533,11 +533,11 @@ export class Search {
      */
     private renderSearchOptionsModal():void {
         if (this.availableSearchDefs !== null) {
-            let searchDefsForm = document.getElementById('gifw-search-configurator-form');
-            let tableBody = searchDefsForm.querySelector('table tbody');
+            const searchDefsForm = document.getElementById('gifw-search-configurator-form');
+            const tableBody = searchDefsForm.querySelector('table tbody');
             tableBody.innerHTML = '';
             this.availableSearchDefs.sort((a, b) => { return a.order - b.order }).forEach(def => {
-                let row = `<tr>
+                const row = `<tr>
                             <td>${def.name}</td>
                             <td>
                                 <label class="visually-hidden" for="Enabled_${def.searchDefinitionId}">Enable/Disable ${def.name}</label>
@@ -554,7 +554,7 @@ export class Search {
     }
 
     private bindSearchOptionsConfigurator(): void {
-        let searchDefsForm = document.getElementById('gifw-search-configurator-form');
+        const searchDefsForm = document.getElementById('gifw-search-configurator-form');
         searchDefsForm.addEventListener('submit', e => {
             this.updateOptions(e);
 
@@ -572,24 +572,24 @@ export class Search {
     }
 
     private updateOptions(event: Event): void {
-        let searchDefsForm = document.getElementById('gifw-search-configurator-form');
-        let enabledCheckboxes: NodeListOf<HTMLInputElement> = searchDefsForm.querySelectorAll('input[type=checkbox][name^=Enabled]');
-        let stopIfFoundCheckboxes: NodeListOf<HTMLInputElement> = searchDefsForm.querySelectorAll('input[type=checkbox][name^=StopIfFound]');
-        let enableMultipleSearchResultsCheckbox: HTMLInputElement = searchDefsForm.querySelector('#enableMultipleSearchResults')
+        const searchDefsForm = document.getElementById('gifw-search-configurator-form');
+        const enabledCheckboxes: NodeListOf<HTMLInputElement> = searchDefsForm.querySelectorAll('input[type=checkbox][name^=Enabled]');
+        const stopIfFoundCheckboxes: NodeListOf<HTMLInputElement> = searchDefsForm.querySelectorAll('input[type=checkbox][name^=StopIfFound]');
+        const enableMultipleSearchResultsCheckbox: HTMLInputElement = searchDefsForm.querySelector('#enableMultipleSearchResults')
         enabledCheckboxes.forEach(cb => {
-            let searchDefID = cb.dataset.gifwSearchDefId;
+            const searchDefID = cb.dataset.gifwSearchDefId;
             this.setEnabledSearchDef(parseInt(searchDefID), cb.checked);
         });
 
         stopIfFoundCheckboxes.forEach(cb => {
-            let searchDefID = cb.dataset.gifwSearchDefId;
+            const searchDefID = cb.dataset.gifwSearchDefId;
             this.setStopIfFoundSearchDef(parseInt(searchDefID), cb.checked);
         })
 
         this.enableMultipleSearchResultsOnMap = enableMultipleSearchResultsCheckbox.checked;
         UserSettings.setItem(this._localStorageKey, this.enableMultipleSearchResultsOnMap ? 'true' : 'false');
 
-        let searchConfiguratorModal = Modal.getInstance(document.getElementById('search-configurator-modal'));
+        const searchConfiguratorModal = Modal.getInstance(document.getElementById('search-configurator-modal'));
         searchConfiguratorModal.hide();
         event.preventDefault();
     }
@@ -624,7 +624,7 @@ export class Search {
             }),
         });
 
-        let rgbColor = Util.Color.hexToRgb(color);
+        const rgbColor = Util.Color.hexToRgb(color);
         let strokeColor = 'rgb(0,0,0)';
         let fillColor = 'rgba(255, 255, 255, 0.2)';
         if (rgbColor) {
@@ -652,12 +652,12 @@ export class Search {
     */
     open() {
         this.showSearchControl();
-        var sidebarPanelsContainer = document.querySelector('#gifw-sidebar-left');
-        var sidebar: HTMLDivElement = sidebarPanelsContainer.querySelector('#gifw-search-results');
+        const sidebarPanelsContainer = document.querySelector('#gifw-sidebar-left');
+        const sidebar: HTMLDivElement = sidebarPanelsContainer.querySelector('#gifw-search-results');
 
         sidebarPanelsContainer.classList.toggle('show', true);
 
-        var otherSidebars: NodeListOf<HTMLDivElement> = sidebarPanelsContainer.querySelectorAll('.sidebar');
+        const otherSidebars: NodeListOf<HTMLDivElement> = sidebarPanelsContainer.querySelectorAll('.sidebar');
         otherSidebars.forEach(function (sb) {
             sb.style.display = 'none';
         });
@@ -678,7 +678,7 @@ export class Search {
     }
 
     static close() {
-        var sidebarPanelsContainer = document.querySelector('#gifw-sidebar-left');
+        const sidebarPanelsContainer = document.querySelector('#gifw-sidebar-left');
         sidebarPanelsContainer.classList.toggle('show', false);
     }
 }

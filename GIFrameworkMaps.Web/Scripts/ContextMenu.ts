@@ -40,7 +40,7 @@ export class GIFWContextMenu {
     }
 
     private addListeners() {
-        this.control.on('beforeopen', function (event: any) {
+        this.control.on('beforeopen', function (event) {
             // Disables the context menu where a map control or popup is under the right click position, or where an element at that position contains a 'context-menu-disabled' class
             // Adapted from: https://github.com/jonataswalker/ol-contextmenu/issues/130
             const mapElement = this.map_.getTargetElement() as HTMLElement;
@@ -53,7 +53,7 @@ export class GIFWContextMenu {
                 this.enable();
             }
         });
-        this.control.on('open', function (event: any) {
+        this.control.on('open', function (event) {
             let item: any;
             for (item of this.options.items) {
                 if (typeof item === 'object') {

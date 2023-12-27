@@ -26,8 +26,8 @@ export class NativeLayerGroup implements LayerGroup {
     *
     */
     createLayersGroup(): olLayer.Group {
-        let ol_layers: Array<any> = [];
-        let lgType = this.layerGroupType;
+        const ol_layers: Array<any> = [];
+        const lgType = this.layerGroupType;
         if (this.layers !== null) {
             this.layers.forEach(function (layer) {
                 layer.setProperties({ "layerGroupType": lgType })
@@ -35,7 +35,7 @@ export class NativeLayerGroup implements LayerGroup {
                 ol_layers.push(layer);
             });
         }
-        var layerGroup = new olLayer.Group({
+        const layerGroup = new olLayer.Group({
             layers: ol_layers
         });
         layerGroup.setProperties({ "type": this.layerGroupType });
@@ -65,7 +65,7 @@ export class NativeLayerGroup implements LayerGroup {
     addLayerToGroup(layer: VectorLayer<any>): void {
         layer.setProperties({ "layerGroupType": this.layerGroupType})
         this.layers.push(layer);
-        let newLayerGroup = this.olLayerGroup.getLayers();
+        const newLayerGroup = this.olLayerGroup.getLayers();
         newLayerGroup.push(layer);
         this.olLayerGroup.setLayers(newLayerGroup);
     }

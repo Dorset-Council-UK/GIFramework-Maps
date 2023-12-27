@@ -35,23 +35,23 @@ export class GIFWLayerGroup implements LayerGroup {
     *
     */
     createLayersGroup(): olLayer.Group {
-        let ol_layers: Array<any> = [];
-        let viewProj = 'EPSG:3857';
+        const ol_layers: Array<olLayer.Tile<olSource.XYZ> | olLayer.Tile<olSource.TileWMS> | olLayer.Image<olSource.ImageWMS>> = [];
+        const viewProj = 'EPSG:3857';
         if (this.layers !== null) {
             this.layers.forEach((layer) => {
                 //let opts: Record<string, any> = {};
                 let ol_layer;
                 /*define reused attributes*/
-                let className = `${this.layerGroupType === LayerGroupType.Basemap ? "basemapLayer" : "layer"}-${layer.id}`;
-                let visible = (layer.isDefault !== undefined ? layer.isDefault : false);
-                let minZoom = layer.minZoom ? (layer.minZoom - 1) : 0;
-                let maxZoom = layer.maxZoom ? layer.maxZoom : 100;
-                let opacity = (layer.defaultOpacity !== undefined ? layer.defaultOpacity : 100) / 100;
+                const className = `${this.layerGroupType === LayerGroupType.Basemap ? "basemapLayer" : "layer"}-${layer.id}`;
+                const visible = (layer.isDefault !== undefined ? layer.isDefault : false);
+                const minZoom = layer.minZoom ? (layer.minZoom - 1) : 0;
+                const maxZoom = layer.maxZoom ? layer.maxZoom : 100;
+                const opacity = (layer.defaultOpacity !== undefined ? layer.defaultOpacity : 100) / 100;
                 let projection = viewProj;
                 let hasCustomHeaders = false;
                 const layerHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(layer.layerSource);
                 //this is a bit of a nasty way of checking for existence of headers
-                layerHeaders.forEach(_ => {
+                layerHeaders.forEach(() => {
                     hasCustomHeaders = true;
                 })
                 if (layer.layerSource.layerSourceOptions.some(l => l.name.toLowerCase() === 'projection')) {
@@ -63,15 +63,15 @@ export class GIFWLayerGroup implements LayerGroup {
                 }
                 switch (layer.layerSource.layerSourceType.name) {
                     
-                    case "XYZ":
-                        let xyzOpts: XYZOptions = {
+                    case "XYZ": {
+                        const xyzOpts: XYZOptions = {
                             url: layer.layerSource.layerSourceOptions.filter(o => o.name.toLowerCase() === "url")[0].value,
                             attributions: layer.layerSource.attribution.renderedAttributionHTML,
                             crossOrigin: 'anonymous',
                             projection: projection
                         }
 
-                        let tileGrid = layer.layerSource.layerSourceOptions.filter(o => o.name.toLowerCase() === 'tilegrid');
+                        const tileGrid = layer.layerSource.layerSourceOptions.filter(o => o.name.toLowerCase() === 'tilegrid');
                         if (tileGrid.length !== 0) {
                             xyzOpts.tileGrid = new TileGrid(JSON.parse(tileGrid[0].value));
                         }
@@ -96,9 +96,10 @@ export class GIFWLayerGroup implements LayerGroup {
                         });
 
                         break;
-                    case "TileWMS":
+                    }
+                    case "TileWMS": {
                         /*TODO THIS ISN'T NICE AT ALL*/
-                        let tileWMSOpts: TileWMSOptions = {
+                        const tileWMSOpts: TileWMSOptions = {
                             url: layer.layerSource.layerSourceOptions.filter(function (o) {
                                 return o.name.toLowerCase() == 'url';
                             }).map(function (o) {
@@ -134,8 +135,9 @@ export class GIFWLayerGroup implements LayerGroup {
                             zIndex: (this.layerGroupType === LayerGroupType.Basemap ? -1000 : (layer.zIndex <= -1000 ? -999 : layer.zIndex))
                         });
                         break;
-                    case "ImageWMS":
-                        let imageWMSOpts: ImageWMSOptions = {
+                    }
+                    case "ImageWMS": {
+                        const imageWMSOpts: ImageWMSOptions = {
                             url: layer.layerSource.layerSourceOptions.filter(function (o) {
                                 return o.name == 'url';
                             }).map(function (o) {
@@ -168,6 +170,7 @@ export class GIFWLayerGroup implements LayerGroup {
                             zIndex: (this.layerGroupType === LayerGroupType.Basemap ? -1000 : (layer.zIndex <= -1000 ? -999 : layer.zIndex))
                         });
                         break;
+                    }
                 }
                 if (layer.isDefault) {
                     ol_layer.setProperties({ "hasBeenOpened": true });
@@ -190,7 +193,7 @@ export class GIFWLayerGroup implements LayerGroup {
             });
 
         }
-        var layerGroup = new olLayer.Group({
+        const layerGroup = new olLayer.Group({
             layers: ol_layers
         });
         layerGroup.setProperties({ "type": this.layerGroupType });
@@ -240,10 +243,10 @@ export class GIFWLayerGroup implements LayerGroup {
             document.getElementById(this.gifwMapInstance.id).dispatchEvent(new CustomEvent('gifw-update-permalink'));
             //we only want to trigger this when its made visible, not when its hidden
             if (e.oldValue === false) {
-                let layerId = layer.get('layerId');
+                const layerId = layer.get('layerId');
                 if (!layer.get('hasBeenOpened')) {
                     if (this.layerGroupType === LayerGroupType.Basemap) {
-                        let basemap = this.gifwMapInstance.config.basemaps.filter(b => b.id === layerId)[0];
+                        const basemap = this.gifwMapInstance.config.basemaps.filter(b => b.id === layerId)[0];
                         if (basemap !== null && basemap.defaultSaturation !== 100) {
                             //get the default saturation and trigger a postrender once to apply it.
                             this.gifwMapInstance.setInitialSaturationOfBasemap(basemap.defaultSaturation);
@@ -252,7 +255,7 @@ export class GIFWLayerGroup implements LayerGroup {
                 }
                 layer.set('hasBeenOpened', true);
                 if (this.layerGroupType === LayerGroupType.Basemap) {
-                    let currentView = this.gifwMapInstance.olMap.getView();
+                    const currentView = this.gifwMapInstance.olMap.getView();
                     this.gifwMapInstance.olMap.setView(new olView({
                         center: currentView.getCenter(),
                         zoom: currentView.getZoom(),
@@ -269,7 +272,7 @@ export class GIFWLayerGroup implements LayerGroup {
 
     addLayerToGroup(layer: Layer, ol_layer: olLayer.Layer<any, any>): void {
         this.layers.push(layer);
-        let newLayerGroup = this.olLayerGroup.getLayers();
+        const newLayerGroup = this.olLayerGroup.getLayers();
         newLayerGroup.push(ol_layer);
         this.olLayerGroup.setLayers(newLayerGroup);
         this.addChangeEventsForLayer(ol_layer);

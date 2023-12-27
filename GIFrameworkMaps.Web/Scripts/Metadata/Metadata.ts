@@ -1,4 +1,5 @@
-﻿import { BasicServerCapabilities, Capability, CapabilityType } from "../Interfaces/OGCMetadata/BasicServerCapabilities";
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+import { BasicServerCapabilities, Capability, CapabilityType } from "../Interfaces/OGCMetadata/BasicServerCapabilities";
 import { DescribeFeatureType } from "../Interfaces/OGCMetadata/DescribeFeatureType";
 import { evaluateXPath, evaluateXPathToFirstNode, evaluateXPathToNodes } from "fontoxpath";
 import { Style } from "../Interfaces/OGCMetadata/Style";
@@ -13,14 +14,14 @@ export class Metadata {
         if (proxyEndpoint !== "") {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
         }
-        let response = await fetch(fetchUrl, {headers:httpHeaders});
+        const response = await fetch(fetchUrl, {headers:httpHeaders});
         return response;
 
     }
 
-    static async getDescribeFeatureType(baseUrl: string, featureTypeName: string, httpMethod: string, outputFormat: string = 'application/json', proxyEndpoint: string = "", additionalUrlParams: {} = {}, httpHeaders: Headers = new Headers()): Promise<DescribeFeatureType> {
+    static async getDescribeFeatureType(baseUrl: string, featureTypeName: string, httpMethod: string, outputFormat: string = 'application/json', proxyEndpoint: string = "", additionalUrlParams: Record<string, never> = {}, httpHeaders: Headers = new Headers()): Promise<DescribeFeatureType> {
         
-        let describeFeatureURLParams = new URLSearchParams({
+        const describeFeatureURLParams = new URLSearchParams({
             service: 'WFS',
             version: '1.1.0',
             request: 'DescribeFeatureType',
@@ -29,23 +30,23 @@ export class Metadata {
             ...additionalUrlParams
         })
 
-        let baseURLasURL = new URL(baseUrl)
-        let baseURLParams = baseURLasURL.searchParams;
-        let combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, describeFeatureURLParams, true);
+        const baseURLasURL = new URL(baseUrl)
+        const baseURLParams = baseURLasURL.searchParams;
+        const combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, describeFeatureURLParams, true);
         let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
         if (proxyEndpoint !== "") {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
         }
 
         try {
-            let response = await fetch(fetchUrl,
+            const response = await fetch(fetchUrl,
                 { method: httpMethod, headers: httpHeaders }
             );
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
 
-            let json: DescribeFeatureType = await response.json();
+            const json: DescribeFeatureType = await response.json();
             return json;
         }
         catch (error) {
@@ -59,22 +60,22 @@ export class Metadata {
      * a stripped down set of basic capabilities.
      * @param baseUrl - The base URL of the OGC server you want to query
      */
-    static async getBasicCapabilities(baseUrl: string, additionalUrlParams: {} = {}, proxyEndpoint: string = "", httpHeaders: Headers = new Headers()): Promise<BasicServerCapabilities> {
+    static async getBasicCapabilities(baseUrl: string, additionalUrlParams: Record<string, never> = {}, proxyEndpoint: string = "", httpHeaders: Headers = new Headers()): Promise<BasicServerCapabilities> {
 
         let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, 'WFS', '1.1.0', additionalUrlParams);
         if (proxyEndpoint !== "") {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
         }
         try {
-            let response = await fetch(fetchUrl, {headers: httpHeaders});
+            const response = await fetch(fetchUrl, {headers: httpHeaders});
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
 
             /*TODO - Make this use jsonix and the ogc-schemas libraries to more effectively and robustly parse the response*/
-            let capabilitiesDoc = await response.text();
-            let parser = new DOMParser();
-            let doc = parser.parseFromString(capabilitiesDoc, "application/xml");
+            const capabilitiesDoc = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(capabilitiesDoc, "application/xml");
 
             let describeFeatureTypeNode = (evaluateXPathToFirstNode(`*/*:OperationsMetadata/*:Operation[@name="DescribeFeatureType"]/*:DCP/*:HTTP/*:Get`, doc, null, null, {
                 language: evaluateXPath.XQUERY_3_1_LANGUAGE,
@@ -96,7 +97,7 @@ export class Metadata {
                 describeFeatureTypeURL = describeFeatureTypeURL.replace("http://", "https://")
             }
 
-            let describeFeatureTypeCapability: Capability = {
+            const describeFeatureTypeCapability: Capability = {
                 url:describeFeatureTypeURL,
                 type: CapabilityType.DescribeFeatureType,
                 method:describeFeatureMethod
@@ -121,13 +122,13 @@ export class Metadata {
             if (document.location.protocol.startsWith('https')) {
                 getFeatureURL = getFeatureURL.replace("http://", "https://")
             }
-            let getFeatureCapability: Capability = {
+            const getFeatureCapability: Capability = {
                 url: getFeatureURL,
                 type: CapabilityType.WFS_GetFeature,
                 method: getFeatureMethod
             };
 
-            let basicServerCapabilities: BasicServerCapabilities = {
+            const basicServerCapabilities: BasicServerCapabilities = {
                 capabilities: [describeFeatureTypeCapability, getFeatureCapability]
             }
 
@@ -145,27 +146,27 @@ export class Metadata {
      * @param baseUrl - The base URL of the OGC server you want to query
      * @param layerName - The name of the layer to find in the list
      */
-    static async getStylesForLayer(baseUrl: string, layerName: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}, httpHeaders: Headers = new Headers()): Promise<Style[]> {
+    static async getStylesForLayer(baseUrl: string, layerName: string, proxyEndpoint: string = "", additionalUrlParams: Record<string, never> = {}, httpHeaders: Headers = new Headers()): Promise<Style[]> {
         let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, "WMS", "1.1.0", additionalUrlParams);
         if (proxyEndpoint !== "") {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
         }
 
         try {
-            let response = await fetch(fetchUrl, {headers: httpHeaders});
+            const response = await fetch(fetchUrl, {headers: httpHeaders});
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
 
             /*TODO - Make this use jsonix and the ogc-schemas libraries to more effectively and robustly parse the response*/
-            let capabilitiesDoc = await response.text();
-            let parser = new DOMParser();
-            let doc = parser.parseFromString(capabilitiesDoc, "application/xml");
+            const capabilitiesDoc = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(capabilitiesDoc, "application/xml");
             
-            let styles = (evaluateXPathToNodes(`//Layer[Name='${layerName}']/Style`, doc, null, null, { language: evaluateXPath.XQUERY_3_1_LANGUAGE }) as Node[]);
+            const styles = (evaluateXPathToNodes(`//Layer[Name='${layerName}']/Style`, doc, null, null, { language: evaluateXPath.XQUERY_3_1_LANGUAGE }) as Node[]);
 
             //parse styles into list of styles
-            let availableStyles: Style[] = [];
+            const availableStyles: Style[] = [];
             styles.forEach(s => {
                 
                 let title, name, abstract: string;
@@ -180,7 +181,7 @@ export class Metadata {
                         abstract = n.textContent;
                     }
                 })
-                let style: Style = {
+                const style: Style = {
                     name: name,
                     title: title,
                     abstract: abstract
@@ -197,25 +198,25 @@ export class Metadata {
     static async getLayersFromCapabilities(baseUrl: string, version: string = "1.1.0", proxyEndpoint: string = "", httpHeaders: Headers = new Headers()) {
         try {
             //does the baseurl already contain a version? If so, use that.
-            let response = await this.getCapabilities(baseUrl, "WMS", version, proxyEndpoint, httpHeaders);
+            const response = await this.getCapabilities(baseUrl, "WMS", version, proxyEndpoint, httpHeaders);
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
             /*TODO - Make this use jsonix and the ogc-schemas libraries to more effectively and robustly parse the response*/
-            let capabilitiesDoc = await response.text();
-            let parser = new DOMParser();
-            let doc = parser.parseFromString(capabilitiesDoc, "application/xml");
+            const capabilitiesDoc = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(capabilitiesDoc, "application/xml");
 
             //get the GetMap endpoint (TODO - this is gross)
-            let getMapEndpointNode = (evaluateXPathToFirstNode(`//GetMap/DCPType/HTTP/Get/OnlineResource`, doc, null, null, {
+            const getMapEndpointNode = (evaluateXPathToFirstNode(`//GetMap/DCPType/HTTP/Get/OnlineResource`, doc, null, null, {
                 language: evaluateXPath.XQUERY_3_1_LANGUAGE
             }) as Node);
-            let getMapEndpoint = (getMapEndpointNode as any).attributes.getNamedItem("xlink:href").value;
+            const getMapEndpoint = (getMapEndpointNode as any).attributes.getNamedItem("xlink:href").value;
 
-            let formatNodes = (evaluateXPathToNodes(`//GetMap/Format`, doc, null, null, { language: evaluateXPath.XQUERY_3_1_LANGUAGE }) as Node[]);
-            let formats = formatNodes.map(f => f.textContent);
+            const formatNodes = (evaluateXPathToNodes(`//GetMap/Format`, doc, null, null, { language: evaluateXPath.XQUERY_3_1_LANGUAGE }) as Node[]);
+            const formats = formatNodes.map(f => f.textContent);
             const preferredFormats = ["image/png", "image/png8", "image/jpeg"];
-            let acceptableFormats = preferredFormats.filter(f => formats.includes(f))
+            const acceptableFormats = preferredFormats.filter(f => formats.includes(f))
 
             let projectionXPath = '//Capability/Layer/SRS';
             if (version === "1.3.0") {
@@ -223,11 +224,12 @@ export class Metadata {
             }
             const projectionNodes = (evaluateXPathToNodes(projectionXPath, doc, null, null, { language: evaluateXPath.XQUERY_3_1_LANGUAGE }) as Node[]);
             const projections = projectionNodes.map(f => f.textContent.split(" ")).flat();
-            let layers = (evaluateXPathToNodes(`//Layer/Layer`, doc, null, null, { language: evaluateXPath.XQUERY_3_1_LANGUAGE }) as Node[]);
+            const layers = (evaluateXPathToNodes(`//Layer/Layer`, doc, null, null, { language: evaluateXPath.XQUERY_3_1_LANGUAGE }) as Node[]);
             //parse styles into list of styles
-            let availableLayers: LayerResource[] = [];
+            const availableLayers: LayerResource[] = [];
             layers.forEach(s => {
-                let title: string, name: string, abstract: string, attribution: string, attributionUrl: string, queryable: boolean = false, keywords:string[] = [];
+                let title: string, name: string, abstract: string, attribution: string, attributionUrl: string, queryable: boolean = false;
+                const keywords: string[] = [];
                 let extent: olExtent.Extent;
                 if ((s as any).attributes.getNamedItem("queryable")?.value === "1") {
                     queryable = true;
@@ -284,7 +286,7 @@ export class Metadata {
                     }
                 })
                 
-                let layer: LayerResource = {
+                const layer: LayerResource = {
                     name: name,
                     title: title,
                     abstract: abstract,
@@ -319,21 +321,21 @@ export class Metadata {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
         }
         try {
-            let response = await fetch(fetchUrl, { headers: httpHeaders });
+            const response = await fetch(fetchUrl, { headers: httpHeaders });
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
 
             /*TODO - Make this use jsonix and the ogc-schemas libraries to more effectively and robustly parse the response*/
-            let capabilitiesDoc = await response.text();
-            let parser = new DOMParser();
-            let doc = parser.parseFromString(capabilitiesDoc, "application/xml");
+            const capabilitiesDoc = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(capabilitiesDoc, "application/xml");
 
-            let executeURLNode = (evaluateXPathToFirstNode(`*/*:OperationsMetadata/*:Operation[@name="Execute"]/*:DCP/*:HTTP/*:Post`, doc, null, null, {
+            const executeURLNode = (evaluateXPathToFirstNode(`*/*:OperationsMetadata/*:Operation[@name="Execute"]/*:DCP/*:HTTP/*:Post`, doc, null, null, {
                 language: evaluateXPath.XQUERY_3_1_LANGUAGE,
             }) as Node);
             let executeURL = (executeURLNode as any).attributes.getNamedItem("xlink:href").value;
-            let executeMethod: string = "POST";
+            const executeMethod: string = "POST";
 
             //if describe feature URLs are http, but the site is running on https,
             //we must try and upgrade the URL, otherwise it just won't work
@@ -342,7 +344,7 @@ export class Metadata {
                 executeURL = executeURL.replace("http://", "https://")
             }
 
-            let executeCapability: Capability = {
+            const executeCapability: Capability = {
                 url: executeURL,
                 type: CapabilityType.WPS_Execute,
                 method: executeMethod
@@ -369,14 +371,14 @@ export class Metadata {
                 decribeProcessURL = decribeProcessURL.replace("http://", "https://")
             }
 
-            let describeProcessCapability: Capability = {
+            const describeProcessCapability: Capability = {
                 url: decribeProcessURL,
                 type: CapabilityType.WPS_DescribeProcess,
                 method: decribeProcessMethod
             };
             
 
-            let basicServerCapabilities: BasicServerCapabilities = {
+            const basicServerCapabilities: BasicServerCapabilities = {
                 capabilities: [executeCapability, describeProcessCapability]
             }
 
@@ -388,35 +390,35 @@ export class Metadata {
 
     }
 
-    static async hasWPSProcess(baseUrl: string, httpMethod: string, processName: string, proxyEndpoint: string = "", additionalUrlParams: {} = {}, httpHeaders: Headers = new Headers()): Promise<boolean> {
-        let describeProcessURLParams = new URLSearchParams({
+    static async hasWPSProcess(baseUrl: string, httpMethod: string, processName: string, proxyEndpoint: string = "", additionalUrlParams: Record<string, never> = {}, httpHeaders: Headers = new Headers()): Promise<boolean> {
+        const describeProcessURLParams = new URLSearchParams({
             service: 'WPS',
             version: '1.1.0',
             request: 'DescribeProcess',
             identifier: processName,
             ...additionalUrlParams
         })
-        let baseURLasURL = new URL(baseUrl)
-        let baseURLParams = new URL(baseUrl).searchParams;
-        let combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, describeProcessURLParams, true);
+        const baseURLasURL = new URL(baseUrl)
+        const baseURLParams = new URL(baseUrl).searchParams;
+        const combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, describeProcessURLParams, true);
 
         let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
         if (proxyEndpoint !== "") {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
         }
         try {
-            let response = await fetch(fetchUrl,
+            const response = await fetch(fetchUrl,
                 { method: httpMethod, headers: httpHeaders }
             );
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
 
-            let describeProcessDoc = await response.text();
-            let parser = new DOMParser();
-            let doc = parser.parseFromString(describeProcessDoc, "application/xml");
+            const describeProcessDoc = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(describeProcessDoc, "application/xml");
 
-            let processName = (evaluateXPathToFirstNode(`*/*:ProcessDescription/*:Identifier`, doc, null, null, {
+            const processName = (evaluateXPathToFirstNode(`*/*:ProcessDescription/*:Identifier`, doc, null, null, {
                 language: evaluateXPath.XQUERY_3_1_LANGUAGE,
             }) as Node).textContent;
 
@@ -430,7 +432,7 @@ export class Metadata {
         }
     }
 
-    static constructGetCapabilitiesURL(baseUrl: string, service: string = "WMS", version: string = "1.1.0", additionalUrlParams: {} = {}) {
+    static constructGetCapabilitiesURL(baseUrl: string, service: string = "WMS", version: string = "1.1.0", additionalUrlParams: Record<string, never> = {}) {
         const getCapabilitiesURLParams = new URLSearchParams({
             service: service,
             version: version,

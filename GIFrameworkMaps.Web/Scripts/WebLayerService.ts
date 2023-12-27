@@ -16,21 +16,21 @@ import { Util } from "./Util";
 export class WebLayerService {
     gifwMapInstance: GIFWMap;
     serviceDefinitions: WebLayerServiceDefinition[];
-    _fuseInstance: Fuse<any>;
+    _fuseInstance: Fuse<LayerResource>;
     constructor(gifwMapInstance: GIFWMap) {
         this.gifwMapInstance = gifwMapInstance;
     }
 
     public init() {
-        let modalEle = document.getElementById('add-layer-web-layer-modal');
+        const modalEle = document.getElementById('add-layer-web-layer-modal');
 
-        modalEle.addEventListener('shown.bs.modal', async e => {
+        modalEle.addEventListener('shown.bs.modal', async () => {
 
             if (!this.serviceDefinitions) {
                 try {
                     //get services
-                    let serviceDefsURL = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}API/WebLayerServiceDefinitions`;
-                    let response = await fetch(serviceDefsURL);
+                    const serviceDefsURL = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}API/WebLayerServiceDefinitions`;
+                    const response = await fetch(serviceDefsURL);
                     if (!response.ok) {
                         throw new Error(`HTTP error: ${response.status}`);
                     }
@@ -40,7 +40,7 @@ export class WebLayerService {
                     document.getElementById('add-layer-web-layer-services-container').style.display = 'block';
                 } catch (e) {
                     console.error('Services could not be loaded', e);
-                    let modalInstance = Modal.getInstance('#add-layer-web-layer-modal');
+                    const modalInstance = Modal.getInstance('#add-layer-web-layer-modal');
                     modalInstance.hide();
                     Util.Alert.showPopupError("An error occurred", "The list of services could not be loaded right now. Please try again later.");
                 }
@@ -52,23 +52,23 @@ export class WebLayerService {
         
 
         //attach UI controls
-        let connectBtn = (document.getElementById('gifw-connect-ogc-service') as HTMLButtonElement);
-        connectBtn.addEventListener('click', async e => {
+        const connectBtn = (document.getElementById('gifw-connect-ogc-service') as HTMLButtonElement);
+        connectBtn.addEventListener('click', async () => {
             connectBtn.disabled = true;
             connectBtn.insertAdjacentElement('afterbegin', Spinner.create(['spinner-border-sm','me-2']));
             
-            let serviceId = (document.querySelector('select[name="ogc-server-name"]') as HTMLSelectElement).selectedOptions[0].value;
+            const serviceId = (document.querySelector('select[name="ogc-server-name"]') as HTMLSelectElement).selectedOptions[0].value;
 
-            let serviceDefinition = this.serviceDefinitions.filter(s => s.id === parseInt(serviceId))[0]
+            const serviceDefinition = this.serviceDefinitions.filter(s => s.id === parseInt(serviceId))[0]
 
-            let version = serviceDefinition.version || "1.1.0";
-            let proxyMetaRequests = serviceDefinition.proxyMetaRequests;
+            const version = serviceDefinition.version || "1.1.0";
+            const proxyMetaRequests = serviceDefinition.proxyMetaRequests;
             let proxyEndpoint = "";
             if (proxyMetaRequests) {
                 proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
             }
-            let availableLayers = await Metadata.getLayersFromCapabilities(serviceDefinition.url, version, proxyEndpoint);
-            let layersListContainer = document.getElementById('gifw-add-web-layer-list');
+            const availableLayers = await Metadata.getLayersFromCapabilities(serviceDefinition.url, version, proxyEndpoint);
+            const layersListContainer = document.getElementById('gifw-add-web-layer-list');
             const searchInput: HTMLInputElement = document.getElementById('add-layer-web-layer-search') as HTMLInputElement;
             const errMsg = document.getElementById('add-layer-web-layer-search-error');
             layersListContainer.innerHTML = '';
@@ -89,22 +89,22 @@ export class WebLayerService {
             connectBtn.disabled = false;
         })
 
-        let searchInput: HTMLInputElement = document.getElementById('add-layer-web-layer-search') as HTMLInputElement;
-        searchInput.addEventListener('input', (e) => {
+        const searchInput: HTMLInputElement = document.getElementById('add-layer-web-layer-search') as HTMLInputElement;
+        searchInput.addEventListener('input', () => {
             this.filterLayersListByText(searchInput.value.trim());
         });
 
     }
     private updateServicesList() {
-        let selectEle:HTMLSelectElement = document.querySelector('select[name="ogc-server-name"]');
+        const selectEle:HTMLSelectElement = document.querySelector('select[name="ogc-server-name"]');
         selectEle.innerHTML = '';
         this.serviceDefinitions.sort((a, b) => a.sortOrder - b.sortOrder);
-        let groupedDefs = Util.Helper.groupBy(this.serviceDefinitions, defs => defs.category);
+        const groupedDefs = Util.Helper.groupBy(this.serviceDefinitions, defs => defs.category);
         for (const group of groupedDefs) {
-            let optGroup = document.createElement('optgroup');
+            const optGroup = document.createElement('optgroup');
             optGroup.label = group[0] || 'Other';
             group[1].forEach(definition => {
-                let opt = document.createElement('option');
+                const opt = document.createElement('option');
                 opt.value = definition.id.toString();
                 opt.text = definition.name;
                 optGroup.appendChild(opt);
@@ -122,12 +122,12 @@ export class WebLayerService {
     *
     */
     private renderLayerItem(layerDetails: LayerResource): HTMLElement {
-        let layerItemContainer = document.createElement('div');
+        const layerItemContainer = document.createElement('div');
         layerItemContainer.className = `list-group-item`;
         layerItemContainer.id = layerDetails.name;
         layerItemContainer.innerHTML = `<h5 class="mb-2 text-break">${layerDetails.title}</h5>`;
         layerItemContainer.innerHTML += `<p class="mb-1">${layerDetails.abstract ? layerDetails.abstract : 'No description provided'}</p>`
-        let addLayerButton = document.createElement('button');
+        const addLayerButton = document.createElement('button');
         addLayerButton.innerHTML = `<i class="bi bi-plus-circle"></i> Add to map`;
         addLayerButton.className = "btn btn-sm btn-outline-primary";
         layerItemContainer.appendChild(addLayerButton);
@@ -140,7 +140,7 @@ export class WebLayerService {
                     selectedProjection = layerDetails.projections[0];
                 }
                 if (layerDetails.proxyMapRequests) {
-                    let imageWMSOpts: ImageWMSOptions = {
+                    const imageWMSOpts: ImageWMSOptions = {
                         url: layerDetails.baseUrl,
                         params: {
                             "LAYERS": layerDetails.name,
@@ -154,14 +154,14 @@ export class WebLayerService {
                     };
                     if (layerDetails.proxyMapRequests) {
                         imageWMSOpts.imageLoadFunction = (imageTile: any, src: string) => {
-                            let proxyUrl = this.gifwMapInstance.createProxyURL(src);
+                            const proxyUrl = this.gifwMapInstance.createProxyURL(src);
                             imageTile.getImage().src = proxyUrl;
                         };
                     }
 
                     source = new olSource.ImageWMS(imageWMSOpts);
                 } else {
-                    let tileWMSOpts: TileWMSOptions = {
+                    const tileWMSOpts: TileWMSOptions = {
                         url: layerDetails.baseUrl,
                         params: {
                             "LAYERS": layerDetails.name,
@@ -175,7 +175,7 @@ export class WebLayerService {
                     };
                     if (layerDetails.proxyMapRequests) {
                         tileWMSOpts.tileLoadFunction = (imageTile: any, src: string) => {
-                            let proxyUrl = this.gifwMapInstance.createProxyURL(src);
+                            const proxyUrl = this.gifwMapInstance.createProxyURL(src);
                             imageTile.getImage().src = proxyUrl;
                         };
                     }
@@ -189,23 +189,23 @@ export class WebLayerService {
                     layerDetails.proxyMetaRequests,
                     layerDetails.proxyMapRequests
                 )
-                let layerModal = Modal.getInstance('#add-layer-web-layer-modal');
+                const layerModal = Modal.getInstance('#add-layer-web-layer-modal');
 
                 layerModal.hide();
 
-                let completeToast = new Util.Alert(Util.AlertType.Toast,
+                const completeToast = new Util.Alert(Util.AlertType.Toast,
                     Util.AlertSeverity.Info,
                     `👍 Layer added`,
                     `The layer '${layerDetails.title}' has been added to the map. You can find it in the 'My Layers' folder in the layer control. ${layerDetails.extent !== undefined ? '<a href="#" data-gifw-zoom-to-extent>Zoom to extent of layer</a>' : ''}`,
                     '#gifw-error-toast');
                 completeToast.show();
                 if (layerDetails.extent) {
-                    let zoomToLink = completeToast.errorElement.querySelector('a[data-gifw-zoom-to-extent]');
+                    const zoomToLink = completeToast.errorElement.querySelector('a[data-gifw-zoom-to-extent]');
 
                     zoomToLink.addEventListener('click', e => {
                         e.preventDefault();
-                        let reprojectedExtent = transformExtent(layerDetails.extent, 'EPSG:4326', this.gifwMapInstance.olMap.getView().getProjection());
-                        let curExtent = this.gifwMapInstance.olMap.getView().calculateExtent();
+                        const reprojectedExtent = transformExtent(layerDetails.extent, 'EPSG:4326', this.gifwMapInstance.olMap.getView().getProjection());
+                        const curExtent = this.gifwMapInstance.olMap.getView().calculateExtent();
                         if (this.gifwMapInstance.isExtentAvailableInCurrentMap(reprojectedExtent)) {
                             if (!Util.Browser.PrefersReducedMotion() && containsExtent(curExtent, reprojectedExtent)) {
                                 this.gifwMapInstance.olMap.getView().fit(reprojectedExtent, { padding: [50, 50, 50, 50], duration: 1000 });
@@ -214,7 +214,7 @@ export class WebLayerService {
                             }
                             completeToast.hide();
                         } else {
-                            let errDialog = new Util.Error
+                            const errDialog = new Util.Error
                                 (
                                     Util.AlertType.Popup,
                                     Util.AlertSeverity.Danger,
@@ -249,7 +249,7 @@ export class WebLayerService {
             })
         } else {
 
-            let results = this._fuseInstance.search(text);
+            const results = this._fuseInstance.search(text);
             if (results.length === 0) {
                 //no results. show all with error
                 allItems.forEach(layer => {
@@ -259,7 +259,7 @@ export class WebLayerService {
                 errMsg.style.display = '';
             } else {
                 errMsg.style.display = 'none';
-                let matchingLayers = results.map(r => (r.item as LayerResource).name);
+                const matchingLayers = results.map(r => (r.item as LayerResource).name);
                 allItems.forEach(layer => {
                     if (matchingLayers.includes(layer.id)) {
                         (layer as HTMLDivElement).style.display = '';
