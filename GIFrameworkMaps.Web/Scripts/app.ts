@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (gifw_map_services_access_token && gifw_map_services_access_url) {
             await fetch(`${gifw_map_services_access_url}`, {
                 method: 'GET',
+                cache: 'no-store',
                 mode: 'cors',
                 headers: {
                     'Authorization': `Bearer ${gifw_map_services_access_token}`
