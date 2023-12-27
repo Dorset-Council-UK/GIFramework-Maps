@@ -42,12 +42,12 @@ export default class AnnotationSelect extends Select {
                      * OL Select interactions rely on getFeaturesAtPixel, but this fails to select features that have zero fill opacity.
                      * Instead we force a select event if there are annotations at the click coordinate and dispense with standard OL handling by returning false.
                      */
-                    let featuresAtPixel = this.gifwMapInstance.olMap.getFeaturesAtPixel(e.pixel, {
+                    const featuresAtPixel = this.gifwMapInstance.olMap.getFeaturesAtPixel(e.pixel, {
                         layerFilter: (l) => {
                             return (l.getSource() == source)
                         }
                     });
-                    let featuresAtCoord = source.getFeaturesAtCoordinate(e.coordinate);
+                    const featuresAtCoord = source.getFeaturesAtCoordinate(e.coordinate);
                     if (featuresAtPixel.length == 0 && featuresAtCoord.length > 0) {
                         this.dispatchEvent(new SelectEvent('select', featuresAtCoord, this.selectedFeatures.getArray(), e));
                         return false;
@@ -70,7 +70,7 @@ export default class AnnotationSelect extends Select {
     }
 
     private init() {
-        let backdropSource = new VectorSource();
+        const backdropSource = new VectorSource();
         this.backdropLayer = new VectorLayer({
             source: backdropSource
         });
@@ -232,24 +232,38 @@ export default class AnnotationSelect extends Select {
     */
     public updateSelectionBackdrop(feature: Feature<Geometry>, noAnimation = false) {
 
-        let bufferSize = 10;
-        let mapExtent = this.gifwMapInstance.olMap.getView().getProjection().getExtent(); // Is this okay?
-        let backdropGeometry = olPolygon.fromExtent(mapExtent);
-        let resolution = this.gifwMapInstance.olMap.getView().getResolution();
+        const bufferSize = 10;
+        const mapExtent = this.gifwMapInstance.olMap.getView().getProjection().getExtent(); // Is this okay?
+        const backdropGeometry = olPolygon.fromExtent(mapExtent);
+        const resolution = this.gifwMapInstance.olMap.getView().getResolution();
         let featureHalfWidth = 0;
+
+        const clone = feature.clone();
+        const featureGeom = clone.getGeometry();
         if (feature.get('gifw-css-width')) {
             featureHalfWidth = feature.get('gifw-css-width') / 2;
+        } else if (featureGeom.getType() == 'Point') {
+            const featureStyle = (feature.getStyle() as Style);
+            if (featureStyle.getImage() !== null) {
+                featureHalfWidth = featureStyle.getImage().getSize()[0] / 2;
+            } else if (featureStyle.getText() !== null) {
+                const canvas = document.createElement("canvas");
+                const context = canvas.getContext("2d");
+                context.font = featureStyle.getText().getFont();
+                const metrics = context.measureText(featureStyle.getText().getText() as string);
+                featureHalfWidth = (metrics.width / 2) - 10;
+                //TODO - An improvement to this would be to draw a rectangle underneath the text at the width/height of the text
+            }
+            
         }
-        let buffer = resolution / 1000 * (bufferSize + featureHalfWidth) * window.devicePixelRatio;
+        const buffer = resolution / 1000 * (bufferSize + featureHalfWidth) * window.devicePixelRatio;
 
-        let clone = feature.clone();
-        let featureGeom = clone.getGeometry();
         featureGeom.transform('EPSG:3857', 'EPSG:4326');
         clone.setGeometry(featureGeom);
-        let formatter = new GeoJSON({
+        const formatter = new GeoJSON({
             dataProjection: 'EPSG:4326'
         });
-        let turfFeature = formatter.writeFeatureObject(clone);
+        const turfFeature = formatter.writeFeatureObject(clone);
         let bufferedTurfFeature: any;
         let bufferedGeometry: Polygon;
         let cutout: LinearRing;
@@ -267,8 +281,8 @@ export default class AnnotationSelect extends Select {
                 bufferedTurfFeature = Buffer(turfFeature, buffer, {
                     units: 'kilometers'
                 });
-                let bufferedFeature = formatter.readFeature(bufferedTurfFeature) as Feature<Polygon>;
-                let bufferedGeometry = bufferedFeature.getGeometry();
+                const bufferedFeature = formatter.readFeature(bufferedTurfFeature) as Feature<Polygon>;
+                const bufferedGeometry = bufferedFeature.getGeometry();
                 bufferedGeometry.transform('EPSG:4326', 'EPSG:3857');
                 cutout = bufferedGeometry.getLinearRing(0);          
             } else {
@@ -277,15 +291,15 @@ export default class AnnotationSelect extends Select {
                     extentPolygon = olPolygon.fromExtent(featureGeom.getExtent());
                 } else {
                     try {
-                        let unkinkedTurfFeatures = UnkinkPolygon(turfFeature as any);
-                        let unkinkedPolygons = formatter.readFeatures(unkinkedTurfFeatures) as Feature<Polygon>[];
-                        let geometries: Polygon[] = [];
+                        const unkinkedTurfFeatures = UnkinkPolygon(turfFeature as any);
+                        const unkinkedPolygons = formatter.readFeatures(unkinkedTurfFeatures) as Feature<Polygon>[];
+                        const geometries: Polygon[] = [];
                         unkinkedPolygons.forEach((p) => {
-                            let geom = p.getGeometry();
+                            const geom = p.getGeometry();
                             geom.transform('EPSG:4326', 'EPSG:3857');
                             geometries.push(geom);
                         });
-                        let multiPolygon = new MultiPolygon(geometries);
+                        const multiPolygon = new MultiPolygon(geometries);
                         extentPolygon = olPolygon.fromExtent(multiPolygon.getExtent());
                         extentPolygon.transform('EPSG:3857', 'EPSG:4326');
                     }
@@ -293,12 +307,12 @@ export default class AnnotationSelect extends Select {
                         extentPolygon = olPolygon.fromExtent(featureGeom.getExtent());
                     }
                 }
-                let extentFeature = new Feature(extentPolygon);
-                let turfExtent = formatter.writeFeatureObject(extentFeature);
-                let bufferedTurfExtent = Buffer(turfExtent, buffer, {
+                const extentFeature = new Feature(extentPolygon);
+                const turfExtent = formatter.writeFeatureObject(extentFeature);
+                const bufferedTurfExtent = Buffer(turfExtent, buffer, {
                     units: 'kilometers'
                 });
-                let bufferedFeature = formatter.readFeature(bufferedTurfExtent) as Feature<Polygon>;
+                const bufferedFeature = formatter.readFeature(bufferedTurfExtent) as Feature<Polygon>;
                 bufferedGeometry = bufferedFeature.getGeometry();
                 bufferedGeometry.transform('EPSG:4326', 'EPSG:3857');
                 cutout = bufferedGeometry.getLinearRing(0);
@@ -306,8 +320,8 @@ export default class AnnotationSelect extends Select {
         }        
 
         backdropGeometry.appendLinearRing(cutout);
-        let backdrop = new Feature(backdropGeometry);
-        let style = new Style(
+        const backdrop = new Feature(backdropGeometry);
+        const style = new Style(
             {
                 fill: new Fill({
                     color: 'rgba(0, 0, 0, 0.8)'
@@ -319,8 +333,8 @@ export default class AnnotationSelect extends Select {
         this.backdropLayer.getSource().addFeature(backdrop);
         if (!noAnimation) {
             this.backdropLayer.setOpacity(0.2);
-            let fade = setInterval(() => {
-                let opacity = this.backdropLayer.getOpacity();
+            const fade = setInterval(() => {
+                const opacity = this.backdropLayer.getOpacity();
                 if (opacity < 0.8) {
                     this.backdropLayer.setOpacity(opacity + 0.15);
                 } else {
