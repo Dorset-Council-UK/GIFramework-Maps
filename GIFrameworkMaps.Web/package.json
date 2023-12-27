@@ -2,7 +2,7 @@
   "name": "giframeworkmaps",
   "version": "1.0.0",
   "description": "A .NET based web map built with OpenLayers and Bootstrap",
-  "repository": "https://dev.azure.com/dccgisvsts/GIFrameworkMaps",
+  "repository": "https://github.com/Dorset-Council-UK/GIFramework-Maps",
   "license": "MIT",
   "main": "index.js",
   "private": true,
@@ -13,7 +13,8 @@
     "build:webpack-prod": "webpack --config webpack.prod.js",
     "audit": "npm audit",
     "audit fix": "npm audit fix",
-    "outdated": "npm outdated"
+    "outdated": "npm outdated",
+    "lint": "npx eslint --ext .ts"
   },
   "dependencies": {
     "@microsoft/applicationinsights-web": "3.0.3",
@@ -48,9 +49,11 @@
     "@types/proj4": "2.5.3",
     "@types/sortablejs": "1.15.3",
     "@types/uuid": "9.0.5",
+    "@typescript-eslint/parser": "6.16.0",
+    "@typescript-eslint/eslint-plugin": "6.16.0",
     "eslint": "^8.51.0",
     "ts-loader": "9.5.0",
-    "typescript": "5.2.2",
+    "typescript": "5.3.3",
     "webpack": "5.89.0",
     "webpack-cli": "5.1.4",
     "webpack-merge": "5.10.0"
