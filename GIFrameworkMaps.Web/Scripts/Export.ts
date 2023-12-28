@@ -718,15 +718,16 @@ export class Export {
     /**
      * Gets the logo defined in the print configuration and converts it to a base64 string
      * */
-    private getLogo(): Promise<string | ArrayBuffer> {
-        return new Promise(async (resolve, reject) => {
-            const resp = await fetch(this.printConfiguration.logoURL)
-            if (resp.ok) {
-                this.blobToBase64(await resp.blob()).then((base64img) => resolve(base64img));
-            } else {
-                reject(Error('There was a network error.'));
-            }
-        });
+    private async getLogo(): Promise<string | ArrayBuffer> {
+
+        const resp = await fetch(this.printConfiguration.logoURL);
+        if (resp.ok) {
+            const blobImg = await resp.blob();
+
+            return this.blobToBase64(blobImg);
+        } else {
+            throw Error('There was a network error.');
+        }
     }
 
     private async keyWillFit(map: GIFWMap, pageMargin: number, pageSettings: PDFPageSetting, legend: LegendPositioningOption, pageSize: PageSizeOption, pageOrientation: PageOrientationOption) {
