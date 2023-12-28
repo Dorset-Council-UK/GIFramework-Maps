@@ -47,8 +47,8 @@ export class Search {
     curSearchResultExtent: olExtent.Extent;
     curSearchResultMaxZoom: number;
     enableMultipleSearchResultsOnMap: boolean = false;
-    _resultsLayer: VectorLayer<any>;
-    _vectorSource: VectorSource<any>;
+    _resultsLayer: VectorLayer<VectorSource>;
+    _vectorSource: VectorSource<Feature>;
     _iconStyle: Style;
     _polyStyle: Style;
     _localStorageKey: string = 'enableMultipleSearchResultsOnMap';
@@ -126,7 +126,7 @@ export class Search {
 
         this._resultsLayer = this.gifwMapInstance.addNativeLayerToMap(this._vectorSource, "Search results", undefined, false, LayerGroupType.SystemNative, undefined, undefined, "__searchresults__");
         this._resultsLayer.on('change', () => {
-            if ((this._resultsLayer.getSource() as VectorSource<any>).getFeatures().length === 0) {
+            if ((this._resultsLayer.getSource() as VectorSource<Feature>).getFeatures().length === 0) {
                 this._resultsLayer.setVisible(false);
             } else {
                 this._resultsLayer.setVisible(true);

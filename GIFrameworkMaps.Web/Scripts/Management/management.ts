@@ -19,11 +19,11 @@ addEventListener("DOMContentLoaded", () => {
                     target = collapseLink.dataset.bsTarget;
                 }
                 const collapseEle = document.querySelector(target);
-                collapseEle.addEventListener('hide.bs.collapse', e => {
+                collapseEle.addEventListener('hide.bs.collapse', () => {
                     icon.classList.remove('bi-caret-down');
                     icon.classList.add('bi-caret-right');
                 })
-                collapseEle.addEventListener('show.bs.collapse', e => {
+                collapseEle.addEventListener('show.bs.collapse', () => {
                     icon.classList.add('bi-caret-down');
                     icon.classList.remove('bi-caret-right');
                 })

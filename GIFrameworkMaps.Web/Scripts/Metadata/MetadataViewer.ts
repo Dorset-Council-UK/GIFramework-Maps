@@ -82,7 +82,7 @@ export class MetadataViewer {
                         if (olLayer.getSource() instanceof TileWMS || olLayer.getSource() instanceof ImageWMS) {
                             const source = olLayer.getSource();
                             let baseUrl: string;
-                            let params: any;
+                            let params;
                             if (source instanceof TileWMS) {
                                 baseUrl = source.getUrls()[0];
                                 params = source.getParams();
@@ -133,7 +133,7 @@ export class MetadataViewer {
             if (olLayer.getSource() instanceof TileWMS || olLayer.getSource() instanceof ImageWMS) {
                 const source = olLayer.getSource();
                 let baseUrl: string;
-                let params: any;
+                let params;
                 if (source instanceof TileWMS) {
                     baseUrl = source.getUrls()[0];
                     params = source.getParams();

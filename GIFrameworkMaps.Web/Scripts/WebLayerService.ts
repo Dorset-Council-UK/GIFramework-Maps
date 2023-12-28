@@ -12,7 +12,6 @@ import { Metadata } from "./Metadata/Metadata";
 import Spinner from "./Spinner";
 import { Util } from "./Util";
 
-
 export class WebLayerService {
     gifwMapInstance: GIFWMap;
     serviceDefinitions: WebLayerServiceDefinition[];

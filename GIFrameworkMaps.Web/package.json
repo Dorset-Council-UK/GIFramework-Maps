@@ -14,7 +14,7 @@
     "audit": "npm audit",
     "audit fix": "npm audit fix",
     "outdated": "npm outdated",
-    "lint": "npx eslint --ext .ts"
+    "lint": "npx eslint . --ext .ts"
   },
   "dependencies": {
     "@microsoft/applicationinsights-web": "3.0.3",

@@ -7,15 +7,16 @@ import { Feature } from "ol";
 import { Coordinate } from "ol/coordinate";
 import { never as olConditionNever } from "ol/events/condition";
 import { GeoJSON, WFS, WMSGetFeatureInfo } from "ol/format";
-import { intersects as intersectsFilter, equalTo as equalToFilter, and as andFilter, between as betweenFilter } from 'ol/format/filter';
-import Filter from "ol/format/filter/Filter";
 import GML3 from "ol/format/GML3";
+import { and as andFilter, between as betweenFilter, equalTo as equalToFilter, intersects as intersectsFilter } from 'ol/format/filter';
+import Filter from "ol/format/filter/Filter";
 import { Geometry, Point as olPoint, Polygon as olPolygon } from "ol/geom";
 import Draw, { DrawEvent } from "ol/interaction/Draw";
 import { Layer } from "ol/layer";
 import VectorLayer from "ol/layer/Vector";
 import RenderFeature from "ol/render/Feature";
-import { ImageWMS, TileWMS, Vector } from "ol/source";
+import LayerRenderer from "ol/renderer/Layer";
+import { ImageWMS, Source, TileWMS, Vector } from "ol/source";
 import VectorSource from "ol/source/Vector";
 import { Fill, Stroke, Style, Text } from "ol/style";
 import CircleStyle from "ol/style/Circle";
@@ -31,6 +32,8 @@ import { GIFWPopupAction } from "../Popups/PopupAction";
 import { GIFWPopupOptions } from "../Popups/PopupOptions";
 import { Util } from "../Util";
 import { FeatureQueryResultRenderer } from "./FeatureQueryResultRenderer";
+import IsBetween from "ol/format/filter/IsBetween";
+import EqualTo from "ol/format/filter/EqualTo";
 
 export class FeatureQuerySearch {
     _gifwMapInstance: GIFWMap;
@@ -40,8 +43,8 @@ export class FeatureQuerySearch {
     _basicStyle: Style;
     _tipStyle: Style;
     _tipPoint: Geometry;
-    _queryLayer: VectorLayer<any>;
-    _vectorSource: VectorSource<any>;
+    _queryLayer: VectorLayer<VectorSource>;
+    _vectorSource: VectorSource<Feature>;
     _keyboardEventAbortController: AbortController;
 
     constructor(gifwMapInstance: GIFWMap) {
@@ -51,7 +54,7 @@ export class FeatureQuerySearch {
         this._basicStyle = this.getBasicStyle();
         this._tipStyle = this.getTipStyle();
 
-        this._queryLayer = gifwMapInstance.addNativeLayerToMap(this._vectorSource, "Query Polygons", (feature: Feature<any>) => {
+        this._queryLayer = gifwMapInstance.addNativeLayerToMap(this._vectorSource, "Query Polygons", (feature: Feature<Geometry>) => {
             return this.getStyleForQueryFeature(feature);
         }, false, LayerGroupType.SystemNative);
     }
@@ -324,7 +327,7 @@ export class FeatureQuerySearch {
             if (!this._queryLayer.getVisible()) {
                 this._queryLayer.setVisible(true);
             }
-            this.addAreaQueryInfoToPopup((e.feature as Feature<any>));
+            this.addAreaQueryInfoToPopup((e.feature as Feature<Geometry>));
             this.doAreaInfoSearch((e.feature as Feature<olPolygon>).getGeometry());
             /*TODO - YUCK YUCK YUCK. Code smell here*/
             /*This line prevents the context menu triggering when right clicking to finish*/
@@ -354,7 +357,7 @@ export class FeatureQuerySearch {
 
     }
 
-    private async getSearchPromisesForLayers(searchableLayers: Layer<any, any>[], searchPolygon: olPolygon): Promise<Promise<FeatureQueryResponse>[]> {
+    private async getSearchPromisesForLayers(searchableLayers: Layer<Source, LayerRenderer<VectorLayer<VectorSource>>>[], searchPolygon: olPolygon): Promise<Promise<FeatureQueryResponse>[]> {
         const searchPromises: Promise<FeatureQueryResponse>[] = [];
         for (const layer of searchableLayers) {
             const source = layer.getSource();
@@ -552,7 +555,7 @@ export class FeatureQuerySearch {
         return promise;
     }
 
-    public addAreaQueryInfoToPopup(feature: Feature<any>) {
+    public addAreaQueryInfoToPopup(feature: Feature<Geometry>) {
 
         const timeOpts: Intl.DateTimeFormatOptions = {
             hour: 'numeric', minute: 'numeric'
@@ -564,17 +567,17 @@ export class FeatureQuerySearch {
                             <p>Created at ${formattedTime}</p>`;
 
         const searchAgainAction = new GIFWPopupAction("Search again using this polygon", () => {
-            this.doAreaInfoSearch(feature.getGeometry());
+            this.doAreaInfoSearch(feature.getGeometry() as olPolygon);
         }, false);
 
         const removeAction = new GIFWPopupAction("Remove query polygon", () => {
-            (this._queryLayer.getSource() as VectorSource<any>).removeFeature(feature);
-            if ((this._queryLayer.getSource() as VectorSource<any>).getFeatures().length === 0) {
+            (this._queryLayer.getSource() as VectorSource<Feature>).removeFeature(feature);
+            if ((this._queryLayer.getSource() as VectorSource<Feature>).getFeatures().length === 0) {
                 this._queryLayer.setVisible(false);
             }
         });
         const removeAllAction = new GIFWPopupAction("Remove all query polygons", () => {
-            (this._queryLayer.getSource() as VectorSource<any>).clear();
+            (this._queryLayer.getSource() as VectorSource<Feature>).clear();
             this._queryLayer.setVisible(false);
         });
         const popupOpts = new GIFWPopupOptions(popupContent, [searchAgainAction, removeAction, removeAllAction]);
@@ -588,7 +591,7 @@ export class FeatureQuerySearch {
 
         const layerGroups = this._gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative]);
 
-        let layers: Layer<any, any>[] = [];
+        let layers: Layer<Source, LayerRenderer<VectorLayer<VectorSource>>>[] = [];
         layerGroups.forEach(lg => {
             layers = layers.concat(lg.olLayerGroup.getLayersArray());
         })
@@ -599,7 +602,7 @@ export class FeatureQuerySearch {
 
         );
 
-        const searchableLayers: Layer<any, any>[] = [];
+        const searchableLayers: Layer<Source, LayerRenderer<VectorLayer<VectorSource>>>[] = [];
 
         visibleLayers.forEach(l => {
             //check layer is actually visible and can be clicked
@@ -616,7 +619,7 @@ export class FeatureQuerySearch {
         return searchableLayers;
     }
 
-    private convertTextFiltersToOLFilters(params:any, featureDescription: DescribeFeatureType): Filter[] {
+    private convertTextFiltersToOLFilters(params:Record<string, string>, featureDescription: DescribeFeatureType): Filter[] {
         let timeFilter: string;
         let cqlFilter: string;
         for (const property in params) {
@@ -634,12 +637,13 @@ export class FeatureQuerySearch {
             const dateTimeColumns = featureDescription.featureTypes[0].properties.filter(p => p.type.indexOf("xsd:date") === 0 || p.type.indexOf("xsd:time") === 0);
             if (dateTimeColumns.length === 1) {
                 //split the date if possible
-                let filter: any = equalToFilter(dateTimeColumns[0].name, timeFilter);
+                let filter: EqualTo | IsBetween = equalToFilter(dateTimeColumns[0].name, timeFilter);
                 const dateTimeValues = timeFilter.split('/');
                 if (dateTimeValues.length === 2) {
                     //This is a nasty hack to allow date times to use between whilst still working on WFS 1.1.0.
                     //No guarantee this will work, but this whole section is a bit hacky
-                    filter = betweenFilter(dateTimeColumns[0].name, dateTimeValues[0] as any, dateTimeValues[1] as any)
+                    //as unknown as number is used as we are forcing the string to turn into a number
+                    filter = betweenFilter(dateTimeColumns[0].name, dateTimeValues[0] as unknown as number, dateTimeValues[1] as unknown as number)
                     //ideally, this line would be the one we'd use
                     //filter = duringFilter(dateTimeColumns[0].name, dateTimeValues[0], dateTimeValues[1])
                 }
@@ -658,7 +662,7 @@ export class FeatureQuerySearch {
         return wfsFilters;
     }
 
-    private getStyleForQueryFeature(feature: RenderFeature | Feature<any>, tip?: string) {
+    private getStyleForQueryFeature(feature: RenderFeature | Feature<Geometry>, tip?: string) {
         const styles = [this._basicStyle];
         const geometry = feature.getGeometry();
         const type = geometry.getType();
@@ -668,7 +672,7 @@ export class FeatureQuerySearch {
             type === 'Point'
 
         ) {
-            this._tipPoint = geometry;
+            this._tipPoint = geometry as Geometry;
             this._tipStyle.getText().setText(tip);
             styles.push(this._tipStyle);
         }

@@ -1,13 +1,19 @@
-﻿import ContextMenu, { Item } from "ol-contextmenu";
+﻿import ContextMenu, { CallbackObject, Item, SingleItem } from "ol-contextmenu";
 import * as olProj from "ol/proj";
 import { GIFWMousePositionControl } from "../Scripts/MousePositionControl";
 import { Streetview } from "./Streetview";
 
+
+export interface ContextMenuDataObject {
+    mousePosition: GIFWMousePositionControl,
+    coord: string
+}
 export class GIFWContextMenu {
     control: ContextMenu;
     items: Item[];
     streetviewInstance: Streetview;
-
+   
+    
     constructor(mousePosition: GIFWMousePositionControl) {
         this.setItems(mousePosition);
         this.setControl();
@@ -23,9 +29,9 @@ export class GIFWContextMenu {
                 data: {
                     mousePosition: mousePosition,
                     coord: ''
-                },
-                callback: function (obj: any) {
-                    navigator.clipboard.writeText(obj.data.coord);
+                } as ContextMenuDataObject,
+                callback: function (obj: CallbackObject) {
+                    navigator.clipboard.writeText((obj.data as ContextMenuDataObject).coord);
                 }
             }
         ]
@@ -54,28 +60,28 @@ export class GIFWContextMenu {
             }
         });
         this.control.on('open', function (event) {
-            let item: any;
-            for (item of this.options.items) {
+            for (const item of (this as ContextMenu).options.items) {
                 if (typeof item === 'object') {
                     if ('data' in item) {
-                        if ('coord' in item.data) {
-                            const projectionCode = item.data.mousePosition.projection;
-                            const projectionString = item.data.mousePosition.getProjectionString(projectionCode);
-                            const coordDecimals = item.data.mousePosition.decimals;
-                            const clickCoord = this.map_.getCoordinateFromPixel(event.pixel);
-                            const transformedCoord = olProj.transform(clickCoord, 'EPSG:3857', projectionString);
-                            const coord = item.data.mousePosition.formatCoordinates(projectionCode, coordDecimals, transformedCoord);
-                            item.data.coord = coord;
-                            this.clear();
-                            this.extend([
-                                {
-                                    text: coord,
-                                    classname: 'context-menu-item-readonly'
-                                },
-                                '-'
-                                ]);
-                            this.extend(this.options.items);
-                        }
+                        const itemData: ContextMenuDataObject = (item as SingleItem).data as ContextMenuDataObject;
+                        
+                        const projectionCode = itemData.mousePosition.projection;
+                        const projectionString = itemData.mousePosition.getProjectionString(projectionCode);
+                        const coordDecimals = itemData.mousePosition.decimals;
+                        const clickCoord = this.map_.getCoordinateFromPixel(event.pixel);
+                        const transformedCoord = olProj.transform(clickCoord, 'EPSG:3857', projectionString);
+                        const coord = itemData.mousePosition.formatCoordinates(projectionCode, coordDecimals, transformedCoord);
+                        itemData.coord = coord;
+                        this.clear();
+                        this.extend([
+                            {
+                                text: coord,
+                                classname: 'context-menu-item-readonly'
+                            },
+                            '-'
+                            ]);
+                        this.extend(this.options.items);
+                        
                     }
                 }
             }

@@ -3,6 +3,7 @@ import * as olLayer from "ol/layer";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { Layer } from "../Interfaces/Layer";
 import VectorLayer from "ol/layer/Vector";
+import VectorSource from "ol/source/Vector";
 
 export interface LayerGroup {
     gifwMapInstance: GIFWMap;
@@ -11,5 +12,5 @@ export interface LayerGroup {
     layers: Layer[] | VectorLayer<any>[];
     createLayersGroup: () => olLayer.Group;
     addChangeEvents: () => void;
-    addLayerToGroup: (layer: Layer | VectorLayer<any>, olLayer?: olLayer.Layer<any, any>) => void;
+    addLayerToGroup: (layer: Layer | VectorLayer<VectorSource>, olLayer?: olLayer.Layer<any, any>) => void;
 }

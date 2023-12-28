@@ -224,7 +224,7 @@ export class CreateLayerFromSource {
         if (template) {
             //get an example value from the service if possible.
 
-            const props = await this.getExampleFeature();
+            const props = await this.getExampleFeature() as object;
             if (props !== null) {
                 const renderedTemplate = FeatureQueryTemplateHelper.renderTemplate(template, props);
                 previewContainer.innerHTML = renderedTemplate;

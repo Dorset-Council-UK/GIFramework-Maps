@@ -5,7 +5,7 @@ import { containsCoordinate } from "ol/extent";
 import Feature from "ol/Feature";
 import { GPX } from "ol/format";
 import Geolocation, { GeolocationError } from "ol/Geolocation";
-import { LineString, Point } from "ol/geom";
+import { Geometry, LineString, Point } from "ol/geom";
 import VectorLayer from "ol/layer/Vector";
 /*SIM MODE, UNCOMMENT TO TEST*/
 /*import { transform } from "ol/proj";*/
@@ -41,8 +41,8 @@ export class GIFWGeolocation extends olControl {
     _recentreControlElement: HTMLElement;
     _locationVectorSource: VectorSource;
     _pathVectorSource: VectorSource;
-    _locationLayer: VectorLayer<any>;
-    _pathLayer: VectorLayer<any>;
+    _locationLayer: VectorLayer<VectorSource>;
+    _pathLayer: VectorLayer<VectorSource>;
     _locationFeature: Feature<Point>;
     _pathFeature: Feature<LineString>;
     /*Simulation mode can be used to test the geolocation functionality without having to go outside.*/
@@ -87,7 +87,7 @@ export class GIFWGeolocation extends olControl {
 
         this._locationVectorSource = new VectorSource();
         this._pathVectorSource = new VectorSource();
-        this._locationLayer = this.gifwMapInstance.addNativeLayerToMap(this._locationVectorSource, "Geolocation", (feature: Feature<any>) => {
+        this._locationLayer = this.gifwMapInstance.addNativeLayerToMap(this._locationVectorSource, "Geolocation", (feature: Feature<Geometry>) => {
             return this.getStyleForGeolocationFeature(feature);
         }, false, LayerGroupType.SystemNative, 501, false, "__geolocation__");
         this._pathLayer = this.gifwMapInstance.addNativeLayerToMap(this._pathVectorSource, "Geolocation - Path", undefined, false, LayerGroupType.SystemNative, 500, true, "__geolocation_path__");
@@ -492,7 +492,7 @@ export class GIFWGeolocation extends olControl {
      * @param feature - The OpenLayers feature to style
      * @returns Style[] Array of OpenLayers Style objects
      */
-    private getStyleForGeolocationFeature(feature: Feature<any>) {
+    private getStyleForGeolocationFeature(feature: Feature<Geometry>) {
 
         const rgbColor = Util.Color.hexToRgb(this.gifwMapInstance.config.theme.primaryColour);
 

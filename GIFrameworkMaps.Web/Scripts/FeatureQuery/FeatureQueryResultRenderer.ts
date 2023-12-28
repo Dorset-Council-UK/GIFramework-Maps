@@ -15,12 +15,14 @@ import { GIFWPopupOptions } from "../Popups/PopupOptions";
 import { Util } from "../Util";
 import { FeaturePropertiesHelper } from "./FeaturePropertiesHelper";
 import { FeatureQueryTemplateHelper } from "./FeatureQueryTemplateHelper";
+import { Source } from "ol/source";
+import LayerRenderer from "ol/renderer/Layer";
 
 export class FeatureQueryResultRenderer {
 
     _gifwMapInstance: GIFWMap;
-    _highlighterLayer: VectorLayer<any>;
-    _vectorSource: VectorSource<any>;
+    _highlighterLayer: VectorLayer<VectorSource>;
+    _vectorSource: VectorSource<Feature>;
     _highlightStyle: Style;
 
     constructor(gifwMapInstance: GIFWMap) {
@@ -45,7 +47,7 @@ export class FeatureQueryResultRenderer {
 
         this._highlighterLayer = this._gifwMapInstance.addNativeLayerToMap(this._vectorSource, "Feature Highlights", this._highlightStyle, false, LayerGroupType.SystemNative,9999,false);
         this._highlighterLayer.on('change', () => {
-            if ((this._highlighterLayer.getSource() as VectorSource<any>).getFeatures().length === 0) {
+            if ((this._highlighterLayer.getSource() as VectorSource<Feature>).getFeatures().length === 0) {
                 this._highlighterLayer.setVisible(false);
             } else {
                 this._highlighterLayer.setVisible(true);
@@ -54,7 +56,7 @@ export class FeatureQueryResultRenderer {
 
     }
 
-    public showFeaturePopup(coords: number[], layer: Layer<any, any>, feature: (Feature<Geometry> | RenderFeature), parentResponses?: FeatureQueryResponse[]) {
+    public showFeaturePopup(coords: number[], layer: Layer<Source, LayerRenderer<VectorLayer<VectorSource>>>, feature: (Feature<Geometry> | RenderFeature), parentResponses?: FeatureQueryResponse[]) {
         let popupOptions: GIFWPopupOptions;
         if (layer instanceof VectorLayer) {
             const popupActions: GIFWPopupAction[] = [];
@@ -257,7 +259,7 @@ export class FeatureQueryResultRenderer {
 
     }
 
-    private getPopupContentFromFeature(feature: Feature<any> | RenderFeature, featureOpts: GIFWPopupOptions, layer: Layer<any, any>): string {
+    private getPopupContentFromFeature(feature: Feature<Geometry> | RenderFeature, featureOpts: GIFWPopupOptions, layer: Layer<Source, LayerRenderer<VectorLayer<VectorSource>>>): string {
         //default to name or layerName if available
         let featureContent = feature?.get('name') || layer?.get('name');
         //if a featureOpts has been supplied, this should contain the content
@@ -278,7 +280,7 @@ export class FeatureQueryResultRenderer {
             } else {
                 //try and get content from keys
                 let keysList = "";
-                (feature as Feature<any>).getKeys().forEach(k => {
+                (feature as Feature<Geometry>).getKeys().forEach(k => {
                     if (typeof feature.get(k) !== 'object') {
                         keysList += `<tr><th>${k}</th><td>${feature.get(k)}</td>`;
                     }
@@ -297,12 +299,12 @@ export class FeatureQueryResultRenderer {
 
     public highlightFeature(feature: (Feature<Geometry> | RenderFeature)) {
         this.unhighlightFeatures();
-        this._highlighterLayer.getSource().addFeature(feature);
+        this._highlighterLayer.getSource().addFeature(feature as Feature);
     }
 
     public highlightFeatures(features: (Feature<Geometry> | RenderFeature)[]) {
         this.unhighlightFeatures();
-        this._highlighterLayer.getSource().addFeatures(features);
+        this._highlighterLayer.getSource().addFeatures(features as Feature[]);
     }
 
     public unhighlightFeatures() {

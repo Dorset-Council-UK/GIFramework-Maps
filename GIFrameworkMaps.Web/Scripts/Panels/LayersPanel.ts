@@ -18,7 +18,7 @@ import BaseLayer from "ol/layer/Base";
 import { LayerUpload } from "../LayerUpload";
 import { LayerList } from "./LayerList";
 import { Category } from "../Interfaces/Category";
-import { ImageWMS, TileWMS } from "ol/source";
+import { ImageWMS, Source, TileWMS } from "ol/source";
 import TileLayer from "ol/layer/Tile";
 import { Metadata } from "../Metadata/Metadata";
 import { Style } from "../Interfaces/OGCMetadata/Style";
@@ -118,7 +118,7 @@ export class LayersPanel implements SidebarPanel {
         if (this.gifwMapInstance.anyOverlaysOn()) {
             const layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
 
-            let layers: olLayer<any, any>[] = [];
+            let layers: olLayer<Source, any>[] = [];
             layerGroups.forEach(lg => {
                 layers = layers.concat(lg.olLayerGroup.getLayersArray());
             })
@@ -355,6 +355,7 @@ export class LayersPanel implements SidebarPanel {
             eventPrefix = 'image'
         }
         if (eventPrefix) {
+
             source.on(eventPrefix + 'loadstart', () => {
                 if (!(source instanceof VectorSource)) {
                     const checkbox = this.getLayerCheckbox(l);
@@ -479,7 +480,7 @@ export class LayersPanel implements SidebarPanel {
     * @returns HTMLElement
     *
     */
-    private getActiveLayerItem(layer: olLayer<any, any>) {
+    private getActiveLayerItem(layer: olLayer<Source, any>) {
         const container = document.querySelector(this.container);
         const layerId = layer.get('layerId');
         const activeLayersList = container.querySelector('.active-layers-list');
@@ -493,12 +494,12 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private raiseAlertForErrors() {
-        const alertingLayers: olLayer<any, any>[] = [];
-        const layersWithErrorBadge: olLayer<any, any>[] = [];
+        const alertingLayers: olLayer<Source, any>[] = [];
+        const layersWithErrorBadge: olLayer<Source, any>[] = [];
 
         const layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
 
-        let layers: olLayer<any, any>[] = [];
+        let layers: olLayer<Source, any>[] = [];
         layerGroups.forEach(lg => {
             layers = layers.concat(lg.olLayerGroup.getLayersArray());
         })
@@ -543,11 +544,11 @@ export class LayersPanel implements SidebarPanel {
     * @returns void
     *
     */
-    private setLayerVisibilityState(layerArray?: olLayer<any, any>[]) {
+    private setLayerVisibilityState(layerArray?: olLayer<Source, any>[]) {
 
         const roundedZoom = Math.ceil(this.gifwMapInstance.olMap.getView().getZoom());
 
-        let layers: olLayer<any, any>[];
+        let layers: olLayer<Source, any>[];
         if (layerArray) {
             layers = layerArray;
         } else {
@@ -636,7 +637,7 @@ export class LayersPanel implements SidebarPanel {
     * @returns void
     *
     */
-    private setLayerOutOfRange(layer: olLayer<any, any>, newZoom:number) {
+    private setLayerOutOfRange(layer: olLayer<Source, any>, newZoom:number) {
         const layerId = layer.get('layerId');
 
         const layerCheckboxLabelContainer: HTMLElement = document.querySelector(`#layer-switcher-${layerId}`)?.parentElement;
@@ -654,7 +655,7 @@ export class LayersPanel implements SidebarPanel {
     * @returns void
     *
     */
-    private setCheckboxState(layer: olLayer<any, any>) {
+    private setCheckboxState(layer: olLayer<Source, any>) {
         const cb = this.getLayerCheckbox(layer);
         cb.checked = layer.getVisible();
     }
@@ -684,7 +685,7 @@ export class LayersPanel implements SidebarPanel {
     */
     private turnOffAllLayers(): void {
         const layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
-        let layers: olLayer<any, any>[] = [];
+        let layers: olLayer<Source, any>[] = [];
         layerGroups.forEach(lg => {
             layers = layers.concat(lg.olLayerGroup.getLayersArray());
         })
@@ -825,7 +826,7 @@ export class LayersPanel implements SidebarPanel {
         let ordering = -1;
 
         const layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
-        let layers: olLayer<any, any>[] = [];
+        let layers: olLayer<Source, any>[] = [];
 
         layerGroups.forEach(lg => {
             layers = layers.concat(lg.olLayerGroup.getLayersArray());
@@ -891,7 +892,7 @@ export class LayersPanel implements SidebarPanel {
                 }
                 const layer = this.gifwMapInstance.getLayerById(layerId);
                 if (layer) {
-                    this.gifwMapInstance.setLayerOpacity(layer as olLayer<any, any>, opacity);
+                    this.gifwMapInstance.setLayerOpacity(layer as olLayer<Source, any>, opacity);
                 }
             });
         });
@@ -910,7 +911,7 @@ export class LayersPanel implements SidebarPanel {
                 }
                 const layer = this.gifwMapInstance.getLayerById(layerId);
                 if (layer) {
-                    this.gifwMapInstance.setLayerSaturation(layer as olLayer<any, any>, saturation);
+                    this.gifwMapInstance.setLayerSaturation(layer as olLayer<Source, any>, saturation);
                 }
             });
         });

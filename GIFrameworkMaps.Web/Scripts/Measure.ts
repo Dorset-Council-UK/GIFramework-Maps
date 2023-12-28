@@ -37,8 +37,8 @@ export class Measure extends olControl {
     _tipStyle: Style;
     _segmentStyles: Style[];
     _tipPoint: Geometry;
-    _measureLayer: VectorLayer<any>;
-    _vectorSource: VectorSource<any>;
+    _measureLayer: VectorLayer<VectorSource>;
+    _vectorSource: VectorSource<Feature>;
     _areaMeasurementControlElement: HTMLElement;
     _lineMeasurementControlElement: HTMLElement;
     _measureToggleControlElement: HTMLElement;
@@ -65,11 +65,11 @@ export class Measure extends olControl {
         this._segmentStyles = [this.getSegmentStyle()];
         this._vectorSource = new VectorSource();
         
-        this._measureLayer = this.gifwMapInstance.addNativeLayerToMap(this._vectorSource, "Measurements", (feature:Feature<any>) => {
+        this._measureLayer = this.gifwMapInstance.addNativeLayerToMap(this._vectorSource, "Measurements", (feature:Feature<Geometry>) => {
             return this.getStyleForMeasureFeature(feature, true);
         }, false, LayerGroupType.SystemNative, undefined,undefined,"__measurements__");
         this._measureLayer.on('change', () => {
-            if ((this._measureLayer.getSource() as VectorSource<any>).getFeatures().length === 0) {
+            if ((this._measureLayer.getSource() as VectorSource<Feature>).getFeatures().length === 0) {
                 this._clearMeasurementControlElement.querySelector('button').setAttribute('disabled', '');
             } else {
                 this._clearMeasurementControlElement.querySelector('button').removeAttribute('disabled');
@@ -82,7 +82,7 @@ export class Measure extends olControl {
         this._modifyControl.on('modifyend', e => {
             //loop through modified features and update popup text
             e.features.forEach(f => {
-                this.addMeasurementInfoToPopup(f as Feature<any>);
+                this.addMeasurementInfoToPopup(f as Feature<Geometry>);
             })
         })
 
@@ -203,7 +203,7 @@ export class Measure extends olControl {
         clearMeasureButton.addEventListener('click', () => {
             this.gifwMapInstance.resetInteractionsToDefault();
             clearMeasureButton.blur();
-            if ((this._measureLayer.getSource() as VectorSource<any>).getFeatures().length === 0) {
+            if ((this._measureLayer.getSource() as VectorSource<Feature>).getFeatures().length === 0) {
                 alert("You don't have any measurements to clear!");
             } else {
                 if (confirm("Are you sure you want to delete all your measurements?")) {
@@ -282,7 +282,7 @@ export class Measure extends olControl {
             });
             tip = idleTip;
 
-            this.addMeasurementInfoToPopup((e.feature as Feature<any>));
+            this.addMeasurementInfoToPopup((e.feature as Feature<Geometry>));
 
         });
 
@@ -314,7 +314,7 @@ export class Measure extends olControl {
         this.gifwMapInstance.enableContextMenu()
     }
 
-    private addMeasurementInfoToPopup(feature: Feature<any>) {
+    private addMeasurementInfoToPopup(feature: Feature<Geometry>) {
         const measurements = this.getMeasurementFromGeometry(feature.getGeometry());
 
         const popupContent = `<h1>${measurements.name} Measurement</h1>
@@ -324,13 +324,13 @@ export class Measure extends olControl {
                             <p>${measurements.imperial} ${measurements.imperialUnit}</p>`;
 
         const removeAction = new GIFWPopupAction("Remove measurement", () => {
-            (this._measureLayer.getSource() as VectorSource<any>).removeFeature(feature);
-            if ((this._measureLayer.getSource() as VectorSource<any>).getFeatures().length === 0) {
+            (this._measureLayer.getSource() as VectorSource<Feature>).removeFeature(feature);
+            if ((this._measureLayer.getSource() as VectorSource<Feature>).getFeatures().length === 0) {
                 this._measureLayer.setVisible(false);
             }
         });
         const removeAllAction = new GIFWPopupAction("Remove all measurements", () => {
-            (this._measureLayer.getSource() as VectorSource<any>).clear();
+            (this._measureLayer.getSource() as VectorSource<Feature>).clear();
             this._measureLayer.setVisible(false);
         });
         const popupOpts = new GIFWPopupOptions(popupContent, [removeAction, removeAllAction]);

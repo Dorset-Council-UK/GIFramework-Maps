@@ -42,8 +42,8 @@ export namespace Util {
 
             } else {
                 //Get the numeric part
-                const easting: any = x - Util.Projection.prefixes[alpha].xBase;
-                const northing: any = y - Util.Projection.prefixes[alpha].yBase;
+                const easting = x - Util.Projection.prefixes[alpha].xBase;
+                const northing = y - Util.Projection.prefixes[alpha].yBase;
 
                 //To string
                 const eastingAsString = easting.toString();
@@ -680,7 +680,7 @@ export namespace Util {
                 //get the search results pin
                 const searchResultsLayer = map.getLayerById("__searchresults__");
 
-                const source: VectorSource = (searchResultsLayer as VectorLayer<any>).getSource();
+                const source: VectorSource = (searchResultsLayer as VectorLayer<VectorSource>).getSource();
                 const features = source.getFeatures();
                 if (features.length === 1) {
                     const searchResultFeature = features[0];

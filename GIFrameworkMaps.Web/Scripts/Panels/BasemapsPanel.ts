@@ -7,6 +7,7 @@ import { Basemap } from "../Interfaces/Basemap";
 import { MetadataViewer } from "../Metadata/MetadataViewer";
 import { Layer } from "../Interfaces/Layer";
 import { Projection } from "ol/proj";
+import { Source } from "ol/source";
 
 export class BasemapsPanel implements SidebarPanel {
     container: string;
@@ -55,7 +56,7 @@ export class BasemapsPanel implements SidebarPanel {
         })
     }
 
-    private renderBasemapTile(basemap: olLayer<any, any>, basemapConfiguration: Basemap): HTMLElement {
+    private renderBasemapTile(basemap: olLayer<Source, any>, basemapConfiguration: Basemap): HTMLElement {
         const card = document.createElement('div')
         card.className = `card text-white basemaps-selector ${basemap.getVisible() ? 'active' : ''}`;
         card.style.backgroundImage = `${basemapConfiguration.previewImageURL ? `url(${basemapConfiguration.previewImageURL})` : ''}`;
@@ -76,7 +77,7 @@ export class BasemapsPanel implements SidebarPanel {
         return card;
     }
 
-    private renderBasemapMeta(basemap: olLayer<any, any>, basemapConfiguration: Basemap): HTMLElement {
+    private renderBasemapMeta(basemap: olLayer<Source, any>, basemapConfiguration: Basemap): HTMLElement {
         const meta = document.createElement('div');
         meta.className = `basemaps-meta border-start border-bottom border-2 d-block ${basemap.getVisible() ? 'd-block' : 'd-none'}`;
         meta.id = `basemaps-meta-${basemapConfiguration.id}`;

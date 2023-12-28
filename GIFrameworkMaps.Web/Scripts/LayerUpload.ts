@@ -4,6 +4,7 @@ import { Util } from "./Util";
 import { GIFWMap } from "./Map";
 import { containsExtent, extend, Extent } from "ol/extent";
 import VectorLayer from "ol/layer/Vector";
+import { Feature } from "ol";
 
 export class LayerUpload {
     dropTarget: HTMLElement;
@@ -123,12 +124,12 @@ export class LayerUpload {
         if (files.length !== 0) {
 
             const failures: string[] = [];
-            const promises: Promise<VectorLayer<any>>[] = [];
+            const promises: Promise<VectorLayer<VectorSource>>[] = [];
             files.forEach(f => {
                 const format = this.getFormatFromFile(f);
                 if (format && this.validateFileSize(f)) {
                     const reader = this.getFileReaderForFile(f);
-                    const readerPromise = new Promise<VectorLayer<any>>((resolve, reject) => {
+                    const readerPromise = new Promise<VectorLayer<VectorSource>>((resolve, reject) => {
                         reader.addEventListener('load', e => {
                             try {
                                 const result = (e.currentTarget as FileReader).result;
@@ -175,7 +176,7 @@ export class LayerUpload {
             processingToast.show();
 
             Promise.allSettled(promises).then((layersPromise) => {
-                const addedLayers: VectorLayer<any>[] = [];
+                const addedLayers: VectorLayer<VectorSource>[] = [];
                 let totalNewExtent: Extent;
                 layersPromise.forEach(lp => {
                     if (lp.status === "fulfilled") {
@@ -321,7 +322,7 @@ export class LayerUpload {
         
         const source = this.createLayerSourceFromFile(result, format);
         
-        return this.gifwMapInstance.addNativeLayerToMap(source, fileName);
+        return this.gifwMapInstance.addNativeLayerToMap(source as VectorSource<Feature>, fileName);
 
     }
 
@@ -350,7 +351,7 @@ export class LayerUpload {
         return format;
     }
 
-    private validateAddedLayer(layer: VectorLayer<any>): boolean {
+    private validateAddedLayer(layer: VectorLayer<VectorSource>): boolean {
         /*add any further validation tests here*/
          if (layer.getSource().getFeatures().length === 0) {
              return false;

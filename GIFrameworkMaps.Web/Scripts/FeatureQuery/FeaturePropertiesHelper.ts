@@ -4,7 +4,7 @@ export class FeaturePropertiesHelper {
     static _prioritisedTitleFields = ["name", "title", "address", "id", "postcode", "featureid"];
     static _disallowedKeys = ["geom", "boundedby", "the_geom", "geoloc", "mi_style", "mi_prinx"];
 
-    public static getMostAppropriateTitleFromProperties(props: any) {
+    public static getMostAppropriateTitleFromProperties(props: object) {
 
         const properties = Util.Helper.getKeysFromObject(props);
 
@@ -25,7 +25,7 @@ export class FeaturePropertiesHelper {
         }
         return false;
     }
-    public static isUserDisplayablePropertyAndValue(keyName: string, value: any) {
+    public static isUserDisplayablePropertyAndValue(keyName: string, value: unknown) {
 
         if (!this._disallowedKeys.includes(keyName.toLowerCase()) && typeof value !== 'object') {
             return true;

@@ -1174,7 +1174,7 @@ export class LayerFilter {
      * Extracts the CQL filter paramater (if it exists) from a generic object
      * @param params The paramaters object
      */
-    private extractCQLFilterFromParams(params:any):string {
+    private extractCQLFilterFromParams(params:Record<string, string>):string {
         let cqlFilter: string;
         for (const property in params) {
             if (property.toLowerCase() === 'cql_filter') {

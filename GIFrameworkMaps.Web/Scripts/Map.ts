@@ -6,7 +6,7 @@ import { Extent, containsExtent, containsCoordinate } from "ol/extent";
 import * as gifwSidebar from "../Scripts/Sidebar";
 import * as gifwSidebarCollection from "../Scripts/SidebarCollection";
 import {GIFWMousePositionControl} from "../Scripts/MousePositionControl"
-import { ImageWMS, TileWMS, Vector as VectorSource } from 'ol/source';
+import { ImageWMS, Source, TileWMS, Vector as VectorSource } from 'ol/source';
 import { Vector as VectorLayer } from 'ol/layer';
 import { Layer } from "./Interfaces/Layer";
 import { GIFWPopupOverlay } from "./Popups/PopupOverlay";
@@ -268,7 +268,7 @@ export class GIFWMap {
                 const layer = this.getLayerConfigById(layerId,[LayerGroupType.Overlay])
                 if (layer !== null && layer.defaultSaturation !== 100) {
                     //get the default saturation and trigger a postrender once to apply it.
-                    this.setInitialSaturationOfLayer(l as olLayer.Layer<any,any>, layer.defaultSaturation);
+                    this.setInitialSaturationOfLayer(l as olLayer.Layer<Source,any>, layer.defaultSaturation);
                 }
                 if (overrideDefaultLayers) {
                     const layerSetting = permalinkEnabledLayers.filter(pel => pel[0] == layerId);
@@ -400,7 +400,7 @@ export class GIFWMap {
      * @param olLayerOpts Additional options to add to the OpenLayers options
      */
     public addNativeLayerToMap(
-        source: VectorSource<any>,
+        source: VectorSource<Feature>,
         name: string,
         style?: any,
         visible: boolean = true,
@@ -682,7 +682,7 @@ export class GIFWMap {
      * @param {olLayer.Layer} layer The OpenLayers layer to set the saturation for
      * @param {number} saturation - The saturation level to set to (0-100)
      */
-    public setInitialSaturationOfLayer(layer: olLayer.Layer<any, any>, saturation: number): void {
+    public setInitialSaturationOfLayer(layer: olLayer.Layer<Source, any>, saturation: number): void {
         this.olMap.once('postrender', () => {
             this.setLayerSaturation(layer, saturation, true);
         })
@@ -691,7 +691,7 @@ export class GIFWMap {
     /**
      * Gets the OpenLayers Layer for the currently active basemap
      * */
-    public getActiveBasemap(): olLayer.Layer<any, any> {
+    public getActiveBasemap(): olLayer.Layer<Source, any> {
 
         const baseGroup = this.getLayerGroupOfType(LayerGroupType.Basemap);
         if (baseGroup !== null) {
@@ -736,7 +736,7 @@ export class GIFWMap {
     * @returns void
     *
     */
-    public setLayerSaturation(layer: olLayer.Layer<any, any>, saturation: number, quiet: boolean = false) {
+    public setLayerSaturation(layer: olLayer.Layer<Source, any>, saturation: number, quiet: boolean = false) {
         //layers should have custom class names, if it has the default, this is ignored
         const className = layer.getClassName();
         if (className !== 'ol-layer') {
@@ -760,7 +760,7 @@ export class GIFWMap {
     * @returns void
     *
     */
-    public setLayerOpacity(layer: olLayer.Layer<any, any>, opacity: number) {
+    public setLayerOpacity(layer: olLayer.Layer<Source, any>, opacity: number) {
         layer.setOpacity(opacity / 100);
         this.delayPermalinkUpdate();
     }
@@ -774,7 +774,7 @@ export class GIFWMap {
         
         const layerGroups = this.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
 
-        let layers: olLayer.Layer<any, any>[] = [];
+        let layers: olLayer.Layer<Source, any>[] = [];
         layerGroups.forEach(lg => {
             layers = layers.concat(lg.olLayerGroup.getLayersArray());
         })
@@ -793,7 +793,7 @@ export class GIFWMap {
     public setLayerVisibility(layerId: string, visibility: boolean) {
 
         const layerGroups = this.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
-        let layers: olLayer.Layer<any, any>[] = [];
+        let layers: olLayer.Layer<Source, any>[] = [];
 
         layerGroups.forEach(lg => {
             layers = layers.concat(lg.olLayerGroup.getLayersArray());
@@ -931,7 +931,7 @@ export class GIFWMap {
             const roundedZoom = Math.ceil(this.olMap.getView().getZoom());
             const layerGroups = this.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
 
-            let layers: olLayer.Layer<any, any>[] = [];
+            let layers: olLayer.Layer<Source, any>[] = [];
             layerGroups.forEach(lg => {
                 layers = layers.concat(lg.olLayerGroup.getLayersArray());
             })
@@ -942,7 +942,7 @@ export class GIFWMap {
                 if (source instanceof TileWMS || source instanceof ImageWMS) {
                     const view = this.olMap.getView();
                     const viewport = this.olMap.getViewport();
-                    let params: any = {
+                    let params = {
                         LEGEND_OPTIONS: additionalLegendOptions,
                         bbox: view.calculateExtent().toString(),
                         srcwidth: viewport.clientWidth,
