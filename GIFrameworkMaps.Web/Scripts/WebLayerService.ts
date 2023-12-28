@@ -10,8 +10,7 @@ import { WebLayerServiceDefinition } from "./Interfaces/WebLayerServiceDefinitio
 import { GIFWMap } from "./Map";
 import { Metadata } from "./Metadata/Metadata";
 import Spinner from "./Spinner";
-import { Util } from "./Util";
-
+import { Alert, CustomError, Helper, Browser as BrowserUtil, AlertType, AlertSeverity } from "./Util"
 export class WebLayerService {
     gifwMapInstance: GIFWMap;
     serviceDefinitions: WebLayerServiceDefinition[];
@@ -41,7 +40,7 @@ export class WebLayerService {
                     console.error('Services could not be loaded', e);
                     const modalInstance = Modal.getInstance('#add-layer-web-layer-modal');
                     modalInstance.hide();
-                    Util.Alert.showPopupError("An error occurred", "The list of services could not be loaded right now. Please try again later.");
+                    Alert.showPopupError("An error occurred", "The list of services could not be loaded right now. Please try again later.");
                 }
             }
 
@@ -98,7 +97,7 @@ export class WebLayerService {
         const selectEle:HTMLSelectElement = document.querySelector('select[name="ogc-server-name"]');
         selectEle.innerHTML = '';
         this.serviceDefinitions.sort((a, b) => a.sortOrder - b.sortOrder);
-        const groupedDefs = Util.Helper.groupBy(this.serviceDefinitions, defs => defs.category);
+        const groupedDefs = Helper.groupBy(this.serviceDefinitions, defs => defs.category);
         for (const group of groupedDefs) {
             const optGroup = document.createElement('optgroup');
             optGroup.label = group[0] || 'Other';
@@ -192,8 +191,8 @@ export class WebLayerService {
 
                 layerModal.hide();
 
-                const completeToast = new Util.Alert(Util.AlertType.Toast,
-                    Util.AlertSeverity.Info,
+                const completeToast = new Alert(AlertType.Toast,
+                    AlertSeverity.Info,
                     `👍 Layer added`,
                     `The layer '${layerDetails.title}' has been added to the map. You can find it in the 'My Layers' folder in the layer control. ${layerDetails.extent !== undefined ? '<a href="#" data-gifw-zoom-to-extent>Zoom to extent of layer</a>' : ''}`,
                     '#gifw-error-toast');
@@ -206,17 +205,17 @@ export class WebLayerService {
                         const reprojectedExtent = transformExtent(layerDetails.extent, 'EPSG:4326', this.gifwMapInstance.olMap.getView().getProjection());
                         const curExtent = this.gifwMapInstance.olMap.getView().calculateExtent();
                         if (this.gifwMapInstance.isExtentAvailableInCurrentMap(reprojectedExtent)) {
-                            if (!Util.Browser.PrefersReducedMotion() && containsExtent(curExtent, reprojectedExtent)) {
+                            if (!BrowserUtil.PrefersReducedMotion() && containsExtent(curExtent, reprojectedExtent)) {
                                 this.gifwMapInstance.olMap.getView().fit(reprojectedExtent, { padding: [50, 50, 50, 50], duration: 1000 });
                             } else {
                                 this.gifwMapInstance.olMap.getView().fit(reprojectedExtent, { padding: [50, 50, 50, 50] });
                             }
                             completeToast.hide();
                         } else {
-                            const errDialog = new Util.Error
+                            const errDialog = new CustomError
                                 (
-                                    Util.AlertType.Popup,
-                                    Util.AlertSeverity.Danger,
+                                    AlertType.Popup,
+                                    AlertSeverity.Danger,
                                     "Layer is outside bounds of map",
                                     `<p>The layer you added extends outside the current max bounds of your background map.</p><p>We've added the layer to the map, but you may need to choose a different background map to see it.</p>`
                                 )
@@ -228,7 +227,7 @@ export class WebLayerService {
 
             } catch (e) {
                 console.error(e);
-                Util.Alert.showPopupError('Layer could not be added', `The layer '${layerDetails.title}' could not be added to the map due to an error. It may be broken at source or an error our end. Try another layer or try again later.`)
+                Alert.showPopupError('Layer could not be added', `The layer '${layerDetails.title}' could not be added to the map due to an error. It may be broken at source or an error our end. Try another layer or try again later.`)
 
             }
             e.preventDefault();

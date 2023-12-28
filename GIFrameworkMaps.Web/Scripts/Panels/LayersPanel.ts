@@ -3,7 +3,6 @@ import { GIFWMap } from "../Map";
 import { Sidebar } from "../Sidebar";
 import Fuse from "fuse.js";
 import Sortable from "sortablejs";
-import { Util } from "../Util";
 import { Layer as olLayer } from "ol/layer";
 import { Collapse, Modal, Tooltip } from "bootstrap";
 import Badge from "../Badge";
@@ -25,6 +24,7 @@ import { Style } from "../Interfaces/OGCMetadata/Style";
 import ImageLayer from "ol/layer/Image";
 import { LayerFilter } from "../LayerFilter";
 import { UserSettings } from "../UserSettings";
+import { Alert, AlertSeverity, Helper, Mapping as MappingUtil } from "../Util";
 
 export class LayersPanel implements SidebarPanel {
     container: string;
@@ -356,7 +356,7 @@ export class LayersPanel implements SidebarPanel {
         }
         if (eventPrefix) {
 
-            source.on(eventPrefix + 'loadstart', () => {
+            source.on(`${eventPrefix}loadstart`, () => {
                 if (!(source instanceof VectorSource)) {
                     const checkbox = this.getLayerCheckbox(l);
                     if (checkbox !== null) {
@@ -384,14 +384,14 @@ export class LayersPanel implements SidebarPanel {
                                 if (!checkbox.parentElement.querySelector('.badge-error')) {
                                     checkbox.parentElement.append(Badge.Error());
                                 }
-                                new Util.Alert(1, Util.AlertSeverity.Danger, 'Layer error', `The layer, ${layerName}, took too long to load. Something may have gone wrong.`, '#gifw-error-toast').show();
+                                new Alert(1, AlertSeverity.Danger, 'Layer error', `The layer, ${layerName}, took too long to load. Something may have gone wrong.`, '#gifw-error-toast').show();
                             }
                         }, 30000);
                     }
                 }
             });
 
-            source.on(eventPrefix + 'loadend', () => {
+            source.on(`${eventPrefix  }loadend`, () => {
                 setTimeout(() => {
                     if (layerName in this.loadingLayers) {
                         this.loadingLayers[layerName].count -= 1;
@@ -414,7 +414,7 @@ export class LayersPanel implements SidebarPanel {
                 }, 500);
             });
 
-            source.on(eventPrefix + 'loaderror', () => {
+            source.on(`${eventPrefix  }loaderror`, () => {
                 setTimeout(() => {
                     if (layerName in this.loadingLayers) {
                         this.loadingLayers[layerName].count -= 1;
@@ -531,9 +531,9 @@ export class LayersPanel implements SidebarPanel {
         });
 
         if (alertingLayers.length == 1) {
-            new Util.Alert(1, Util.AlertSeverity.Danger, 'Layer error', `The layer, ${alertingLayers[0].get("name")}, failed to load as expected.`, '#gifw-error-toast').show();
+            new Alert(1, AlertSeverity.Danger, 'Layer error', `The layer, ${alertingLayers[0].get("name")}, failed to load as expected.`, '#gifw-error-toast').show();
         } else if (alertingLayers.length > 1) {
-            new Util.Alert(1, Util.AlertSeverity.Danger, 'Layer error', 'Multiple layers failed to load as expected. Please check the layers panel to see which have errored.', '#gifw-error-toast').show();
+            new Alert(1, AlertSeverity.Danger, 'Layer error', 'Multiple layers failed to load as expected. Please check the layers panel to see which have errored.', '#gifw-error-toast').show();
         }
         this.setLayerVisibilityState(layers);
     }
@@ -624,7 +624,7 @@ export class LayersPanel implements SidebarPanel {
                 }
             }
 
-            Util.Alert.showTimedToast('Layer out of range', notificationText, Util.AlertSeverity.Warning);            
+            Alert.showTimedToast('Layer out of range', notificationText, AlertSeverity.Warning);            
             
         }
     }
@@ -726,7 +726,7 @@ export class LayersPanel implements SidebarPanel {
                 const layerSwitcherCheckboxes: NodeListOf<HTMLInputElement> = layersListContainer.querySelectorAll('input[type=checkbox]');
                 layerSwitcherCheckboxes.forEach(c => {
                     c.closest('li').style.display = 'none';
-                    const parentFolders = Util.Helper.getAllParentElements(c as HTMLElement, '.accordion-collapse');
+                    const parentFolders = Helper.getAllParentElements(c as HTMLElement, '.accordion-collapse');
                     parentFolders.forEach(pf => {
                         pf.classList.remove('show');
                         pf.parentElement.classList.add('border-0');
@@ -748,7 +748,7 @@ export class LayersPanel implements SidebarPanel {
                     const allCheckboxes: HTMLInputElement[] = [];
 
                     allCheckboxes.push(...(layerFolder.querySelectorAll('input[type=checkbox]') as NodeListOf<HTMLInputElement>));
-                    const parentFolders = Util.Helper.getAllParentElements(layerFolder as HTMLElement, '.accordion-collapse');
+                    const parentFolders = Helper.getAllParentElements(layerFolder as HTMLElement, '.accordion-collapse');
                     parentFolders.forEach(pf => {
                         pf.classList.add('show');
                         pf.parentElement.classList.remove('border-0');
@@ -773,7 +773,7 @@ export class LayersPanel implements SidebarPanel {
                     //this is a layer
                     const layerCheckbox: HTMLInputElement = document.querySelector(`#layer-switcher-${layerResult.item.id}`);
                     layerCheckbox.closest('li').style.display = 'block';
-                    const parentFolders = Util.Helper.getAllParentElements(layerCheckbox as HTMLElement, '.accordion-collapse');
+                    const parentFolders = Helper.getAllParentElements(layerCheckbox as HTMLElement, '.accordion-collapse');
                     parentFolders.forEach(pf => {
                         pf.classList.add('show');
                         pf.parentElement.classList.remove('border-0');
@@ -799,7 +799,7 @@ export class LayersPanel implements SidebarPanel {
         const layerSwitcherCheckboxes: NodeListOf<HTMLInputElement> = layersListContainer.querySelectorAll('input[type=checkbox]');
         const layerSwitcherButtons = container.querySelectorAll('.accordion-button');
         layerSwitcherCheckboxes.forEach(c => {
-            Util.Helper.getAllParentElements(c, '.accordion-item').forEach(ai => {
+            Helper.getAllParentElements(c, '.accordion-item').forEach(ai => {
                 ai.classList.remove('border-0');
             })
             c.closest('li').style.display = 'block';
@@ -1016,7 +1016,7 @@ export class LayersPanel implements SidebarPanel {
                     baseUrl = layerSource.getUrl();
                 }
 
-                const authKey = Util.Helper.getValueFromObjectByKey(sourceParams, "authkey");
+                const authKey = Helper.getValueFromObjectByKey(sourceParams, "authkey");
                 let additionalParams = {};
                 if (authKey) {
                     additionalParams = { authkey: authKey };
@@ -1028,7 +1028,7 @@ export class LayersPanel implements SidebarPanel {
                 if (gifwLayer.proxyMetaRequests) {
                     proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
                 }
-                const httpHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(gifwLayer.layerSource);
+                const httpHeaders = MappingUtil.extractCustomHeadersFromLayerSource(gifwLayer.layerSource);
                 const styleListPromise = Metadata.getStylesForLayer(baseUrl, featureTypeName, proxyEndpoint, additionalParams, httpHeaders);
                 if (styleListPromise) {
                     styleListPromise.then(styles => {

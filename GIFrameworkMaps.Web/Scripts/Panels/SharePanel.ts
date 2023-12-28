@@ -1,9 +1,9 @@
 ﻿import { SidebarPanel } from "../Interfaces/SidebarPanel";
 import { Sidebar } from "../Sidebar";
 import { GIFWMap } from "../Map";
-import { Util } from "../Util";
 import { Modal, Tooltip } from "bootstrap";
 import Spinner from "../Spinner";
+import { Alert, AlertSeverity, AlertType, CustomError, Mapping as MappingUtil} from "../Util";
 
 export class SharePanel implements SidebarPanel {
     container: string;
@@ -43,7 +43,7 @@ export class SharePanel implements SidebarPanel {
     }
 
     private updatePermalink(): void {
-        const permalink = Util.Mapping.generatePermalinkForMap(this.gifwMapInstance);
+        const permalink = MappingUtil.generatePermalinkForMap(this.gifwMapInstance);
         const container = document.querySelector(this.container);
         const directLinkInput:HTMLInputElement = container.querySelector('#gifw-share-link');
         directLinkInput.value = permalink;
@@ -70,8 +70,8 @@ export class SharePanel implements SidebarPanel {
                                 window.setTimeout(() => { tooltip.hide() }, 3000);
                             }, () => {
                                 /* clipboard write failed */
-                                const errDialog = new Util.Error(Util.AlertType.Popup,
-                                    Util.AlertSeverity.Danger,
+                                const errDialog = new CustomError(AlertType.Popup,
+                                    AlertSeverity.Danger,
                                     "There was a problem copying to the clipboard",
                                     "<p>We couldn't automatically copy your link to the clipboard.</p><p>You can copy it manually by selecting the text and hitting <kbd>Ctrl</kbd> - <kbd>C</kbd> on Windows or <kbd>Cmd</kbd> - <kbd>C</kbd> on a Mac. For mobiles and touch screen devices, long tap and hold on the link, then choose Select All, then Copy.</p>")
                                 errDialog.show();
@@ -117,14 +117,14 @@ export class SharePanel implements SidebarPanel {
     }
 
     private async generateShortLink() {
-        const permalink = encodeURIComponent(Util.Mapping.generatePermalinkForMap(this.gifwMapInstance));
+        const permalink = encodeURIComponent(MappingUtil.generatePermalinkForMap(this.gifwMapInstance));
         const fetchUrl = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}api/GenerateShortUrl?url=${permalink}`;
         const response = await fetch(fetchUrl, {
             method: "POST"
         });
         if (!response.ok) {
             this.shareLinkModal.hide();
-            Util.Alert.showPopupError('An error occurred', 'There was a problem generating a short link. Please try again later, or use the standard links.')
+            Alert.showPopupError('An error occurred', 'There was a problem generating a short link. Please try again later, or use the standard links.')
             console.error(`HTTP error: ${response.status}`);
             return;
         }

@@ -7,7 +7,7 @@ import { PDFPageSetting, PDFPageSettings } from "./Interfaces/Print/PDFPageSetti
 import { PrintConfiguration } from "./Interfaces/Print/PrintConfiguration";
 import { GIFWMap } from "./Map";
 import { GIFWMousePositionControl } from "./MousePositionControl";
-import { Util } from "./Util";
+import { AlertSeverity, AlertType, CustomError } from "./Util";
 
 export type LegendPositioningOption = "none" | "float-left" | "pinned-left" | "separate-page";
 export type PageSizeOption = "a2" | "a3" | "a4" | "a5";
@@ -32,7 +32,7 @@ export class Export {
             this.printConfiguration = await resp.json();
         } else {
             console.error("Failed to get print configuration", resp.statusText);
-            const errDialog = new Util.Error(Util.AlertType.Popup, Util.AlertSeverity.Danger, "Error getting print configs", "<p>There was an error getting the print config for this version</p><p>This means the print functionality will not work. Please refresh the page to try again</p>")
+            const errDialog = new CustomError(AlertType.Popup, AlertSeverity.Danger, "Error getting print configs", "<p>There was an error getting the print config for this version</p><p>This means the print functionality will not work. Please refresh the page to try again</p>")
             errDialog.show();
             document.getElementById('gifw-print-form').innerHTML =
                 `<div class="text-center">

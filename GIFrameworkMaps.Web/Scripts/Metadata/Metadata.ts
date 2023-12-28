@@ -4,7 +4,7 @@ import { DescribeFeatureType } from "../Interfaces/OGCMetadata/DescribeFeatureTy
 import { evaluateXPath, evaluateXPathToFirstNode, evaluateXPathToNodes } from "fontoxpath";
 import { Style } from "../Interfaces/OGCMetadata/Style";
 import { LayerResource } from "../Interfaces/OGCMetadata/LayerResource";
-import { Util } from "../Util";
+import { Browser as BrowserUtil } from "../Util";
 import * as olExtent from "ol/extent";
 export class Metadata {
 
@@ -32,7 +32,7 @@ export class Metadata {
 
         const baseURLasURL = new URL(baseUrl)
         const baseURLParams = baseURLasURL.searchParams;
-        const combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, describeFeatureURLParams, true);
+        const combinedURLParams = BrowserUtil.combineURLSearchParams(baseURLParams, describeFeatureURLParams, true);
         let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
         if (proxyEndpoint !== "") {
             fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
@@ -400,7 +400,7 @@ export class Metadata {
         })
         const baseURLasURL = new URL(baseUrl)
         const baseURLParams = new URL(baseUrl).searchParams;
-        const combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, describeProcessURLParams, true);
+        const combinedURLParams = BrowserUtil.combineURLSearchParams(baseURLParams, describeProcessURLParams, true);
 
         let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
         if (proxyEndpoint !== "") {
@@ -441,7 +441,7 @@ export class Metadata {
         });
         const baseURLasURL = new URL(baseUrl)
         const baseURLParams = new URL(baseUrl).searchParams;
-        const combinedURLParams = Util.Browser.combineURLSearchParams(baseURLParams, getCapabilitiesURLParams, true);
+        const combinedURLParams = BrowserUtil.combineURLSearchParams(baseURLParams, getCapabilitiesURLParams, true);
 
         const fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
         return fetchUrl;

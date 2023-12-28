@@ -1,7 +1,6 @@
 ﻿import * as olExtent from 'ol/extent';
 import * as olProj from "ol/proj";
 import { Modal } from 'bootstrap';
-import { Util } from "./Util";
 import Feature from 'ol/Feature';
 import { Vector as VectorSource } from 'ol/source';
 import { Vector as VectorLayer } from 'ol/layer';
@@ -16,6 +15,7 @@ import { SearchQuery } from './Interfaces/Search/SearchQuery';
 import { RequiredSearch } from './Interfaces/Search/RequiredSearch';
 import { LayerGroupType } from './Interfaces/LayerGroupType';
 import { UserSettings } from './UserSettings';
+import { AlertSeverity, AlertType, Color, CustomError, Helper, Mapping as MappingHelper } from './Util';
 
 export class Search {
 
@@ -76,7 +76,7 @@ export class Search {
         }).catch(error => {
             console.error("Failed to get search options", error);
             document.getElementById('search-container').style.display = 'none'
-            const errDialog = new Util.Error(Util.AlertType.Popup, Util.AlertSeverity.Danger, "Error getting search options", "<p>There was an error getting the search definitions for this version</p><p>This means the search functionality will not work. Please refresh the page to try again</p>")
+            const errDialog = new CustomError(AlertType.Popup, AlertSeverity.Danger, "Error getting search options", "<p>There was an error getting the search definitions for this version</p><p>This means the search functionality will not work. Please refresh the page to try again</p>")
             errDialog.show();
         });
         //attach search toggle
@@ -137,7 +137,7 @@ export class Search {
         //add the permalink provided search results pin if provided
         if (permalinkParams && permalinkParams.sr && permalinkParams.srdata) {
             try {
-                const decodedSearchResultData = Util.Helper.UnicodeDecodeB64(permalinkParams.srdata);
+                const decodedSearchResultData = Helper.UnicodeDecodeB64(permalinkParams.srdata);
                 const searchResultData = JSON.parse(decodedSearchResultData);
                 const searchResultCoords = permalinkParams.sr.split(',');
                 if (searchResultData && searchResultData.content && searchResultData.title && searchResultCoords.length === 2) {
@@ -377,7 +377,7 @@ export class Search {
             const zoomDiff = Math.max(result.zoom, curZoom) - Math.min(result.zoom, curZoom);
 
             zoomToExtent = point.getExtent();
-            animationSpeed = Util.Mapping.calculateAnimationSpeed(zoomDiff);
+            animationSpeed = MappingHelper.calculateAnimationSpeed(zoomDiff);
             maxZoom = result.zoom;
         }
 
@@ -418,10 +418,10 @@ export class Search {
     }
 
     private showSearchOutsideBoundsError(): void {
-        const errDialog = new Util.Error
+        const errDialog = new CustomError
             (
-                Util.AlertType.Popup,
-                Util.AlertSeverity.Danger,
+                AlertType.Popup,
+                AlertSeverity.Danger,
                 "Search result is outside bounds of map",
                 "<p>The search result you selected is outside the current max bounds of your background map.</p><p>Choose a different background map to view this result.</p>"
             )
@@ -496,7 +496,7 @@ export class Search {
         const searchResults = document.getElementById('gifw-search-results-list');
         searchResults.innerHTML = '';
         (document.querySelector('#gifw-search-results-count') as HTMLHeadElement).innerText = '';
-        Util.Helper.addLoadingOverlayToElement(searchResults, 'afterbegin');
+        Helper.addLoadingOverlayToElement(searchResults, 'afterbegin');
         (document.getElementById('gifw-search-button') as HTMLButtonElement).disabled = true;
         searchResults.addEventListener('gifw-cancel', () => { this.cancelSearch(); });
     }
@@ -509,7 +509,7 @@ export class Search {
     */
     private hideLoading() {
         const searchResults = document.getElementById('gifw-search-results-list');
-        Util.Helper.removeLoadingOverlayFromElement(searchResults);
+        Helper.removeLoadingOverlayFromElement(searchResults);
         (document.getElementById('gifw-search-button') as HTMLButtonElement).disabled = false;
     }
 
@@ -624,7 +624,7 @@ export class Search {
             }),
         });
 
-        const rgbColor = Util.Color.hexToRgb(color);
+        const rgbColor = Color.hexToRgb(color);
         let strokeColor = 'rgb(0,0,0)';
         let fillColor = 'rgba(255, 255, 255, 0.2)';
         if (rgbColor) {
@@ -658,7 +658,7 @@ export class Search {
         sidebarPanelsContainer.classList.toggle('show', true);
 
         const otherSidebars: NodeListOf<HTMLDivElement> = sidebarPanelsContainer.querySelectorAll('.sidebar');
-        otherSidebars.forEach(function (sb) {
+        otherSidebars.forEach((sb) => {
             sb.style.display = 'none';
         });
 

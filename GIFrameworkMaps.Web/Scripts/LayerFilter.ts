@@ -24,7 +24,7 @@ import { GIFWMap } from "./Map";
 import { Metadata } from "./Metadata/Metadata";
 import CQL, { FilterType, PropertyTypes } from "./OL Extensions/CQL";
 import { LayersPanel } from "./Panels/LayersPanel";
-import { Util } from "./Util";
+import { Alert, Helper, Mapping as MappingHelper} from "./Util";
 
 export class LayerFilter {
     gifwMapInstance: GIFWMap;
@@ -62,7 +62,7 @@ export class LayerFilter {
         try {
             if (!this.layerConfig) {
                 this.filterModal.hide();
-                Util.Alert.showPopupError("There was a problem", "<p>This layer cannot be filtered</p>")
+                Alert.showPopupError("There was a problem", "<p>This layer cannot be filtered</p>")
                 return;
             }
             const filterModalHeader = document.querySelector('#layer-filtering-modal .modal-title');
@@ -89,12 +89,12 @@ export class LayerFilter {
 
             if (!(source instanceof TileWMS || source instanceof ImageWMS)) {
                 this.filterModal.hide();
-                Util.Alert.showPopupError("There was a problem", "<p>This layer cannot be filtered</p>")
+                Alert.showPopupError("There was a problem", "<p>This layer cannot be filtered</p>")
                 return;
             }
             if (!(this.layerProperties && this.layerProperties.length !== 0)) {
                 this.filterModal.hide();
-                Util.Alert.showPopupError("There was a problem", "<p>We couldn't get the properties for this layer, so you can't filter this layer right now</p>")
+                Alert.showPopupError("There was a problem", "<p>We couldn't get the properties for this layer, so you can't filter this layer right now</p>")
                 return;
             }
             //load the filter details into the dialog
@@ -151,7 +151,7 @@ export class LayerFilter {
         } catch (e) {
             console.error(e);
             this.filterModal.hide();
-            Util.Alert.showPopupError("There was a problem", "<p>Sorry, we had an issue building the filtering dialog, so you can't filter this layer right now.</p>")
+            Alert.showPopupError("There was a problem", "<p>Sorry, we had an issue building the filtering dialog, so you can't filter this layer right now.</p>")
         }
     }
 
@@ -1203,7 +1203,7 @@ export class LayerFilter {
                 baseUrl = (source as ImageWMS).getUrl();
             }
 
-            const authKey = Util.Helper.getValueFromObjectByKey(sourceParams, "authkey");
+            const authKey = Helper.getValueFromObjectByKey(sourceParams, "authkey");
             let additionalParams = {};
             if (authKey) {
                 additionalParams = { authkey: authKey };
@@ -1212,7 +1212,7 @@ export class LayerFilter {
             if (this.layerConfig.proxyMetaRequests) {
                 proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
             }
-            const layerHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(this.layerConfig.layerSource);
+            const layerHeaders = MappingHelper.extractCustomHeadersFromLayerSource(this.layerConfig.layerSource);
             const serverCapabilities = await Metadata.getBasicCapabilities(baseUrl, additionalParams, proxyEndpoint, layerHeaders);
 
             if (serverCapabilities &&
@@ -1253,7 +1253,7 @@ export class LayerFilter {
                 const xmlPayload = this.getWPSPagedUniquePayload(featureTypeName, propertyName);
                 const baseUrl = this.wpsExecuteCapability.url;
                 let searchParams = new URLSearchParams();
-                const authKey = Util.Helper.getValueFromObjectByKey(sourceParams, "authkey") as string;
+                const authKey = Helper.getValueFromObjectByKey(sourceParams, "authkey") as string;
                 if (authKey) {
                     searchParams = new URLSearchParams({ authkey: authKey });
                 }
@@ -1263,7 +1263,7 @@ export class LayerFilter {
                 if (this.layerConfig.proxyMetaRequests) {
                     url = this.gifwMapInstance.createProxyURL(url);
                 }
-                const httpHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(this.layerConfig.layerSource);
+                const httpHeaders = MappingHelper.extractCustomHeadersFromLayerSource(this.layerConfig.layerSource);
                 const response = await fetch(url,
                     {
                         method: this.wpsExecuteCapability.method,
@@ -1330,7 +1330,7 @@ export class LayerFilter {
             if (this.layerConfig.proxyMetaRequests) {
                 proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
             }
-            const httpHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(this.layerConfig.layerSource);
+            const httpHeaders = MappingHelper.extractCustomHeadersFromLayerSource(this.layerConfig.layerSource);
             const serverCapabilities = await Metadata.getWPSCapabilities(baseUrl, proxyEndpoint, {}, httpHeaders);
 
             if (serverCapabilities &&

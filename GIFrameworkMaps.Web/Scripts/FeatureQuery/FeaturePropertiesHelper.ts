@@ -1,4 +1,4 @@
-import { Util } from "../Util";
+import { Helper } from "../Util";
 
 export class FeaturePropertiesHelper {
     static _prioritisedTitleFields = ["name", "title", "address", "id", "postcode", "featureid"];
@@ -6,7 +6,7 @@ export class FeaturePropertiesHelper {
 
     public static getMostAppropriateTitleFromProperties(props: object) {
 
-        const properties = Util.Helper.getKeysFromObject(props);
+        const properties = Helper.getKeysFromObject(props);
 
         const titleProperty = this._prioritisedTitleFields.find(t => properties.map(p => p.toLowerCase()).includes(t.toLowerCase()))
         return titleProperty;

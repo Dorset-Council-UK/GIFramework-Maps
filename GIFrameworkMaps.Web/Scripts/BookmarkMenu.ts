@@ -2,7 +2,7 @@ import { Collapse, Dropdown, Modal } from "bootstrap";
 import { Point } from "ol/geom";
 import { Bookmark } from "./Interfaces/Bookmark";
 import { GIFWMap } from "./Map";
-import { Util } from "./Util";
+import { Alert, AlertSeverity, AlertType, CustomError, Mapping as MappingUtil } from "./Util";
 
 export class BookmarkMenu {
     gifwMapInstance: GIFWMap;
@@ -150,7 +150,7 @@ export class BookmarkMenu {
             const modal = Modal.getOrCreateInstance(modalEle);
             modal.hide();
             this.getBookmarks();
-            Util.Alert.showTimedToast('Success', '<span class="bi bi-check-circle text-success"></span> Bookmark added successfully', Util.AlertSeverity.Success);
+            Alert.showTimedToast('Success', '<span class="bi bi-check-circle text-success"></span> Bookmark added successfully', AlertSeverity.Success);
         } else {
             //show error text that should be in the response body
             resp.text().then(t => {
@@ -170,7 +170,7 @@ export class BookmarkMenu {
         const zoomDiff = Math.max(bookmark.zoom, curZoom) - Math.min(bookmark.zoom, curZoom);
 
         const zoomToExtent = point.getExtent();
-        const animationSpeed = Util.Mapping.calculateAnimationSpeed(zoomDiff);
+        const animationSpeed = MappingUtil.calculateAnimationSpeed(zoomDiff);
         const maxZoom = bookmark.zoom;
 
         if (this.gifwMapInstance.isExtentAvailableInCurrentMap(zoomToExtent)) {
@@ -190,7 +190,7 @@ export class BookmarkMenu {
         if (confirm('Are you sure you want to delete this bookmark?')) {
             const response = await fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}API/Bookmarks/Delete/${bookmarkId}`, { method: 'DELETE' });
             if (!response.ok) {
-                Util.Alert.showPopupError('Something went wrong', 'Something went wrong deleting your bookmark. Please try again later.')
+                Alert.showPopupError('Something went wrong', 'Something went wrong deleting your bookmark. Please try again later.')
                 return false;
             }
             this.getBookmarks();
@@ -216,10 +216,10 @@ export class BookmarkMenu {
      * Shows an error indicating the bookmark the user clicked is outside the bounds of the current map view
      */
     private showBookmarkOutsideBoundsError(): void {
-        const errDialog = new Util.Error
+        const errDialog = new CustomError
             (
-                Util.AlertType.Popup,
-                Util.AlertSeverity.Danger,
+                AlertType.Popup,
+                AlertSeverity.Danger,
                 "Bookmark is outside bounds of map",
                 "<p>The bookmark you selected is outside the current max bounds of your background map.</p><p>Choose a different background map to view this bookmark.</p>"
             )

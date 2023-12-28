@@ -16,7 +16,6 @@ import LineString from "ol/geom/LineString";
 import Point from "ol/geom/Point";
 import { getArea, getLength } from 'ol/sphere';
 import VectorLayer from "ol/layer/Vector";
-import { Util } from "./Util";
 import {never as olConditionNever} from "ol/events/condition";
 import { LayerGroupType } from "./Interfaces/LayerGroupType";
 import { DrawEvent } from "ol/interaction/Draw";
@@ -24,6 +23,7 @@ import { GIFWPopupAction } from "./Popups/PopupAction";
 import { GIFWPopupOptions } from "./Popups/PopupOptions";
 import { MeasurementResult } from "./Interfaces/MeasurementResult";
 import { Control as olControl } from "ol/control";
+import { Color } from "./Util";
 
 
 export class Measure extends olControl {
@@ -482,7 +482,7 @@ export class Measure extends olControl {
     }
 
     private getBasicStyle(): Style {
-        const rgbColor = Util.Color.hexToRgb(this.gifwMapInstance.config.theme.primaryColour);
+        const rgbColor = Color.hexToRgb(this.gifwMapInstance.config.theme.primaryColour);
         return new Style({
             fill: new Fill({
                 color: `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, 0.2)`

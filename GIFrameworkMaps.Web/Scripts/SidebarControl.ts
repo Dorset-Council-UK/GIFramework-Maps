@@ -24,7 +24,7 @@ export class SidebarControl extends olControl.Control {
             element: element
         });
         
-        button.addEventListener('click', function () {
+        button.addEventListener('click', () => {
             Tooltip.getInstance(button).hide();
             sidebar.toggle.call(sidebar);
             // This'll set the `this` value inside of `getSelection` to `self`

@@ -55,7 +55,7 @@ export class LegendsPanel implements SidebarPanel {
                 loadingNode.innerHTML = `<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>`
 
                 const imgNode = new Image();
-                imgNode.id = "legend-image-" + index;
+                imgNode.id = `legend-image-${index}`;
                 imgNode.className = 'legend-image mb-4';
                 imgNode.setAttribute('data-legend-name', legend.name);
                 imgNode.src = legend.legendUrl;
@@ -81,21 +81,21 @@ export class LegendsPanel implements SidebarPanel {
 
     }
     private showErrorForLegend(layerName:string) {
-        const legendImage = document.querySelector(this.container).querySelector('img.legend-image[data-legend-name="' + layerName + '"]');
+        const legendImage = document.querySelector(this.container).querySelector(`img.legend-image[data-legend-name="${layerName}"]`);
         if (legendImage) {
             legendImage.insertAdjacentHTML('afterend', `<div class="alert alert-warning p-2"><i class="bi bi-exclamation-triangle"></i> The legend for this layer failed to load</div>`)
             legendImage.remove();
         }
     }
     private showNoFeaturesMessageForLegend(layerName: string) {
-        const legendImage = document.querySelector(this.container).querySelector('img.legend-image[data-legend-name="' + layerName + '"]');
+        const legendImage = document.querySelector(this.container).querySelector(`img.legend-image[data-legend-name="${layerName}"]`);
         if (legendImage) {
             legendImage.insertAdjacentHTML('afterend',`<div class="alert alert-info p-2"><i class="bi bi-info-circle"></i> No features in view</div>`)
             legendImage.remove();
         }
     }
     private hideLoadingForLegend(layerName: string) {
-        const loadingElement = document.querySelector(this.container).querySelector('div.legend-loading[data-legend-name="' + layerName + '"]');
+        const loadingElement = document.querySelector(this.container).querySelector(`div.legend-loading[data-legend-name="${layerName}"]`);
         if (loadingElement) {
             loadingElement.remove();
         }

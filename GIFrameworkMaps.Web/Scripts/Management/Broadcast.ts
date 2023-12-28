@@ -18,13 +18,13 @@ export class Broadcast {
 
         sendButton.disabled = true;
 
-        connection.start().then(function () {
+        connection.start().then(() => {
             sendButton.disabled = false;
-        }).catch(function (err) {
+        }).catch((err) => {
             return console.error(err.toString());
         });
 
-        connection.on("ReceiveBroadcast", function (messageType, messageSeverity, message, version) {
+        connection.on("ReceiveBroadcast", (messageType, messageSeverity, message, version) => {
             const msg = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
             const encodedMsg = `Sending ${messageSeverity} ${messageType} to "/${version}" users with message: ${msg}`;
             const li = document.createElement("li");
@@ -33,13 +33,13 @@ export class Broadcast {
             messageInput.value = "";
         });
 
-        document.getElementById("sendButton").addEventListener("click", function (event) {
+        document.getElementById("sendButton").addEventListener("click", (event) => {
             const msgType = msgTypeSelect.value;
             const msgSeverity = msgSeveritySelect.value;
             const message = messageInput.value;
             const version = versionSelect.value;
             if (message !== "") {
-                connection.invoke("SendBroadcast", msgType, msgSeverity, message, version).catch(function (err) {
+                connection.invoke("SendBroadcast", msgType, msgSeverity, message, version).catch((err) => {
                     const li = document.createElement("li");
                     li.innerHTML = `The broadcast could not be sent.<br/>${err.toString()}`;
                     document.getElementById("messagesList").appendChild(li);
@@ -47,7 +47,7 @@ export class Broadcast {
                 });
                 //disable button for 5 seconds to prevent duplicated
                 sendButton.disabled = true;
-                window.setTimeout(function () { sendButton.disabled = false }, 5000);
+                window.setTimeout(() => { sendButton.disabled = false }, 5000);
             }
             event.preventDefault();
 

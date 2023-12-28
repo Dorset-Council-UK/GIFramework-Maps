@@ -1,16 +1,8 @@
-﻿//import Feature from "ol/Feature";
-//import Circle from "ol/geom/Circle";
-//import Geometry from "ol/geom/Geometry";
-//import SimpleGeometry from "ol/geom/SimpleGeometry";
-//import { toContext } from "ol/render";
-import { Fill, Icon, Stroke, Style, Text } from "ol/style";
-
+﻿import { Fill, Icon, Stroke, Style, Text } from "ol/style";
 import AnnotationStyleEvent from "./AnnotationStyleEvent";
 import { AnnotationTool } from "./AnnotationTool";
 import { GIFWMap } from "../Map";
-import { Util } from "../Util";
-//import AnnotationSelect from "./AnnotationSelect";
-
+import { Color } from "../Util";
 
 export default class AnnotationStyle extends Style {
 
@@ -45,7 +37,7 @@ export default class AnnotationStyle extends Style {
         this.fillColourHex = gifwMap.config.theme.primaryColour;
         this.fontColourHex = gifwMap.config.theme.primaryColour;
         this.strokeColourHex = gifwMap.config.theme.primaryColour;
-        const rgbColor = Util.Color.hexToRgb(this.fillColourHex);
+        const rgbColor = Color.hexToRgb(this.fillColourHex);
         this.opacity = 0.2;
         this.fillColour = `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, ${this.opacity})`;
         this.fontColour = `rgb(${rgbColor.r},${rgbColor.g},${rgbColor.b})`;
@@ -292,16 +284,16 @@ export default class AnnotationStyle extends Style {
         this.strokeColourHex = e.detail.style.strokeColourHex || this.strokeColourHex;
         this.strokeStyle = e.detail.style.strokeStyle || this.strokeStyle;
         this.strokeWidth = e.detail.style.strokeWidth || this.strokeWidth;
-        const rgbFillColour = Util.Color.hexToRgb(this.fillColourHex);
+        const rgbFillColour = Color.hexToRgb(this.fillColourHex);
         this.fillColour = `rgba(${rgbFillColour.r}, ${rgbFillColour.g}, ${rgbFillColour.b}, ${this.opacity})`;
-        const rgbFontColour = Util.Color.hexToRgb(this.fontColourHex);
+        const rgbFontColour = Color.hexToRgb(this.fontColourHex);
         this.fontColour = `rgb(${rgbFontColour.r}, ${rgbFontColour.g}, ${rgbFontColour.b})`;
-        const rgbStrokeColour = Util.Color.hexToRgb(this.strokeColourHex);
+        const rgbStrokeColour = Color.hexToRgb(this.strokeColourHex);
         this.strokeColour = `rgb(${rgbStrokeColour.r}, ${rgbStrokeColour.g}, ${rgbStrokeColour.b})`;
         if (e.detail.style.pointHasBorder != undefined && e.detail.style.pointHasBorder != null) {
             this.pointHasBorder = e.detail.style.pointHasBorder;
         }
-        const rgbBorderColour = Util.Color.hexToRgb(this.borderColourHex);
+        const rgbBorderColour = Color.hexToRgb(this.borderColourHex);
         this.borderColour = `rgb(${rgbBorderColour.r}, ${rgbBorderColour.g}, ${rgbBorderColour.b})`;
         this.borderColourHex = e.detail.style.borderColourHex || this.borderColourHex;
         this.borderWidth = e.detail.style.borderWidth || this.borderWidth;

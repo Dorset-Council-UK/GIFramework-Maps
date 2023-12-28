@@ -12,7 +12,7 @@ import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { GIFWMap } from "../Map";
 import { GIFWPopupAction } from "../Popups/PopupAction";
 import { GIFWPopupOptions } from "../Popups/PopupOptions";
-import { Util } from "../Util";
+import { Helper } from "../Util";
 import { FeaturePropertiesHelper } from "./FeaturePropertiesHelper";
 import { FeatureQueryTemplateHelper } from "./FeatureQueryTemplateHelper";
 import { Source } from "ol/source";
@@ -103,10 +103,10 @@ export class FeatureQueryResultRenderer {
                 if (!gifwLayer.infoTemplate) {
                     //use generic template
                     let genericTemplate = "";
-                    const keys = Util.Helper.getKeysFromObject(props);
+                    const keys = Helper.getKeysFromObject(props);
                     
                     keys.forEach(k => {
-                        const value = Util.Helper.getValueFromObjectByKey(props, k);
+                        const value = Helper.getValueFromObjectByKey(props, k);
                         if (FeaturePropertiesHelper.isUserDisplayablePropertyAndValue(k,value)) {
                             genericTemplate += `<tr><th>${k}</th><td>{{${k}}}</td>`;
                         }
@@ -191,7 +191,7 @@ export class FeatureQueryResultRenderer {
                 if(listItemContent === '') {
                     const titleProperty = FeaturePropertiesHelper.getMostAppropriateTitleFromProperties(f.getProperties());
                     if (titleProperty) {
-                        listItemContent = Util.Helper.getValueFromObjectByKey(f.getProperties(), titleProperty) as string;
+                        listItemContent = Helper.getValueFromObjectByKey(f.getProperties(), titleProperty) as string;
                     } else {
                         //fall back to first property
                         const firstProp = FeaturePropertiesHelper.getFirstAllowedPropertyFromProperties(f.getProperties() as object[])

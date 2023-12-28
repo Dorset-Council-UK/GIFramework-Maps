@@ -30,7 +30,7 @@ import { Metadata } from "../Metadata/Metadata";
 import CQL from "../OL Extensions/CQL";
 import { GIFWPopupAction } from "../Popups/PopupAction";
 import { GIFWPopupOptions } from "../Popups/PopupOptions";
-import { Util } from "../Util";
+import { AlertSeverity, AlertType, CustomError, Helper, Mapping as MappingUtil } from "../Util";
 import { FeatureQueryResultRenderer } from "./FeatureQueryResultRenderer";
 import IsBetween from "ol/format/filter/IsBetween";
 import EqualTo from "ol/format/filter/EqualTo";
@@ -174,9 +174,9 @@ export class FeatureQuerySearch {
                 console.error(failedPromise.status);
                 msgs.push(failedPromise.status);
             })
-            const err = new Util.Error(
-                responsesWithData.length === 0 ? Util.AlertType.Popup : Util.AlertType.Toast,
-                Util.AlertSeverity.Danger,
+            const err = new CustomError(
+                responsesWithData.length === 0 ? AlertType.Popup : AlertType.Toast,
+                AlertSeverity.Danger,
                 `Feature request failed`,
                 `${msgs.length} layer${msgs.length !== 1 ? "s" : ""} had a problem when returning feature information`);
             err.show();
@@ -372,13 +372,13 @@ export class FeatureQuerySearch {
                     baseUrl = source.getUrl();
                 }
 
-                const authKey = Util.Helper.getValueFromObjectByKey(sourceParams, "authkey");
+                const authKey = Helper.getValueFromObjectByKey(sourceParams, "authkey");
                 let additionalParams = {};
                 if (authKey) {
                     additionalParams = { authkey: authKey };
                 }
                 const gifwLayer = this._gifwMapInstance.getLayerConfigById(layer.get('layerId'));
-                const layerHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(gifwLayer.layerSource);
+                const layerHeaders = MappingUtil.extractCustomHeadersFromLayerSource(gifwLayer.layerSource);
                 const serverCapabilities = await Metadata.getBasicCapabilities(baseUrl, additionalParams, undefined, layerHeaders);
 
                 if (serverCapabilities &&
@@ -393,7 +393,7 @@ export class FeatureQuerySearch {
                     if (layer.get('gifw-proxy-meta-requests') === "true") {
                         proxyEndpoint = `${document.location.protocol}//${this._gifwMapInstance.config.appRoot}proxy`;
                     }
-                    const httpHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(gifwLayer.layerSource);
+                    const httpHeaders = MappingUtil.extractCustomHeadersFromLayerSource(gifwLayer.layerSource);
                     const featureDescription = await Metadata.getDescribeFeatureType(describeFeatureCapability.url, featureTypeName, describeFeatureCapability.method,undefined,proxyEndpoint,undefined,httpHeaders);
                     if (featureDescription) {
                         const geomColumnName = featureDescription.featureTypes[0].properties.filter(p => p.type.indexOf("gml:") === 0);
@@ -518,7 +518,7 @@ export class FeatureQuerySearch {
                 fetchUrl = this._gifwMapInstance.createProxyURL(request.searchUrl);
             }
             const gifwLayer = this._gifwMapInstance.getLayerConfigById(request.layer.get('layerId'), [LayerGroupType.Overlay]);
-            const layerHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(gifwLayer.layerSource);
+            const layerHeaders = MappingUtil.extractCustomHeadersFromLayerSource(gifwLayer.layerSource);
             layerHeaders.append('Content-Type', 'application/vnd.ogc.gml');
             fetch(fetchUrl, {
                 method: request.wfsRequest ? "POST" : "GET",

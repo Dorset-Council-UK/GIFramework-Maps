@@ -30,7 +30,7 @@ export class NativeLayerGroup implements LayerGroup {
         const ol_layers: Array<any> = [];
         const lgType = this.layerGroupType;
         if (this.layers !== null) {
-            this.layers.forEach(function (layer) {
+            this.layers.forEach((layer) => {
                 layer.setProperties({ "layerGroupType": lgType })
 
                 ol_layers.push(layer);

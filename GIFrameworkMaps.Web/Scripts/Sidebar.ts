@@ -23,19 +23,19 @@ export class Sidebar {
 
     public open(): void {
         const sidebarPanelsContainer = document.querySelector('#gifw-sidebar-right');
-        const sidebar: HTMLDivElement = sidebarPanelsContainer.querySelector('#' + this.id);
+        const sidebar: HTMLDivElement = sidebarPanelsContainer.querySelector(`#${  this.id}`);
 
         const otherSidebars: NodeListOf<HTMLDivElement> = sidebarPanelsContainer.querySelectorAll('.sidebar');
-        otherSidebars.forEach(function (sb) {
+        otherSidebars.forEach((sb) => {
             sb.style.display = 'none';
         });
         const otherSidebarButtons = document.querySelectorAll('.giframeworkMap .sidebar-button');
-        otherSidebarButtons.forEach(function (sb) {
+        otherSidebarButtons.forEach((sb) => {
             sb.classList.toggle('sidebar-open', true);
             sb.classList.remove('active');
         });
 
-        const sidebarButton: HTMLButtonElement = document.querySelector('.giframeworkMap .sidebar-button button[data-gi-sidebar-target="' + this.id + '"]');
+        const sidebarButton: HTMLButtonElement = document.querySelector(`.giframeworkMap .sidebar-button button[data-gi-sidebar-target="${  this.id  }"]`);
         const sidebarButtonContainer: HTMLElement = sidebarButton?.parentElement;
         sidebarPanelsContainer.classList.toggle('show', true);
         sidebarButtonContainer?.classList.toggle('active', true);
@@ -57,7 +57,7 @@ export class Sidebar {
     public toggle(): void {
         const targetSidebarId = this.id;
         const sidebarPanelsContainer = document.querySelector('#gifw-sidebar-right');
-        const sidebar:HTMLDivElement = sidebarPanelsContainer.querySelector('#' + targetSidebarId);
+        const sidebar:HTMLDivElement = sidebarPanelsContainer.querySelector(`#${  targetSidebarId}`);
 
         if (sidebar.style.display === 'none') {
             this.close();
@@ -76,11 +76,11 @@ export class Sidebar {
         const sidebarPanelsContainer = document.querySelector('#gifw-sidebar-right');
         sidebarPanelsContainer.classList.toggle('show', false);
         const otherSidebars: NodeListOf<HTMLDivElement> = sidebarPanelsContainer.querySelectorAll('.sidebar');
-        otherSidebars.forEach(function (sb) {
+        otherSidebars.forEach((sb) => {
             sb.style.display = 'none';
         });
         const otherSidebarButtons: NodeListOf<HTMLButtonElement> = document.querySelectorAll('.giframeworkMap .sidebar-button button[data-gi-sidebar-target]');
-        otherSidebarButtons.forEach(function (sb) {
+        otherSidebarButtons.forEach((sb) => {
             sb.parentElement.classList.toggle('sidebar-open', false);
             sb.parentElement.classList.toggle('active', false);
             sb.blur();

@@ -105,7 +105,7 @@ export class CQL {
                         }
                     }
                 }
-                return [text.substr(0, idx + 1)];
+                return [text.substring(0, idx + 1)];
             }
             return null;
         },
@@ -347,7 +347,7 @@ export class CQL {
             text = token.remainder;
             expect = follows[token.type];
             if (token.type !== 'END' && !expect) {
-                throw new Error('No follows list for ' + token.type);
+                throw new Error(`No follows list for ${token.type}`);
             }
             results.push(token);
         } while (token.type !== 'END');
@@ -405,7 +405,7 @@ export class CQL {
                 case 'END':
                     break;
                 default:
-                    throw new Error('Unknown token type ' + token.type);
+                    throw new Error(`Unknown token type ${  token.type}`);
             }
         });
 
@@ -541,7 +541,7 @@ export class CQL {
         if (postfix.length > 0) {
             let msg = 'Remaining tokens after building AST: \n';
             for (let i = postfix.length - 1; i >= 0; i--) {
-                msg += postfix[i].type + ': ' + postfix[i].text + '\n';
+                msg += `${postfix[i].type  }: ${  postfix[i].text  }\n`;
             }
             throw new Error(msg);
         }
@@ -681,7 +681,7 @@ export class CQL {
             //find the character before. If its the escape character, do NOT change this
             if (underscore.index === 0 || convertedPattern.charAt(underscore.index - 1) !== "!") {
                 //replace me!
-                convertedPattern = convertedPattern.substring(0, underscore.index) + "." + convertedPattern.substring(underscore.index + 1)
+                convertedPattern = `${convertedPattern.substring(0, underscore.index)  }.${  convertedPattern.substring(underscore.index + 1)}`
             }
         }
         const percentages = [...pattern.matchAll(/%/g)];
@@ -689,7 +689,7 @@ export class CQL {
             //find the character before. If its the escape character, do NOT change this
             if (percentage.index === 0 || convertedPattern.charAt(percentage.index - 1) !== "!") {
                 //replace me!
-                convertedPattern = convertedPattern.substring(0, percentage.index) + "*" + convertedPattern.substring(percentage.index + 1)
+                convertedPattern = `${convertedPattern.substring(0, percentage.index)  }*${  convertedPattern.substring(percentage.index + 1)}`
             }
         }
         return convertedPattern;
@@ -710,7 +710,7 @@ export class CQL {
             //find the character before. If its the escape character, do NOT change this
             if (period.index === 0 || convertedPattern.charAt(period.index - 1) !== "!") {
                 //replace me!
-                convertedPattern = convertedPattern.substring(0, period.index) + "_" + convertedPattern.substring(period.index + 1)
+                convertedPattern = `${convertedPattern.substring(0, period.index)  }_${  convertedPattern.substring(period.index + 1)}`
             }
         }
         const asterisks = [...pattern.matchAll(/\*/g)];
@@ -718,7 +718,7 @@ export class CQL {
             //find the character before. If its the escape character, do NOT change this
             if (asterisk.index === 0 || convertedPattern.charAt(asterisk.index - 1) !== "!") {
                 //replace me!
-                convertedPattern = convertedPattern.substring(0, asterisk.index) + "%" + convertedPattern.substring(asterisk.index + 1)
+                convertedPattern = `${convertedPattern.substring(0, asterisk.index)  }%${  convertedPattern.substring(asterisk.index + 1)}`
             }
         }
         return convertedPattern;

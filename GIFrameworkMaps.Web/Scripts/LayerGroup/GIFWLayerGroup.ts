@@ -11,7 +11,7 @@ import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { LayerGroup } from "./LayerGroup";
 import TileGrid from "ol/tilegrid/TileGrid";
 import BaseLayer from "ol/layer/Base";
-import { Util } from "../Util";
+import {Mapping as MappingUtil } from "../Util"
 
 export class GIFWLayerGroup implements LayerGroup {
     layers: Layer[];
@@ -49,7 +49,7 @@ export class GIFWLayerGroup implements LayerGroup {
                 const opacity = (layer.defaultOpacity !== undefined ? layer.defaultOpacity : 100) / 100;
                 let projection = viewProj;
                 let hasCustomHeaders = false;
-                const layerHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(layer.layerSource);
+                const layerHeaders = MappingUtil.extractCustomHeadersFromLayerSource(layer.layerSource);
                 //this is a bit of a nasty way of checking for existence of headers
                 layerHeaders.forEach(() => {
                     hasCustomHeaders = true;
@@ -100,15 +100,15 @@ export class GIFWLayerGroup implements LayerGroup {
                     case "TileWMS": {
                         /*TODO THIS ISN'T NICE AT ALL*/
                         const tileWMSOpts: TileWMSOptions = {
-                            url: layer.layerSource.layerSourceOptions.filter(function (o) {
+                            url: layer.layerSource.layerSourceOptions.filter((o) => {
                                 return o.name.toLowerCase() == 'url';
-                            }).map(function (o) {
+                            }).map((o) => {
                                 return o.value;
                             })[0],
                             attributions: layer.layerSource.attribution.renderedAttributionHTML,
-                            params: layer.layerSource.layerSourceOptions.filter(function (o) {
+                            params: layer.layerSource.layerSourceOptions.filter((o) => {
                                 return o.name.toLowerCase() == 'params';
-                            }).map(function (o) {
+                            }).map((o) => {
                                 return JSON.parse(o.value);
                             })[0],
                             crossOrigin: 'anonymous',
@@ -138,15 +138,15 @@ export class GIFWLayerGroup implements LayerGroup {
                     }
                     case "ImageWMS": {
                         const imageWMSOpts: ImageWMSOptions = {
-                            url: layer.layerSource.layerSourceOptions.filter(function (o) {
+                            url: layer.layerSource.layerSourceOptions.filter((o) => {
                                 return o.name == 'url';
-                            }).map(function (o) {
+                            }).map((o) => {
                                 return o.value;
                             })[0],
                             attributions: layer.layerSource.attribution.renderedAttributionHTML,
-                            params: layer.layerSource.layerSourceOptions.filter(function (o) {
+                            params: layer.layerSource.layerSourceOptions.filter((o) => {
                                 return o.name == 'params';
-                            }).map(function (o) {
+                            }).map((o) => {
                                 return JSON.parse(o.value);
                             })[0],
                             projection: projection
@@ -212,7 +212,7 @@ export class GIFWLayerGroup implements LayerGroup {
                 const respBlob = await resp.blob();
                 const url = URL.createObjectURL(respBlob);
                 const img = imageTile.getImage();
-                img.addEventListener('load', function () {
+                img.addEventListener('load', () => {
                     URL.revokeObjectURL(url);
                 });
                 (img as HTMLImageElement).src = url;

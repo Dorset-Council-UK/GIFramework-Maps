@@ -1,11 +1,11 @@
 ﻿import * as signalR from "@microsoft/signalr";
-import { Util } from "./Util";
+import { Alert, AlertSeverity, AlertType, Helper } from "./Util";
 
 export class BroadcastReceiver {
     static init(versionSlug:string, appRoot:string) {
-        const connection = new signalR.HubConnectionBuilder().withUrl(`${document.location.protocol}//${Util.Helper.stripTrailingSlash(appRoot)}/broadcasthub`).build();
+        const connection = new signalR.HubConnectionBuilder().withUrl(`${document.location.protocol}//${Helper.stripTrailingSlash(appRoot)}/broadcasthub`).build();
 
-        connection.on("ReceiveBroadcast", function (messageType, messageSeverity, message, version) {
+        connection.on("ReceiveBroadcast", (messageType, messageSeverity, message, version) => {
             if (version === "all" || version === versionSlug) {
                 const msg = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
                 switch (messageType) {
@@ -19,46 +19,46 @@ export class BroadcastReceiver {
             }
         });
 
-        connection.start().catch(function (err) {
+        connection.start().catch((err) => {
             return console.error(err.toString());
         });
     }
 
     static showToast(messageSeverity:string, msg:string) {
 
-        let alertSeverity = Util.AlertSeverity.Info;
+        let alertSeverity = AlertSeverity.Info;
         switch (messageSeverity) {
             case "Warning":
-                alertSeverity = Util.AlertSeverity.Warning
+                alertSeverity = AlertSeverity.Warning
                 break;
             case "Danger":
-                alertSeverity = Util.AlertSeverity.Danger
+                alertSeverity = AlertSeverity.Danger
                 break;
             case "Success":
-                alertSeverity = Util.AlertSeverity.Success
+                alertSeverity = AlertSeverity.Success
                 break;
         }
-        const broadcastAlert = new Util.Alert(Util.AlertType.Toast, alertSeverity, "Message from administrators", msg, "#gifw-broadcast-toast")
+        const broadcastAlert = new Alert(AlertType.Toast, alertSeverity, "Message from administrators", msg, "#gifw-broadcast-toast")
         broadcastAlert.show();
 
     }
 
     static showModal(messageSeverity: string, msg: string) {
 
-        let alertSeverity = Util.AlertSeverity.Info;
+        let alertSeverity = AlertSeverity.Info;
         switch (messageSeverity) {
             case "Warning":
-                alertSeverity = Util.AlertSeverity.Warning
+                alertSeverity = AlertSeverity.Warning
                 break;
             case "Danger":
-                alertSeverity = Util.AlertSeverity.Danger
+                alertSeverity = AlertSeverity.Danger
                 break;
             case "Success":
-                alertSeverity = Util.AlertSeverity.Success
+                alertSeverity = AlertSeverity.Success
                 break;
         }
         //broadcastToast.show();
-        const broadcastAlert = new Util.Alert(Util.AlertType.Popup, alertSeverity, "Message from administrators", msg, "#gifw-broadcast-modal")
+        const broadcastAlert = new Alert(AlertType.Popup, alertSeverity, "Message from administrators", msg, "#gifw-broadcast-modal")
         broadcastAlert.show();
     }
 

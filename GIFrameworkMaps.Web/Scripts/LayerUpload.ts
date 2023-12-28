@@ -1,10 +1,10 @@
 ﻿import VectorSource from "ol/source/Vector";
 import { GPX, GeoJSON, IGC, KML, TopoJSON } from 'ol/format';
-import { Util } from "./Util";
 import { GIFWMap } from "./Map";
 import { containsExtent, extend, Extent } from "ol/extent";
 import VectorLayer from "ol/layer/Vector";
 import { Feature } from "ol";
+import { Alert, AlertSeverity, AlertType, CustomError, File as FileHelper, Browser as BrowserHelper } from "./Util";
 
 export class LayerUpload {
     dropTarget: HTMLElement;
@@ -133,17 +133,17 @@ export class LayerUpload {
                         reader.addEventListener('load', e => {
                             try {
                                 const result = (e.currentTarget as FileReader).result;
-                                const added_layer = this.createAndAddLayerFromFile(result, format, Util.File.getFileNameWithoutExtension(f.name));
+                                const added_layer = this.createAndAddLayerFromFile(result, format, FileHelper.getFileNameWithoutExtension(f.name));
                                 if (this.validateAddedLayer(added_layer)) {
                                     resolve(added_layer);
                                 } else {
                                     this.gifwMapInstance.removeLayerById(added_layer.get('layerId'));
-                                    reject(`Couldn't add file ${Util.File.getFileNameWithoutExtension(f.name)} because it appears to be invalid`);
+                                    reject(`Couldn't add file ${FileHelper.getFileNameWithoutExtension(f.name)} because it appears to be invalid`);
                                 }
                                     
                             } catch (ex) {
                                 console.error(ex);
-                                reject(`There was an unexpected problem processing file ${Util.File.getFileNameWithoutExtension(f.name)}`);
+                                reject(`There was an unexpected problem processing file ${FileHelper.getFileNameWithoutExtension(f.name)}`);
                             }
                         })
                     });
@@ -155,10 +155,10 @@ export class LayerUpload {
                     promises.push(readerPromise);
                 } else {
                     if (!this.validateFileSize(f)) {
-                        failures.push(`Couldn't add file ${Util.File.getFileNameWithoutExtension(f.name)} because it's too big (Max: ${this.maxFileSize}MB, Your file: ${(f.size /1024 / 1024).toFixed(2)}MB)`);
+                        failures.push(`Couldn't add file ${FileHelper.getFileNameWithoutExtension(f.name)} because it's too big (Max: ${this.maxFileSize}MB, Your file: ${(f.size /1024 / 1024).toFixed(2)}MB)`);
 
                     } else {
-                        failures.push(`Couldn't add file ${Util.File.getFileNameWithoutExtension(f.name)} because we don't know how to process ${Util.File.getExtension(f.name)} files`);
+                        failures.push(`Couldn't add file ${FileHelper.getFileNameWithoutExtension(f.name)} because we don't know how to process ${FileHelper.getExtension(f.name)} files`);
                     
                     }
                     
@@ -167,9 +167,9 @@ export class LayerUpload {
             if (this.onCompleteCallback) {
                 this.onCompleteCallback();
             }
-            const processingToast = new Util.Alert(
-                Util.AlertType.Toast,
-                Util.AlertSeverity.Info,
+            const processingToast = new Alert(
+                AlertType.Toast,
+                AlertSeverity.Info,
                 `Layers being processed`,
                 `Your layers are being processed`,
                 '#gifw-error-toast');
@@ -198,8 +198,8 @@ export class LayerUpload {
                         layerOutsideBounds = true;
                     }
 
-                    const completeToast = new Util.Alert(Util.AlertType.Toast,
-                        Util.AlertSeverity.Info,
+                    const completeToast = new Alert(AlertType.Toast,
+                        AlertSeverity.Info,
                         `👍 Layer${addedLayers.length !== 1 ? "s" : ""} added`,
                         `${addedLayers.length === 1 ? `'${addedLayers[0].get('name')}' has` : `${addedLayers.length} layers have`} been added to the map. You can find ${addedLayers.length === 1 ? "it" : "them"} in the Layers panel, under 'My Layers'. <a href="#" data-gifw-zoom-to-extent>Zoom to extent of ${addedLayers.length === 1 ? "layer" : "all added layers"}</a>`,
                         '#gifw-error-toast');
@@ -209,17 +209,17 @@ export class LayerUpload {
                         e.preventDefault();
                         const curExtent = this.gifwMapInstance.olMap.getView().calculateExtent();
                         if (this.gifwMapInstance.isExtentAvailableInCurrentMap(totalNewExtent)) {
-                            if (!Util.Browser.PrefersReducedMotion() && containsExtent(curExtent, totalNewExtent)) {
+                            if (!BrowserHelper.PrefersReducedMotion() && containsExtent(curExtent, totalNewExtent)) {
                                 this.gifwMapInstance.olMap.getView().fit(totalNewExtent, { padding: [50, 50, 50, 50], duration: 1000 });
                             } else {
                                 this.gifwMapInstance.olMap.getView().fit(totalNewExtent, { padding: [50, 50, 50, 50] });
                             }
                             completeToast.hide();
                         } else {
-                            const errDialog = new Util.Error
+                            const errDialog = new CustomError
                                 (
-                                    Util.AlertType.Popup,
-                                    Util.AlertSeverity.Danger,
+                                    AlertType.Popup,
+                                    AlertSeverity.Danger,
                                     "Layer is outside bounds of map",
                                     "<p>One or more of the layers you added is outside the current max bounds of your background map.</p><p>We've added the layers to the map, but you'll need to choose a different background map to view them.</p>"
                                 )
@@ -240,20 +240,20 @@ export class LayerUpload {
                         }
 
 
-                        const errDialog = new Util.Error
+                        const errDialog = new CustomError
                             (
-                                Util.AlertType.Popup,
-                                Util.AlertSeverity.Danger,
+                                AlertType.Popup,
+                                AlertSeverity.Danger,
                                 "Some layers were not added",
                                 content
                             )
                         errDialog.show();
                     } else {
                         if (layerOutsideBounds) {
-                            const errDialog = new Util.Error
+                            const errDialog = new CustomError
                                 (
-                                    Util.AlertType.Popup,
-                                    Util.AlertSeverity.Danger,
+                                    AlertType.Popup,
+                                    AlertSeverity.Danger,
                                     "Layer is outside bounds of map",
                                     "<p>One or more of the layers you added is outside the current max bounds of your background map.</p><p>We've added the layers to the map, but you'll need to choose a different background map to view them.</p>"
                                 )
@@ -267,10 +267,10 @@ export class LayerUpload {
                     failures.forEach(f => {
                         errorInfo += `<li>${f}</li>`;
                     })
-                    const errDialog = new Util.Error
+                    const errDialog = new CustomError
                         (
-                            Util.AlertType.Popup,
-                            Util.AlertSeverity.Danger,
+                            AlertType.Popup,
+                            AlertSeverity.Danger,
                             "None of your layers were added",
                             `<p>None of your layers could be added to the map.</p><ul>${errorInfo}</ul>`
                         )
@@ -327,7 +327,7 @@ export class LayerUpload {
     }
 
     private getFormatFromFile(file: File) {
-        const fileType = Util.File.getExtension(file.name);
+        const fileType = FileHelper.getExtension(file.name);
         let format: KML | GPX | GeoJSON | TopoJSON | IGC;
         switch (fileType) {
             case "kml":

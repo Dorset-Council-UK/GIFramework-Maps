@@ -9,9 +9,9 @@ import { ApplicationInsights } from '@microsoft/applicationinsights-web'
 import { LegendsPanel } from "./Panels/LegendsPanel";
 import { SharePanel } from "./Panels/SharePanel";
 import { Welcome } from "./Welcome";
-import { Util } from "./Util";
 import { VersionViewModel } from "./Interfaces/VersionViewModel";
 import { Tour } from "./Tour";
+import { Alert, AlertSeverity, AlertType, Helper } from "./Util";
 
 /*variables passed from index.cshtml. Use sparingly*/
 declare let gifw_appinsights_key: string;
@@ -29,11 +29,11 @@ if (gifw_appinsights_key != "") {
     try {
         appInsights.loadAppInsights();
     } catch (ex) {
-        console.error("Failed to get load application insights", ex);
+        console.error("Failed to load application insights", ex);
     }
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
 
     //This allows the use of a cookie control
     if (configure_cookie_control == "Civic Cookie Control" && typeof CookieControl != "undefined") {
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const mapId = 'giframeworkMap';
 
-    Util.Helper.addFullScreenLoader(mapId, "Loading your map");
+    Helper.addFullScreenLoader(mapId, "Loading your map");
 
     fetch(gifw_version_config_url).then(response => {
         if (!response.ok) {
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
             sharePanel.setGIFWMapInstance(map);
 
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-            tooltipTriggerList.map(function (tooltipTriggerEl: HTMLElement) {
+            tooltipTriggerList.map((tooltipTriggerEl: HTMLElement) => {
                 return new Tooltip(tooltipTriggerEl)
             })
 
@@ -123,14 +123,14 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (ex) {
             throw new Error(ex);
         } finally {
-            Util.Helper.removeFullScreenLoader(mapId);
+            Helper.removeFullScreenLoader(mapId);
         }
     }).catch(error => {
         console.error("Failed to get load the app", error);
         //show an alert that covers the screen 
-        const alert = new Util.Alert(
-            Util.AlertType.Popup,
-            Util.AlertSeverity.Danger,
+        const alert = new Alert(
+            AlertType.Popup,
+            AlertSeverity.Danger,
             "There was a problem",
             `<p>There was a problem loading the map. The developers have been automatically notified of the problem.</p>
             <p>Please try refreshing the page or come back later.</p>`,

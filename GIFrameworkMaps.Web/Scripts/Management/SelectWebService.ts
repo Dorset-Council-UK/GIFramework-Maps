@@ -86,7 +86,7 @@ export class SelectWebService {
         const preferredProjection = preferredProjections.find(p => layer.projections.includes(p));
         if (preferredProjection) {
             //move the preferred projection to the top
-            layer.projections.sort(function (x, y) { return x == preferredProjection ? -1 : y == preferredProjection ? 1 : 0; });
+            layer.projections.sort((x, y) => { return x == preferredProjection ? -1 : y == preferredProjection ? 1 : 0; });
         }
         layer.projections.forEach(projection => {
             const opt = document.createElement('option');

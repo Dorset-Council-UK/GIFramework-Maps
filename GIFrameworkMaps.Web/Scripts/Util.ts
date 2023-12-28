@@ -19,7 +19,6 @@ interface IPrefixArrayMember {
 interface IPrefixArray {
     [prefix: string]: IPrefixArrayMember;
 }
-export namespace Util {
     export class Projection {
 
         static convertBNGToAlpha(x: number, y: number, includeSpaces?:boolean): string {
@@ -30,8 +29,8 @@ export namespace Util {
             const xRounded = Math.floor(x / 100000) * 100000;
             const yRounded = Math.floor(y / 100000) * 100000;
             let alpha = '';
-            for (const prefix in Util.Projection.prefixes) {
-                if (Util.Projection.prefixes[prefix].xBase == xRounded && Util.Projection.prefixes[prefix].yBase == yRounded) {
+            for (const prefix in this.prefixes) {
+                if (this.prefixes[prefix].xBase == xRounded && this.prefixes[prefix].yBase == yRounded) {
                     alpha = prefix;
                 }
             }
@@ -42,8 +41,8 @@ export namespace Util {
 
             } else {
                 //Get the numeric part
-                const easting = x - Util.Projection.prefixes[alpha].xBase;
-                const northing = y - Util.Projection.prefixes[alpha].yBase;
+                const easting = x - this.prefixes[alpha].xBase;
+                const northing = y - this.prefixes[alpha].yBase;
 
                 //To string
                 const eastingAsString = easting.toString();
@@ -236,7 +235,7 @@ export namespace Util {
 
     export class Color {
         static rgbToHex(r:number, g:number, b:number):string {
-            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+            return `#${  ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
         }
         static hexToRgb(hex:string) {
             const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -407,7 +406,7 @@ export namespace Util {
 
     }
 
-    export class Error {
+    export class CustomError {
         type: AlertType;
         severity: AlertSeverity;
         title: string;
@@ -469,7 +468,7 @@ export namespace Util {
          * 
          */
         static getDefaultStyleByGeomType(geomType: string, theme: Theme) : olStyle {
-            const rgbColor = Util.Color.hexToRgb(theme.primaryColour);
+            const rgbColor = Color.hexToRgb(theme.primaryColour);
             let strokeColor = 'rgb(0,0,0)';
             let fillColor = 'rgba(255, 255, 255, 0.2)';
             let fillColorSolid = 'rgb(255, 255, 255)';
@@ -594,9 +593,9 @@ export namespace Util {
         }
 
         static showPopupError(title: string, content: string) {
-            const alert = new Util.Alert(
-                Util.AlertType.Popup,
-                Util.AlertSeverity.Danger,
+            const alert = new Alert(
+                AlertType.Popup,
+                AlertSeverity.Danger,
                 title,
                 content,
                 "#gifw-error-modal"
@@ -605,8 +604,8 @@ export namespace Util {
         }
 
         static showTimedToast(title: string, content: string, severity: AlertSeverity = AlertSeverity.Info) {
-            const alert = new Util.Alert(
-                Util.AlertType.Toast,
+            const alert = new Alert(
+                AlertType.Toast,
                 severity,
                 title,
                 content,
@@ -627,7 +626,7 @@ export namespace Util {
             if (layerSource && layerSource.layerSourceOptions) {
                 if (layerSource.layerSourceOptions.find(l => l.name.toLowerCase() === 'headers')) {
                     const headersJson = JSON.parse(layerSource.layerSourceOptions.find(l => l.name.toLowerCase() === 'headers').value);
-                    const keys = Util.Helper.getKeysFromObject(headersJson);
+                    const keys = Helper.getKeysFromObject(headersJson);
                     keys.forEach(key => {
                         customHeaders.append(key, headersJson[key]);
                     });
@@ -642,14 +641,14 @@ export namespace Util {
             const center = view.getCenter();
             const lonlat = toLonLat(center,view.getProjection())
             let hash =
-                '#map=' +
-                view.getZoom().toFixed(2) +
-                '/' +
-                lonlat[1].toFixed(5) +
-                '/' +
-                lonlat[0].toFixed(5) +
-                '/' +
-                view.getRotation();
+                `#map=${ 
+                view.getZoom().toFixed(2) 
+                }/${ 
+                lonlat[1].toFixed(5) 
+                }/${ 
+                lonlat[0].toFixed(5) 
+                }/${ 
+                view.getRotation()}`;
 
             //get turned on layers
             if (map.anyOverlaysOn()) {
@@ -743,4 +742,3 @@ export namespace Util {
         Info,
         Success
     }
-}

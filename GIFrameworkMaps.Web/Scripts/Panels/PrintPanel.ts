@@ -3,7 +3,7 @@ import { PDFPageSettings } from "../Interfaces/Print/PDFPageSettings";
 import { SidebarPanel } from "../Interfaces/SidebarPanel";
 import { GIFWMap } from "../Map";
 import { Sidebar } from "../Sidebar";
-import { Util } from "../Util";
+import { Alert, AlertSeverity, AlertType, CustomError, Helper } from "../Util";
 
 export class PrintPanel implements SidebarPanel {
     container: string;
@@ -115,7 +115,7 @@ export class PrintPanel implements SidebarPanel {
                 this.doPrint();
             } else {
                 //highlight error
-                const err = new Util.Error(Util.AlertType.Popup, Util.AlertSeverity.Warning, "Cannot print", "Your title or subtitle is too long")
+                const err = new CustomError(AlertType.Popup, AlertSeverity.Warning, "Cannot print", "Your title or subtitle is too long")
                 err.show();
             }
             e.preventDefault();
@@ -152,10 +152,10 @@ export class PrintPanel implements SidebarPanel {
             this.hideLoading()
             window.clearTimeout(this.longLoadingTimeout);
             if (e.detail.success !== true) {
-                Util.Alert.showPopupError('Your print failed', `<p>Your print failed to generate. Try turning off any layers you don't need, or choosing a smaller size or lower quality. If you continue to have problems, please let us know.`)
+                Alert.showPopupError('Your print failed', `<p>Your print failed to generate. Try turning off any layers you don't need, or choosing a smaller size or lower quality. If you continue to have problems, please let us know.`)
             } else {
                 if (e.detail.keyWasMoved === true) {
-                    const msg = new Util.Error(Util.AlertType.Popup, Util.AlertSeverity.Info,
+                    const msg = new CustomError(AlertType.Popup, AlertSeverity.Info,
                         "Your key could not fit",
                         "Your map key would not fit in the place you requested, so was added to a separate page in your PDF");
                     msg.show();
@@ -194,7 +194,7 @@ export class PrintPanel implements SidebarPanel {
         const container: HTMLElement = document.querySelector(this.container);
         const printButton:HTMLButtonElement = container.querySelector('#gifw-print-do-print');
         printButton.disabled = true;
-        Util.Helper.addFullScreenLoader(this.gifwMapInstance.id, "Generating your print. Please wait a sec.", true, () => { this.cancelledByUser = true;container.dispatchEvent(new Event("gifw-export-cancel")) });
+        Helper.addFullScreenLoader(this.gifwMapInstance.id, "Generating your print. Please wait a sec.", true, () => { this.cancelledByUser = true;container.dispatchEvent(new Event("gifw-export-cancel")) });
     }
 
     /**
@@ -207,7 +207,7 @@ export class PrintPanel implements SidebarPanel {
         const container: HTMLElement = document.querySelector(this.container);
         const printButton: HTMLButtonElement = container.querySelector('#gifw-print-do-print');
         printButton.disabled = false;
-        Util.Helper.removeFullScreenLoader(this.gifwMapInstance.id);
+        Helper.removeFullScreenLoader(this.gifwMapInstance.id);
 
     }
 

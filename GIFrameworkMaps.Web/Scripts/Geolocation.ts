@@ -20,7 +20,7 @@ import { GIFWPopupAction } from "./Popups/PopupAction";
 import { GIFWPopupOptions } from "./Popups/PopupOptions";
 import Spinner from "./Spinner";
 import { UserSettings } from "./UserSettings";
-import { Util } from "./Util";
+import { Alert, AlertSeverity, Browser as BrowserHelper, Color } from "./Util";
 
 export class GIFWGeolocation extends olControl {
     gifwMapInstance: GIFWMap;
@@ -203,7 +203,7 @@ export class GIFWGeolocation extends olControl {
         if (accuracy > this.minAccuracyThreshold) {
             if (!this.accuracyWarningInterval) {
                 this.accuracyWarningInterval = window.setInterval(() => {
-                    Util.Alert.showTimedToast("Waiting for better accuracy", "Your location accuracy is too low. Waiting for a better signal.", Util.AlertSeverity.Warning)
+                    Alert.showTimedToast("Waiting for better accuracy", "Your location accuracy is too low. Waiting for a better signal.", AlertSeverity.Warning)
                 }, 10000);
             }
             return;
@@ -367,7 +367,7 @@ export class GIFWGeolocation extends olControl {
     private recentreMapOnLocation() {
         const position = this.olGeolocation.getPosition();
         const curExtent = this.gifwMapInstance.olMap.getView().calculateExtent();
-        if (!Util.Browser.PrefersReducedMotion() && containsCoordinate(curExtent, position)) {
+        if (!BrowserHelper.PrefersReducedMotion() && containsCoordinate(curExtent, position)) {
             const opts: AnimationOptions = {
                 center: position, duration: 500
             };
@@ -483,7 +483,7 @@ export class GIFWGeolocation extends olControl {
                     break;
 
             }
-            Util.Alert.showPopupError("Geolocation error", msg);
+            Alert.showPopupError("Geolocation error", msg);
 
     }
 
@@ -494,7 +494,7 @@ export class GIFWGeolocation extends olControl {
      */
     private getStyleForGeolocationFeature(feature: Feature<Geometry>) {
 
-        const rgbColor = Util.Color.hexToRgb(this.gifwMapInstance.config.theme.primaryColour);
+        const rgbColor = Color.hexToRgb(this.gifwMapInstance.config.theme.primaryColour);
 
         const fill = new Fill({
             color: `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, 1)`

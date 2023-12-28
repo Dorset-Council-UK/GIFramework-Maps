@@ -1,5 +1,4 @@
-﻿import { Util } from "./Util";
-
+﻿import { Browser as BrowserHelper } from "./Util";
 export class UserSettings {
 
     /**
@@ -14,7 +13,7 @@ export class UserSettings {
      * @returns {string} The item as a string, or null if not found or localStorage unavailable
      * */
     static getItem(key: string, versionId: number = 0, acceptableValues: string[] = []): string {
-        if (Util.Browser.storageAvailable('localStorage')) {
+        if (BrowserHelper.storageAvailable('localStorage')) {
             if (versionId !== 0) {
                 key = `${key}-${versionId}`;
             }
@@ -42,7 +41,7 @@ export class UserSettings {
      * @returns {boolean} Boolean indicating if the operation was successful
      * */
     static setItem(key: string, item: string, versionId: number = 0): boolean {
-        if (Util.Browser.storageAvailable('localStorage')) {
+        if (BrowserHelper.storageAvailable('localStorage')) {
             try {
                 if (versionId !== 0) {
                     key = `${key}-${versionId}`;
@@ -64,7 +63,7 @@ export class UserSettings {
      *                  Useful when a setting can be different between versions
      * */
     static removeItem(key: string, versionId: number = 0): void {
-        if (Util.Browser.storageAvailable('localStorage')) {
+        if (BrowserHelper.storageAvailable('localStorage')) {
             if (versionId !== 0) {
                 key = `${key}-${versionId}`;
             }

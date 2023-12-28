@@ -2,9 +2,8 @@
 import * as olProj from "ol/proj";
 import { toStringHDMS } from 'ol/coordinate';
 import { Modal } from "bootstrap";
-import { Util } from "../Scripts/Util";
 import { UserSettings } from "./UserSettings";
-
+import { Projection } from "./Util";
 /**
   * A customised mouse position control that handles BNG Alphanumeric and setting decimal places
   *
@@ -121,7 +120,7 @@ export class GIFWMousePositionControl {
         if (code === '277001') {
             //this is a funny one that requires specific handling, hence the fake EPSG Code
             //do coord conversion
-            return Util.Projection.convertBNGToAlpha(x, y, true);
+            return Projection.convertBNGToAlpha(x, y, true);
         } else if (code === "43261") {
             //this is a funny one that requires specific handling, hence the fake EPSG Code
             //do coord conversion
@@ -140,7 +139,7 @@ export class GIFWMousePositionControl {
         if (code === '277001') {
             //this is a funny one that requires specific handling, hence the fake EPSG Code
             //do coord conversion
-            return [Util.Projection.convertBNGToAlpha(x, y, true)];
+            return [Projection.convertBNGToAlpha(x, y, true)];
         } else if (code === "43261") {
             //this is a funny one that requires specific handling, hence the fake EPSG Code
             //do coord conversion

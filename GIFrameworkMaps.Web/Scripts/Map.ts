@@ -18,7 +18,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { LayerGroupType } from "./Interfaces/LayerGroupType";
 import { NativeLayerGroup } from "./LayerGroup/NativeLayerGroup";
 import { LayerGroup } from "./LayerGroup/LayerGroup";
-import { Util } from "./Util";
 import { KML } from "ol/format";
 import { LayerUpload } from "./LayerUpload";
 import BaseLayer from "ol/layer/Base";
@@ -36,6 +35,7 @@ import { WebLayerService } from "./WebLayerService";
 import { BookmarkMenu } from "./BookmarkMenu";
 import { LegendURLs } from "./Interfaces/LegendURLs";
 import { DebouncedFunc, debounce } from "lodash";
+import { Browser as BrowserHelper, Style, Mapping as MappingHelper } from "./Util";
 
 export class GIFWMap {
     id: string;
@@ -68,7 +68,7 @@ export class GIFWMap {
         let permalinkParams: Record<string, string> = {};
         if (window.location.hash !== '') {
             // try to restore center, zoom-level and rotation from the URL
-            permalinkParams = Util.Browser.extractParamsFromHash(window.location.hash);
+            permalinkParams = BrowserHelper.extractParamsFromHash(window.location.hash);
         }
         // set up controls
         const attribution = new olControl.Attribution({
@@ -363,15 +363,15 @@ export class GIFWMap {
      * Updates the permalink in the browser URL bar and pushes it into the history
      * */
     private updatePermalinkInURL() {
-        const permalink = Util.Mapping.generatePermalinkForMap(this);
-        const hashParams = Util.Browser.extractParamsFromHash(permalink.substring(permalink.indexOf('#')));
+        const permalink = MappingHelper.generatePermalinkForMap(this);
+        const hashParams = BrowserHelper.extractParamsFromHash(permalink.substring(permalink.indexOf('#')));
 
         window.history.replaceState(hashParams, '', permalink);
 
     }
 
     private updatePermalinkInLinks() {
-        const permalink = Util.Mapping.generatePermalinkForMap(this);
+        const permalink = MappingHelper.generatePermalinkForMap(this);
         document.querySelectorAll('a[data-gifw-permalink-update-uri-param]').forEach(link => {
             const paramToUpdate = (link as HTMLAnchorElement).dataset.gifwPermalinkUpdateUriParam;
             const existingLink = new URL((link as HTMLAnchorElement).href);
@@ -411,7 +411,7 @@ export class GIFWMap {
         olLayerOpts = {}
     ) {
         let styleFunc = (feature: Feature<Geometry>) => {
-            return Util.Style.getDefaultStyleByGeomType(feature.getGeometry().getType(), this.config.theme)
+            return Style.getDefaultStyleByGeomType(feature.getGeometry().getType(), this.config.theme)
         }
         if (style) {
             styleFunc = style;
@@ -695,7 +695,7 @@ export class GIFWMap {
 
         const baseGroup = this.getLayerGroupOfType(LayerGroupType.Basemap);
         if (baseGroup !== null) {
-            return baseGroup.olLayerGroup.getLayersArray().find(function (l) { return l.getVisible() == true });
+            return baseGroup.olLayerGroup.getLayersArray().find((l) => { return l.getVisible() == true });
         }
     }
 
@@ -857,7 +857,7 @@ export class GIFWMap {
         if (maxZoom === null) {
             maxZoom = 50;
         }
-        if (!Util.Browser.PrefersReducedMotion() && containsExtent(curExtent, extent)) {
+        if (!BrowserHelper.PrefersReducedMotion() && containsExtent(curExtent, extent)) {
             this.olMap.getView().fit(extent, { padding: this.getPaddingForMapCenter(), maxZoom: maxZoom, duration: animationDuration });
         } else {
             this.olMap.getView().fit(extent, { padding: this.getPaddingForMapCenter(), maxZoom: maxZoom });

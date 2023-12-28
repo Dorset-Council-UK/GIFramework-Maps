@@ -5,7 +5,7 @@ import { CSWMetadata, CSWMetadataLinks } from "../Interfaces/OGCMetadata/CSWMeta
 import { Layer as olLayer } from "ol/layer";
 import { ImageWMS, TileWMS } from "ol/source";
 import { Metadata } from "./Metadata";
-import { Util } from "../Util";
+import { Helper, Mapping as MappingUtil} from "../Util";
 
 export class MetadataViewer {
 
@@ -90,7 +90,7 @@ export class MetadataViewer {
                                 baseUrl = (source as ImageWMS).getUrl();
                                 params = (source as ImageWMS).getParams();
                             }
-                            const version = Util.Helper.getValueFromObjectByKey(params, "version") as string || "1.1.0";
+                            const version = Helper.getValueFromObjectByKey(params, "version") as string || "1.1.0";
 
                             const type = ref.getAttribute("scheme");
                             if (type.toUpperCase() == "OGC:WMS") {
@@ -141,8 +141,8 @@ export class MetadataViewer {
                     baseUrl = (source as ImageWMS).getUrl();
                     params = (source as ImageWMS).getParams();
                 }
-                const version = Util.Helper.getValueFromObjectByKey(params, "version") as string || "1.1.0";
-                const httpHeaders = Util.Mapping.extractCustomHeadersFromLayerSource(layer.layerSource);
+                const version = Helper.getValueFromObjectByKey(params, "version") as string || "1.1.0";
+                const httpHeaders = MappingUtil.extractCustomHeadersFromLayerSource(layer.layerSource);
                 const layers = await Metadata.getLayersFromCapabilities(baseUrl, version, proxyEndpoint,httpHeaders);
                 const featureTypeName = params.LAYERS;
                 if (layers) {
