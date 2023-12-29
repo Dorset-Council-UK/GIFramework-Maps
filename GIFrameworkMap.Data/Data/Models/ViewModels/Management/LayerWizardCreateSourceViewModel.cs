@@ -1,16 +1,11 @@
 ﻿using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data.Models.ViewModels.Management
 {
-    public class LayerWizardCreateSourceViewModel
+	public class LayerWizardCreateSourceViewModel
     {
         public GIFrameworkMaps.Data.Models.LayerSource? LayerSource { get; set; }
         public SelectList? AvailableAttributions { get; set; }

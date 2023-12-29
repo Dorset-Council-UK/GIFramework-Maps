@@ -4,7 +4,6 @@ using GIFrameworkMaps.Data.Models.Tour;
 using GIFrameworkMaps.Data.Models.Search;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,7 +13,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace GIFrameworkMaps.Data
 {
-    public class ManagementRepository : IManagementRepository
+	public class ManagementRepository : IManagementRepository
     {
         //dependancy injection
         private readonly IApplicationDbContext _context;
@@ -334,8 +333,6 @@ namespace GIFrameworkMaps.Data
                             skipLink = nextPage.OdataNextLink;
                             hasNextPage = !string.IsNullOrEmpty(skipLink);
                         }
-                        
-
                     }
                 }
                 else

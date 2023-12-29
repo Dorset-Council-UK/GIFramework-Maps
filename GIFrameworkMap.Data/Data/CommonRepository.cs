@@ -239,7 +239,6 @@ namespace GIFrameworkMaps.Data
                 {
                     return cacheValue;
                 }
-                
             }
 
             var allowedHosts = _context.ProxyAllowedHosts.AsNoTracking().ToList();

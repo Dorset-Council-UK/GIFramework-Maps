@@ -1,14 +1,9 @@
-﻿using GIFrameworkMaps.Data.Models;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data.Models.ViewModels.Management
 {
-    public class LayerSourceEditModel
+	public class LayerSourceEditModel
     {
         public LayerSource? LayerSource { get; set; }
         public List<Layer> LayersUsingSource { get; set; } = new();

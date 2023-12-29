@@ -1,6 +1,5 @@
 ﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
-using GIFrameworkMaps.Data.Models.Tour;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
-    [Authorize(Roles = "GIFWAdmin")]
+	[Authorize(Roles = "GIFWAdmin")]
     public class ManagementWelcomeMessageController : Controller
     {
         //dependancy injection
@@ -172,6 +171,5 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
             return View(welcomeMessageToDelete);
         }
-
     }
 }

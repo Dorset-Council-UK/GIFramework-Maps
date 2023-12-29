@@ -200,7 +200,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 "contact your system administrator.");
                 return RedirectToAction("Edit", new { Id = id });
             }
-            
         }
 
         // GET: Version/AddContact/1

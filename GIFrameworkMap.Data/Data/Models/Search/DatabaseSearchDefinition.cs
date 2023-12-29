@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
+﻿using System.ComponentModel;
 
 namespace GIFrameworkMaps.Data.Models.Search
 {
-    public class DatabaseSearchDefinition : SearchDefinition
+	public class DatabaseSearchDefinition : SearchDefinition
     {
         [DisplayName("Table name")]
         public string? TableName { get; set; }

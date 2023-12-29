@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 using GIFrameworkMaps.Data.Models.Tour;
 
 namespace GIFrameworkMaps.Data.Models
 {
-    public class Version
+	public class Version
     {        
         public int Id { get; set; }
         [Required]
@@ -49,6 +46,5 @@ namespace GIFrameworkMaps.Data.Models
         public virtual Theme? Theme { get; set; }
         public virtual WelcomeMessage? WelcomeMessage { get; set; }
         public virtual TourDetails? TourDetails { get; set; }
-
     }
 }

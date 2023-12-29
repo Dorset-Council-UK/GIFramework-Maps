@@ -1,24 +1,19 @@
 ﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
-using GIFrameworkMaps.Data.Models.ViewModels;
 using GIFrameworkMaps.Data.Models.ViewModels.Management;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
-using Microsoft.Graph.Beta.Models;
-using Microsoft.Kiota.Http.Generated;
 using NodaTime;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
-    [Authorize(Roles = "GIFWAdmin")]
+	[Authorize(Roles = "GIFWAdmin")]
     public class ManagementAnalyticsController : Controller
     {
         private readonly ILogger<ManagementVersionController> _logger;
@@ -163,7 +158,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         "Try again, and if the problem persists, " +
                         "contact your system administrator.");
                 }
-
             }
             catch (DbUpdateException ex)
             {

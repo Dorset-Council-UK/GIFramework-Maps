@@ -1,17 +1,14 @@
 ﻿using GIFrameworkMaps.Data;
-using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Search;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
-    [Authorize(Roles = "GIFWAdmin")]
+	[Authorize(Roles = "GIFWAdmin")]
     public class ManagementSearchDefinitionController : Controller
     {
         //dependancy injection
@@ -369,6 +366,5 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
             return View(searchDefinitionToDelete);
         }
-
     }
 }

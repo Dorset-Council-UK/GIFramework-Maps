@@ -21,6 +21,5 @@ namespace GIFrameworkMaps.Web.Controllers
             var printConfiguration = _repository.GetPrintConfigurationByVersion(id).PrintConfiguration;
             return Json(printConfiguration);
         }
-
     }
 }

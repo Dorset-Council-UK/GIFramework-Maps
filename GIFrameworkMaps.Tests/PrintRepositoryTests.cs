@@ -4,7 +4,6 @@ using GIFrameworkMaps.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using GIFrameworkMaps.Data.Models;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using GIFrameworkMaps.Data.Models.Print;
@@ -13,7 +12,7 @@ using MockQueryable.Moq;
 
 namespace GIFrameworkMaps.Tests
 {
-    public class PrintRepositoryTests
+	public class PrintRepositoryTests
     {
         private PrintRepository sut;
 

@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace GIFrameworkMaps.Data.Models.Search
 {
-    public class SearchDefinition
+	public class SearchDefinition
     {
         public int Id { get; set; }
 

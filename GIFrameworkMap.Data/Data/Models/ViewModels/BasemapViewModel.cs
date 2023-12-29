@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace GIFrameworkMaps.Data.Models.ViewModels
+﻿namespace GIFrameworkMaps.Data.Models.ViewModels
 {
-    public class BasemapViewModel
+	public class BasemapViewModel
     {
         public int Id { get; set; }
         public string? Name { get; set; }
@@ -17,6 +13,5 @@ namespace GIFrameworkMaps.Data.Models.ViewModels
         public int DefaultSaturation { get; set; }
         public int SortOrder { get; set; }
         public LayerSource? LayerSource { get; set; }
-
     }
 }

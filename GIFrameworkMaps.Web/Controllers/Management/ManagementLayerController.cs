@@ -6,13 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
-    [Authorize(Roles = "GIFWAdmin")]
+	[Authorize(Roles = "GIFWAdmin")]
     public class ManagementLayerController : Controller
     {
         //dependancy injection
@@ -229,7 +228,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     await _context.CategoryLayer.AddAsync(new CategoryLayer { CategoryId = category, Layer = layerToUpdate });
                 }
-
             }
             return;
 
@@ -245,6 +243,5 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             ViewData["SelectedCategories"] = model.SelectedCategories;
             ViewData["AllCategories"] = model.AvailableCategories;
         }
-
     }
 }

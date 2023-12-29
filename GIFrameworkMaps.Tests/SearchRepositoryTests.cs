@@ -389,6 +389,5 @@ namespace GIFrameworkMaps.Tests
 
             Assert.AreEqual(results.Count, 0);
         }
-
     }
 }

@@ -1,15 +1,9 @@
 ﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using NuGet.Protocol.Core.Types;
 using System;
 using System.IO;
-using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -67,7 +61,6 @@ namespace GIFrameworkMaps.Web.Controllers
 				return RedirectToAction("SignIn", "Account", new { area = "MicrosoftIdentity" });
 
 			}
-
 		}
 	}
 }

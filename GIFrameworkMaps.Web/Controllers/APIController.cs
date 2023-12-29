@@ -1,7 +1,5 @@
-﻿using AspNetCore;
-using GIFrameworkMaps.Data;
+﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
-using GIFrameworkMaps.Data.Models.ViewModels;
 using GIFrameworkMaps.Web.Models.API;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -12,17 +10,14 @@ using Microsoft.Extensions.Logging;
 using Svg;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Security.Claims;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers
 {
-    public class APIController : Controller
+	public class APIController : Controller
     {
         //dependancy injection
         private readonly ILogger<APIController> _logger;
@@ -328,5 +323,4 @@ namespace GIFrameworkMaps.Web.Controllers
             }           
         }
     }
-
  }

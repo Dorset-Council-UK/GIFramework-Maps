@@ -105,7 +105,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     layerSource.AttributionId = attributions[closestMatch.Index].Id;
                     attributionMatched = true;
                 }
-
             }
             var editModel = new LayerWizardCreateSourceViewModel {
                 BaseURL = layerResource.BaseUrl,

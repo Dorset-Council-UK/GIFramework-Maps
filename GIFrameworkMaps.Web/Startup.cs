@@ -3,17 +3,12 @@
 //using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Collections.Generic;
 using System.Linq;
 using GIFrameworkMaps.Web.Hubs;
-using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.UI;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.IdentityModel.Logging;
 using System.Net.Http;
 using Yarp.ReverseProxy.Forwarder;
 using System.Net;
@@ -27,7 +22,7 @@ using System.Threading;
 
 namespace GIFrameworkMaps.Web
 {
-    public class Startup
+	public class Startup
     {
         public Startup(IConfiguration configuration)
         {
@@ -199,7 +194,6 @@ namespace GIFrameworkMaps.Web
                             var exception = errorFeature.Exception;
                         }
                     }
-
                 });
 
                 endpoints.MapHub<BroadcastHub>("/broadcasthub");
@@ -426,7 +420,6 @@ namespace GIFrameworkMaps.Web
                 {
                     //drop the request?
                 }
-
             }
         }
     }

@@ -1,5 +1,4 @@
-﻿using GIFrameworkMaps.Data;
-using GIFrameworkMaps.Data.Models;
+﻿using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Search;
 using Google.OpenLocationCode;
 using Microsoft.AspNetCore.Http;
@@ -18,7 +17,7 @@ using System.Threading.Tasks;
 [assembly: InternalsVisibleTo("GIFrameworkMaps.Tests")]
 namespace GIFrameworkMaps.Data
 {
-    public partial class SearchRepository : ISearchRepository
+	public partial class SearchRepository : ISearchRepository
     {
         //dependancy injection
         private readonly ILogger<SearchRepository> _logger;
@@ -341,7 +340,6 @@ namespace GIFrameworkMaps.Data
                 IList<JToken>? titlePart = null;
                 PopulateJTokenLists(ref titlePart, titlePath);
                 if(titlePart != null) { titleParts.Add(titlePart); }
-                
             }
 
             IList<JToken>? xCoords = null, yCoords = null, mbrXMinCoords = null, mbrYMinCoords = null, mbrXMaxCoords = null, mbrYMaxCoords = null, geom = null;

@@ -3,12 +3,11 @@ using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
 namespace GIFrameworkMaps.Web.Hubs
 {
-    public class BroadcastHub : Hub
+	public class BroadcastHub : Hub
     {
         private readonly TelemetryClient _telemetry;
         private readonly IHttpContextAccessor _httpContextAccessor;
