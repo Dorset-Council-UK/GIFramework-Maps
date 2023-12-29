@@ -10,7 +10,7 @@ namespace GIFrameworkMaps.Web.Hubs
 {
     public class BroadcastHub : Hub
     {
-        private TelemetryClient _telemetry;
+        private readonly TelemetryClient _telemetry;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         // Use constructor injection to get a TelemetryClient instance.

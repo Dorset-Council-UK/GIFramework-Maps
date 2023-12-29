@@ -140,7 +140,6 @@ namespace GIFrameworkMaps.Data
                     version.HelpURL = generalVersion!.HelpURL;
                 }
 
-
                 // Cache the results so they can be used next time we call this function.                
                 _memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));                
                 return version;

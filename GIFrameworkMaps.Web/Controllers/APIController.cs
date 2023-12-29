@@ -156,7 +156,6 @@ namespace GIFrameworkMaps.Web.Controllers
                     regularIcon
                 };
 
-
                 var host = Request.Host.ToUriComponent();
                 var pathBase = Request.PathBase.ToUriComponent();
 

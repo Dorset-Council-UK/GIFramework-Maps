@@ -148,7 +148,6 @@ namespace GIFrameworkMaps.Data
             searchResults.TotalResults = searchResults.ResultCategories.Sum(r => r.Results.Count);
             return searchResults;
 
-
             //A search term is valid if it's blank or it matches the Required Search's validation regular expression. 
             bool IsValidSearchTerm(SearchDefinition? selectedDefinition)
             {
@@ -542,9 +541,7 @@ namespace GIFrameworkMaps.Data
                     /*attempt to split the DMS into two parts by the N or S string that should be included*/
                     /*TODO - Would be good if this could handle not having N/S. This would require changes to the DB enforced RegEx*/
 
-
                     string[] dmsCoords = LatLonDMSRegex().Split(searchTerm);
-
 
                     if (dmsCoords is not null && dmsCoords.Length == 2)
                     {

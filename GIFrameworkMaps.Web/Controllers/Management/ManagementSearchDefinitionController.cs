@@ -331,7 +331,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(searchDefinitionToUpdate);
         }
 
-
         // GET: SearchDefinition/Delete/1
         public async Task<IActionResult> Delete(int id)
         {
@@ -370,7 +369,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
             return View(searchDefinitionToDelete);
         }
-
 
     }
 }

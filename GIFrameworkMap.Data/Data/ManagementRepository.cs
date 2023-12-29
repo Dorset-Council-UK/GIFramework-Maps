@@ -213,7 +213,6 @@ namespace GIFrameworkMaps.Data
             return step;
         }
 
-
         public async Task<Category?> GetLayerCategory(int id)
         {
             var layerCategory = await _context.Category
@@ -367,7 +366,6 @@ namespace GIFrameworkMaps.Data
             if (!string.IsNullOrEmpty(_configuration.GetSection("AzureAd")["ClientId"]))
             {
                 var scopes = new[] { "https://graph.microsoft.com/.default" };
-
 
                 var tenantId = _configuration.GetSection("AzureAd")["TenantId"];
                 var clientId = _configuration.GetSection("AzureAd")["ClientId"];

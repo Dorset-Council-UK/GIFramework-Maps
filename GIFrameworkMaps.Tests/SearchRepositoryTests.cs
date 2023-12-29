@@ -57,7 +57,6 @@ namespace GIFrameworkMaps.Tests
             var client = new HttpClient(mockHttpMessageHandler.Object);
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(client);
 
-
             var versions = new List<Data.Models.Version>
             {
                 new Data.Models.Version { Name = "General version",Slug= "general",Id=1 },
@@ -267,7 +266,6 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-
             int[] returnedCoords = { decimal.ToInt32(results[0].X), decimal.ToInt32(results[0].Y) };
             return returnedCoords;
         }
@@ -298,7 +296,6 @@ namespace GIFrameworkMaps.Tests
             decimal[] returnedCoords = { results[0].X, results[0].Y };
             return returnedCoords;
         }
-
 
         [Test]
         [TestCase("astring")]

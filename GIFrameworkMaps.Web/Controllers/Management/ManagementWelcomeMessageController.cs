@@ -173,6 +173,5 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(welcomeMessageToDelete);
         }
 
-
     }
 }

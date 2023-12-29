@@ -133,9 +133,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(editModel);
         }
 
-
-
-
         // GET: LayerSource/Edit/1
         public async Task<IActionResult> Edit(int id)
         {

@@ -50,7 +50,6 @@ namespace GIFrameworkMaps.Data
                 .ForMember(cl => cl.ProxyMapRequests, lvm => lvm.MapFrom(s => s.Layer!.ProxyMapRequests))
                 .ForMember(cl => cl.ProxyMetaRequests, lvm => lvm.MapFrom(s => s.Layer!.ProxyMetaRequests));
 
-
         }
 
     }

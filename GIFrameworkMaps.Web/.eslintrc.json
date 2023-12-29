@@ -8,10 +8,19 @@
   "extends": [ "eslint:recommended", "plugin:@typescript-eslint/recommended" ],
   "rules": {
     "no-var": "error",
-    "no-console": ["error", { "allow": [ "warn", "error" ] }],
+    "no-console": [
+      "error",
+      { "allow": [ "warn", "error" ] }
+    ],
     "prefer-template": "warn",
     "prefer-arrow-callback": "warn"
-    //"no-magic-numbers": "warn" //<- This is a fun one, and should be encouraged, but currently causes over 1000 warnings!
+    /*"no-magic-numbers": [
+      "warn",
+      {
+        "ignore": [ 1, -1, 0 ],
+        "ignoreArrayIndexes":  true
+      }
+    ]*/ //<- This is a fun one, and should be encouraged, but currently causes over 300 warningss!
   },
   "env": {
     "browser": true,

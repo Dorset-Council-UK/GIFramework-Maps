@@ -73,7 +73,6 @@ namespace GIFrameworkMaps.Web
             app.UseAuthentication();
             app.UseAuthorization();
 
-
             app.UseResponseCaching();
 
             /*YARP setup. Copied from https://github.com/microsoft/reverse-proxy/blob/release/latest/samples/ReverseProxy.Direct.Sample/Startup.cs*/
@@ -93,7 +92,6 @@ namespace GIFrameworkMaps.Web
 
             var transformer = new CustomTransformer(app); // or HttpTransformer.Default;
             var requestOptions = new ForwarderRequestConfig { ActivityTimeout = TimeSpan.FromSeconds(100) };
-
 
             app.UseEndpoints(endpoints =>
             {
@@ -220,7 +218,6 @@ namespace GIFrameworkMaps.Web
 
             if (!context.Versions.Any())
             {
-
 
                 var ukBound = new Data.Models.Bound
                 {
@@ -429,8 +426,6 @@ namespace GIFrameworkMaps.Web
                 {
                     //drop the request?
                 }
-
-
 
             }
         }

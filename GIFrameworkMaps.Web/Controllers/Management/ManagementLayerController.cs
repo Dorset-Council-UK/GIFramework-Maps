@@ -235,7 +235,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         }
 
-
         private void RebuildViewModel(ref Data.Models.ViewModels.Management.LayerEditModel model, Data.Models.Layer layer)
         {
             var bounds = _context.Bound.OrderBy(t => t.Name).ToList();

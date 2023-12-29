@@ -164,7 +164,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         "contact your system administrator.");
                 }
 
-
             }
             catch (DbUpdateException ex)
             {
