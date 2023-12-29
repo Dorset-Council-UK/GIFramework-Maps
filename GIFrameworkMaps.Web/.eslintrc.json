@@ -7,13 +7,11 @@
   "plugins": [ "@typescript-eslint" ],
   "extends": [ "eslint:recommended", "plugin:@typescript-eslint/recommended" ],
   "rules": {
-    "@typescript-eslint/no-explicit-any": "warn", //<- remove this rule customisation (so it reverts to being an error) once all 'any's have been removed/fixed
-    "@typescript-eslint/no-namespace": "warn", //<- remove this rule customisation (so it reverts to being an error) once fixed
     "no-var": "error",
     "no-console": ["error", { "allow": [ "warn", "error" ] }],
     "prefer-template": "warn",
     "prefer-arrow-callback": "warn"
-    //"no-magic-numbers": "warn", <- This is a fun one, and should be encouraged, but currently causes over 1000 warnings!
+    //"no-magic-numbers": "warn" //<- This is a fun one, and should be encouraged, but currently causes over 1000 warnings!
   },
   "env": {
     "browser": true,

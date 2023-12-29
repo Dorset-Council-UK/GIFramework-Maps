@@ -1,30 +1,31 @@
-﻿import { SidebarPanel } from "../Interfaces/SidebarPanel";
-import { GIFWMap } from "../Map";
-import { Sidebar } from "../Sidebar";
+﻿import { Collapse, Modal, Tooltip } from "bootstrap";
 import Fuse from "fuse.js";
-import Sortable from "sortablejs";
 import { Layer as olLayer } from "ol/layer";
-import { Collapse, Modal, Tooltip } from "bootstrap";
-import Badge from "../Badge";
-import Spinner from "../Spinner";
+import BaseLayer from "ol/layer/Base";
+import ImageLayer from "ol/layer/Image";
+import TileLayer from "ol/layer/Tile";
+import LayerRenderer from "ol/renderer/Layer";
+import { ImageWMS, Source, TileWMS } from "ol/source";
+import ImageSource from "ol/source/Image";
 import TileSource from "ol/source/Tile";
 import VectorSource from "ol/source/Vector";
-import ImageSource from "ol/source/Image";
-import { LayerGroupType } from "../Interfaces/LayerGroupType";
-import { Layer } from "../Interfaces/Layer";
-import { LayerListSortingOption } from "../Interfaces/LayerPanel/LayerListSortingOption";
-import BaseLayer from "ol/layer/Base";
-import { LayerUpload } from "../LayerUpload";
-import { LayerList } from "./LayerList";
+import Sortable from "sortablejs";
+import Badge from "../Badge";
 import { Category } from "../Interfaces/Category";
-import { ImageWMS, Source, TileWMS } from "ol/source";
-import TileLayer from "ol/layer/Tile";
-import { Metadata } from "../Metadata/Metadata";
+import { Layer } from "../Interfaces/Layer";
+import { LayerGroupType } from "../Interfaces/LayerGroupType";
+import { LayerListSortingOption } from "../Interfaces/LayerPanel/LayerListSortingOption";
 import { Style } from "../Interfaces/OGCMetadata/Style";
-import ImageLayer from "ol/layer/Image";
+import { SidebarPanel } from "../Interfaces/SidebarPanel";
 import { LayerFilter } from "../LayerFilter";
+import { LayerUpload } from "../LayerUpload";
+import { GIFWMap } from "../Map";
+import { Metadata } from "../Metadata/Metadata";
+import { Sidebar } from "../Sidebar";
+import Spinner from "../Spinner";
 import { UserSettings } from "../UserSettings";
 import { Alert, AlertSeverity, Helper, Mapping as MappingUtil } from "../Util";
+import { LayerList } from "./LayerList";
 
 export class LayersPanel implements SidebarPanel {
     container: string;
@@ -118,7 +119,7 @@ export class LayersPanel implements SidebarPanel {
         if (this.gifwMapInstance.anyOverlaysOn()) {
             const layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
 
-            let layers: olLayer<Source, any>[] = [];
+            let layers: olLayer<Source, LayerRenderer<olLayer>>[] = [];
             layerGroups.forEach(lg => {
                 layers = layers.concat(lg.olLayerGroup.getLayersArray());
             })
@@ -334,7 +335,7 @@ export class LayersPanel implements SidebarPanel {
         });
     }
 
-    private attachStandardEventListenersToLayer(l: olLayer<any, any>): void {
+    private attachStandardEventListenersToLayer(l: olLayer<Source, LayerRenderer<olLayer>>): void {
         const layerName = l.get('name');
 
             l.on('change:visible', () => {
@@ -346,104 +347,105 @@ export class LayersPanel implements SidebarPanel {
 
         // Get the layer source and determine the string prefix used for load and error events
         const source = l.getSource();
-        let eventPrefix: string;
         if (source instanceof TileSource) {
-            eventPrefix = 'tile';
+            source.on("tileloadstart", () => { this.loadStartEvent(source, l, layerName) })
+            source.on("tileloadend", () => { this.loadEndEvent(l, layerName) })
+            source.on("tileloaderror", () => { this.loadErrorEvent(l, layerName) })
         } else if (source instanceof VectorSource) {
-            eventPrefix = 'features'
+            source.on("featuresloadstart", () => { this.loadStartEvent(source, l, layerName) })
+            source.on("featuresloadend", () => { this.loadEndEvent(l, layerName) })
+            source.on("featuresloaderror", () => { this.loadErrorEvent(l, layerName) })
         } else if (source instanceof ImageSource) {
-            eventPrefix = 'image'
+            source.on("imageloadstart", () => { this.loadStartEvent(source, l, layerName) })
+            source.on("imageloadend", () => { this.loadEndEvent(l, layerName) })
+            source.on("imageloaderror", () => { this.loadErrorEvent(l, layerName) })
         }
-        if (eventPrefix) {
+    }
 
-            source.on(`${eventPrefix}loadstart`, () => {
-                if (!(source instanceof VectorSource)) {
-                    const checkbox = this.getLayerCheckbox(l);
-                    if (checkbox !== null) {
-                        let spinner = checkbox.parentElement.querySelector<HTMLDivElement>('.spinner');
-                        if (!spinner) {
-                            const errorBadge = checkbox.parentElement.querySelector('.badge-error');
-                            if (errorBadge) {
-                                errorBadge.remove();
-                            }
-                            spinner = checkbox.parentElement.appendChild(Spinner.Small());
-                        }
-                        if (!(layerName in this.loadingLayers)) {
-                            this.loadingLayers[layerName] = {
-                                count: 1
-                            };
-                        } else {
-                            this.loadingLayers[layerName].count += 1;
-                            if (this.loadingLayers[layerName].timeout) {
-                                clearTimeout(this.loadingLayers[layerName].timeout);
-                            }
-                        }
-                        this.loadingLayers[layerName].timeout = setTimeout(() => {
-                            if (!(layerName in this.loadingLayers)) {
-                                spinner.remove();
-                                if (!checkbox.parentElement.querySelector('.badge-error')) {
-                                    checkbox.parentElement.append(Badge.Error());
-                                }
-                                new Alert(1, AlertSeverity.Danger, 'Layer error', `The layer, ${layerName}, took too long to load. Something may have gone wrong.`, '#gifw-error-toast').show();
-                            }
-                        }, 30000);
+    private loadStartEvent(source: Source, l:olLayer, layerName: string) {
+        if (!(source instanceof VectorSource)) {
+            const checkbox = this.getLayerCheckbox(l);
+            if (checkbox !== null) {
+                let spinner = checkbox.parentElement.querySelector<HTMLDivElement>('.spinner');
+                if (!spinner) {
+                    const errorBadge = checkbox.parentElement.querySelector('.badge-error');
+                    if (errorBadge) {
+                        errorBadge.remove();
+                    }
+                    spinner = checkbox.parentElement.appendChild(Spinner.Small());
+                }
+                if (!(layerName in this.loadingLayers)) {
+                    this.loadingLayers[layerName] = {
+                        count: 1
+                    };
+                } else {
+                    this.loadingLayers[layerName].count += 1;
+                    if (this.loadingLayers[layerName].timeout) {
+                        clearTimeout(this.loadingLayers[layerName].timeout);
                     }
                 }
-            });
-
-            source.on(`${eventPrefix  }loadend`, () => {
-                setTimeout(() => {
-                    if (layerName in this.loadingLayers) {
-                        this.loadingLayers[layerName].count -= 1;
-                        if (this.loadingLayers[layerName].count === 0) {
-                            if (this.loadingLayers[layerName].timeout) {
-                                clearTimeout(this.loadingLayers[layerName].timeout);
-                            }
-                            delete this.loadingLayers[layerName];
-                        }
-                    }
-                    const checkbox = this.getLayerCheckbox(l);
-                    if (checkbox !== null) {
-                        const spinner = checkbox.parentElement.querySelector<HTMLDivElement>('.spinner');
-                        if (spinner) {
-                            if (!(layerName in this.loadingLayers)) {
-                                spinner.remove();
-                            }
-                        }
-                    }
-                }, 500);
-            });
-
-            source.on(`${eventPrefix  }loaderror`, () => {
-                setTimeout(() => {
-                    if (layerName in this.loadingLayers) {
-                        this.loadingLayers[layerName].count -= 1;
-                        if (this.loadingLayers[layerName].count === 0) {
-                            if (this.loadingLayers[layerName].timeout) {
-                                clearTimeout(this.loadingLayers[layerName].timeout);
-                            }
-                            delete this.loadingLayers[layerName];
-                        }
-                    }
-                    const checkbox = this.getLayerCheckbox(l);
-                    if (checkbox !== null) {
-                        const spinner = checkbox.parentElement.querySelector<HTMLDivElement>('.spinner');
-                        if (spinner) {
-                            if (!(layerName in this.loadingLayers)) {
-                                spinner.remove();
-                                // If all layers are loaded before this one errored, there won't be another render complete event, and so we trigger a check for errored layers here
-                                if (Object.keys(this.loadingLayers).length === 0) {
-                                    this.raiseAlertForErrors();
-                                }
-                            }
-                        }
+                this.loadingLayers[layerName].timeout = setTimeout(() => {
+                    if (!(layerName in this.loadingLayers)) {
+                        spinner.remove();
                         if (!checkbox.parentElement.querySelector('.badge-error')) {
                             checkbox.parentElement.append(Badge.Error());
                         }
+                        new Alert(1, AlertSeverity.Danger, 'Layer error', `The layer, ${layerName}, took too long to load. Something may have gone wrong.`, '#gifw-error-toast').show();
                     }
-                }, 500);
-            });
+                }, 30000);
+            }
         }
+    }
+    private loadEndEvent(l: olLayer, layerName: string) {
+        setTimeout(() => {
+            if (layerName in this.loadingLayers) {
+                this.loadingLayers[layerName].count -= 1;
+                if (this.loadingLayers[layerName].count === 0) {
+                    if (this.loadingLayers[layerName].timeout) {
+                        clearTimeout(this.loadingLayers[layerName].timeout);
+                    }
+                    delete this.loadingLayers[layerName];
+                }
+            }
+            const checkbox = this.getLayerCheckbox(l);
+            if (checkbox !== null) {
+                const spinner = checkbox.parentElement.querySelector<HTMLDivElement>('.spinner');
+                if (spinner) {
+                    if (!(layerName in this.loadingLayers)) {
+                        spinner.remove();
+                    }
+                }
+            }
+        }, 500);
+    }
+    private loadErrorEvent(l: olLayer, layerName: string) {
+        setTimeout(() => {
+            if (layerName in this.loadingLayers) {
+                this.loadingLayers[layerName].count -= 1;
+                if (this.loadingLayers[layerName].count === 0) {
+                    if (this.loadingLayers[layerName].timeout) {
+                        clearTimeout(this.loadingLayers[layerName].timeout);
+                    }
+                    delete this.loadingLayers[layerName];
+                }
+            }
+            const checkbox = this.getLayerCheckbox(l);
+            if (checkbox !== null) {
+                const spinner = checkbox.parentElement.querySelector<HTMLDivElement>('.spinner');
+                if (spinner) {
+                    if (!(layerName in this.loadingLayers)) {
+                        spinner.remove();
+                        // If all layers are loaded before this one errored, there won't be another render complete event, and so we trigger a check for errored layers here
+                        if (Object.keys(this.loadingLayers).length === 0) {
+                            this.raiseAlertForErrors();
+                        }
+                    }
+                }
+                if (!checkbox.parentElement.querySelector('.badge-error')) {
+                    checkbox.parentElement.append(Badge.Error());
+                }
+            }
+        }, 500);
     }
 
     /**
@@ -480,7 +482,7 @@ export class LayersPanel implements SidebarPanel {
     * @returns HTMLElement
     *
     */
-    private getActiveLayerItem(layer: olLayer<Source, any>) {
+    private getActiveLayerItem(layer: olLayer<Source, LayerRenderer<olLayer>>) {
         const container = document.querySelector(this.container);
         const layerId = layer.get('layerId');
         const activeLayersList = container.querySelector('.active-layers-list');
@@ -494,12 +496,12 @@ export class LayersPanel implements SidebarPanel {
     *
     */
     private raiseAlertForErrors() {
-        const alertingLayers: olLayer<Source, any>[] = [];
-        const layersWithErrorBadge: olLayer<Source, any>[] = [];
+        const alertingLayers: olLayer<Source, LayerRenderer<olLayer>>[] = [];
+        const layersWithErrorBadge: olLayer<Source, LayerRenderer<olLayer>>[] = [];
 
         const layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
 
-        let layers: olLayer<Source, any>[] = [];
+        let layers: olLayer<Source, LayerRenderer<olLayer>>[] = [];
         layerGroups.forEach(lg => {
             layers = layers.concat(lg.olLayerGroup.getLayersArray());
         })
@@ -544,11 +546,11 @@ export class LayersPanel implements SidebarPanel {
     * @returns void
     *
     */
-    private setLayerVisibilityState(layerArray?: olLayer<Source, any>[]) {
+    private setLayerVisibilityState(layerArray?: olLayer<Source, LayerRenderer<olLayer>>[]) {
 
         const roundedZoom = Math.ceil(this.gifwMapInstance.olMap.getView().getZoom());
 
-        let layers: olLayer<Source, any>[];
+        let layers: olLayer<Source, LayerRenderer<olLayer>>[];
         if (layerArray) {
             layers = layerArray;
         } else {
@@ -637,7 +639,7 @@ export class LayersPanel implements SidebarPanel {
     * @returns void
     *
     */
-    private setLayerOutOfRange(layer: olLayer<Source, any>, newZoom:number) {
+    private setLayerOutOfRange(layer: olLayer<Source, LayerRenderer<olLayer>>, newZoom:number) {
         const layerId = layer.get('layerId');
 
         const layerCheckboxLabelContainer: HTMLElement = document.querySelector(`#layer-switcher-${layerId}`)?.parentElement;
@@ -655,7 +657,7 @@ export class LayersPanel implements SidebarPanel {
     * @returns void
     *
     */
-    private setCheckboxState(layer: olLayer<Source, any>) {
+    private setCheckboxState(layer: olLayer<Source, LayerRenderer<olLayer>>) {
         const cb = this.getLayerCheckbox(layer);
         cb.checked = layer.getVisible();
     }
@@ -685,7 +687,7 @@ export class LayersPanel implements SidebarPanel {
     */
     private turnOffAllLayers(): void {
         const layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
-        let layers: olLayer<Source, any>[] = [];
+        let layers: olLayer<Source, LayerRenderer<olLayer>>[] = [];
         layerGroups.forEach(lg => {
             layers = layers.concat(lg.olLayerGroup.getLayersArray());
         })
@@ -826,7 +828,7 @@ export class LayersPanel implements SidebarPanel {
         let ordering = -1;
 
         const layerGroups = this.gifwMapInstance.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
-        let layers: olLayer<Source, any>[] = [];
+        let layers: olLayer<Source, LayerRenderer<olLayer>>[] = [];
 
         layerGroups.forEach(lg => {
             layers = layers.concat(lg.olLayerGroup.getLayersArray());
@@ -892,7 +894,7 @@ export class LayersPanel implements SidebarPanel {
                 }
                 const layer = this.gifwMapInstance.getLayerById(layerId);
                 if (layer) {
-                    this.gifwMapInstance.setLayerOpacity(layer as olLayer<Source, any>, opacity);
+                    this.gifwMapInstance.setLayerOpacity(layer as olLayer<Source, LayerRenderer<olLayer>>, opacity);
                 }
             });
         });
@@ -911,7 +913,7 @@ export class LayersPanel implements SidebarPanel {
                 }
                 const layer = this.gifwMapInstance.getLayerById(layerId);
                 if (layer) {
-                    this.gifwMapInstance.setLayerSaturation(layer as olLayer<Source, any>, saturation);
+                    this.gifwMapInstance.setLayerSaturation(layer as olLayer<Source, LayerRenderer<olLayer>>, saturation);
                 }
             });
         });

@@ -264,6 +264,7 @@ export default class AnnotationSelect extends Select {
             dataProjection: 'EPSG:4326'
         });
         const turfFeature = formatter.writeFeatureObject(clone);
+        /* eslint-disable @typescript-eslint/no-explicit-any -- Cannot idenitify proper types to use. This code is safe as is, but handle with care */
         let bufferedTurfFeature: any;
         let bufferedGeometry: Polygon;
         let cutout: LinearRing;
@@ -318,7 +319,7 @@ export default class AnnotationSelect extends Select {
                 cutout = bufferedGeometry.getLinearRing(0);
             }
         }        
-
+        /* eslint-enable @typescript-eslint/no-explicit-any */
         backdropGeometry.appendLinearRing(cutout);
         const backdrop = new Feature(backdropGeometry);
         const style = new Style(

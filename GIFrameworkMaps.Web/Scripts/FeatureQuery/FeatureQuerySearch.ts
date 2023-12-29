@@ -474,6 +474,7 @@ export class FeatureQuerySearch {
                                 dataProjection: 'EPSG:4326'
                             });
                             const turfSourceFeature = formatter.writeFeatureObject(sourceFeatureClone);
+                            /* eslint-disable @typescript-eslint/no-explicit-any -- Cannot idenitify proper types to use. This code is safe as is, but handle with care */
                             if (featureType === 'Polygon' || featureType === 'MultiPolygon') {
 
                                 if (intersect(turfSearchPolygon as any, turfSourceFeature as any) !== null) {
@@ -488,6 +489,7 @@ export class FeatureQuerySearch {
                                     features.add(f);
                                 }
                             }
+                            /* eslint-enable @typescript-eslint/no-explicit-any */
                         }
                     })
                 }

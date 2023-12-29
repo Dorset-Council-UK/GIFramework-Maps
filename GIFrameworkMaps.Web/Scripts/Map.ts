@@ -36,6 +36,7 @@ import { BookmarkMenu } from "./BookmarkMenu";
 import { LegendURLs } from "./Interfaces/LegendURLs";
 import { DebouncedFunc, debounce } from "lodash";
 import { Browser as BrowserHelper, Style, Mapping as MappingHelper } from "./Util";
+import LayerRenderer from "ol/renderer/Layer";
 
 export class GIFWMap {
     id: string;
@@ -44,8 +45,8 @@ export class GIFWMap {
     sidebars: gifwSidebar.Sidebar[];
     popupOverlay: GIFWPopupOverlay;
     olMap: olMap;
-    customControls: any[] = [];
-    private delayPermalinkUpdate: DebouncedFunc<any>;
+    customControls: (GIFWMousePositionControl | GIFWContextMenu | Annotate | Measure | FeatureQuery | GIFWGeolocation)[] = [];
+    private delayPermalinkUpdate: DebouncedFunc<() => void>;
     constructor(id: string, config:VersionViewModel, sidebars: gifwSidebar.Sidebar[]) {
         this.id = id;
         this.config = config;
@@ -268,7 +269,7 @@ export class GIFWMap {
                 const layer = this.getLayerConfigById(layerId,[LayerGroupType.Overlay])
                 if (layer !== null && layer.defaultSaturation !== 100) {
                     //get the default saturation and trigger a postrender once to apply it.
-                    this.setInitialSaturationOfLayer(l as olLayer.Layer<Source,any>, layer.defaultSaturation);
+                    this.setInitialSaturationOfLayer(l as olLayer.Layer<Source, LayerRenderer<olLayer.Layer>>, layer.defaultSaturation);
                 }
                 if (overrideDefaultLayers) {
                     const layerSetting = permalinkEnabledLayers.filter(pel => pel[0] == layerId);
@@ -399,6 +400,7 @@ export class GIFWMap {
      * @param {string} layerId A unique ID for the layer. Defaults to a randomly generated GUID
      * @param olLayerOpts Additional options to add to the OpenLayers options
      */
+    /* eslint-disable @typescript-eslint/no-explicit-any -- Cannot find suitable type that can be used as is for style */
     public addNativeLayerToMap(
         source: VectorSource<Feature>,
         name: string,
@@ -410,6 +412,8 @@ export class GIFWMap {
         layerId: string = uuidv4(),
         olLayerOpts = {}
     ) {
+        /* eslint-enable @typescript-eslint/no-explicit-any */
+
         let styleFunc = (feature: Feature<Geometry>) => {
             return Style.getDefaultStyleByGeomType(feature.getGeometry().getType(), this.config.theme)
         }
@@ -682,7 +686,7 @@ export class GIFWMap {
      * @param {olLayer.Layer} layer The OpenLayers layer to set the saturation for
      * @param {number} saturation - The saturation level to set to (0-100)
      */
-    public setInitialSaturationOfLayer(layer: olLayer.Layer<Source, any>, saturation: number): void {
+    public setInitialSaturationOfLayer(layer: olLayer.Layer<Source, LayerRenderer<olLayer.Layer>>, saturation: number): void {
         this.olMap.once('postrender', () => {
             this.setLayerSaturation(layer, saturation, true);
         })
@@ -691,7 +695,7 @@ export class GIFWMap {
     /**
      * Gets the OpenLayers Layer for the currently active basemap
      * */
-    public getActiveBasemap(): olLayer.Layer<Source, any> {
+    public getActiveBasemap(): olLayer.Layer<Source, LayerRenderer<olLayer.Layer>> {
 
         const baseGroup = this.getLayerGroupOfType(LayerGroupType.Basemap);
         if (baseGroup !== null) {
@@ -736,7 +740,7 @@ export class GIFWMap {
     * @returns void
     *
     */
-    public setLayerSaturation(layer: olLayer.Layer<Source, any>, saturation: number, quiet: boolean = false) {
+    public setLayerSaturation(layer: olLayer.Layer<Source, LayerRenderer<olLayer.Layer>>, saturation: number, quiet: boolean = false) {
         //layers should have custom class names, if it has the default, this is ignored
         const className = layer.getClassName();
         if (className !== 'ol-layer') {
@@ -760,7 +764,7 @@ export class GIFWMap {
     * @returns void
     *
     */
-    public setLayerOpacity(layer: olLayer.Layer<Source, any>, opacity: number) {
+    public setLayerOpacity(layer: olLayer.Layer<Source, LayerRenderer<olLayer.Layer>>, opacity: number) {
         layer.setOpacity(opacity / 100);
         this.delayPermalinkUpdate();
     }
@@ -774,7 +778,7 @@ export class GIFWMap {
         
         const layerGroups = this.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
 
-        let layers: olLayer.Layer<Source, any>[] = [];
+        let layers: olLayer.Layer<Source, LayerRenderer<olLayer.Layer>>[] = [];
         layerGroups.forEach(lg => {
             layers = layers.concat(lg.olLayerGroup.getLayersArray());
         })
@@ -793,7 +797,7 @@ export class GIFWMap {
     public setLayerVisibility(layerId: string, visibility: boolean) {
 
         const layerGroups = this.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
-        let layers: olLayer.Layer<Source, any>[] = [];
+        let layers: olLayer.Layer<Source, LayerRenderer<olLayer.Layer>>[] = [];
 
         layerGroups.forEach(lg => {
             layers = layers.concat(lg.olLayerGroup.getLayersArray());
@@ -931,7 +935,7 @@ export class GIFWMap {
             const roundedZoom = Math.ceil(this.olMap.getView().getZoom());
             const layerGroups = this.getLayerGroupsOfType([LayerGroupType.Overlay, LayerGroupType.UserNative, LayerGroupType.SystemNative])
 
-            let layers: olLayer.Layer<Source, any>[] = [];
+            let layers: olLayer.Layer<Source, LayerRenderer<olLayer.Layer>>[] = [];
             layerGroups.forEach(lg => {
                 layers = layers.concat(lg.olLayerGroup.getLayersArray());
             })
@@ -950,6 +954,7 @@ export class GIFWMap {
                         crs: view.getProjection().getCode()
                     }
                     //merge valid params from the source and add to the legend
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Disabled to make make handling this generic object easier. The code is safe as written
                     let additionalParams: any = {};
                     const sourceParams = source.getParams();
 

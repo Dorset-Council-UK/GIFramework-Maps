@@ -12,12 +12,13 @@ import { Projection } from "./Util";
   * This class uses the non-existent EPSG code 43261 to represent Lat/Lon in Degrees/Minutes/Seconds, as it is not a real projection, just a representation.
   */
 
-export class GIFWMousePositionControl {
+export class GIFWMousePositionControl extends olControl.Control {
     projection: string;
     decimals: number;
     control: olControl.MousePosition;
 
     constructor(startProjection:string, decimals:number) {
+        super({});
         this.projection = startProjection;
         this.decimals = decimals;
         this.init();

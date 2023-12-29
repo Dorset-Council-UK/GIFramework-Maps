@@ -2,7 +2,6 @@
 import { Draw, Modify, Snap } from 'ol/interaction';
 import VectorSource from "ol/source/Vector";
 import { Feature } from "ol";
-import RenderFeature from "ol/render/Feature";
 import {
     Circle as CircleStyle,
     Fill,
@@ -24,6 +23,9 @@ import { GIFWPopupOptions } from "./Popups/PopupOptions";
 import { MeasurementResult } from "./Interfaces/MeasurementResult";
 import { Control as olControl } from "ol/control";
 import { Color } from "./Util";
+import { FeatureLike } from "ol/Feature";
+import { Coordinate } from "ol/coordinate";
+import { Polygon } from "ol/geom";
 
 
 export class Measure extends olControl {
@@ -404,26 +406,26 @@ export class Measure extends olControl {
         return areaResult
     }
 
-    private getStyleForMeasureFeature(feature: RenderFeature | Feature<any>, segments: boolean, drawType?: olGeomType, tip?:string) {
+    private getStyleForMeasureFeature(feature: FeatureLike, segments: boolean, drawType?: olGeomType, tip?:string) {
         const styles = [this._basicStyle];
         const geometry = feature.getGeometry();
         const type = geometry.getType();
         let point, label, line;
         if (!drawType || drawType === type) {
-            const measurements = this.getMeasurementFromGeometry(geometry);
+            const measurements = this.getMeasurementFromGeometry(geometry as Geometry);
             if (type === 'Polygon') {
-                point = geometry.getInteriorPoint();
+                point = (geometry as Polygon).getInteriorPoint();
                 label = `${measurements.metric} ${measurements.metricUnit}`;
-                line = new LineString(geometry.getCoordinates()[0]);
+                line = new LineString((geometry as Polygon).getCoordinates()[0]);
             } else if (type === 'LineString') {
-                point = new Point(geometry.getLastCoordinate());
+                point = new Point((geometry as Polygon).getLastCoordinate());
                 label = `${measurements.metric} ${measurements.metricUnit}`;
                 line = geometry;
             }
         }
         if (segments && line && type === 'LineString') {
             let count = 0;
-            line.forEachSegment((a: number, b: number) => {
+            (line as LineString).forEachSegment((a: Coordinate, b: Coordinate) => {
                 const segment = new LineString([a, b]);
                 const measurements = this.getMeasurementFromGeometry(segment);
                 const label = `${measurements.metric} ${measurements.metricUnit}`;
@@ -447,7 +449,7 @@ export class Measure extends olControl {
             type === 'Point' &&
             !this._modifyControl.getOverlay().getSource().getFeatures().length
         ) {
-            this._tipPoint = geometry;
+            this._tipPoint = geometry as Geometry;
             this._tipStyle.getText().setText(tip);
             styles.push(this._tipStyle);
         }

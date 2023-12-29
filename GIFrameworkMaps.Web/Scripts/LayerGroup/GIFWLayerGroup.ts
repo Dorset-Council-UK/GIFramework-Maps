@@ -12,6 +12,7 @@ import { LayerGroup } from "./LayerGroup";
 import TileGrid from "ol/tilegrid/TileGrid";
 import BaseLayer from "ol/layer/Base";
 import {Mapping as MappingUtil } from "../Util"
+import LayerRenderer from "ol/renderer/Layer";
 
 export class GIFWLayerGroup implements LayerGroup {
     layers: Layer[];
@@ -152,12 +153,14 @@ export class GIFWLayerGroup implements LayerGroup {
                             projection: projection
                         };
                         if (layer.proxyMapRequests || hasCustomHeaders) {
+                            /* eslint-disable @typescript-eslint/no-explicit-any -- Cannot find suitable type that can be used as is for imageTile */
                             imageWMSOpts.imageLoadFunction = (imageTile: any, src: string) => {
                                 if (layer.proxyMapRequests) {
                                     src = this.gifwMapInstance.createProxyURL(src);
                                 }
                                 this.customTileLoader(imageTile, src, layerHeaders);
                             };
+                            /* eslint-enable @typescript-eslint/no-explicit-any */
                         }
                         ol_layer = new olLayer.Image({
                             source: new olSource.ImageWMS(imageWMSOpts),
@@ -270,7 +273,7 @@ export class GIFWLayerGroup implements LayerGroup {
         });
     }
 
-    addLayerToGroup(layer: Layer, ol_layer: olLayer.Layer<any, any>): void {
+    addLayerToGroup(layer: Layer, ol_layer: olLayer.Layer<olSource.Source, LayerRenderer<olLayer.Layer>>): void {
         this.layers.push(layer);
         const newLayerGroup = this.olLayerGroup.getLayers();
         newLayerGroup.push(ol_layer);

@@ -9,8 +9,9 @@ import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import { Point, SimpleGeometry } from "ol/geom";
 import { GIFWPopupOptions } from "./Popups/PopupOptions";
-import { ImageWMS, TileWMS } from "ol/source";
+import { ImageWMS, Source, TileWMS } from "ol/source";
 import { LayerSource } from "./Interfaces/Layer";
+import LayerRenderer from "ol/renderer/Layer";
 
 interface IPrefixArrayMember {
     xBase: number;
@@ -193,11 +194,11 @@ interface IPrefixArray {
          * Checks to see if the specified storage type is available in the browser
          * @param type localStorage or sessionStorage
          */
-        static storageAvailable(type:string): boolean {
+        static storageAvailable(type:'localStorage'|'sessionStorage'): boolean {
             let storage: Storage;
             
             try {
-                storage = window[type as any] as unknown as Storage;
+                storage = type === 'localStorage' ? window.localStorage : window.sessionStorage;
                 const x = '__storage_test__';
                 storage.setItem(x, x);
                 storage.removeItem(x);
@@ -205,11 +206,6 @@ interface IPrefixArray {
             }
             catch (e) {
                 return e instanceof DOMException && (
-                    // everything except Firefox
-                    e.code === 22 ||
-                    // Firefox
-                    e.code === 1014 ||
-                    // test name field too, because code might not be present
                     // everything except Firefox
                     e.name === 'QuotaExceededError' ||
                     // Firefox
@@ -654,7 +650,7 @@ interface IPrefixArray {
             if (map.anyOverlaysOn()) {
                 const layerGroup = map.getLayerGroupOfType(LayerGroupType.Overlay);
 
-                const layers: olLayer<any, any>[] = layerGroup.olLayerGroup.getLayersArray();
+                const layers: olLayer<Source, LayerRenderer<olLayer>>[] = layerGroup.olLayerGroup.getLayersArray();
 
                 const switchedOnLayers = layers.filter(l => l.getVisible() === true && l.get('gifw-is-user-layer') !== true);
                 if (switchedOnLayers.length !== 0) {

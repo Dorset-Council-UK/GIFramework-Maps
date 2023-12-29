@@ -4,6 +4,8 @@ import VectorLayer from "ol/layer/Vector";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { LayerGroup } from "./LayerGroup";
 import VectorSource from "ol/source/Vector";
+import { Feature } from "ol";
+import { Geometry } from "ol/geom";
 
 export class NativeLayerGroup implements LayerGroup {
     layers: VectorLayer<VectorSource>[];
@@ -27,7 +29,7 @@ export class NativeLayerGroup implements LayerGroup {
     *
     */
     createLayersGroup(): olLayer.Group {
-        const ol_layers: Array<any> = [];
+        const ol_layers: Array<olLayer.Vector<VectorSource<Feature<Geometry>>>> = [];
         const lgType = this.layerGroupType;
         if (this.layers !== null) {
             this.layers.forEach((layer) => {

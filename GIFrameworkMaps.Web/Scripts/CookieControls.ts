@@ -1,4 +1,4 @@
-﻿declare let CookieControl: any;
+﻿declare let CookieControl: { open: () => void};
 declare let configure_cookie_control: string;
 
 function loadCookieControl() {

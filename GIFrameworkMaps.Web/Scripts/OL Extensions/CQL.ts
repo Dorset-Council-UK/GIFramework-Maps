@@ -1,7 +1,7 @@
 ﻿///CQL format reader and writer
 ///Based on https://github.com/geostyler/geostyler-cql-parser/blob/master/src/CqlParser.ts
 ///and https://github.com/openlayers/ol2/blob/ab7a809ebad7055d9ada4170aed582d7be4a7b77/lib/OpenLayers/Format/CQL.js
-
+/* eslint-disable @typescript-eslint/no-explicit-any -- disabled as this code has been converted from elsewhere and the last remaining lines of type safety could not be resolved*/
 import Filter from "ol/format/filter/Filter";
 import * as olFilter from "ol/format/filter";
 import WKT from "ol/format/WKT";
@@ -293,7 +293,7 @@ export class CQL {
         this.write = this.write.bind(this);
     }
 
-    tryToken(text: any, pattern: Pattern) {
+    tryToken(text: string, pattern: Pattern) {
         if (pattern instanceof RegExp) {
             return pattern.exec(text);
         } else if (pattern) {
@@ -301,7 +301,7 @@ export class CQL {
         }
     }
 
-    nextToken(text: any, patternNames: PatternName[]): Token {
+    nextToken(text: string, patternNames: PatternName[]): Token {
         const {
             patterns,
             tryToken
@@ -315,7 +315,7 @@ export class CQL {
             const matches = tryToken(text, pattern);
             if (matches) {
                 const match = matches[0];
-                const remainder = text.substr(match.length).replace(/^\s*/, '');
+                const remainder = text.substring(match.length).replace(/^\s*/, '');
                 return {
                     type: token,
                     text: match,
@@ -359,7 +359,7 @@ export class CQL {
         const {
             precedence
         } = this;
-        const operatorStack: any[] = [];
+        const operatorStack: Token[] = [];
         const postfix: Token[] = [];
 
         tokens.forEach(token => {

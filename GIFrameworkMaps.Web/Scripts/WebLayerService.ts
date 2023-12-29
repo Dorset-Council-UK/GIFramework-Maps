@@ -11,6 +11,7 @@ import { GIFWMap } from "./Map";
 import { Metadata } from "./Metadata/Metadata";
 import Spinner from "./Spinner";
 import { Alert, CustomError, Helper, Browser as BrowserUtil, AlertType, AlertSeverity } from "./Util"
+import { ImageTile, ImageWrapper } from "ol";
 export class WebLayerService {
     gifwMapInstance: GIFWMap;
     serviceDefinitions: WebLayerServiceDefinition[];
@@ -151,9 +152,9 @@ export class WebLayerService {
                 
                     };
                     if (layerDetails.proxyMapRequests) {
-                        imageWMSOpts.imageLoadFunction = (imageTile: any, src: string) => {
+                        imageWMSOpts.imageLoadFunction = (imageTile: ImageWrapper, src: string) => {
                             const proxyUrl = this.gifwMapInstance.createProxyURL(src);
-                            imageTile.getImage().src = proxyUrl;
+                            (imageTile.getImage() as HTMLImageElement).src = proxyUrl;
                         };
                     }
 
@@ -172,9 +173,9 @@ export class WebLayerService {
 
                     };
                     if (layerDetails.proxyMapRequests) {
-                        tileWMSOpts.tileLoadFunction = (imageTile: any, src: string) => {
+                        tileWMSOpts.tileLoadFunction = (imageTile: ImageTile, src: string) => {
                             const proxyUrl = this.gifwMapInstance.createProxyURL(src);
-                            imageTile.getImage().src = proxyUrl;
+                            (imageTile.getImage() as HTMLImageElement).src = proxyUrl;
                         };
                     }
 
