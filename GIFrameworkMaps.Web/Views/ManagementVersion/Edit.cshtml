@@ -7,13 +7,6 @@
 
 <a asp-action="Index">Cancel</a>
 
-<div>
-    <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/gui/versions/" class="btn btn-outline-primary" target="_blank"
-       role="button">Stuck? Read the help documentation</a>
-</div>
-
-<a asp-action="ContactAlert" asp-route-id="@Model.Version.Id" class="float-end">Version Contacts</a>
-
 <form asp-action="Edit">
     <div class="row mt-4 mb-2">
         <div class="col-md-6">
@@ -124,6 +117,16 @@
         
         </div>
         <div class="col-md-6">
+            <div class="card mb-2">
+                <div class="card-body">
+
+                    <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/gui/versions/" class="btn btn-outline-primary" target="_blank"
+                       role="button"><span class="bi bi-question-circle"></span> Help</a>
+                    <a asp-action="LayerCustomisation" asp-route-id="@Model.Version.Id" class="btn btn-outline-primary"><span class="bi bi-tools"></span> Layer customisations</a>
+                    <a asp-action="EditContacts" asp-route-id="@Model.Version.Id" class="btn btn-outline-primary"><span class="bi bi-people"></span> Version contacts</a>
+                    
+                </div>
+            </div>
             <div class="card mb-2">
                 <div class="card-header">
                     Basemaps

@@ -13,6 +13,7 @@ namespace GIFrameworkMaps.Data
         }
 
         public virtual DbSet<Models.Version> Versions { get; set; }
+        public DbSet<Models.VersionLayer> VersionLayer { get; set; }
         public DbSet<Models.VersionUser> VersionUser { get; set; }
         public DbSet<Models.VersionContact> VersionContact { get; set; }
         public DbSet<Models.VersionSearchDefinition> VersionSearchDefinition { get; set; }
@@ -48,6 +49,7 @@ namespace GIFrameworkMaps.Data
         {
             modelBuilder.HasDefaultSchema("giframeworkmaps");
             modelBuilder.Entity<VersionUser>().HasKey(v => new { v.UserId, v.VersionId });
+            modelBuilder.Entity<VersionLayer>().HasIndex(v => new { v.LayerId, v.VersionId }).IsUnique(true);
             modelBuilder.Entity<VersionBasemap>().HasKey(v => new { v.BasemapId, v.VersionId });
             modelBuilder.Entity<VersionCategory>().HasKey(v => new { v.CategoryId, v.VersionId });
             modelBuilder.Entity<VersionAnalytic>().HasKey(v => new { v.AnalyticsDefinitionId, v.VersionId });

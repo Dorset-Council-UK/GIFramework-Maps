@@ -3,8 +3,8 @@ using System;
 using GIFrameworkMaps.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
@@ -12,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231026140208_AddMinMaxZoomToVersionLayers")]
+    partial class AddMinMaxZoomToVersionLayers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,7 +37,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.Property<string>("CookieControl")
                         .HasColumnType("text");
 
-                    b.Property<Instant>("DateModified")
+                    b.Property<DateTime>("DateModified")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("Enabled")
@@ -504,7 +506,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.Property<string>("ShortId")
                         .HasColumnType("text");
 
-                    b.Property<Instant>("Created")
+                    b.Property<DateTime>("Created")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -512,7 +514,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.Property<string>("FullUrl")
                         .HasColumnType("text");
 
-                    b.Property<Instant?>("LastVisited")
+                    b.Property<DateTime?>("LastVisited")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("ShortId");
@@ -569,8 +571,8 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<LocalDateTime>("UpdateDate")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<DateTimeOffset>("UpdateDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -766,26 +768,23 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionLayer", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("LayerId")
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<int>("VersionId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("DefaultOpacity")
+                    b.Property<int>("DefaultOpacity")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("DefaultSaturation")
+                    b.Property<int>("DefaultSaturation")
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsDefault")
                         .HasColumnType("boolean");
-
-                    b.Property<int>("LayerId")
-                        .HasColumnType("integer");
 
                     b.Property<int?>("MaxZoom")
                         .HasColumnType("integer");
@@ -793,20 +792,14 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.Property<int?>("MinZoom")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("SortOrder")
+                    b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 
-                    b.Property<int>("VersionId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
+                    b.HasKey("LayerId", "VersionId");
 
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("VersionId");
-
-                    b.HasIndex("LayerId", "VersionId")
-                        .IsUnique();
 
                     b.ToTable("VersionLayer", "giframeworkmaps");
                 });
@@ -950,8 +943,8 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<LocalDateTime>("UpdateDate")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<DateTimeOffset>("UpdateDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 

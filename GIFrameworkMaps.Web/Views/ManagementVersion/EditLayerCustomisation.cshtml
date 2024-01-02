@@ -1,0 +1,86 @@
+﻿@using GIFrameworkMaps.Data.Models;
+
+@model GIFrameworkMaps.Data.Models.ViewModels.Management.CustomiseLayerEditModel;
+@{
+    ViewData["Title"] = $"Customise layer '{Model.Layer.Name}'";
+    var hasCustomisation = Model.LayerCustomisation != null;
+}
+<a asp-action="LayerCustomisation" asp-route-id="@Model.Version.Id">Back to layer customisation</a>
+
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Part of version '@Model.Version.Name' in category '@Model.Category.Name'</p>
+
+<form asp-action="EditLayerCustomisation">
+    <div class="row mt-4 mb-2">
+        <div class="col-md-6">
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <input type="hidden" asp-for="Version.Id" />
+            <input type="hidden" asp-for="Category.Id" />
+            <input type="hidden" asp-for="Layer.Id" />
+            <input type="hidden" asp-for="LayerCustomisation.Id" />
+
+            <div class="mb-3">
+                <input asp-for="LayerCustomisation.IsDefault" class="form-check-input" />
+                <label asp-for="LayerCustomisation.IsDefault" class="form-check-label"></label>
+                <p class="form-text">Whether the layer is switched on by default.</p>
+                <span asp-validation-for="LayerCustomisation.IsDefault" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LayerCustomisation.MinZoom" class="control-label"></label>
+                <div class="row">
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <input asp-for="LayerCustomisation.MinZoom" class="form-control" />
+                    </div>
+                </div>
+                <span asp-validation-for="LayerCustomisation.MinZoom" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LayerCustomisation.MaxZoom" class="control-label"></label>
+                <div class="row">
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <input asp-for="LayerCustomisation.MaxZoom" class="form-control" />
+                    </div>
+                </div>
+                <span asp-validation-for="LayerCustomisation.MaxZoom" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LayerCustomisation.SortOrder" class="control-label"></label>
+                <div class="row">
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <input asp-for="LayerCustomisation.SortOrder" class="form-control" />
+                    </div>
+                </div>
+                <span asp-validation-for="LayerCustomisation.SortOrder" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LayerCustomisation.DefaultOpacity" class="control-label"></label>
+                <labelled-slider max-value="100" min-value="0" default-if-null="Model.Layer.DefaultOpacity" asp-for="LayerCustomisation.DefaultOpacity"></labelled-slider>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LayerCustomisation.DefaultSaturation" class="control-label"></label>
+                <labelled-slider max-value="100" min-value="0" default-if-null="Model.Layer.DefaultSaturation" asp-for="LayerCustomisation.DefaultSaturation"></labelled-slider>
+            </div>
+            <div class="mb-3">
+                <input type="submit" value="@(hasCustomisation ? "Update" : "Add customisation")" class="btn btn-primary btn-lg" />
+                <a asp-action="LayerCustomisation" asp-route-id="@Model.Version.Id" class="btn btn-link">Cancel</a>
+            </div>
+
+            @if (hasCustomisation)
+            {
+                <div>
+                    <a asp-action="DeleteLayerCustomisation" asp-route-id="@Model.LayerCustomisation.Id" class="btn btn-danger">Delete</a>
+                </div>
+            }
+
+        </div>
+    </div>
+</form>
+
+
+

@@ -12,8 +12,10 @@
             <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
             <div class="mb-3">
                 <label asp-for="ContactEntry.UserId" class="control-label"></label>
-                <p class="card-text">Select a user (start typing)</p>
-                <select asp-for="ContactEntry.UserId" class="form-control">
+                <div id="userSelectHelpText" class="form-text">
+                    Start typing to find the user
+                </div>
+                <select asp-for="ContactEntry.UserId" class="form-control" data-autocomplete="true" aria-describedby="userSelectHelpText">
                     if (Model.ContactEntry.UserId == null)
                     {
                     <option value="" data-abbreviations=""></option>
@@ -57,18 +59,10 @@
         </div>
         <div class="col-md-6">
             <div class="mb-3">
-                <a asp-action="ContactAlert" asp-route-id="@Model.ContactEntry.VersionId">Cancel</a>
+                <a asp-action="EditContacts" asp-route-id="@Model.ContactEntry.VersionId">Cancel</a>
             </div>
         </div>
     </div>
 }
 
 <link rel="stylesheet" href="~/css/accessible-autocomplete.min.css" />
-<script src="~/js/accessible-autocomplete.min.js"></script>
-<script src="~/js/govuk_government_organisations_autocomplete.js"></script>
-
-<script>
-    govukGovernmentOrganisationsAutocomplete({
-        selectElement: document.getElementById('ContactEntry_UserId'),
-    });
-</script>

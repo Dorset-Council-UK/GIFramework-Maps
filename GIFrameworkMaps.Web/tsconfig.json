@@ -13,5 +13,9 @@
   "exclude": [
     "node_modules",
     "wwwroot"
+  ],
+  "typeRoots": [
+    "./types",
+    "./node_modules/@types/"
   ]
 }

@@ -7,6 +7,7 @@ namespace GIFrameworkMaps.Data.Models.ViewModels
     public class LayerViewModel
     {
         public int Id { get; set; }
+        public bool IsDefault { get; set; }
         public string? Name { get; set; }
         public int SortOrder { get; set; }
         public int? MinZoom { get; set; }
