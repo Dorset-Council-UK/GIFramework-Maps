@@ -1,0 +1,28 @@
+﻿@using GIFrameworkMaps.Data.Models;
+@model GIFrameworkMaps.Data.Models.Version
+
+@{
+    ViewData["Title"] = $"Remove all layer customisation";
+}
+
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Are you sure you want to delete all layer customisations for version '@Model.Name'?</p>
+
+<form asp-action="RemoveAllCustomisations" method="post">
+    <div class="row mt-4 mb-2">
+        <div class="col-md-6">
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <input type="hidden" asp-for="Id" />
+           
+            <div class="mb-3">
+                <input type="submit" value="Delete" class="btn btn-danger btn-lg" />
+                <a asp-action="LayerCustomisation" asp-route-id="@Model.Id" class="btn btn-link">Cancel</a>
+            </div>
+
+        </div>
+    </div>
+</form>
+
+
+
