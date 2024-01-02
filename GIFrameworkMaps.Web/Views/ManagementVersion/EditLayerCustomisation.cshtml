@@ -34,6 +34,7 @@
                         <input asp-for="LayerCustomisation.MinZoom" class="form-control" />
                     </div>
                 </div>
+                <div class="form-text">Zooming <strong>out</strong> beyond this level will switch the layer off automatically. Rounds up to nearest zoom level e.g. setting this to 10, a zoom level of 9.01 will display the layer, a zoom of 9.00 will turn off</div>
                 <span asp-validation-for="LayerCustomisation.MinZoom" class="text-danger"></span>
             </div>
 
@@ -44,6 +45,7 @@
                         <input asp-for="LayerCustomisation.MaxZoom" class="form-control" />
                     </div>
                 </div>
+                <div class="form-text">Zooming <strong>in</strong> beyond this level will switch the layer off automatically</div>
                 <span asp-validation-for="LayerCustomisation.MaxZoom" class="text-danger"></span>
             </div>
 
