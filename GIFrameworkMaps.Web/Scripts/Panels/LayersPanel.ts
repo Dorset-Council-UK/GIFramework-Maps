@@ -184,8 +184,8 @@ export class LayersPanel implements SidebarPanel {
         accordionBody.className = "accordion-body";
         const accordionBodyContainer = document.createElement('div');
         accordionBodyContainer.className = "accordion accordion-flush";
-        accordionBodyContainer.appendChild(PanelHelper.renderSliderControl(layerId, layer.get('saturation') !== undefined ? layer.get('saturation') : 100, 'saturation', 'layer', this.gifwMapInstance));
         accordionBodyContainer.appendChild(PanelHelper.renderSliderControl(layerId, layer.getOpacity() * 100, 'opacity', 'layer', this.gifwMapInstance));
+        accordionBodyContainer.appendChild(PanelHelper.renderSliderControl(layerId, layer.get('saturation') !== undefined ? layer.get('saturation') : 100, 'saturation', 'layer', this.gifwMapInstance));
         if (layer.getSource() instanceof TileWMS || layer.getSource() instanceof ImageWMS) {
             //add styles button
             const stylesButton = document.createElement('button');
