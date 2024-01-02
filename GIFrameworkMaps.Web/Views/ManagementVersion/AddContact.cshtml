@@ -66,14 +66,3 @@
 }
 
 <link rel="stylesheet" href="~/css/accessible-autocomplete.min.css" />
-<script src="~/lib/accessible-autocomplete.min.js"></script>
-<script src="~/lib/govuk_government_organisations_autocomplete.js"></script>
-
-@section Scripts {
-    <script>
-        document.addEventListener("DOMContentLoaded", (event) => {
-            const ev = new Event("AutocompleteInit", { detail: 'select[data-autocomplete]' })
-            document.dispatchEvent(ev);
-        });
-    </script>
-}
