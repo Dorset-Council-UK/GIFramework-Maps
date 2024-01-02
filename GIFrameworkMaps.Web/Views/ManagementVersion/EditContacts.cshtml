@@ -23,20 +23,7 @@
 
 <h1>@ViewData["Title"]</h1>
 
-<a asp-action="Index">Cancel</a>
-<nav>
-    <ul class="nav nav-tabs">
-        <li class="nav-item">
-            <a asp-action="Edit" asp-route-id="@Model.Version.Id" tabindex="1" class="nav-link">Version Settings</a>
-        </li>
-        <li class="nav-item">
-            <a asp-action="EditLayers" asp-route-id="@Model.Version.Id" tabindex="2" class="nav-link">Version Layers</a>
-        </li>
-        <li class="nav-item">
-            <a asp-action="EditContacts" asp-route-id="@Model.Version.Id" tabindex="3" class="nav-link active">Version Contacts</a>
-        </li>
-    </ul>
-</nav>
+<a asp-action="Edit" asp-route-id="@Model.Version.Id">Back to version</a>
 
 <p class ="lead">
     You can add a list of contacts for this version below and specify whether or not they should recieve messages relating to this version.

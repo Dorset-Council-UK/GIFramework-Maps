@@ -267,7 +267,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
                 TempData["Message"] = "Version contact updated";
                 TempData["MessageType"] = "success";
-                return RedirectToAction("ContactAlert", new { Id = model.ContactEntry.VersionId });
+                return RedirectToAction(nameof(EditContacts), new { Id = model.ContactEntry.VersionId });
             }
             //Refresh the available users list
             model.ListOfUsers = await _repository.GetUsers();
@@ -295,16 +295,15 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Version contact deleted";
                 TempData["MessageType"] = "success";
-                return RedirectToAction("ContactAlert",new { Id = id});
+                return RedirectToAction(nameof(EditContacts),new { Id = id});
             }
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Version contact delete failed");
-                ModelState.AddModelError("", "Unable to save changes. " +
-                    "Try again, and if the problem persists, " +
-                    "contact your system administrator.");
-            }
-            return RedirectToAction("ContactAlert", new { Id = id });
+				TempData["Message"] = "Version contact delete failed";
+				TempData["MessageType"] = "danger";
+			}
+            return RedirectToAction(nameof(EditContacts), new { Id = id });
         }
 
         // GET: Version/LayerCustomisation/1
