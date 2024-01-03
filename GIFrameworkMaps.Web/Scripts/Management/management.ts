@@ -3,6 +3,7 @@ import { SelectWebService } from './SelectWebService';
 import { Broadcast } from './Broadcast';
 import { CreateLayerFromSource } from './CreateLayerFromSource';
 import { CreateSource } from './CreateSource';
+import accessibleAutocomplete from 'accessible-autocomplete';
 
 addEventListener("DOMContentLoaded", () => {
     //attach collapse caret changer
@@ -30,7 +31,15 @@ addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+    //attach accessible autocomplete
+    const autocompleteElements = document.querySelectorAll('select[data-autocomplete]');
+    if (autocompleteElements) {
+        autocompleteElements.forEach(ele => {
+            accessibleAutocomplete.enhanceSelectElement({ selectElement: ele });
+        })
+    }
     //attach other general things that should appear everywhere
+
 });
 
 //TODO - This method of initializing stuff is HORRIBLE. Replace with something better

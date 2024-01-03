@@ -9,6 +9,7 @@ import { Layer } from "../Interfaces/Layer";
 import { Projection } from "ol/proj";
 import { Source } from "ol/source";
 import LayerRenderer from "ol/renderer/Layer";
+import { PanelHelper } from "./PanelHelper";
 
 export class BasemapsPanel implements SidebarPanel {
     container: string;
@@ -19,9 +20,7 @@ export class BasemapsPanel implements SidebarPanel {
     init() {
         this.renderBasemapsPanel();
         this.attachCloseButton();
-        //this.attachBasemapSelectors();
-        //this.attachMetaControls();
-    }
+    };
     render() {
         this.renderBasemapsPanel();
     }
@@ -57,6 +56,12 @@ export class BasemapsPanel implements SidebarPanel {
         })
     }
 
+    /**
+     * Create the basemap tile element
+     * @param basemap The OpenLayers layer we are creating a tile for
+     * @param basemapConfiguration The GIFramework Basemaps configuration for the basemap
+     * @returns Bootstrap Card element
+     */
     private renderBasemapTile(basemap: olLayer<Source, LayerRenderer<olLayer>>, basemapConfiguration: Basemap): HTMLElement {
         const card = document.createElement('div')
         card.className = `card text-white basemaps-selector ${basemap.getVisible() ? 'active' : ''}`;
@@ -78,6 +83,12 @@ export class BasemapsPanel implements SidebarPanel {
         return card;
     }
 
+    /**
+     * Create the meta elements for a particular basemap, including projection warnings, opacity/saturation sliders and metadata links
+     * @param basemap The OpenLayers layer we are creating a tile for
+     * @param basemapConfiguration The GIFramework Basemaps configuration for the basemap
+     * @returns HTML Div element containing relevant meta information
+     */
     private renderBasemapMeta(basemap: olLayer<Source, LayerRenderer<olLayer>>, basemapConfiguration: Basemap): HTMLElement {
         const meta = document.createElement('div');
         meta.className = `basemaps-meta border-start border-bottom border-2 d-block ${basemap.getVisible() ? 'd-block' : 'd-none'}`;
@@ -93,10 +104,9 @@ export class BasemapsPanel implements SidebarPanel {
                 );
             }
         }
+        const opacityControls = PanelHelper.renderSliderControl(basemapConfiguration.id, basemap.getOpacity() * 100, 5, 'opacity', 'basemap', this.gifwMapInstance);
 
-        const opacityControls = this.renderOpacityControls(basemapConfiguration, basemap.getOpacity());
-
-        const saturationControls = this.renderSaturationControls(basemapConfiguration, basemap.get('saturation'));
+        const saturationControls = PanelHelper.renderSliderControl(basemapConfiguration.id, basemap.get('saturation'), 5, 'saturation', 'basemap', this.gifwMapInstance);
 
         const aboutLink = this.renderAboutLink(basemapConfiguration);
 
@@ -106,137 +116,11 @@ export class BasemapsPanel implements SidebarPanel {
         return meta;
     }
 
-    private renderOpacityControls(basemapConfiguration: Basemap, startingOpacity: number): HTMLElement {
-
-        const opacityControlsContainer = document.createElement('div');
-
-        const opacityLabel = document.createElement('label');
-        opacityLabel.textContent = 'Transparency'
-        opacityLabel.htmlFor = `basemaps-transparency-${basemapConfiguration.id}`;
-        opacityLabel.className = 'form-label';
-
-        const opacityControl = document.createElement('input');
-        opacityControl.type = 'range';
-        opacityControl.id = `basemaps-transparency-${basemapConfiguration.id}`;
-        opacityControl.className = 'form-range';
-        opacityControl.dataset.gifwControlsTransparencyBasemap = basemapConfiguration.id;
-        opacityControl.value = (startingOpacity * 100).toString();
-        opacityControl.addEventListener('input', e => {
-            const linkedInvisibleCheckbox: HTMLInputElement = document.querySelector(this.container).querySelector(`input[data-gifw-controls-invisible-basemap="${basemapConfiguration.id}"]`);
-            const opacity = parseInt((e.currentTarget as HTMLInputElement).value);
-            if (opacity === 0) {
-                linkedInvisibleCheckbox.checked = true;
-            } else {
-                linkedInvisibleCheckbox.checked = false;
-            }
-            this.gifwMapInstance.setTransparencyOfActiveBasemap(opacity);
-        });
-
-        const invisibleCheckbox = document.createElement('input');
-        invisibleCheckbox.type = 'checkbox';
-        invisibleCheckbox.id = `basemaps-invisible-check-${basemapConfiguration.id}`;
-        invisibleCheckbox.className = 'form-check-input';
-        if (startingOpacity === 0) {
-            invisibleCheckbox.checked = true;
-        }
-        invisibleCheckbox.dataset.gifwControlsInvisibleBasemap = basemapConfiguration.id;
-        invisibleCheckbox.addEventListener('change', e => {
-            const element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
-
-            const basemapId = element.dataset.gifwControlsInvisibleBasemap;
-            const linkedTransparencySlider: HTMLInputElement = document.querySelector(this.container).querySelector(`input[data-gifw-controls-transparency-basemap="${basemapId}"]`);
-            if (element.checked) {
-                linkedTransparencySlider.value = "0";
-            } else {
-                linkedTransparencySlider.value = "100";
-            }
-            const evt = new InputEvent('input');
-            linkedTransparencySlider.dispatchEvent(evt);
-        });
-
-        const invisibleCheckboxLabel = document.createElement('label');
-        invisibleCheckboxLabel.htmlFor = `basemaps-invisible-check-${basemapConfiguration.id}`;
-        invisibleCheckboxLabel.className = 'form-check-label';
-        invisibleCheckboxLabel.textContent = "Invisible";
-
-        const invisibleCheckboxContainer = document.createElement('div');
-        invisibleCheckboxContainer.className = 'form-check';
-
-        invisibleCheckboxContainer.appendChild(invisibleCheckbox);
-        invisibleCheckboxContainer.appendChild(invisibleCheckboxLabel);
-
-        opacityControlsContainer.appendChild(opacityLabel);
-        opacityControlsContainer.appendChild(opacityControl);
-        opacityControlsContainer.appendChild(invisibleCheckboxContainer);
-
-        return opacityControlsContainer;
-    }
-
-    private renderSaturationControls(basemapConfiguration: Basemap, startingSaturation: number = 100) {
-        const saturationControlsContainer = document.createElement('div');
-
-        const saturationLabel = document.createElement('label');
-        saturationLabel.textContent = 'Saturation'
-        saturationLabel.htmlFor = `basemaps-saturation-${basemapConfiguration.id}`;
-        saturationLabel.className = 'form-label';
-
-        const saturationControl = document.createElement('input');
-        saturationControl.type = 'range';
-        saturationControl.id = `basemaps-saturation-${basemapConfiguration.id}`;
-        saturationControl.className = 'form-range';
-        saturationControl.dataset.gifwControlsSaturationBasemap = basemapConfiguration.id;
-        saturationControl.value = (startingSaturation).toString();
-        saturationControl.addEventListener('input', e => {
-            const linkedGreyscaleCheckbox: HTMLInputElement = document.querySelector(this.container).querySelector(`input[data-gifw-controls-greyscale-basemap="${basemapConfiguration.id}"]`);
-            const saturation = parseInt((e.currentTarget as HTMLInputElement).value);
-            if (saturation === 0) {
-                linkedGreyscaleCheckbox.checked = true;
-            } else {
-                linkedGreyscaleCheckbox.checked = false;
-            }
-            this.gifwMapInstance.setSaturationOfActiveBasemap(saturation);
-        });
-
-        const greyscaleCheckbox = document.createElement('input');
-        greyscaleCheckbox.type = 'checkbox';
-        greyscaleCheckbox.id = `basemaps-saturation-check-${basemapConfiguration.id}`;
-        greyscaleCheckbox.className = 'form-check-input';
-        if (startingSaturation === 0) {
-            greyscaleCheckbox.checked = true;
-        }
-        greyscaleCheckbox.dataset.gifwControlsGreyscaleBasemap = basemapConfiguration.id;
-        greyscaleCheckbox.addEventListener('change', e => {
-            const element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
-
-            const basemapId = element.dataset.gifwControlsGreyscaleBasemap;
-            const linkedGreyscaleSlider: HTMLInputElement = document.querySelector(this.container).querySelector(`input[data-gifw-controls-saturation-basemap="${basemapId}"]`);
-            if (element.checked) {
-                linkedGreyscaleSlider.value = "0";
-            } else {
-                linkedGreyscaleSlider.value = "100";
-            }
-            const evt = new InputEvent('input');
-            linkedGreyscaleSlider.dispatchEvent(evt);
-        });
-
-        const greyscaleCheckboxLabel = document.createElement('label');
-        greyscaleCheckboxLabel.htmlFor = `basemaps-saturation-check-${basemapConfiguration.id}`;
-        greyscaleCheckboxLabel.className = 'form-check-label';
-        greyscaleCheckboxLabel.textContent = "Greyscale";
-
-        const invisibleCheckboxContainer = document.createElement('div');
-        invisibleCheckboxContainer.className = 'form-check';
-
-        invisibleCheckboxContainer.appendChild(greyscaleCheckbox);
-        invisibleCheckboxContainer.appendChild(greyscaleCheckboxLabel);
-
-        saturationControlsContainer.appendChild(saturationLabel);
-        saturationControlsContainer.appendChild(saturationControl);
-        saturationControlsContainer.appendChild(invisibleCheckboxContainer);
-
-        return saturationControlsContainer;
-    }
-
+    /**
+     * Create the about link for a basemap
+     * @param basemapConfiguration The GIFramework Basemaps configuration for the basemap
+     * @returns HTML Paragraph that opens metadata information for the basemap
+     */
     private renderAboutLink(basemapConfiguration: Basemap): HTMLElement {
         const link = document.createElement('a');
         link.href = `#basemaps-meta-${basemapConfiguration.id}`;
@@ -265,6 +149,10 @@ export class BasemapsPanel implements SidebarPanel {
         return para;
     }
 
+    /**
+     * Toggles a basemap on and turns off other basemaps, as well as hiding and showing relevant elements in the panel
+     * @param basemapId The id of the basemap to toggle
+     */
     private toggleBasemap(basemapId: string) {
         const basemapSelector = document.getElementById(`basemaps-selector-${basemapId}`);
         const basemapMeta = document.getElementById(`basemaps-meta-${basemapId}`);
