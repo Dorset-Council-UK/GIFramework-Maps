@@ -20,7 +20,7 @@ export class BasemapsPanel implements SidebarPanel {
     init() {
         this.renderBasemapsPanel();
         this.attachCloseButton();
-    };
+    }
     render() {
         this.renderBasemapsPanel();
     }

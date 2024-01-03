@@ -1,5 +1,7 @@
 ﻿import { Layer as olLayer } from "ol/layer";
 import { GIFWMap } from "../Map";
+import { Source } from "ol/source";
+import LayerRenderer from "ol/renderer/Layer";
 
 export class PanelHelper {
     /**
@@ -52,7 +54,7 @@ export class PanelHelper {
         }
         toggleMinimumCheckbox.dataset.gifwControlsBasemap = layerId;
         //checkbox label
-        const toggleMinimumCheckboxLabel = document.createElement('label');;
+        const toggleMinimumCheckboxLabel = document.createElement('label');
         toggleMinimumCheckboxLabel.htmlFor = `${layerType}-${controlType}-check-${layerId}`;
         toggleMinimumCheckboxLabel.className = 'form-check-label';
         toggleMinimumCheckboxLabel.textContent = controlType === "saturation" ? "Greyscale" : "Invisible";
@@ -79,13 +81,13 @@ export class PanelHelper {
             }
             if (controlType === "saturation") {
                 if (layerType === 'layer') {
-                    gifwMapInstance.setLayerSaturation(gifwMapInstance.getLayerById(layerId) as olLayer<any, any>,value);
+                    gifwMapInstance.setLayerSaturation(gifwMapInstance.getLayerById(layerId) as olLayer<Source, LayerRenderer<olLayer>>,value);
                 } else {
                     gifwMapInstance.setSaturationOfActiveBasemap(value);
                 }
             } else {
                 if (layerType === 'layer') {
-                    gifwMapInstance.setLayerOpacity(gifwMapInstance.getLayerById(layerId) as olLayer<any, any>, value);
+                    gifwMapInstance.setLayerOpacity(gifwMapInstance.getLayerById(layerId) as olLayer<Source, LayerRenderer<olLayer>>, value);
                 } else {
                     gifwMapInstance.setTransparencyOfActiveBasemap(value);
                 }
