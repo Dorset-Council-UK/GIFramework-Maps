@@ -1,681 +1,722 @@
 ﻿.giframeworkMap {
-    z-index: 1;
-    height: 100dvh;
-    width: 100%;
-    position: absolute;
-    top: 0;
-    overflow-y: hidden;
+  z-index: 1;
+  height: 100dvh;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  overflow-y: hidden;
 }
 
 .giframeworkMap header {
-    z-index: 500;
-    backdrop-filter:blur(2px);
+  z-index: 500;
+  backdrop-filter: blur(2px);
 }
 .giframeworkMap header .navbar {
-    background-color: var(--primary-color-transparent-90);
-    padding:.25rem .5rem;
+  background-color: var(--primary-color-transparent-90);
+  padding: 0.25rem 0.5rem;
 }
 .giframeworkMap .ol-zoom {
-    top: 6em;
+  top: 6em;
 }
 .giframeworkMap .ol-rotate {
-    right: unset;
-    left: .5rem;
-    top:10.5em;
+  right: unset;
+  left: 0.5rem;
+  top: 10.5em;
 }
 .giframeworkMap .gifw-measure-control {
-    right: unset;
-    left: .5rem;
-    top: 13em;
+  right: unset;
+  left: 0.5rem;
+  top: 13em;
 }
 .giframeworkMap .gifw-measure-control.ol-hidden {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity .25s linear,visibility 0s linear .25s;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s linear,
+    visibility 0s linear 0.25s;
 }
 .giframeworkMap .gifw-measure-control.gifw-area-measure-control {
-    left: 2.75rem;
+  left: 2.75rem;
 }
 .giframeworkMap .gifw-measure-control.gifw-line-measure-control {
-    left: 5rem;
+  left: 5rem;
 }
 .giframeworkMap .gifw-measure-control.gifw-clear-measure-control {
-    left: 7.25rem;
+  left: 7.25rem;
 }
 .giframeworkMap .gifw-annotation-control {
-    right: unset;
-    left: .5rem;
-    top: 15.5em;
+  right: unset;
+  left: 0.5rem;
+  top: 15.5em;
 }
 .giframeworkMap .gifw-annotation-control.ol-hidden {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity .25s linear,visibility 0s linear .25s;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s linear,
+    visibility 0s linear 0.25s;
 }
 .giframeworkMap .gifw-annotation-control.gifw-polygon-control {
-    left: 2.75rem;
+  left: 2.75rem;
 }
 .giframeworkMap .gifw-annotation-control.gifw-line-string-control {
-    left: 5rem;
+  left: 5rem;
 }
 .giframeworkMap .gifw-annotation-control.gifw-point-control {
-    left: 7.25rem;
+  left: 7.25rem;
 }
 .giframeworkMap .gifw-annotation-control.gifw-circle-control {
-    left: 9.5rem;
+  left: 9.5rem;
 }
 .giframeworkMap .gifw-annotation-control.gifw-text-control {
-    left: 11.75rem;
+  left: 11.75rem;
 }
 .giframeworkMap .gifw-annotation-control.gifw-export-annotation-control {
-    left: 14rem;
+  left: 14rem;
 }
 .giframeworkMap .gifw-annotation-control.gifw-modify-annotation-control {
-    left: 16.25rem;
+  left: 16.25rem;
 }
 .giframeworkMap .gifw-annotation-control.gifw-clear-annotation-control {
-    left: 18.5rem;
+  left: 18.5rem;
 }
 .giframeworkMap .gifw-info-control {
-    right: unset;
-    left: .5rem;
-    top: 18em;
+  right: unset;
+  left: 0.5rem;
+  top: 18em;
 }
 
 .giframeworkMap .gifw-info-control.ol-hidden {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity .25s linear,visibility 0s linear .25s;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s linear,
+    visibility 0s linear 0.25s;
 }
 
 .giframeworkMap .gifw-info-control.gifw-info-point-control {
-    left: 2.75rem;
+  left: 2.75rem;
 }
 
 .giframeworkMap .gifw-info-control.gifw-info-polygon-control {
-    left: 5rem;
+  left: 5rem;
 }
 
 .giframeworkMap .gifw-info-control.gifw-info-buffer-control {
-    left: 7.25rem;
+  left: 7.25rem;
 }
 
 .giframeworkMap .gifw-geolocation-control {
-    right: unset;
-    left: .5rem;
-    top: 20.5em;
+  right: unset;
+  left: 0.5rem;
+  top: 20.5em;
 }
 .giframeworkMap .gifw-geolocation-control.gifw-geolocation-recentre-control {
-    left: 2.75rem;
+  left: 2.75rem;
 }
 
 .giframeworkMap .ol-control button {
-    background-color: var(--primary-color-transparent-50);
-    color: white;
-    width: 2rem;
-    height: 2rem;
+  background-color: var(--primary-color-transparent-50);
+  color: white;
+  width: 2rem;
+  height: 2rem;
 }
 .giframeworkMap .gifw-geolocation-recentre-control button {
-    width: 100%;
+  width: 100%;
 }
 .giframeworkMap .ol-control button:disabled {
-    filter:grayscale(1);
-    pointer-events:none;
+  filter: grayscale(1);
+  pointer-events: none;
 }
-.giframeworkMap .ol-control button:focus, .giframeworkMap .ol-control button:hover, .giframeworkMap .ol-control.ol-control-active button {
-    background-color: var(--primary-color-transparent-90);
+.giframeworkMap .ol-control button:focus,
+.giframeworkMap .ol-control button:hover,
+.giframeworkMap .ol-control.ol-control-active button {
+  background-color: var(--primary-color-transparent-90);
 }
 .giframeworkMap .ol-control.ol-control-active button {
-    box-shadow: inset 0px 0px 2px 1px #2a2a2a;
-    border: 1px solid black;
+  box-shadow: inset 0px 0px 2px 1px #2a2a2a;
+  border: 1px solid black;
 }
-.giframeworkMap .ol-touch .ol-control button{
-    font-size:1rem;
+.giframeworkMap .ol-touch .ol-control button {
+  font-size: 1rem;
 }
 .giframeworkMap .ol-scale-line {
-    background-color: var(--primary-color-transparent-50);
-    bottom: 2rem;
+  background-color: var(--primary-color-transparent-50);
+  bottom: 2rem;
 }
-.giframeworkMap .ol-scale-line-inner{
-    color:white;
-    border-color:white;
+.giframeworkMap .ol-scale-line-inner {
+  color: white;
+  border-color: white;
 }
 .giframeworkMap .ol-mouse-position {
-    background-color: rgba(255,255,255,.8);
-    top: unset;
-    right: unset;
-    left: 0;
-    bottom: 0;
-    padding: 2px;
-    border-radius: 0 4px 0 0;
-    backdrop-filter: blur(2px);
+  background-color: rgba(255, 255, 255, 0.8);
+  top: unset;
+  right: unset;
+  left: 0;
+  bottom: 0;
+  padding: 2px;
+  border-radius: 0 4px 0 0;
+  backdrop-filter: blur(2px);
 }
 .giframeworkMap .ol-attribution {
-    max-width: calc(100% - 10em);
-    backdrop-filter:blur(2px);
-    font-size:.8rem;
+  max-width: calc(100% - 10em);
+  backdrop-filter: blur(2px);
+  font-size: 0.8rem;
 }
-.giframeworkMap .ol-compass{
-    font-size:1.5rem;
+.giframeworkMap .ol-compass {
+  font-size: 1.5rem;
 }
 .giframeworkMap .ol-ctx-menu-container .context-menu-item-readonly:hover {
-    background-color: #fff;
-    color: #000;
-    cursor: default;
+  background-color: #fff;
+  color: #000;
+  cursor: default;
 }
 
 .btn-cancel {
-    color: #dc3545;
-    border-color: #dc3545;
+  color: #dc3545;
+  border-color: #dc3545;
 }
 
 .btn-cancel:hover {
-    color: #fff;
-    background-color: #dc3545;
-    border-color: #dc3545;
+  color: #fff;
+  background-color: #dc3545;
+  border-color: #dc3545;
 }
 
 /*SIDEBAR BUTTONS*/
-.giframeworkMap .sidebar-button{
-    padding:0;
-    right:0;
-    top:4rem;
+.giframeworkMap .sidebar-button {
+  padding: 0;
+  right: 0;
+  top: 4rem;
 }
 .giframeworkMap .sidebar-button.active {
-    background-color: var(--primary-color-transparent-90)
+  background-color: var(--primary-color-transparent-90);
 }
-.giframeworkMap .sidebar-button.sidebar-open{
-    display: none;
+.giframeworkMap .sidebar-button.sidebar-open {
+  display: none;
 }
 .giframeworkMap .sidebar-button button {
-    width: 40px;
-    height: 40px;
-    border-radius:5px 0 0 5px;
-    margin:0;
+  width: 40px;
+  height: 40px;
+  border-radius: 5px 0 0 5px;
+  margin: 0;
 }
 .giframeworkMap .sidebar-button.sidebar-order-2 {
-    top: calc(4rem + 40px);
+  top: calc(4rem + 40px);
 }
 .giframeworkMap .sidebar-button.sidebar-order-3 {
-    top: calc(4rem + 80px);
+  top: calc(4rem + 80px);
 }
 .giframeworkMap .sidebar-button.sidebar-order-4 {
-    top: calc(4rem + 120px);
+  top: calc(4rem + 120px);
 }
 .giframeworkMap .sidebar-button.sidebar-order-5 {
-    top: calc(4rem + 160px);
+  top: calc(4rem + 160px);
 }
 .giframeworkMap .sidebar-button.sidebar-order-6 {
-    top: calc(4rem + 200px);
+  top: calc(4rem + 200px);
 }
 .giframeworkMap .sidebar-button.sidebar-order-7 {
-    top: calc(4rem + 240px);
+  top: calc(4rem + 240px);
 }
 .giframeworkMap .sidebar-button.sidebar-order-8 {
-    top: calc(4rem + 280px);
+  top: calc(4rem + 280px);
 }
 .giframeworkMap .sidebar-button.sidebar-order-9 {
-    top: calc(4rem + 320px);
+  top: calc(4rem + 320px);
 }
 .giframeworkMap .sidebar-button.sidebar-order-10 {
-    top: calc(4rem + 360px);
+  top: calc(4rem + 360px);
 }
 
 /*SIDEBAR*/
 .giframeworkMap aside#sidebar-container .sidebar-panels {
-    position: absolute;
-    right: 0;
-    z-index: 100;
-    top: 46px;
-    max-height: 50%;
-    overflow-y: auto;
-    width: fit-content;
-    display: none;
-    max-width: 90vw;
+  position: absolute;
+  right: 0;
+  z-index: 100;
+  top: 46px;
+  max-height: 50%;
+  overflow-y: auto;
+  width: fit-content;
+  display: none;
+  max-width: 90vw;
 }
-.giframeworkMap aside#sidebar-container .sidebar-panels.sidebar-left{
-    left:0;
-    right:unset;
+.giframeworkMap aside#sidebar-container .sidebar-panels.sidebar-left {
+  left: 0;
+  right: unset;
 }
 
-.giframeworkMap aside#sidebar-container .sidebar-panels.sidebar-left .btn-close {
-    margin-left: 1rem;
+.giframeworkMap
+  aside#sidebar-container
+  .sidebar-panels.sidebar-left
+  .btn-close {
+  margin-left: 1rem;
 }
 
 .giframeworkMap aside#sidebar-container #sidebar-links {
-    right: 0;
-    z-index: 100;
-    top: 46px;
-    height: calc(100dvh - 46px);
+  right: 0;
+  z-index: 100;
+  top: 46px;
+  height: calc(100dvh - 46px);
 }
 
 /*Medium devices (tablets, 768px and up)*/
 @media (min-width: 768px) {
-    .giframeworkMap aside#sidebar-container .sidebar-panels {
-        width: 45%;
-        top: 49px;
-        max-height: calc(100% - 49px);
-    }
-    .giframeworkMap .sidebar-button.sidebar-open {
-        display: block;
-        right: 45%;
-    }
+  .giframeworkMap aside#sidebar-container .sidebar-panels {
+    width: 45%;
+    top: 49px;
+    max-height: calc(100% - 49px);
+  }
+  .giframeworkMap .sidebar-button.sidebar-open {
+    display: block;
+    right: 45%;
+  }
 }
 /* Large devices (desktops, 992px and up)*/
 @media (min-width: 992px) {
-    .giframeworkMap aside#sidebar-container .sidebar-panels {
-        width: 35%
-    }
-    .giframeworkMap .sidebar-button.sidebar-open {
-        right: 35%;
-    }
+  .giframeworkMap aside#sidebar-container .sidebar-panels {
+    width: 35%;
+  }
+  .giframeworkMap .sidebar-button.sidebar-open {
+    right: 35%;
+  }
 }
 
 .giframeworkMap aside#sidebar-container .sidebar-panels.show {
-    display: flex;
-    flex-direction:column;
+  display: flex;
+  flex-direction: column;
 }
 
 .giframeworkMap aside#sidebar-container .sidebar-panels .card {
-    max-height: 100%;
-    overflow-y: auto;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
-.giframeworkMap aside#sidebar-container .sidebar-panels .card .card-title-closeable {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0px;
-    background: linear-gradient(0deg, transparent 0%, white 15%);
-    z-index: 10;
+.giframeworkMap
+  aside#sidebar-container
+  .sidebar-panels
+  .card
+  .card-title-closeable {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0px;
+  background: linear-gradient(0deg, transparent 0%, white 15%);
+  z-index: 10;
 }
 /*BASEMAPS*/
-.giframeworkMap aside#sidebar-container .sidebar-panels .card.basemaps-selector {
-    height: 4rem;
-    background-color: #e0e0e0;
-    background-repeat: no-repeat;
-    background-size: cover;
-    margin-top: .5rem;
-    border-color: #e0e0e0;
+.giframeworkMap
+  aside#sidebar-container
+  .sidebar-panels
+  .card.basemaps-selector {
+  height: 4rem;
+  background-color: #e0e0e0;
+  background-repeat: no-repeat;
+  background-size: cover;
+  margin-top: 0.5rem;
+  border-color: #e0e0e0;
 }
-.giframeworkMap aside#sidebar-container .sidebar-panels .card.basemaps-selector:hover {
-    box-shadow: 2px 2px 5px #e0e0e0;
-    border-color: var(--primary-color-transparent-50);
-    transition: all 0.2s ease;
+.giframeworkMap
+  aside#sidebar-container
+  .sidebar-panels
+  .card.basemaps-selector:hover {
+  box-shadow: 2px 2px 5px #e0e0e0;
+  border-color: var(--primary-color-transparent-50);
+  transition: all 0.2s ease;
 }
-.giframeworkMap aside#sidebar-container .sidebar-panels .card.basemaps-selector.active:hover {
-    box-shadow: none;
+.giframeworkMap
+  aside#sidebar-container
+  .sidebar-panels
+  .card.basemaps-selector.active:hover {
+  box-shadow: none;
 }
-.giframeworkMap aside#sidebar-container .sidebar-panels .card.basemaps-selector .card-body {
-    padding:0;
+.giframeworkMap
+  aside#sidebar-container
+  .sidebar-panels
+  .card.basemaps-selector
+  .card-body {
+  padding: 0;
 }
 
-.giframeworkMap aside#sidebar-container .sidebar-panels .card.basemaps-selector.active {
-    border-color: var(--primary-color);
+.giframeworkMap
+  aside#sidebar-container
+  .sidebar-panels
+  .card.basemaps-selector.active {
+  border-color: var(--primary-color);
 }
-.giframeworkMap aside#sidebar-container .sidebar-panels .card.basemaps-selector.active a {
-    cursor:default;
+.giframeworkMap
+  aside#sidebar-container
+  .sidebar-panels
+  .card.basemaps-selector.active
+  a {
+  cursor: default;
 }
-.giframeworkMap aside#sidebar-container .sidebar-panels .card.basemaps-selector a {
-    background-color: rgba(255,255,255,0.7);
-    color: var(--primary-color);
-    padding: 0 .5rem .5rem .5rem;
-    border-bottom-right-radius: .5rem;
-    border-top-left-radius: .25rem;
-    text-decoration: none;
+.giframeworkMap
+  aside#sidebar-container
+  .sidebar-panels
+  .card.basemaps-selector
+  a {
+  background-color: rgba(255, 255, 255, 0.7);
+  color: var(--primary-color);
+  padding: 0 0.5rem 0.5rem 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  border-top-left-radius: 0.25rem;
+  text-decoration: none;
 }
-.giframeworkMap aside#sidebar-container .sidebar-panels .basemaps-meta{
-    padding:1rem 0 1rem 1rem;
-    border-bottom-left-radius:.25rem;
+.giframeworkMap aside#sidebar-container .sidebar-panels .basemaps-meta {
+  padding: 1rem 0 1rem 1rem;
+  border-bottom-left-radius: 0.25rem;
 }
 /*SEARCH*/
 
 .giframeworkMap .search-control {
-    position: absolute;
-    background: rgba(255,255,255,.8);
-    padding: .25rem .5rem;
-    backdrop-filter: blur(2px);
-    border-radius: 0 0 4px 0;
-    width: 90%;
-    z-index: 101;
+  position: absolute;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 0.25rem 0.5rem;
+  backdrop-filter: blur(2px);
+  border-radius: 0 0 4px 0;
+  width: 90%;
+  z-index: 101;
 }
 
 .giframeworkMap .gifw-search-control {
-    left: 0.5rem;
-    z-index:101;
-    top:3.5rem;
+  left: 0.5rem;
+  z-index: 101;
+  top: 3.5rem;
 }
 
 /*Medium devices (tablets, 768px and up)*/
 @media (min-width: 768px) {
-    .giframeworkMap .search-control {
-        width: 45%;
-    }
-
+  .giframeworkMap .search-control {
+    width: 45%;
+  }
 }
 /* Large devices (desktops, 992px and up)*/
 @media (min-width: 992px) {
-
-    .giframeworkMap .search-control {
-        width: 35%;
-    }
+  .giframeworkMap .search-control {
+    width: 35%;
+  }
 }
-.giframeworkMap .search-control .btn{
-    background-color:white;
+.giframeworkMap .search-control .btn {
+  background-color: white;
 }
 
 .giframeworkMap #gifw-search-results {
-    margin-top: 2.5rem;
+  margin-top: 2.5rem;
 }
-.giframeworkMap #gifw-search-results-list li{
-    padding:.5rem 0 .5rem 0;
-    border-bottom:1px solid #e0e0e0;
+.giframeworkMap #gifw-search-results-list li {
+  padding: 0.5rem 0 0.5rem 0;
+  border-bottom: 1px solid #e0e0e0;
 }
 /*LAYERS*/
-.giframeworkMap .layer-switcher-tree .accordion-button{
-    padding:.5rem;
+.giframeworkMap .layer-switcher-tree .accordion-button {
+  padding: 0.5rem;
 }
 .giframeworkMap .active-layers-list .accordion-button {
-    padding: .75rem;
+  padding: 0.75rem;
 }
 .giframeworkMap .layer-switcher-tree .accordion-body {
-    padding: 0 0rem 0 1rem;
+  padding: 0 0rem 0 1rem;
 }
 .giframeworkMap .layer-switcher-tree .accordion-button:not(.collapsed),
 .giframeworkMap .active-layers-list .accordion-button:not(.collapsed) {
-    background:none;
-    color:unset;
+  background: none;
+  color: unset;
 }
 
 .giframeworkMap .layer-switcher-tree .accordion-body ul {
-    margin: .5rem 0;
+  margin: 0.5rem 0;
 }
-.giframeworkMap .layer-switcher-tree label{
-    cursor:pointer;
+.giframeworkMap .layer-switcher-tree label {
+  cursor: pointer;
 }
-.giframeworkMap .layer-switcher-tree .badge, .giframeworkMap .layer-switcher-tree .spinner-border {
-    margin: 0 1em 0 1em;
+.giframeworkMap .layer-switcher-tree .badge,
+.giframeworkMap .layer-switcher-tree .spinner-border {
+  margin: 0 1em 0 1em;
 }
 /*overrides the colour of the default accordion caret which is blue*/
 .giframeworkMap .layer-switcher-tree .accordion-button:not(.collapsed)::after {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000000'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000000'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
 }
 .giframeworkMap .layer-switcher-tree .accordion-button::before {
-    content: "";
-    background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iY3VycmVudENvbG9yIj48cGF0aCBmaWxsPSIjZmZkMjgzIiBkPSJNMi41MTUgMTQuMTU4YTEuMDUgMS4wNSAwIDAgMS0uNTk4LS40MzJjLS4xNTctLjI0My0uMTMyLS4wMzUtLjQ5NC00LjEyOWwtLjMyOC0zLjgzMWExLjA1IDEuMDUgMCAwIDEgLjcxMy0uOTcyYy4xMDMtLjAzNi4yOTgtLjAzNyA2LjI0Ni0uMDM3bDYuMjQ2LjAzN2ExLjA1IDEuMDUgMCAwIDEgLjcxMy45OCAzNjguOTcgMzY4Ljk3IDAgMCAxLS4zMjggMy44MjdsLS4zNzYgMy44NjJhMSAxIDAgMCAxLS40ODYuNjAyYy0uMjM4LjEzLjE5Mi4xMjMtNS43NzkuMTIxbC01LjUzLS4wMjl6TTEuMzU2IDQuMjAzYy4wMDItLjU4MS4yOTEtMS4xMTguNzE0LTEuMzI3bC4xMi0uMDU5IDIuMTQtLjAwN2MyLjMzNy0uMDA4IDIuMjQtLjAxMyAyLjQ5Mi4xNDMuMDkxLjA1Ni4yMDcuMTkuNTUzLjYzNmwuNDM4LjU2NS0zLjA0My4wMTMtMy4xOTQuMDctLjE4Ni4wNzVjLS4wMzEuMDE2LS4wMzUuMDAyLS4wMzUtLjEwOXoiLz48cGF0aCBkPSJNLjU0IDQuODY4bC0uMDQtLjg3YTIgMiAwIDAgMSAyLTJoMy42NzJhMiAyIDAgMCAxIDEuNDE0LjU4NmwuODI4LjgyOGEyIDIgMCAwIDAgMS40MTQuNTg2aDMuOTgyYTIgMiAwIDAgMSAxLjk5MiAyLjE4MWwtLjYzNyA3YTIgMiAwIDAgMS0xLjk5MSAxLjgxOUgyLjgyNmEyIDIgMCAwIDEtMS45OTEtMS44MTlsLS42MzctN2ExLjk5IDEuOTkgMCAwIDEgLjM0Mi0xLjMxem0xLjY1LjEzYTEgMSAwIDAgMC0uOTk2IDEuMDlsLjYzNyA3YTEgMSAwIDAgMCAuOTk1LjkxaDEwLjM0OGExIDEgMCAwIDAgLjk5NS0uOTFsLjYzNy03YTEgMSAwIDAgMC0uOTk2LTEuMDl6bTQuNjktMS43MDdhMSAxIDAgMCAwLS43MDgtLjI5M0gyLjVhMSAxIDAgMCAwLTEgLjk4MWwuMDA2LjEzOWExLjk5IDEuOTkgMCAwIDEgLjY4NC0uMTJoNS4zOTZsLS43MDctLjcwN3oiLz48L3N2Zz4=");
-    background-repeat: no-repeat;
-    width: 1.25rem;
-    height: 1.25rem;
-    background-position: center left;
-    background-size: 1rem;
+  content: "";
+  background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iY3VycmVudENvbG9yIj48cGF0aCBmaWxsPSIjZmZkMjgzIiBkPSJNMi41MTUgMTQuMTU4YTEuMDUgMS4wNSAwIDAgMS0uNTk4LS40MzJjLS4xNTctLjI0My0uMTMyLS4wMzUtLjQ5NC00LjEyOWwtLjMyOC0zLjgzMWExLjA1IDEuMDUgMCAwIDEgLjcxMy0uOTcyYy4xMDMtLjAzNi4yOTgtLjAzNyA2LjI0Ni0uMDM3bDYuMjQ2LjAzN2ExLjA1IDEuMDUgMCAwIDEgLjcxMy45OCAzNjguOTcgMzY4Ljk3IDAgMCAxLS4zMjggMy44MjdsLS4zNzYgMy44NjJhMSAxIDAgMCAxLS40ODYuNjAyYy0uMjM4LjEzLjE5Mi4xMjMtNS43NzkuMTIxbC01LjUzLS4wMjl6TTEuMzU2IDQuMjAzYy4wMDItLjU4MS4yOTEtMS4xMTguNzE0LTEuMzI3bC4xMi0uMDU5IDIuMTQtLjAwN2MyLjMzNy0uMDA4IDIuMjQtLjAxMyAyLjQ5Mi4xNDMuMDkxLjA1Ni4yMDcuMTkuNTUzLjYzNmwuNDM4LjU2NS0zLjA0My4wMTMtMy4xOTQuMDctLjE4Ni4wNzVjLS4wMzEuMDE2LS4wMzUuMDAyLS4wMzUtLjEwOXoiLz48cGF0aCBkPSJNLjU0IDQuODY4bC0uMDQtLjg3YTIgMiAwIDAgMSAyLTJoMy42NzJhMiAyIDAgMCAxIDEuNDE0LjU4NmwuODI4LjgyOGEyIDIgMCAwIDAgMS40MTQuNTg2aDMuOTgyYTIgMiAwIDAgMSAxLjk5MiAyLjE4MWwtLjYzNyA3YTIgMiAwIDAgMS0xLjk5MSAxLjgxOUgyLjgyNmEyIDIgMCAwIDEtMS45OTEtMS44MTlsLS42MzctN2ExLjk5IDEuOTkgMCAwIDEgLjM0Mi0xLjMxem0xLjY1LjEzYTEgMSAwIDAgMC0uOTk2IDEuMDlsLjYzNyA3YTEgMSAwIDAgMCAuOTk1LjkxaDEwLjM0OGExIDEgMCAwIDAgLjk5NS0uOTFsLjYzNy03YTEgMSAwIDAgMC0uOTk2LTEuMDl6bTQuNjktMS43MDdhMSAxIDAgMCAwLS43MDgtLjI5M0gyLjVhMSAxIDAgMCAwLTEgLjk4MWwuMDA2LjEzOWExLjk5IDEuOTkgMCAwIDEgLjY4NC0uMTJoNS4zOTZsLS43MDctLjcwN3oiLz48L3N2Zz4=");
+  background-repeat: no-repeat;
+  width: 1.25rem;
+  height: 1.25rem;
+  background-position: center left;
+  background-size: 1rem;
 }
-.giframeworkMap .layer-switcher-tree .inner-form-check{
-    display:inline-block;
+.giframeworkMap .layer-switcher-tree .inner-form-check {
+  display: inline-block;
 }
 .giframeworkMap .layer-switcher-tree .accordion-button:not(.collapsed)::before,
 .giframeworkMap .active-layers-list .accordion-button:not(.collapsed)::before {
-    background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9ImN1cnJlbnRDb2xvciIgaGVpZ2h0PSIxNiIgd2lkdGg9IjE2IiB4bWxuczp2PSJodHRwczovL3ZlY3RhLmlvL25hbm8iPjxwYXRoIGQ9Ik0yLjkzMyAxNC4xOTNhMS41OSAxLjU5IDAgMCAxLTEuMTUzLS44NTZjLS4wNTMtLjExMS0uMTExLS4yNzEtLjEzMS0uMzU2YTIyMS4xIDIyMS4xIDAgMCAxLS42OTMtNS44MDcuNTEuNTEgMCAwIDEgLjI2Ni0uNDAzbC4xMjMtLjA2Nmg2LjcyIDYuNzJsLjEyMy4wNjZhLjUxLjUxIDAgMCAxIC4yNjcuNDE2IDI0NS4yNSAyNDUuMjUgMCAwIDEtLjY4NSA1Ljc4MmMtLjAxNC4wNjUtLjA3Mi4yMi0uMTI5LjM0My0uMDg2LjE4Ny0uMTM1LjI1Ni0uMjkuNDE3YTEuNTUgMS41NSAwIDAgMS0uNjY5LjQyMWwtLjE2MS4wNTYtNS4wOTUuMDAzYy0yLjgwMi4wMDItNS4xNDgtLjAwNS01LjIxMy0uMDE1ek0xLjgzNSA0LjU5OGwuMDI1LTEuNzczYS43My43MyAwIDAgMSAuMjg3LS4zOThjLjA4Ny0uMDQ5LjE5NC0uMDUyIDEuNjc4LS4wNTMgMS43OTItLjAwMSAxLjc0OS0uMDA1IDIuMTQ2LjIzMS4zMDQuMTgxLjQ2Ni4zNDEuOTM4LjkzMi42NS44MTIgMS4wNDkgMS4xMzggMS42NDggMS4zNS4xNzYuMDYyLjE5Ni4wNjMgMi44MDEuMDc3bDIuNjIzLjAxNS4wOTYuMDY0Yy4xMTguMDc5LjIyNC4yMzQuMjU5LjM4LjAxNC4wNi4wMjYuMjczLjAyNi40NzR2LjM2NEg4LjA5OSAxLjgzNXoiIHN0cm9rZS13aWR0aD0iLjAxMiIgZmlsbD0iI2ZmZDI4MyIgc3Ryb2tlPSIjZDMwMDAwIi8+PHBhdGggZD0iTTEgMy41QTEuNSAxLjUgMCAwIDEgMi41IDJoMi43NjRjLjk1OCAwIDEuNzYuNTYgMi4zMTEgMS4xODRDNy45ODUgMy42NDggOC40OCA0IDkgNGg0LjVBMS41IDEuNSAwIDAgMSAxNSA1LjV2LjY0YTEuNSAxLjUgMCAwIDEgLjg1NiAxLjU0NmwtLjY0IDUuMTI0QTIuNSAyLjUgMCAwIDEgMTIuNzMzIDE1SDMuMjY2YTIuNSAyLjUgMCAwIDEtMi40ODEtMi4xOWwtLjY0LTUuMTI0QTEuNSAxLjUgMCAwIDEgMSA2LjE0ek0yIDZoMTJ2LS41YS41LjUgMCAwIDAtLjUtLjVIOWMtLjk2NCAwLTEuNzEtLjYyOS0yLjE3NC0xLjE1NEM2LjM3NCAzLjMzNCA1LjgyIDMgNS4yNjQgM0gyLjVhLjUuNSAwIDAgMC0uNS41em0tLjM2NyAxYS41LjUgMCAwIDAtLjQ5Ni41NjJsLjY0IDUuMTI0QTEuNSAxLjUgMCAwIDAgMy4yNjYgMTRoOS40NjhhMS41IDEuNSAwIDAgMCAxLjQ4OS0xLjMxNGwuNjQtNS4xMjRBLjUuNSAwIDAgMCAxNC4zNjcgN3oiLz48L3N2Zz4=");
-    background-position: center left;
-    background-size: 1rem;
-    background-repeat: no-repeat;
+  background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9ImN1cnJlbnRDb2xvciIgaGVpZ2h0PSIxNiIgd2lkdGg9IjE2IiB4bWxuczp2PSJodHRwczovL3ZlY3RhLmlvL25hbm8iPjxwYXRoIGQ9Ik0yLjkzMyAxNC4xOTNhMS41OSAxLjU5IDAgMCAxLTEuMTUzLS44NTZjLS4wNTMtLjExMS0uMTExLS4yNzEtLjEzMS0uMzU2YTIyMS4xIDIyMS4xIDAgMCAxLS42OTMtNS44MDcuNTEuNTEgMCAwIDEgLjI2Ni0uNDAzbC4xMjMtLjA2Nmg2LjcyIDYuNzJsLjEyMy4wNjZhLjUxLjUxIDAgMCAxIC4yNjcuNDE2IDI0NS4yNSAyNDUuMjUgMCAwIDEtLjY4NSA1Ljc4MmMtLjAxNC4wNjUtLjA3Mi4yMi0uMTI5LjM0My0uMDg2LjE4Ny0uMTM1LjI1Ni0uMjkuNDE3YTEuNTUgMS41NSAwIDAgMS0uNjY5LjQyMWwtLjE2MS4wNTYtNS4wOTUuMDAzYy0yLjgwMi4wMDItNS4xNDgtLjAwNS01LjIxMy0uMDE1ek0xLjgzNSA0LjU5OGwuMDI1LTEuNzczYS43My43MyAwIDAgMSAuMjg3LS4zOThjLjA4Ny0uMDQ5LjE5NC0uMDUyIDEuNjc4LS4wNTMgMS43OTItLjAwMSAxLjc0OS0uMDA1IDIuMTQ2LjIzMS4zMDQuMTgxLjQ2Ni4zNDEuOTM4LjkzMi42NS44MTIgMS4wNDkgMS4xMzggMS42NDggMS4zNS4xNzYuMDYyLjE5Ni4wNjMgMi44MDEuMDc3bDIuNjIzLjAxNS4wOTYuMDY0Yy4xMTguMDc5LjIyNC4yMzQuMjU5LjM4LjAxNC4wNi4wMjYuMjczLjAyNi40NzR2LjM2NEg4LjA5OSAxLjgzNXoiIHN0cm9rZS13aWR0aD0iLjAxMiIgZmlsbD0iI2ZmZDI4MyIgc3Ryb2tlPSIjZDMwMDAwIi8+PHBhdGggZD0iTTEgMy41QTEuNSAxLjUgMCAwIDEgMi41IDJoMi43NjRjLjk1OCAwIDEuNzYuNTYgMi4zMTEgMS4xODRDNy45ODUgMy42NDggOC40OCA0IDkgNGg0LjVBMS41IDEuNSAwIDAgMSAxNSA1LjV2LjY0YTEuNSAxLjUgMCAwIDEgLjg1NiAxLjU0NmwtLjY0IDUuMTI0QTIuNSAyLjUgMCAwIDEgMTIuNzMzIDE1SDMuMjY2YTIuNSAyLjUgMCAwIDEtMi40ODEtMi4xOWwtLjY0LTUuMTI0QTEuNSAxLjUgMCAwIDEgMSA2LjE0ek0yIDZoMTJ2LS41YS41LjUgMCAwIDAtLjUtLjVIOWMtLjk2NCAwLTEuNzEtLjYyOS0yLjE3NC0xLjE1NEM2LjM3NCAzLjMzNCA1LjgyIDMgNS4yNjQgM0gyLjVhLjUuNSAwIDAgMC0uNS41em0tLjM2NyAxYS41LjUgMCAwIDAtLjQ5Ni41NjJsLjY0IDUuMTI0QTEuNSAxLjUgMCAwIDAgMy4yNjYgMTRoOS40NjhhMS41IDEuNSAwIDAgMCAxLjQ4OS0xLjMxNGwuNjQtNS4xMjRBLjUuNSAwIDAgMCAxNC4zNjcgN3oiLz48L3N2Zz4=");
+  background-position: center left;
+  background-size: 1rem;
+  background-repeat: no-repeat;
 }
 .giframeworkMap .active-layers-list button .handle {
-    cursor: move;
+  cursor: move;
 }
 .giframeworkMap .active-layers-list li.disabled {
-    cursor: not-allowed;
+  cursor: not-allowed;
 }
 /*NOTIFICATIONS*/
 .giframeworkMapContainer .toast-container {
-    z-index: 1000;
-    max-width:75vw;
+  z-index: 1000;
+  max-width: 75vw;
 }
 .giframeworkMapContainer .toast-container .toast-body {
-    backdrop-filter: grayscale(1) blur(4px);
+  backdrop-filter: grayscale(1) blur(4px);
 }
 .giframeworkMapContainer .toast-container .toast-body span {
-    white-space: pre-line;
+  white-space: pre-line;
 }
 .giframeworkMapContainer .modal-body {
-    white-space: pre-line;
+  white-space: pre-line;
 }
 /*Specialist reverse timeout bar for the layer out of range messages*/
 /*Tranistion timing should match bs toast delay timing on the element itself*/
 #gifw-timed-toast .progress-bar {
-    background-color: #e9ecef;
-    transition: width 4s linear;
+  background-color: #e9ecef;
+  transition: width 4s linear;
 }
 #gifw-timed-toast .progress {
-    background-color: var(--primary-color);
-    height: 2px;
+  background-color: var(--primary-color);
+  height: 2px;
 }
 /*dragover effects*/
 .giframeworkMap.dragover::after {
-    content: "Drop file on map to upload";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    z-index: 10000;
-    pointer-events: none;
-    font-size: 2rem;
-    background-color: rgba(255,255,255,0.7);
-    transform: translate(-50%,-50%) !important;
-    padding: 1rem;
-    border-radius: 1rem;
-    box-shadow: 0px 0px 19px 5px #a9a9a9;
-    backdrop-filter:blur(1px);
+  content: "Drop file on map to upload";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 10000;
+  pointer-events: none;
+  font-size: 2rem;
+  background-color: rgba(255, 255, 255, 0.7);
+  transform: translate(-50%, -50%) !important;
+  padding: 1rem;
+  border-radius: 1rem;
+  box-shadow: 0px 0px 19px 5px #a9a9a9;
+  backdrop-filter: blur(1px);
 }
-.giframeworkMap .dropzone.dragover{
-    background:radial-gradient(transparent,lightgrey);
+.giframeworkMap .dropzone.dragover {
+  background: radial-gradient(transparent, lightgrey);
 }
 /*Popups*/
 .giframeworkMapContainer .ol-popup {
-    position: absolute;
-    background-color: white;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-    padding: 15px;
-    border-radius: 10px;
-    border: 1px solid #cccccc;
-    bottom: 12px;
-    left: -50px;
-    min-width: 260px;
-    max-height: 80vh;
+  position: absolute;
+  background-color: white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #cccccc;
+  bottom: 12px;
+  left: -50px;
+  min-width: 260px;
+  max-height: 80vh;
 }
 @media (min-width: 768px) {
-    .giframeworkMapContainer .ol-popup {
-        min-width:320px;
-    }
+  .giframeworkMapContainer .ol-popup {
+    min-width: 320px;
+  }
 }
 
-.giframeworkMapContainer .ol-popup:after, .giframeworkMapContainer .ol-popup:before {
-    top: 100%;
-    border: solid transparent;
-    content: " ";
-    height: 0;
-    width: 0;
-    position: absolute;
-    pointer-events: none;
+.giframeworkMapContainer .ol-popup:after,
+.giframeworkMapContainer .ol-popup:before {
+  top: 100%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
 }
 
 .giframeworkMapContainer .ol-popup:after {
-    border-top-color: white;
-    border-width: 10px;
-    left: 48px;
-    margin-left: -10px;
+  border-top-color: white;
+  border-width: 10px;
+  left: 48px;
+  margin-left: -10px;
 }
 
 .giframeworkMapContainer .ol-popup:before {
-    border-top-color: #cccccc;
-    border-width: 11px;
-    left: 48px;
-    margin-left: -11px;
+  border-top-color: #cccccc;
+  border-width: 11px;
+  left: 48px;
+  margin-left: -11px;
 }
 
 .giframeworkMapContainer .ol-popup-closer {
-    text-decoration: none;
-    position: absolute;
-    top: 5px;
-    right: 5px;
+  text-decoration: none;
+  position: absolute;
+  top: 5px;
+  right: 5px;
 }
 
 .giframeworkMapContainer .ol-popup-content {
-    max-height: 500px;
-    max-width: 400px;
-    overflow-y: auto;
+  max-height: 500px;
+  max-width: 400px;
+  overflow-y: auto;
 }
 
-.giframeworkMapContainer .ol-popup-content p, .giframeworkMapContainer .ol-popup-content a {
-    font-size: 0.9rem;
-    margin-bottom: 0;
+.giframeworkMapContainer .ol-popup-content p,
+.giframeworkMapContainer .ol-popup-content a {
+  font-size: 0.9rem;
+  margin-bottom: 0;
 }
 
 .giframeworkMapContainer .ol-popup-content ul {
-    margin-bottom: .5rem;
+  margin-bottom: 0.5rem;
 }
 
 .giframeworkMapContainer .ol-popup-content h1 {
-    font-size: 1.5em;
+  font-size: 1.5em;
 }
 
 .giframeworkMapContainer .ol-popup-content h2 {
-    font-size: 1.2rem;
+  font-size: 1.2rem;
 }
 
 .giframeworkMapContainer .ol-popup-content h3 {
-    font-size: 1.1rem;
+  font-size: 1.1rem;
 }
 
 .giframeworkMapContainer .ol-popup-content h4 {
-    font-size: 1.1rem;
+  font-size: 1.1rem;
 }
 
 .giframeworkMapContainer .ol-popup-content h5 {
-    font-size: 1rem;
+  font-size: 1rem;
 }
 
 .giframeworkMapContainer .ol-popup-content .gifw-result-list ul li {
-    padding-bottom: 5px;
-    border-bottom: thin solid #dfdfdf;
+  padding-bottom: 5px;
+  border-bottom: thin solid #dfdfdf;
 }
 /*Bootstrap overrides - TODO Modify the Bootstrap SCSS*/
 .giframeworkMap .form-control:focus {
-    border-color: var(--primary-color);
-    box-shadow: none;
+  border-color: var(--primary-color);
+  box-shadow: none;
 }
 
 .giframeworkMap .btn-outline-primary {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
-    background-color: white;
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  background-color: white;
 }
 
-.giframeworkMap .btn-outline-primary:active, .giframeworkMap .btn-outline-primary:hover {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-    color: white;
+.giframeworkMap .btn-outline-primary:active,
+.giframeworkMap .btn-outline-primary:hover {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
 }
 
 .giframeworkMap .btn-outline-primary:focus {
-    box-shadow: 0 0 0 0.25rem var(--primary-color-transparent-50)
+  box-shadow: 0 0 0 0.25rem var(--primary-color-transparent-50);
 }
 
 .giframeworkMap .btn-outline-secondary:hover {
-    background-color: var(--bs-gray);
+  background-color: var(--bs-gray);
 }
 
 .giframeworkMap .form-check-input:checked {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color-transparent-90);
+  background-color: var(--primary-color);
+  border-color: var(--primary-color-transparent-90);
 }
 
 .giframeworkMap .form-check-input:focus {
-    border-color: var(--primary-color-transparent-50);
-    box-shadow: 0 0 0 0.25rem var(--primary-color-transparent-50);
+  border-color: var(--primary-color-transparent-50);
+  box-shadow: 0 0 0 0.25rem var(--primary-color-transparent-50);
 }
 
 .giframeworkMap .spinner-border {
-    color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 .giframeworkMap .bg-primary {
-    background-color: var(--primary-color) !important;
+  background-color: var(--primary-color) !important;
 }
 
 .giframeworkMap .list-group-item.active {
-    background-color: var(--primary-color) !important;
-    border-color: var(--primary-color) !important;
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
 }
 
 /*Welcome modal on mobile devices 576px and under*/
 @media (max-width: 576px) {
-    #welcome-modal .modal-dialog {
-        width: 100%;
-        max-width: none;
-        height: 100%;
-        margin: 0;
-    }
+  #welcome-modal .modal-dialog {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    margin: 0;
+  }
 
-    #welcome-modal .modal-content {
-        border-radius: 0;
-        height: 100%;
-    }
+  #welcome-modal .modal-content {
+    border-radius: 0;
+    height: 100%;
+  }
 }
 
 /*Bookmarks*/
 .giframeworkMap .bookmarks-list {
-    max-height: 300px;
-    overflow: auto;
+  max-height: 300px;
+  overflow: auto;
 }
 
 /*Helpers*/
 .giframeworkMap .text-pre-line {
-    white-space: pre-line;
+  white-space: pre-line;
 }
 
 .giframeworkMapContainer .gifw-full-screen-loader {
-    background-color: rgba(0,0,0,0.7);
-    z-index: 10000;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 10000;
 }
 
 /*Civic Cookie Control overrides*/
 .giframeworkMap #ccc-overlay {
-    backdrop-filter: blur(2px) brightness(0.5);
+  backdrop-filter: blur(2px) brightness(0.5);
 }
 
 /*Shepherd overrides (welcome tour)*/
 
 .shepherd-has-title .shepherd-content .shepherd-header {
-    background: none;
-    padding: 1em
+  background: none;
+  padding: 1em;
 }
 
 .shepherd-footer {
-    background: none;
+  background: none;
 }
 
 .shepherd-footer:after {
-    background: none;
+  background: none;
 }
 
 .shepherd-button {
-    background: #6c757d;
-    border-radius: 0.375rem;
+  background: #6c757d;
+  border-radius: 0.375rem;
 }
 
-    .shepherd-button:not(:disabled):hover {
-        background: #5c636a;
-    }
+.shepherd-button:not(:disabled):hover {
+  background: #5c636a;
+}
 
 .shepherd-element {
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-    border-radius: 10px;
-    border: 1px solid #cccccc;
-    white-space: pre-line;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  border: 1px solid #cccccc;
+  white-space: pre-line;
 }
 
 .shepherd-title {
-    font-size: 1.25rem;
-    font-weight: 500;
+  font-size: 1.25rem;
+  font-weight: 500;
 }

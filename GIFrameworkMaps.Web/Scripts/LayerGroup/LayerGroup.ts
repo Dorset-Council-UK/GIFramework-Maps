@@ -10,11 +10,14 @@ import { Feature } from "ol";
 import { Geometry } from "ol/geom";
 
 export interface LayerGroup {
-    gifwMapInstance: GIFWMap;
-    olLayerGroup: olLayer.Group;
-    layerGroupType: LayerGroupType;
-    layers: Layer[] | VectorLayer<VectorSource<Feature<Geometry>>>[];
-    createLayersGroup: () => olLayer.Group;
-    addChangeEvents: () => void;
-    addLayerToGroup: (layer: Layer | VectorLayer<VectorSource>, olLayer?: olLayer.Layer<Source, LayerRenderer<olLayer.Layer>>) => void;
+  gifwMapInstance: GIFWMap;
+  olLayerGroup: olLayer.Group;
+  layerGroupType: LayerGroupType;
+  layers: Layer[] | VectorLayer<VectorSource<Feature<Geometry>>>[];
+  createLayersGroup: () => olLayer.Group;
+  addChangeEvents: () => void;
+  addLayerToGroup: (
+    layer: Layer | VectorLayer<VectorSource>,
+    olLayer?: olLayer.Layer<Source, LayerRenderer<olLayer.Layer>>,
+  ) => void;
 }

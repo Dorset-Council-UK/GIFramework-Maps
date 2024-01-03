@@ -8,6 +8,6 @@ import { Source } from "ol/source";
 import VectorSource from "ol/source/Vector";
 
 export class FeatureQueryResponse {
-    layer: Layer<Source, LayerRenderer<VectorLayer<VectorSource>>>;
-    features: (Feature<Geometry> | RenderFeature)[];
+  layer: Layer<Source, LayerRenderer<VectorLayer<VectorSource>>>;
+  features: (Feature<Geometry> | RenderFeature)[];
 }

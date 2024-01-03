@@ -1,5 +1,5 @@
 ﻿export interface PrintConfiguration {
-    id: number;
-    name?: string;
-    logoURL?: string;
+  id: number;
+  name?: string;
+  logoURL?: string;
 }
