@@ -14,7 +14,8 @@
     "audit": "npm audit",
     "audit fix": "npm audit fix",
     "outdated": "npm outdated",
-    "lint": "npx eslint . --ext .ts"
+    "lint": "npx eslint . --ext .ts",
+    "prettier": "npx prettier . --write"
   },
   "dependencies": {
     "@microsoft/applicationinsights-web": "3.0.7",
@@ -53,6 +54,8 @@
     "@typescript-eslint/parser": "6.16.0",
     "@typescript-eslint/eslint-plugin": "6.16.0",
     "eslint": "^8.51.0",
+    "eslint-config-prettier": "9.1.0",
+    "prettier": "3.1.1",
     "ts-loader": "9.5.1",
     "typescript": "5.3.3",
     "webpack": "5.89.0",
