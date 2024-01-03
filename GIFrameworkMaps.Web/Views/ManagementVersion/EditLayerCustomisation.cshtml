@@ -61,12 +61,12 @@
 
             <div class="mb-3">
                 <label asp-for="LayerCustomisation.DefaultOpacity" class="control-label"></label>
-                <labelled-slider max-value="100" min-value="0" default-if-null="Model.Layer.DefaultOpacity" asp-for="LayerCustomisation.DefaultOpacity"></labelled-slider>
+                <labelled-slider max-value="100" min-value="0" step="5" default-if-null="Model.Layer.DefaultOpacity" asp-for="LayerCustomisation.DefaultOpacity"></labelled-slider>
             </div>
 
             <div class="mb-3">
                 <label asp-for="LayerCustomisation.DefaultSaturation" class="control-label"></label>
-                <labelled-slider max-value="100" min-value="0" default-if-null="Model.Layer.DefaultSaturation" asp-for="LayerCustomisation.DefaultSaturation"></labelled-slider>
+                <labelled-slider max-value="100" min-value="0" step="5" default-if-null="Model.Layer.DefaultSaturation" asp-for="LayerCustomisation.DefaultSaturation"></labelled-slider>
             </div>
             <div class="mb-3">
                 <input type="submit" value="@(hasCustomisation ? "Update" : "Add customisation")" class="btn btn-primary btn-lg" />

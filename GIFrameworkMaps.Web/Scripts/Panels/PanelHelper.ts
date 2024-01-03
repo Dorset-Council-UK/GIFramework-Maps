@@ -9,7 +9,7 @@ export class PanelHelper {
      * @param controlType The type of control. Either 'opacity' or 'saturation'
      * @returns HTML Element with the label, slider control and checkbox in a container
      */
-    public static renderSliderControl(layerId: string, startingValue: number = 100, controlType: "saturation" | "opacity", layerType: "layer" | "basemap", gifwMapInstance: GIFWMap) {
+    public static renderSliderControl(layerId: string, startingValue: number = 100, step: number = 1, controlType: "saturation" | "opacity", layerType: "layer" | "basemap", gifwMapInstance: GIFWMap) {
         const controlsContainer = document.createElement('div');
         //label
         const controlLabel = document.createElement('label');
@@ -34,6 +34,7 @@ export class PanelHelper {
         control.type = 'range';
         control.id = `${layerType}-${controlType}-${layerId}`;
         control.className = 'form-range';
+        control.step = step.toString();
         control.dataset.gifwControlsBasemap = layerId;
         control.value = startingValue.toString()
         //build controls

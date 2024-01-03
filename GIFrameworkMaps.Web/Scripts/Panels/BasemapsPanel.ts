@@ -102,9 +102,9 @@ export class BasemapsPanel implements SidebarPanel {
                 );
             }
         }
-        const opacityControls = PanelHelper.renderSliderControl(basemapConfiguration.id, basemap.getOpacity() * 100, 'opacity', 'basemap', this.gifwMapInstance);
+        const opacityControls = PanelHelper.renderSliderControl(basemapConfiguration.id, basemap.getOpacity() * 100, 5, 'opacity', 'basemap', this.gifwMapInstance);
 
-        const saturationControls = PanelHelper.renderSliderControl(basemapConfiguration.id, basemap.get('saturation'), 'saturation', 'basemap', this.gifwMapInstance);
+        const saturationControls = PanelHelper.renderSliderControl(basemapConfiguration.id, basemap.get('saturation'), 5, 'saturation', 'basemap', this.gifwMapInstance);
 
         const aboutLink = this.renderAboutLink(basemapConfiguration);
 

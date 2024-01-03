@@ -10,6 +10,7 @@ namespace GIFrameworkMaps.Web.TagHelpers
         public ModelExpression AspFor { get; set; }
         public int MaxValue { get; set; }
         public int MinValue { get; set; }
+        public int Step { get; set; }
         public int DefaultIfNull {  get; set; }
         private readonly IHtmlHelper _htmlHelper;
         [ViewContext]
@@ -29,7 +30,7 @@ namespace GIFrameworkMaps.Web.TagHelpers
             output.Attributes.Add("class", "row");
             output.Content.SetHtmlContent($@"
                 <div class=""col"">
-                    <input type=""range"" id=""{id}"" class=""form-range"" min=""{MinValue}"" max=""{MaxValue}"" name=""{AspFor.Name}"" value=""{(AspFor.Model ?? DefaultIfNull)}"" />
+                    <input type=""range"" id=""{id}"" class=""form-range"" min=""{MinValue}"" max=""{MaxValue}"" name=""{AspFor.Name}"" step=""{Step}"" value=""{(AspFor.Model ?? DefaultIfNull)}"" />
                 </div>
                 <div class=""col-auto"">
                     <output for=""{AspFor.Name}"" class=""badge bg-primary"" style=""width:3rem;"">{(AspFor.Model ?? DefaultIfNull)}%</output>
