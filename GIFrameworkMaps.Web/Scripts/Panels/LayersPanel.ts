@@ -25,6 +25,7 @@ import { Style } from "../Interfaces/OGCMetadata/Style";
 import ImageLayer from "ol/layer/Image";
 import { LayerFilter } from "../LayerFilter";
 import { UserSettings } from "../UserSettings";
+import { PanelHelper } from "./PanelHelper";
 
 export class LayersPanel implements SidebarPanel {
     container: string;
@@ -127,64 +128,102 @@ export class LayersPanel implements SidebarPanel {
 
             //let curZoom = Math.ceil(this.gifwMapInstance.olMap.getView().getZoom());
             activeLayersContainer.innerHTML = '<p class="text-muted mt-2">Drag layers using the drag handle <i class="bi bi-arrows-move"></i> to reorder them on the map</p>';
-            let accordion = document.createElement('div');
+            const accordion = document.createElement('div');
             accordion.classList.add("accordion","mt-2","active-layers-list");
             switchedOnLayers.sort((a, b) => b.getZIndex() - a.getZIndex()).forEach(l => {
-                let layerId = l.get('layerId');
-                let layerConfig = this.gifwMapInstance.getLayerConfigById(layerId, [LayerGroupType.Overlay, LayerGroupType.SystemNative, LayerGroupType.UserNative]);
-                let layerHtml = `
-                    <div class="accordion-item" data-gifw-layer-id="${layerId}" id="active-layer-${layerId}">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#layer-styling-${layerId}" aria-expanded="false" aria-controls="layer-styling-${layerId}">
-                                <i class="bi bi-arrows-move me-2 handle"></i>
-                                <span class="me-2">${l.get('name')}</span>
-                            </button>
-                        </h2>
-                        <div id="layer-styling-${layerId}" class="accordion-collapse collapse" aria-labelledby="active-layer-${layerId}">
-                            <div class="accordion-body">
-                                <div class="accordion accordion-flush">
-                                    <label for="layers-transparency-${layerId}" class="form-label">Transparency</label>
-                                    <input type="range" class="form-range" value="${l.getOpacity() * 100}" data-gifw-controls-transparency-layer="${layerId}" id="layer-transparency-${layerId}">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" ${l.getOpacity() === 0 ? "checked" : ""} data-gifw-controls-invisible-layer="${layerId}" id="layers-invisible-check-${layerId}">
-                                        <label class="form-check-label" for="layers-invisible-check-${layerId}">
-                                            Invisible
-                                        </label>
-                                    </div>
-                                    <label for="layers-saturation-${layerId}" class="form-label">Saturation</label>
-                                    <input type="range" class="form-range" value="${l.get('saturation') !== undefined ? l.get('saturation') : 100}" data-gifw-controls-saturation-layer="${layerId}" id="layers-saturation-${layerId}">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" ${l.get('saturation') === 0 ? "checked" : ""} data-gifw-controls-greyscale-layer="${layerId}" id="layers-greyscale-check-${layerId}">
-                                        <label class="form-check-label" for="layers-greyscale-check-${layerId}">
-                                            Greyscale
-                                        </label>
-                                    </div>
-                                    ${l.getSource() instanceof TileWMS || l.getSource() instanceof ImageWMS ? `<button type="button" class="btn btn-outline-primary mt-3" id="layers-alt-styles-${layerId}" data-gifw-controls-style-layer="${layerId}"><i class="bi bi-eyedropper"></i> Alternate Styles</button>` : ``}
-                                    ${this.isLayerFilterable(layerConfig, l) ? `<button type="button" class="btn btn-outline-primary mt-3 ms-2" id="gifw-active-layers-filter-${layerId}" data-gifw-controls-filter-layer="${layerId}"><i class="bi bi-funnel${this.getLayerFilteredStatus(layerConfig,l) ? "-fill":""}"></i> Filter</button>` : ``}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `
-                accordion.insertAdjacentHTML('beforeend',layerHtml)
+                const layerId = l.get('layerId');
+                const layerConfig = this.gifwMapInstance.getLayerConfigById(layerId, [LayerGroupType.Overlay, LayerGroupType.SystemNative, LayerGroupType.UserNative]);
+                accordion.appendChild(this.renderActiveLayerAccordionItem(l, layerConfig));
             })
             activeLayersContainer.insertAdjacentElement('beforeend', accordion);
             this.setLayerVisibilityState();
-            let _this = this;
             Sortable.create(accordion, {
                 swapThreshold: 0.70,
                 animation: 150,
                 filter: '.disabled, input',
                 preventOnFilter: false,
                 handle: '.handle',
-                onChange: function (e) {
-                    _this.updateLayerOrderingFromList();
+                onChange:  (e) => {
+                    this.updateLayerOrderingFromList();
                 }
             });
-            this.attachStyleControls();
         } else {
             activeLayersContainer.innerHTML = `<div class="alert alert-info">You don't have any layers turned on. Go to the picker to turn some layers on </div>`;
         }
+
+    }
+
+    private renderActiveLayerAccordionItem(layer: olLayer, layerConfig: Layer) {
+        const layerId = layer.get('layerId');
+        const layerName = layer.get('name')
+        const accordionContainer = document.createElement('div');
+        accordionContainer.id = `active-layer-${layerId}`;
+        accordionContainer.className = 'accordion-item';
+        accordionContainer.dataset.gifwLayerId = layerId;
+        accordionContainer.appendChild(this.renderActiveLayerHeader(layerId, layerName));
+        accordionContainer.appendChild(this.renderActiveLayerContent(layer, layerConfig));
+        return accordionContainer;
+    }
+
+    private renderActiveLayerHeader(layerId: string, layerName: string) {
+        const header = document.createElement('h2');
+        header.className = "accordion-header";
+        header.innerHTML = `<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#layer-styling-${layerId}" aria-expanded="false" aria-controls="layer-styling-${layerId}">
+                            <i class="bi bi-arrows-move me-2 handle"></i>
+                            <span class="me-2">${layerName}</span>`;
+        return header;
+    }
+
+    private renderActiveLayerContent(layer: olLayer, layerConfig: Layer) {
+        const layerId = layer.get('layerId');
+        const container = document.createElement('div');
+        container.id = `layer-styling-${layerId}`;
+        container.className = "accordion-collapse collapse";
+        container.setAttribute('aria-labelledby', `active-layer-${layerId}`);
+        const accordionBody = document.createElement('div');
+        accordionBody.className = "accordion-body";
+        const accordionBodyContainer = document.createElement('div');
+        accordionBodyContainer.className = "accordion accordion-flush";
+        accordionBodyContainer.appendChild(PanelHelper.renderSliderControl(layerId, layer.getOpacity() * 100, 5, 'opacity', 'layer', this.gifwMapInstance));
+        accordionBodyContainer.appendChild(PanelHelper.renderSliderControl(layerId, layer.get('saturation') !== undefined ? layer.get('saturation') : 100, 5, 'saturation', 'layer', this.gifwMapInstance));
+        if (layer.getSource() instanceof TileWMS || layer.getSource() instanceof ImageWMS) {
+            //add styles button
+            const stylesButton = document.createElement('button');
+            stylesButton.id = `layers-alt-styles-${layerId}`;
+            stylesButton.className = "btn btn-sm btn-outline-primary mt-3 me-2";
+            stylesButton.innerHTML = `<i class="bi bi-eyedropper"></i> Alternate Styles`;
+            stylesButton.addEventListener('click', (e) => {
+                this.showAlternateStyleModal(layer);
+                e.preventDefault();
+            })
+            accordionBodyContainer.appendChild(stylesButton)
+        }
+        if (this.isLayerFilterable(layerConfig, layer)) {
+            //add filter button
+            const filterButton = document.createElement('button');
+            filterButton.id = `gifw-active-layers-filter-${layerId}`;
+            filterButton.className = "btn btn-sm btn-outline-primary mt-3 me-2";
+            filterButton.innerHTML = `<i class="bi bi-funnel"></i> Filter`;
+            filterButton.addEventListener('click', (e) => {
+                const layerFilter = new LayerFilter(this, layerConfig);
+                layerFilter.showFilterDialog();
+                e.preventDefault();
+            })
+            accordionBodyContainer.appendChild(filterButton)
+        }
+        //add turn off button
+        const turnOffButton = document.createElement('button');
+        turnOffButton.id = `layers-turn-off-${layerId}`;
+        turnOffButton.className = "btn btn-sm btn-outline-danger mt-3";
+        turnOffButton.innerHTML = `<i class="bi bi-power"></i> Turn off`;
+        turnOffButton.addEventListener('click', (e) => {
+            layer.setVisible(false);
+            e.preventDefault();
+        })
+        accordionBodyContainer.appendChild(turnOffButton);
+        accordionBody.appendChild(accordionBodyContainer);
+        container.appendChild(accordionBody);
+        return container;
 
     }
 
@@ -231,9 +270,6 @@ export class LayersPanel implements SidebarPanel {
         showLegendButton.addEventListener('click', () => {
             this.gifwMapInstance.openSidebarById('legends')
         });
-
-        /*STYLE*/
-        this.attachStyleControls();
 
         /*ADD DATA BUTTON*/
         
@@ -865,119 +901,6 @@ export class LayersPanel implements SidebarPanel {
     */
     public setGIFWMapInstance(map: GIFWMap) {
         this.gifwMapInstance = map;
-    }
-
-    /**
-    * Attach opacity and saturation controls to the panel
-    *
-    * @returns void
-    *
-    */
-    private attachStyleControls() {
-        let container = document.querySelector(this.container);
-
-        //attach transparency slider
-        let transparencySliders: NodeListOf<HTMLInputElement> = container.querySelectorAll('input[data-gifw-controls-transparency-layer]');
-        transparencySliders.forEach(transparencySlider => {
-
-            transparencySlider.addEventListener('input', e => {
-                let element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
-                let opacity = parseInt(element.value);
-                let layerId = element.dataset.gifwControlsTransparencyLayer;
-                let linkedInvisibleCheckbox: HTMLInputElement = container.querySelector(`input[data-gifw-controls-invisible-layer="${layerId}"]`);
-                if (opacity === 0) {
-                    linkedInvisibleCheckbox.checked = true;
-                } else {
-                    linkedInvisibleCheckbox.checked = false;
-                }
-                let layer = this.gifwMapInstance.getLayerById(layerId);
-                if (layer) {
-                    this.gifwMapInstance.setLayerOpacity(layer as olLayer<any, any>, opacity);
-                }
-            });
-        });
-        //attach saturation slider
-        let saturationSliders: NodeListOf<HTMLInputElement> = container.querySelectorAll('input[data-gifw-controls-saturation-layer]');
-        saturationSliders.forEach(saturationSlider => {
-            saturationSlider.addEventListener('input', e => {
-                let element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
-                let saturation = parseInt(element.value);
-                let layerId = element.dataset.gifwControlsSaturationLayer;
-                let linkedGreyscaleCheckbox: HTMLInputElement = container.querySelector(`input[data-gifw-controls-greyscale-layer="${layerId}"]`);
-                if (saturation === 0) {
-                    linkedGreyscaleCheckbox.checked = true;
-                } else {
-                    linkedGreyscaleCheckbox.checked = false;
-                }
-                let layer = this.gifwMapInstance.getLayerById(layerId);
-                if (layer) {
-                    this.gifwMapInstance.setLayerSaturation(layer as olLayer<any, any>, saturation);
-                }
-            });
-        });
-        //attach invisible button
-        let invisibleButtons: NodeListOf<HTMLInputElement> = container.querySelectorAll('input[data-gifw-controls-invisible-layer]');
-        invisibleButtons.forEach(invisibleButton => {
-            invisibleButton.addEventListener('change', e => {
-                let element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
-
-                let layerId = element.dataset.gifwControlsInvisibleLayer;
-                let linkedTransparencySlider: HTMLInputElement = container.querySelector(`input[data-gifw-controls-transparency-layer="${layerId}"]`);
-                if (element.checked) {
-                    linkedTransparencySlider.value = "0";
-                } else {
-                    linkedTransparencySlider.value = "100";
-                }
-                let evt = new InputEvent('input');
-                linkedTransparencySlider.dispatchEvent(evt);
-            });
-        });
-        //attach greyscale button
-        let greyscaleButtons: NodeListOf<HTMLInputElement> = container.querySelectorAll('input[data-gifw-controls-greyscale-layer]');
-        greyscaleButtons.forEach(greyscaleButton => {
-            greyscaleButton.addEventListener('change', e => {
-                let element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
-
-                let layerId = element.dataset.gifwControlsGreyscaleLayer;
-                let linkedSaturationSlider: HTMLInputElement = container.querySelector(`input[data-gifw-controls-saturation-layer="${layerId}"]`);
-                if (element.checked) {
-                    linkedSaturationSlider.value = "0";
-                } else {
-                    linkedSaturationSlider.value = "100";
-                }
-                let evt = new InputEvent('input');
-                linkedSaturationSlider.dispatchEvent(evt);
-            });
-        });
-
-        let alternateStyleButtons: NodeListOf<HTMLInputElement> = container.querySelectorAll('button[data-gifw-controls-style-layer]');
-        alternateStyleButtons.forEach(alternateStyleButton => {
-            alternateStyleButton.addEventListener('click', e => {
-                let element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
-
-                let layerId = element.dataset.gifwControlsStyleLayer;
-
-                let layer = this.gifwMapInstance.getLayerById(layerId);
-                this.showAlternateStyleModal(layer);
-                e.preventDefault();
-            });
-        });
-
-        let filterButtons: NodeListOf<HTMLInputElement> = container.querySelectorAll('button[data-gifw-controls-filter-layer]');
-        filterButtons.forEach(filterButton => {
-            filterButton.addEventListener('click', e => {
-                let element: HTMLInputElement = <HTMLInputElement>(e.currentTarget);
-
-                let layerId = element.dataset.gifwControlsFilterLayer;
-
-                let layer = this.gifwMapInstance.getLayerConfigById(layerId,[LayerGroupType.Overlay]);
-                e.preventDefault();
-                let layerFilter = new LayerFilter(this, layer);
-                layerFilter.showFilterDialog();
-                e.preventDefault();
-            });
-        });
-
     }
 
     /**

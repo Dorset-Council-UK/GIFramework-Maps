@@ -34,6 +34,7 @@
                         <input asp-for="LayerCustomisation.MinZoom" class="form-control" />
                     </div>
                 </div>
+                <div class="form-text">Zooming <strong>out</strong> beyond this level will switch the layer off automatically. Rounds up to nearest zoom level e.g. setting this to 10, a zoom level of 9.01 will display the layer, a zoom of 9.00 will turn off</div>
                 <span asp-validation-for="LayerCustomisation.MinZoom" class="text-danger"></span>
             </div>
 
@@ -44,6 +45,7 @@
                         <input asp-for="LayerCustomisation.MaxZoom" class="form-control" />
                     </div>
                 </div>
+                <div class="form-text">Zooming <strong>in</strong> beyond this level will switch the layer off automatically</div>
                 <span asp-validation-for="LayerCustomisation.MaxZoom" class="text-danger"></span>
             </div>
 
@@ -59,12 +61,12 @@
 
             <div class="mb-3">
                 <label asp-for="LayerCustomisation.DefaultOpacity" class="control-label"></label>
-                <labelled-slider max-value="100" min-value="0" default-if-null="Model.Layer.DefaultOpacity" asp-for="LayerCustomisation.DefaultOpacity"></labelled-slider>
+                <labelled-slider max-value="100" min-value="0" step="5" default-if-null="Model.Layer.DefaultOpacity" asp-for="LayerCustomisation.DefaultOpacity"></labelled-slider>
             </div>
 
             <div class="mb-3">
                 <label asp-for="LayerCustomisation.DefaultSaturation" class="control-label"></label>
-                <labelled-slider max-value="100" min-value="0" default-if-null="Model.Layer.DefaultSaturation" asp-for="LayerCustomisation.DefaultSaturation"></labelled-slider>
+                <labelled-slider max-value="100" min-value="0" step="5" default-if-null="Model.Layer.DefaultSaturation" asp-for="LayerCustomisation.DefaultSaturation"></labelled-slider>
             </div>
             <div class="mb-3">
                 <input type="submit" value="@(hasCustomisation ? "Update" : "Add customisation")" class="btn btn-primary btn-lg" />
