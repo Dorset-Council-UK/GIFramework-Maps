@@ -16,7 +16,7 @@
     "outdated": "npm outdated",
     "lint": "npx eslint . --ext .ts",
     "prettier": "npx prettier . --write",
-    "watch:prettier": "npx onchange \"**/*\" -- prettier --write --ignore-unknown {{changed}}"
+    "watch:prettier": "npx onchange \"Scripts/*.ts\" \"wwwroot/css/*.css\" -- prettier --write --ignore-unknown {{changed}}"
   },
   "dependencies": {
     "@microsoft/applicationinsights-web": "3.0.7",
