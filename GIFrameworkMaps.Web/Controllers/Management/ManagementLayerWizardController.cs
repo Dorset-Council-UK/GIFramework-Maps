@@ -15,18 +15,15 @@ namespace GIFrameworkMaps.Web.Controllers.Management
     public class ManagementLayerWizardController : Controller
     {
         private readonly ILogger<ManagementLayerWizardController> _logger;
-        private readonly IManagementRepository _repository;
         private readonly ICommonRepository _commonRepository;
         private readonly ApplicationDbContext _context;
         public ManagementLayerWizardController(
             ILogger<ManagementLayerWizardController> logger,
-            IManagementRepository repository,
             ICommonRepository commonRepository,
             ApplicationDbContext context
             )
         {
             _logger = logger;
-            _repository = repository;
             _commonRepository = commonRepository;
             _context = context;
         }

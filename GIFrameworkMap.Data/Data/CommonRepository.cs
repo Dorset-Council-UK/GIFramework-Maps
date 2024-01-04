@@ -157,7 +157,7 @@ namespace GIFrameworkMaps.Data
                 _mapper.Map<List<Data.Models.VersionCategory>, List<Data.Models.ViewModels.CategoryViewModel>>(version.VersionCategories);
 
             //remove duplicates
-            var allLayers = (from cat in version.VersionCategories from layers in cat.Category.Layers select layers).ToList();
+            var allLayers = (from cat in version.VersionCategories from layers in cat.Category!.Layers select layers).ToList();
             var dupes = allLayers.GroupBy(l => l.LayerId).Where(l => l.Count() > 1).ToList();
             foreach(var duplicate in dupes)
             {
@@ -187,7 +187,6 @@ namespace GIFrameworkMaps.Data
                         matchedLayer.MaxZoom = (customisation.MaxZoom == null ? matchedLayer.MaxZoom : customisation.MaxZoom);
                     }
                 }
-                
             }
 
             var viewModel = _mapper.Map<Data.Models.ViewModels.VersionViewModel>(version);

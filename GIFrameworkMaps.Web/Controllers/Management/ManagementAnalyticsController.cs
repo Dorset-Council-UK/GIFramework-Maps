@@ -38,9 +38,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         public IActionResult Create()
         {
-            AnalyticsEditModel viewModel = new AnalyticsEditModel();
-            viewModel.AnalyticDefinition =  new AnalyticsDefinition();
-            RebuildEditModel(ref viewModel);
+			AnalyticsEditModel viewModel = new()
+			{
+				AnalyticDefinition = new AnalyticsDefinition()
+			};
+			RebuildEditModel(ref viewModel);
             return View(viewModel);
         }
 
@@ -74,11 +76,13 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         "Try again, and if the problem persists, " +
                         "contact your system administrator.");
                 }
-            } 
-            
-            AnalyticsEditModel viewModel = new AnalyticsEditModel();
-            viewModel.AnalyticDefinition = editModel.AnalyticDefinition;
-            RebuildEditModel(ref viewModel);
+            }
+
+			AnalyticsEditModel viewModel = new()
+			{
+				AnalyticDefinition = editModel.AnalyticDefinition
+			};
+			RebuildEditModel(ref viewModel);
             return View(viewModel);
         }
         public IActionResult Edit(int id)
@@ -86,9 +90,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             var analyticRecord = _context.AnalyticsDefinitions.Include(ad => ad.VersionAnalytics).Where(a => a.Id == id).FirstOrDefault();
             if (analyticRecord != null)
             {
-                AnalyticsEditModel viewModel = new AnalyticsEditModel();
-                viewModel.AnalyticDefinition = analyticRecord;
-                RebuildEditModel(ref viewModel);
+				AnalyticsEditModel viewModel = new()
+				{
+					AnalyticDefinition = analyticRecord
+				};
+        RebuildEditModel(ref viewModel);
                 return View(viewModel);
             }
             else
@@ -134,9 +140,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     "Try again, and if the problem persists, " +
                     "contact your system administrator.");
             }
-            AnalyticsEditModel viewModel = new AnalyticsEditModel();
-            viewModel.AnalyticDefinition = editModel.AnalyticDefinition;
-            RebuildEditModel(ref viewModel);
+			AnalyticsEditModel viewModel = new()
+			{
+				AnalyticDefinition = editModel.AnalyticDefinition
+			};
+			  RebuildEditModel(ref viewModel);
             return View(viewModel);
         }
 

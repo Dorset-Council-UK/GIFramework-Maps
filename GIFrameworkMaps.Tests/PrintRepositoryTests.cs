@@ -29,20 +29,20 @@ namespace GIFrameworkMaps.Tests
 
             var versions = new List<Version>
             {
-                new Version { Name = "General version",Slug= "general",Id=1 },
-                new Version { Name = "Alternative Print Config",Slug= "alt/config",Id=2 },
-                new Version { Name = "Null Print Config",Slug= "null/config",Id=3 }
+                new() { Name = "General version",Slug= "general",Id=1 },
+                new() { Name = "Alternative Print Config",Slug= "alt/config",Id=2 },
+                new() { Name = "Null Print Config",Slug= "null/config",Id=3 }
             };
 
             var printConfigs = new List<PrintConfiguration> {
-                new PrintConfiguration { Name = "Default",Id = 1},
-                new PrintConfiguration { Name = "Alternative",Id = 2},
+                new() { Name = "Default",Id = 1},
+                new() { Name = "Alternative",Id = 2},
             };
 
             var printVersionConfigs = new List<VersionPrintConfiguration>
             {
-                new VersionPrintConfiguration { PrintConfigurationId = 1, VersionId=1, PrintConfiguration = printConfigs[0], Version = versions[0] },
-                new VersionPrintConfiguration { PrintConfigurationId = 2, VersionId=2, PrintConfiguration = printConfigs[1], Version = versions[1] }
+                new() { PrintConfigurationId = 1, VersionId=1, PrintConfiguration = printConfigs[0], Version = versions[0] },
+                new() { PrintConfigurationId = 2, VersionId=2, PrintConfiguration = printConfigs[1], Version = versions[1] }
             };
 
             var versionsMockSet = versions.AsQueryable().BuildMockDbSet();

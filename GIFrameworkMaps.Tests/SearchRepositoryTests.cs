@@ -59,9 +59,9 @@ namespace GIFrameworkMaps.Tests
 
             var versions = new List<Data.Models.Version>
             {
-                new Data.Models.Version { Name = "General version",Slug= "general",Id=1 },
-                new Data.Models.Version { Name = "Custom Search Defs",Slug= "custom/searchdefs",Id=2 },
-                new Data.Models.Version { Name = "Default Search Defs",Slug= "default/searchdefs",Id=3 }
+				new() { Name = "General version",Slug= "general",Id=1 },
+				new() { Name = "Custom Search Defs",Slug= "custom/searchdefs",Id=2 },
+				new() { Name = "Default Search Defs",Slug= "default/searchdefs",Id=3 }
             };
 
             var searchDefs = new List<SearchDefinition>
@@ -72,9 +72,9 @@ namespace GIFrameworkMaps.Tests
 
             var versionSearchDefs = new List<VersionSearchDefinition>
             {
-                new VersionSearchDefinition{Version = versions[0], SearchDefinition = searchDefs[0],Enabled = true, VersionId = versions[0].Id},
-                new VersionSearchDefinition{Version = versions[0], SearchDefinition = searchDefs[1],Enabled = true, VersionId = versions[0].Id},
-                new VersionSearchDefinition{Version = versions[1], SearchDefinition = searchDefs[1],Enabled = true, VersionId = versions[1].Id}
+                new() {Version = versions[0], SearchDefinition = searchDefs[0],Enabled = true, VersionId = versions[0].Id},
+                new() {Version = versions[0], SearchDefinition = searchDefs[1],Enabled = true, VersionId = versions[0].Id},
+                new() {Version = versions[1], SearchDefinition = searchDefs[1],Enabled = true, VersionId = versions[1].Id}
             };
 
             var versionsMockSet = versions.AsQueryable().BuildMockDbSet();

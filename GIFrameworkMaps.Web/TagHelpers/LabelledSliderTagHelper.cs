@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
-using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.TagHelpers
 {
-    public class LabelledSliderTagHelper : TagHelper
+  public class LabelledSliderTagHelper : TagHelper
     {
         public ModelExpression AspFor { get; set; }
         public int MaxValue { get; set; }

@@ -13,13 +13,13 @@ namespace GIFrameworkMaps.Data.Models.ViewModels.Management
         [JsonPropertyName("attribution")]
         public string? Attribution { get; set; }
         [JsonPropertyName("formats")]
-        public string[] Formats { get; set; } = new string[0];
+        public string[] Formats { get; set; } = System.Array.Empty<string>();
         [JsonPropertyName("baseUrl")]
         public string? BaseUrl { get; set; }
         [JsonPropertyName("projection")]
-        public string[] Projections { get; set; } = new string[0];
+        public string[] Projections { get; set; } = System.Array.Empty<string>();
         [JsonPropertyName("extent")]
-        public decimal[] Extent { get; set; } = new decimal[0];
+        public decimal[] Extent { get; set; } = System.Array.Empty<decimal>();
         [JsonPropertyName("version")]
         public string? Version { get; set; }
         [JsonPropertyName("proxyMetaRequests")]
