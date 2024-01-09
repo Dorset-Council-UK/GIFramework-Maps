@@ -8,26 +8,27 @@ import { GIFWMap } from "../Map";
 import AnnotationSource from "./AnnotationSource";
 import AnnotationStyle from "./AnnotationStyle";
 
-
 interface ExportFormat {
-    extension: string,
-    formatter: GeoJSON | GPX | KML,
-    mediaType: string
+  extension: string;
+  formatter: GeoJSON | GPX | KML;
+  mediaType: string;
 }
 
 export default class AnnotationExport {
+  source: AnnotationSource;
+  optionsContainer: HTMLDivElement;
+  gifwMapInstance: GIFWMap;
 
-    source: AnnotationSource;
-    optionsContainer: HTMLDivElement;
-    gifwMapInstance: GIFWMap;
-
-    constructor(layer: AnnotationSource, gifwMapInstance: GIFWMap) {
-        this.source = layer;
-        this.gifwMapInstance = gifwMapInstance;
-        this.optionsContainer = document.createElement('div');
-        this.optionsContainer.classList.add('modal', 'gifw-annotation-export-options');
-        this.optionsContainer.tabIndex = -1;
-        this.optionsContainer.innerHTML = `
+  constructor(layer: AnnotationSource, gifwMapInstance: GIFWMap) {
+    this.source = layer;
+    this.gifwMapInstance = gifwMapInstance;
+    this.optionsContainer = document.createElement("div");
+    this.optionsContainer.classList.add(
+      "modal",
+      "gifw-annotation-export-options",
+    );
+    this.optionsContainer.tabIndex = -1;
+    this.optionsContainer.innerHTML = `
             <div class="modal-dialog">
             <div class="modal-content">
                 <form class="gifw-annotation-export-form" onsubmit="return false;">
@@ -58,95 +59,107 @@ export default class AnnotationExport {
             </div>
             </div>
         `;
-        let exportTitle = this.optionsContainer.querySelector<HTMLInputElement>('.gifw-annotation-export-title');
-        let exportFormat = this.optionsContainer.querySelector<HTMLInputElement>('.gifw-annotation-export-format');
-        let exportForm = this.optionsContainer.querySelector<HTMLFormElement>('.gifw-annotation-export-form');
-        exportForm.addEventListener('submit', () => {
-            this.run(exportFormat.value, exportTitle.value);
-            let optionsModal = Modal.getOrCreateInstance(this.optionsContainer);
-            optionsModal.hide();
+    const exportTitle = this.optionsContainer.querySelector<HTMLInputElement>(
+      ".gifw-annotation-export-title",
+    );
+    const exportFormat = this.optionsContainer.querySelector<HTMLInputElement>(
+      ".gifw-annotation-export-format",
+    );
+    const exportForm = this.optionsContainer.querySelector<HTMLFormElement>(
+      ".gifw-annotation-export-form",
+    );
+    exportForm.addEventListener("submit", () => {
+      this.run(exportFormat.value, exportTitle.value);
+      const optionsModal = Modal.getOrCreateInstance(this.optionsContainer);
+      optionsModal.hide();
+    });
+  }
+
+  static formats: { [name: string]: ExportFormat } = {
+    GeoJSON: {
+      extension: ".geojson",
+      formatter: new GeoJSON(),
+      mediaType: "application/geo+json",
+    },
+    GPX: {
+      extension: ".gpx",
+      formatter: new GPX(),
+      mediaType: "application/gpx+xml",
+    },
+    KML: {
+      extension: ".kml",
+      formatter: new KML(), // Note: KML supports some style data, but dashed/dotted lines are not supported. (Feb 2022)
+      mediaType: "application/vnd.google-earth.kml+xml",
+    },
+  };
+
+  public run(formatName: string = "GeoJSON", title: string = "Annotations") {
+    const format = AnnotationExport.formats[formatName];
+    if (!format) {
+      alert("Unsupported file format chosen for export.");
+      return;
+    }
+    const formatter = format.formatter;
+    const features = this.source.getFeatures();
+    const cleanedFeatures: Feature<Geometry>[] = [];
+    features.forEach((f) => {
+      const cleaned = f.clone();
+      if (cleaned.hasProperties()) {
+        Object.keys(cleaned.getProperties()).forEach((k) => {
+          if (k.startsWith("gifw")) {
+            cleaned.unset(k);
+          }
         });
-    }
+      }
+      const style = cleaned.getStyle();
+      if (
+        formatter instanceof GeoJSON &&
+        style instanceof AnnotationStyle &&
+        style.getText()?.getText()?.length > 0
+      ) {
+        cleaned.setProperties({ name: style.getText().getText() });
+      }
+      const geometry = cleaned.getGeometry();
+      if (geometry instanceof Circle) {
+        const approximation = Polygon.fromCircle(geometry);
+        cleaned.setGeometry(approximation); // GeoJSON & KML do not support Circle geometries
+      }
+      cleanedFeatures.push(cleaned);
+    });
+    let collection = formatter.writeFeatures(cleanedFeatures, {
+      featureProjection: this.gifwMapInstance.olMap.getView().getProjection(),
+    });
 
-    static formats: { [name: string]: ExportFormat } = {
-        'GeoJSON': {
-            extension: '.geojson',
-            formatter: new GeoJSON(),
-            mediaType: 'application/geo+json'
-        },
-        'GPX': {
-            extension: '.gpx',
-            formatter: new GPX(),
-            mediaType: 'application/gpx+xml'
-        },
-        'KML': {
-            extension: '.kml',
-            formatter: new KML(), // Note: KML supports some style data, but dashed/dotted lines are not supported. (Feb 2022)
-            mediaType: 'application/vnd.google-earth.kml+xml'
+    // Remove the default KML pushpin icon from features with labels (text annotations)
+    if (formatter instanceof KML) {
+      const parser = new DOMParser();
+      const kml = parser.parseFromString(collection, "application/xml");
+      const placemarks = kml.querySelectorAll("Placemark");
+      placemarks.forEach((p) => {
+        const styleElement = p.querySelector("Style");
+        if (styleElement) {
+          const labelStyleElement = styleElement.querySelector("LabelStyle");
+          if (labelStyleElement && !styleElement.querySelector("IconStyle")) {
+            labelStyleElement.insertAdjacentHTML(
+              "afterend",
+              `<IconStyle><Icon></Icon></IconStyle>`,
+            );
+          }
         }
+      });
+      collection = kml.documentElement.innerHTML;
     }
 
-    public run(formatName: string = 'GeoJSON', title: string = 'Annotations') {
-        let format = AnnotationExport.formats[formatName];
-        if (!format) {
-            alert('Unsupported file format chosen for export.');
-            return;
-        }
-        let formatter = format.formatter;
-        let features = this.source.getFeatures();
-        let cleanedFeatures: Feature<Geometry>[] = [];
-        features.forEach((f) => {
-            let cleaned = f.clone();
-            if (cleaned.hasProperties()) {
-                Object.keys(cleaned.getProperties()).forEach((k) => {
-                    if (k.startsWith('gifw')) {
-                        cleaned.unset(k);
-                    }
-                });
-            }
-            let style = cleaned.getStyle();
-            if (formatter instanceof GeoJSON && style instanceof AnnotationStyle && style.getText()?.getText()?.length > 0) {
-                cleaned.setProperties({ 'name': style.getText().getText() });
-            }
-            let geometry = cleaned.getGeometry();
-            if (geometry instanceof Circle) {
-                let approximation = Polygon.fromCircle(geometry);
-                cleaned.setGeometry(approximation); // GeoJSON & KML do not support Circle geometries
-            }
-            cleanedFeatures.push(cleaned);
-        });
-        let collection = formatter.writeFeatures(cleanedFeatures, {
-            featureProjection: this.gifwMapInstance.olMap.getView().getProjection()
-        });
+    const blob = new Blob([collection], { type: format.mediaType });
+    const url = URL.createObjectURL(blob);
+    const downloadLink = document.createElement("a");
+    downloadLink.href = url;
+    downloadLink.download = `${title}${format.extension}`;
+    downloadLink.click();
+  }
 
-        // Remove the default KML pushpin icon from features with labels (text annotations)
-        if (formatter instanceof KML) {
-            let parser = new DOMParser();
-            let kml = parser.parseFromString(collection, 'application/xml');
-            let placemarks = kml.querySelectorAll('Placemark');
-            placemarks.forEach((p) => {
-                let styleElement = p.querySelector('Style');
-                if (styleElement) {
-                    let labelStyleElement = styleElement.querySelector('LabelStyle');
-                    if (labelStyleElement && !(styleElement.querySelector('IconStyle'))) {
-                        labelStyleElement.insertAdjacentHTML('afterend', `<IconStyle><Icon></Icon></IconStyle>`);
-                    }
-                }
-            });
-            collection = kml.documentElement.innerHTML;
-        }
-
-        let blob = new Blob([collection], { type: format.mediaType });
-        let url = URL.createObjectURL(blob);
-        let downloadLink = document.createElement('a');
-        downloadLink.href = url;
-        downloadLink.download = `${title}${format.extension}`;
-        downloadLink.click();
-    }
-
-    public showOptions() {
-        let optionsModal = Modal.getOrCreateInstance(this.optionsContainer);
-        optionsModal.show();
-    }
-
+  public showOptions() {
+    const optionsModal = Modal.getOrCreateInstance(this.optionsContainer);
+    optionsModal.show();
+  }
 }

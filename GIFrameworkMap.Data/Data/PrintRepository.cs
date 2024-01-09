@@ -1,13 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace GIFrameworkMaps.Data
 {
-    public class PrintRepository : IPrintRepository
+	public class PrintRepository : IPrintRepository
     {
         //dependancy injection
         private readonly IApplicationDbContext _context;
@@ -54,9 +53,6 @@ namespace GIFrameworkMaps.Data
             {
                 throw new KeyNotFoundException($"Version with ID {versionId} does not exist");
             }
-            
-            
         }
-
     }
 }

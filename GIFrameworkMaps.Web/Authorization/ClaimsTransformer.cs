@@ -1,13 +1,11 @@
 ﻿using GIFrameworkMaps.Data;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.Configuration;
-using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Authorization
 {
-    public class ClaimsTransformer : IClaimsTransformation
+	public class ClaimsTransformer : IClaimsTransformation
     {
         private readonly ICommonRepository _commonRepository;
 

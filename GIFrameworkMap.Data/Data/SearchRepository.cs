@@ -1,5 +1,4 @@
-﻿using GIFrameworkMaps.Data;
-using GIFrameworkMaps.Data.Models;
+﻿using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Search;
 using Google.OpenLocationCode;
 using Microsoft.AspNetCore.Http;
@@ -18,7 +17,7 @@ using System.Threading.Tasks;
 [assembly: InternalsVisibleTo("GIFrameworkMaps.Tests")]
 namespace GIFrameworkMaps.Data
 {
-    public partial class SearchRepository : ISearchRepository
+	public partial class SearchRepository : ISearchRepository
     {
         //dependancy injection
         private readonly ILogger<SearchRepository> _logger;
@@ -147,7 +146,6 @@ namespace GIFrameworkMaps.Data
             }
             searchResults.TotalResults = searchResults.ResultCategories.Sum(r => r.Results.Count);
             return searchResults;
-
 
             //A search term is valid if it's blank or it matches the Required Search's validation regular expression. 
             bool IsValidSearchTerm(SearchDefinition? selectedDefinition)
@@ -342,7 +340,6 @@ namespace GIFrameworkMaps.Data
                 IList<JToken>? titlePart = null;
                 PopulateJTokenLists(ref titlePart, titlePath);
                 if(titlePart != null) { titleParts.Add(titlePart); }
-                
             }
 
             IList<JToken>? xCoords = null, yCoords = null, mbrXMinCoords = null, mbrYMinCoords = null, mbrXMaxCoords = null, mbrYMaxCoords = null, geom = null;
@@ -542,9 +539,7 @@ namespace GIFrameworkMaps.Data
                     /*attempt to split the DMS into two parts by the N or S string that should be included*/
                     /*TODO - Would be good if this could handle not having N/S. This would require changes to the DB enforced RegEx*/
 
-
                     string[] dmsCoords = LatLonDMSRegex().Split(searchTerm);
-
 
                     if (dmsCoords is not null && dmsCoords.Length == 2)
                     {

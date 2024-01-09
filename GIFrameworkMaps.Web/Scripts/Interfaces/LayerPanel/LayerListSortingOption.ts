@@ -1,4 +1,4 @@
 ﻿export enum LayerListSortingOption {
-    Default = "default",
-    Alphabetical = "alpha"
+  Default = "default",
+  Alphabetical = "alpha",
 }

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
-    [Authorize(Roles = "GIFWAdmin")]
+  [Authorize(Roles = "GIFWAdmin")]
     public class ManagementVersionController : Controller
     {
         //dependancy injection
@@ -22,15 +22,18 @@ namespace GIFrameworkMaps.Web.Controllers.Management
          * */
         private readonly ILogger<ManagementVersionController> _logger;
         private readonly IManagementRepository _repository;
+        private readonly ICommonRepository _commonRepository;
         private readonly ApplicationDbContext _context;
         public ManagementVersionController(
             ILogger<ManagementVersionController> logger,
             IManagementRepository repository,
+            ICommonRepository commonRepository,
             ApplicationDbContext context
             )
         {
             _logger = logger;
             _repository = repository;
+            _commonRepository = commonRepository;
             _context = context;
         }
 
@@ -122,7 +125,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     .ThenInclude(v => v.Basemap)
                 .Include(v => v.VersionCategories)
                     .ThenInclude(v => v.Category)
+                .Include(v => v.VersionLayerCustomisations)
                 .FirstOrDefaultAsync(v => v.Id == id);
+
+            int[] issueLayers = System.Array.Empty<int>();
 
             var editModel = new VersionEditModel() { Version = versionToUpdate };
 
@@ -149,6 +155,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     UpdateVersionBasemaps(selectedBasemaps, defaultBasemap, versionToUpdate);
                     UpdateVersionCategories(selectedCategories, versionToUpdate);
+                    //UpdateVersionLayers(selectedCategories, versionToUpdate, issueLayers);
                     await _context.SaveChangesAsync();
                     TempData["Message"] = "Version edited";
                     TempData["MessageType"] = "success";
@@ -172,8 +179,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(editModel);
         }
 
-        // GET: Version/ContactAlert/1
-        public async Task<IActionResult> ContactAlert(int id)
+        // GET: Version/EditContacts/1
+        public async Task<IActionResult> EditContacts(int id)
         {
             try
             {
@@ -187,6 +194,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
                 var editModel = new VersionEditModel() { Version = version };
                 RebuildViewModel(ref editModel, version);
+                editModel.UserDetails = new Dictionary<string, Microsoft.Graph.Beta.Models.User>();
                 foreach (var v in editModel.Version.VersionContacts)
                 {
                     editModel.UserDetails.Add(v.UserId, await _repository.GetUser(v.UserId));
@@ -200,7 +208,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 "contact your system administrator.");
                 return RedirectToAction("Edit", new { Id = id });
             }
-            
         }
 
         // GET: Version/AddContact/1
@@ -258,7 +265,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
                 TempData["Message"] = "Version contact updated";
                 TempData["MessageType"] = "success";
-                return RedirectToAction("ContactAlert", new { Id = model.ContactEntry.VersionId });
+                return RedirectToAction(nameof(EditContacts), new { Id = model.ContactEntry.VersionId });
             }
             //Refresh the available users list
             model.ListOfUsers = await _repository.GetUsers();
@@ -286,16 +293,198 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Version contact deleted";
                 TempData["MessageType"] = "success";
-                return RedirectToAction("ContactAlert",new { Id = id});
+                return RedirectToAction(nameof(EditContacts),new { Id = id});
             }
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Version contact delete failed");
+				TempData["Message"] = "Version contact delete failed";
+				TempData["MessageType"] = "danger";
+			}
+            return RedirectToAction(nameof(EditContacts), new { Id = id });
+        }
+
+        // GET: Version/LayerCustomisation/1
+        public async Task<IActionResult> LayerCustomisation(int id)
+        {
+            //get list of all layers and customisations
+            var version = _commonRepository.GetVersion(id);
+            //TODO - fetch this as part of the above?
+            version.VersionLayerCustomisations = await _context.VersionLayer.
+                Include(r => r.Layer)
+                .Include(r => r.Category)
+                .Where(r => r.VersionId == version.Id)
+                .AsNoTrackingWithIdentityResolution()
+                .ToListAsync();
+            if (version != null)
+            {
+                return View(version);
+            } else
+            {
+                TempData["Message"] = "Version not found";
+                TempData["MessageType"] = "danger";
+                return RedirectToAction("Edit", new { Id = id });
+            }
+        }
+
+        // GET Version/EditLayerCustomisation/123?layerId=234&categoryId=345
+        public async Task<IActionResult> EditLayerCustomisation(int id, int layerId, int categoryId)
+        {
+            //get the layer details and any existing customisations
+            var version = _commonRepository.GetVersion(id);
+            var layer = await _repository.GetLayer(layerId);
+            var category = await _repository.GetLayerCategory(categoryId);
+            //TODO - fetch this as part of the above?
+            var customisation = await _context.VersionLayer.Include(r => r.Layer).Where(r => r.VersionId == version.Id && r.LayerId == layerId && r.CategoryId == categoryId).FirstOrDefaultAsync();
+
+            var viewModel = new CustomiseLayerEditModel() { Layer = layer, Version = version, Category = category, LayerCustomisation = customisation };
+
+            return View(viewModel);
+        }
+
+        // POST: Version/EditLayerCustomisation
+        [HttpPost, ActionName("EditLayerCustomisation")]
+        public async Task<IActionResult> EditLayerCustomisationPost(CustomiseLayerEditModel model)
+        {
+            //forces version, layer and category to not be validated
+            var skipped = ModelState.Keys.Where(key => key.StartsWith(nameof(model.Version)) || key.StartsWith(nameof(model.Layer)) || key.StartsWith(nameof(model.Category)));
+            foreach (var key in skipped)
+                ModelState.Remove(key);
+
+            if (model.LayerCustomisation.Id == 0)
+            {
+                //create
+                if (ModelState.IsValid)
+                {
+                    try
+                    {
+                        model.LayerCustomisation.LayerId = model.Layer.Id;
+                        model.LayerCustomisation.VersionId = model.Version.Id;
+                        model.LayerCustomisation.CategoryId = model.Category.Id;
+                        _context.Add(model.LayerCustomisation);
+                        await _context.SaveChangesAsync();
+                        TempData["Message"] = "Customisation saved";
+                        TempData["MessageType"] = "success";
+                        return RedirectToAction(nameof(LayerCustomisation), new { id = model.Version.Id });
+                    }
+                    catch (DbUpdateException ex)
+                    {
+                        _logger.LogError(ex, "Layer customisation failed");
+                        ModelState.AddModelError("", "Unable to save changes. " +
+                            "Try again, and if the problem persists, " +
+                            "contact your system administrator.");
+                    }
+                }
+            }
+            else
+            {
+                //edit
+                var customisationToUpdate = await _context.VersionLayer.Where(c => c.Id == model.LayerCustomisation.Id).FirstOrDefaultAsync();
+
+                if (await TryUpdateModelAsync(
+                    customisationToUpdate,
+                    "LayerCustomisation",
+                    a => a.IsDefault,
+                    a => a.MaxZoom,
+                    a => a.MinZoom,
+                    a => a.SortOrder,
+                    a => a.DefaultOpacity,
+                    a => a.DefaultSaturation
+                    ))
+                {
+                    try
+                    {
+                        await _context.SaveChangesAsync();
+                        TempData["Message"] = "Customisation saved";
+                        TempData["MessageType"] = "success";
+                        return RedirectToAction(nameof(LayerCustomisation), new { id = model.Version.Id });
+                    }
+                    catch (DbUpdateException ex)
+                    {
+                        _logger.LogError(ex, "Layer customisation failed");
+                        ModelState.AddModelError("", "Unable to save changes. " +
+                            "Try again, and if the problem persists, " +
+                            "contact your system administrator.");
+                    }
+                }
+            }
+
+            var version = _commonRepository.GetVersion(model.Version.Id);
+            var layer = await _repository.GetLayer(model.Layer.Id);
+            var category = await _repository.GetLayerCategory(model.Category.Id);
+            var viewModel = new CustomiseLayerEditModel() { Layer = layer, Version = version, Category = category, LayerCustomisation = model.LayerCustomisation };
+
+            return View(viewModel);
+
+        }
+
+        // GET: Version/DeleteLayerCustomisation/123
+        public async Task<IActionResult> DeleteLayerCustomisation(int id)
+        {
+            var customisation = await _context.VersionLayer.Include(r => r.Layer).Include(r => r.Category).Where(r => r.Id == id).FirstOrDefaultAsync();
+            return View(customisation);
+        }
+
+        // POST: Version/DeleteLayerCustomisation/123
+        [HttpPost, ActionName("DeleteLayerCustomisation")]
+        public async Task<IActionResult> DeleteLayerCustomisationPost(int id)
+        {
+            var customisation = await _context.VersionLayer.Where(r => r.Id == id).FirstOrDefaultAsync();
+            try
+            {
+                
+                _context.Remove(customisation);
+                await _context.SaveChangesAsync();
+                TempData["Message"] = "Customisation removed";
+                TempData["MessageType"] = "success";
+                return RedirectToAction("LayerCustomisation", new { id = customisation.VersionId });
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Layer customisation removal failed");
                 ModelState.AddModelError("", "Unable to save changes. " +
                     "Try again, and if the problem persists, " +
                     "contact your system administrator.");
             }
-            return RedirectToAction("ContactAlert", new { Id = id });
+            return View(customisation);
+        }
+
+        // GET Version/RemoveAllCustomisations/1
+        public IActionResult RemoveAllCustomisations(int id)
+        {
+            var version = _commonRepository.GetVersion(id);
+            if (version != null)
+            {
+                return View(version);
+            }
+            else
+            {
+                TempData["Message"] = "Version could not be found";
+                TempData["MessageType"] = "danger";
+                return RedirectToAction("Index");
+            }
+        }
+        // POST Version/RemoveAllCustomisations/1
+        [HttpPost, ActionName("RemoveAllCustomisations")]
+        public async Task<IActionResult> RemoveAllCustomisationsPost(int id)
+        {
+            try
+            {
+                await _context.VersionLayer.Where(r => r.VersionId == id).ExecuteDeleteAsync();
+                await _context.SaveChangesAsync();
+                TempData["Message"] = "Customisations removed";
+                TempData["MessageType"] = "success";
+                return RedirectToAction("Edit", new { id });
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Layer customisation removal failed");
+                ModelState.AddModelError("", "Unable to save changes. " +
+                    "Try again, and if the problem persists, " +
+                    "contact your system administrator.");
+            }
+            var version = _commonRepository.GetVersion(id);
+            return View(version);
         }
 
         // GET: Version/Delete/1
@@ -339,6 +528,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         {
             if (!selectedBasemaps.Any())
             {
+                versionToUpdate.VersionBasemaps = new List<VersionBasemap>();
                 return;
             }
 
@@ -354,7 +544,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 if (selectedBasemapsHS.Contains(basemap.Id))
                 {
                     if (!versionBasemaps.Contains(basemap.Id))
-                    {                        
+                    {
+                        if (!versionToUpdate.VersionBasemaps.Any())
+                        {
+                            versionToUpdate.VersionBasemaps = new List<VersionBasemap>();
+                        }
                         versionToUpdate.VersionBasemaps.Add(new VersionBasemap { 
                             VersionId = versionToUpdate.Id, 
                             BasemapId = basemap.Id, 

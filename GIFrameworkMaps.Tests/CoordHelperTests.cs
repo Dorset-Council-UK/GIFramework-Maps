@@ -1,14 +1,10 @@
 ﻿using GIFrameworkMaps.Data;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Tests
 {
-    public class CoordHelperTests
+	public class CoordHelperTests
     {
         [Test]
         [TestCase(366_646, 101_677)]

@@ -130,6 +130,7 @@ namespace GIFrameworkMaps.Data
                                         .ThenInclude(cl => cl.Layer)
                                         .ThenInclude(l => l!.LayerSource)
                                         .ThenInclude(l => l!.Attribution)
+                                    .Include(v => v.VersionLayerCustomisations)
                                     .AsSplitQuery()
                                     .AsNoTrackingWithIdentityResolution()
                                     .FirstOrDefault(v => v.Id == versionId);
@@ -139,7 +140,6 @@ namespace GIFrameworkMaps.Data
                     var generalVersion = GetVersionBySlug("general", "", "");
                     version.HelpURL = generalVersion!.HelpURL;
                 }
-
 
                 // Cache the results so they can be used next time we call this function.                
                 _memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));                
@@ -155,6 +155,39 @@ namespace GIFrameworkMaps.Data
 
             List<Data.Models.ViewModels.CategoryViewModel> categories =
                 _mapper.Map<List<Data.Models.VersionCategory>, List<Data.Models.ViewModels.CategoryViewModel>>(version.VersionCategories);
+
+            //remove duplicates
+            var allLayers = (from cat in version.VersionCategories from layers in cat.Category!.Layers select layers).ToList();
+            var dupes = allLayers.GroupBy(l => l.LayerId).Where(l => l.Count() > 1).ToList();
+            foreach(var duplicate in dupes)
+            {
+                foreach(var layer in duplicate.Skip(1))
+                {
+                    //remove layer
+                    _logger.LogWarning("Unhandled duplicate layer detected. Removing layer ID {layerId} from category {categoryId}", layer.LayerId, layer.CategoryId);
+                    var matchedCategory = categories.Where(c => c.Id == layer.CategoryId).FirstOrDefault();
+                    matchedCategory?.Layers.RemoveAll(l => l.Id == layer.LayerId);
+
+                }
+            }
+
+            //Set version layer overrides
+            foreach (var customisation in version.VersionLayerCustomisations)
+            {
+                var matchedCategory = categories.Where(c => c.Id == customisation.CategoryId).FirstOrDefault();
+                if(matchedCategory != null) {
+                    var matchedLayer = matchedCategory.Layers.Where(c => c.Id == customisation.LayerId).FirstOrDefault();
+                    if(matchedLayer != null)
+                    {
+                        matchedLayer.IsDefault = customisation.IsDefault;
+                        matchedLayer.DefaultOpacity = (int)(customisation.DefaultOpacity == null ? matchedLayer.DefaultOpacity : customisation.DefaultOpacity);
+                        matchedLayer.DefaultSaturation = (int)(customisation.DefaultSaturation == null ? matchedLayer.DefaultSaturation : customisation.DefaultSaturation);
+                        matchedLayer.SortOrder = (int)(customisation.SortOrder == null ? matchedLayer.SortOrder : customisation.SortOrder);
+                        matchedLayer.MinZoom = (customisation.MinZoom == null ? matchedLayer.MinZoom : customisation.MinZoom);
+                        matchedLayer.MaxZoom = (customisation.MaxZoom == null ? matchedLayer.MaxZoom : customisation.MaxZoom);
+                    }
+                }
+            }
 
             var viewModel = _mapper.Map<Data.Models.ViewModels.VersionViewModel>(version);
             viewModel.Categories = categories;
@@ -240,7 +273,6 @@ namespace GIFrameworkMaps.Data
                 {
                     return cacheValue;
                 }
-                
             }
 
             var allowedHosts = _context.ProxyAllowedHosts.AsNoTracking().ToList();

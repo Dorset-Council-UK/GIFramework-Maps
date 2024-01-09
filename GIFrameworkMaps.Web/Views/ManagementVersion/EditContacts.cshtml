@@ -4,7 +4,7 @@
 @inject IConfiguration configuration;
 @{
     string appName = configuration.GetValue<string>("GIFrameworkMaps:appName");
-    ViewData["Title"] = $"Edit version '{Model.Version.Name}'";
+    ViewData["Title"] = $"Manage version users for '{Model.Version.Name}'";
     List<string> emailList = new List<string>();
     List<string> ContactableUsers = Model.Version.VersionContacts.Where(u => u.Enabled == true).Select(u => u.UserId).ToList();
     if (ContactableUsers.Count > 0)
@@ -25,11 +25,10 @@
 }
 
 <h1>@ViewData["Title"]</h1>
-<p class="lead">Manage user version contacts</p>
 
-<a asp-action="Edit" asp-route-id="@Model.Version.Id">Go back to version settings</a>
+<a asp-action="Edit" asp-route-id="@Model.Version.Id">Back to version</a>
 
-<p>
+<p class ="lead">
     You can add a list of contacts for this version below and specify whether or not they should recieve messages relating to this version.
  </p>
 <a href="@Url.Action("AddContact", "ManagementVersion",new {Id = Model.Version.Id})" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add a contact entry</a>

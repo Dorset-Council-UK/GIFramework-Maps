@@ -1,24 +1,19 @@
 ﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
-using GIFrameworkMaps.Data.Models.ViewModels;
 using GIFrameworkMaps.Data.Models.ViewModels.Management;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
-using Microsoft.Graph.Beta.Models;
-using Microsoft.Kiota.Http.Generated;
 using NodaTime;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
-    [Authorize(Roles = "GIFWAdmin")]
+	[Authorize(Roles = "GIFWAdmin")]
     public class ManagementAnalyticsController : Controller
     {
         private readonly ILogger<ManagementVersionController> _logger;
@@ -43,9 +38,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         public IActionResult Create()
         {
-            AnalyticsEditModel viewModel = new AnalyticsEditModel();
-            viewModel.AnalyticDefinition =  new AnalyticsDefinition();
-            RebuildEditModel(ref viewModel);
+			AnalyticsEditModel viewModel = new()
+			{
+				AnalyticDefinition = new AnalyticsDefinition()
+			};
+			RebuildEditModel(ref viewModel);
             return View(viewModel);
         }
 
@@ -79,11 +76,13 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         "Try again, and if the problem persists, " +
                         "contact your system administrator.");
                 }
-            } 
-            
-            AnalyticsEditModel viewModel = new AnalyticsEditModel();
-            viewModel.AnalyticDefinition = editModel.AnalyticDefinition;
-            RebuildEditModel(ref viewModel);
+            }
+
+			AnalyticsEditModel viewModel = new()
+			{
+				AnalyticDefinition = editModel.AnalyticDefinition
+			};
+			RebuildEditModel(ref viewModel);
             return View(viewModel);
         }
         public IActionResult Edit(int id)
@@ -91,9 +90,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             var analyticRecord = _context.AnalyticsDefinitions.Include(ad => ad.VersionAnalytics).Where(a => a.Id == id).FirstOrDefault();
             if (analyticRecord != null)
             {
-                AnalyticsEditModel viewModel = new AnalyticsEditModel();
-                viewModel.AnalyticDefinition = analyticRecord;
-                RebuildEditModel(ref viewModel);
+				AnalyticsEditModel viewModel = new()
+				{
+					AnalyticDefinition = analyticRecord
+				};
+        RebuildEditModel(ref viewModel);
                 return View(viewModel);
             }
             else
@@ -139,9 +140,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     "Try again, and if the problem persists, " +
                     "contact your system administrator.");
             }
-            AnalyticsEditModel viewModel = new AnalyticsEditModel();
-            viewModel.AnalyticDefinition = editModel.AnalyticDefinition;
-            RebuildEditModel(ref viewModel);
+			AnalyticsEditModel viewModel = new()
+			{
+				AnalyticDefinition = editModel.AnalyticDefinition
+			};
+			  RebuildEditModel(ref viewModel);
             return View(viewModel);
         }
 
@@ -163,8 +166,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         "Try again, and if the problem persists, " +
                         "contact your system administrator.");
                 }
-
-
             }
             catch (DbUpdateException ex)
             {

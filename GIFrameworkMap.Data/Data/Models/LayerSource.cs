@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace GIFrameworkMaps.Data.Models
 {
-    /// <summary>
-    /// Defines a single source of data and related options
-    /// </summary>
-    public class LayerSource
+	/// <summary>
+	/// Defines a single source of data and related options
+	/// </summary>
+	public class LayerSource
     {
         public int Id { get; set; }
         [MaxLength(100)]

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace GIFrameworkMaps.Data.Models.Search
+﻿namespace GIFrameworkMaps.Data.Models.Search
 {
-    public class SearchResult
+	public class SearchResult
     {
         public string? DisplayText { get; set; }
         public decimal X { get; set; }

@@ -1,16 +1,11 @@
-﻿using GIFrameworkMaps.Data.Models;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Graph.Beta.Models;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data.Models.ViewModels.Management
 {
-    public class VersionEditModel
+	public class VersionEditModel
     {
         public GIFrameworkMaps.Data.Models.Version? Version { get; set; }
         public SelectList? AvailableThemes { get; set; }

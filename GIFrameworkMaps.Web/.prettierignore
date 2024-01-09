@@ -1,0 +1,27 @@
+﻿# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+#config files
+.config
+*.json
+webpack*
+
+#generated js files
+Scripts/**/*.js.map
+Scripts/**/*.js
+wwwroot/js/*
+wwwroot/lib/*
+wwwroot/css/*.min.css
+
+#other files

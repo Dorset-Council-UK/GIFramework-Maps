@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 
 namespace GIFrameworkMaps.Data.Models
 {
-    public class Attribution
+	public class Attribution
     {
         public int Id { get; set; }
         [Required]
