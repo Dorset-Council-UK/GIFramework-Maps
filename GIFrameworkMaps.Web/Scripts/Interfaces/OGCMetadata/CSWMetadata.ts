@@ -1,6 +1,7 @@
 ﻿export interface CSWMetadata {
   title: string;
   abstract: string;
+  attribution: string;
   keywords: string[];
   accessRights: string;
   dataLinks: CSWMetadataLinks[];
