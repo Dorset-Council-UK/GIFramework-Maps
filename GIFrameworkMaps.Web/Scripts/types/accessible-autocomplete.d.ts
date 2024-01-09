@@ -1,4 +1,4 @@
-﻿declare module 'accessible-autocomplete' //{
+﻿declare module "accessible-autocomplete"; //{
 //    import { ReactElement } from 'react-markdown/lib/react-markdown';
 
 //    type SourceFunction = (

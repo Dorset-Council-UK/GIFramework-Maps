@@ -180,8 +180,5 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             model.SelectedVersions = _context.VersionUser.Where(vu => vu.UserId == user.Id).Select(vu => vu.VersionId).ToList();
             model.SelectedRoles = _context.ApplicationUserRoles.Where(aur => aur.UserId == user.Id).Select(aur => aur.ApplicationRoleId).ToList();
         }
-
     }
-
-
 }

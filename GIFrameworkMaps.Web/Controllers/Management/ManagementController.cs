@@ -1,13 +1,12 @@
 ﻿using GIFrameworkMaps.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
 
-    [Authorize(Roles = "GIFWAdmin")]
+	[Authorize(Roles = "GIFWAdmin")]
     public class ManagementController : Controller
     {
         //dependancy injection

@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.RegularExpressions;
 [assembly: InternalsVisibleTo("GIFrameworkMaps.Tests")]
 namespace GIFrameworkMaps.Data
 {
-    public partial class CoordHelper
+	public partial class CoordHelper
     {
         /// <summary>
         /// Checks whether a BNG 12 figure grid ref pair is within the UK

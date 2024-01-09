@@ -232,6 +232,5 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             ViewData["SelectedLayers"] = model.SelectedLayers;
             ViewData["AllLayers"] = model.AvailableLayers;
         }
-
     }
 }

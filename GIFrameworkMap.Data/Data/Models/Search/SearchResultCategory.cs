@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace GIFrameworkMaps.Data.Models.Search
 {
-    public class SearchResultCategory
+	public class SearchResultCategory
     {
         public List<SearchResult> Results { get; set; } = new();
         public string? CategoryName { get; set; }

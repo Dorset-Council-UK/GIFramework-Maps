@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace GIFrameworkMaps.Data.Models.ViewModels
+﻿namespace GIFrameworkMaps.Data.Models.ViewModels
 {
-    public class LayerViewModel
+	public class LayerViewModel
     {
         public int Id { get; set; }
         public bool IsDefault { get; set; }

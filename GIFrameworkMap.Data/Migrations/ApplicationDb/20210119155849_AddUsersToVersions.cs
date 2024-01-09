@@ -1,9 +1,8 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 {
-    public partial class AddUsersToVersions : Migration
+	public partial class AddUsersToVersions : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

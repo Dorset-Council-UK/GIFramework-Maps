@@ -198,6 +198,5 @@ namespace GIFrameworkMaps.Tests
             var bookmarks = await sut.GetBookmarksForUserAsync(userId);
             return bookmarks.Count;
         }
-
     }
 }

@@ -3,17 +3,12 @@
 //using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Collections.Generic;
 using System.Linq;
 using GIFrameworkMaps.Web.Hubs;
-using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.UI;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.IdentityModel.Logging;
 using System.Net.Http;
 using Yarp.ReverseProxy.Forwarder;
 using System.Net;
@@ -27,7 +22,7 @@ using System.Threading;
 
 namespace GIFrameworkMaps.Web
 {
-    public class Startup
+	public class Startup
     {
         public Startup(IConfiguration configuration)
         {
@@ -73,7 +68,6 @@ namespace GIFrameworkMaps.Web
             app.UseAuthentication();
             app.UseAuthorization();
 
-
             app.UseResponseCaching();
 
             /*YARP setup. Copied from https://github.com/microsoft/reverse-proxy/blob/release/latest/samples/ReverseProxy.Direct.Sample/Startup.cs*/
@@ -93,7 +87,6 @@ namespace GIFrameworkMaps.Web
 
             var transformer = new CustomTransformer(app); // or HttpTransformer.Default;
             var requestOptions = new ForwarderRequestConfig { ActivityTimeout = TimeSpan.FromSeconds(100) };
-
 
             app.UseEndpoints(endpoints =>
             {
@@ -201,7 +194,6 @@ namespace GIFrameworkMaps.Web
                             var exception = errorFeature.Exception;
                         }
                     }
-
                 });
 
                 endpoints.MapHub<BroadcastHub>("/broadcasthub");
@@ -220,7 +212,6 @@ namespace GIFrameworkMaps.Web
 
             if (!context.Versions.Any())
             {
-
 
                 var ukBound = new Data.Models.Bound
                 {
@@ -287,11 +278,11 @@ namespace GIFrameworkMaps.Web
                         Description = "OpenStreetMap is a free map of the world created and run by volunteers. Note this layer should NOT be used for high usage workloads as it uses the free OpenStreetMap tile server.",
                         Attribution = new Data.Models.Attribution { Name = "OpenStreetMap", AttributionHTML = "© <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors, CC-BY-SA" },
                         LayerSourceType = new Data.Models.LayerSourceType { Name = "XYZ", Description = "Layer sources using the XYZ tile scheme. Similar to TMS." },
-                        LayerSourceOptions = new List<Data.Models.LayerSourceOption> { new Data.Models.LayerSourceOption { Name = "url", Value = "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png" } }
+                        LayerSourceOptions = new List<Data.Models.LayerSourceOption> { new() { Name = "url", Value = "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png" } }
                     };
 
                     var osmLayer = new Data.Models.Basemap { LayerSource = osmLayerSource, Name = "OpenStreetMap", Bound = globalBound, MinZoom = 2, MaxZoom = 18 };
-                    version.VersionBasemaps = new List<Data.Models.VersionBasemap>() { new Data.Models.VersionBasemap { Basemap = osmLayer, IsDefault = true, DefaultOpacity = 100, DefaultSaturation = 100 } };
+                    version.VersionBasemaps = new List<Data.Models.VersionBasemap>() { new() { Basemap = osmLayer, IsDefault = true, DefaultOpacity = 100, DefaultSaturation = 100 } };
 
                 }
                 context.SaveChanges();
@@ -429,9 +420,6 @@ namespace GIFrameworkMaps.Web
                 {
                     //drop the request?
                 }
-
-
-
             }
         }
     }

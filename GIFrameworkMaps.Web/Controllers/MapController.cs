@@ -7,11 +7,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
-using NodaTime;
 
 namespace GIFrameworkMaps.Web.Controllers
 {
-    public class MapController : Controller
+	public class MapController : Controller
     {
         //dependancy injection
         private readonly ILogger<MapController> _logger;
@@ -109,7 +108,6 @@ namespace GIFrameworkMaps.Web.Controllers
             {
                 return View("VersionNotFound");
             }
-
         }
 
         public async Task<IActionResult> UserShortLink(string id)

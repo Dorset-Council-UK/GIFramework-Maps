@@ -1,14 +1,11 @@
 ﻿using GIFrameworkMaps.Data;
 using Microsoft.AspNetCore.Authorization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Authorization
 {
-    public class HasAccessToVersionAuthorizationHandler : AuthorizationHandler<HasAccessToVersionRequirement, Data.Models.Version>
+	public class HasAccessToVersionAuthorizationHandler : AuthorizationHandler<HasAccessToVersionRequirement, Data.Models.Version>
     {
         private readonly ICommonRepository _repository;
         public HasAccessToVersionAuthorizationHandler(

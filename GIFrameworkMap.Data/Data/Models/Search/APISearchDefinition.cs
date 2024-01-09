@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
+﻿using System.ComponentModel;
 
 namespace GIFrameworkMaps.Data.Models.Search
 {
-    public class APISearchDefinition : SearchDefinition
+	public class APISearchDefinition : SearchDefinition
     {
         [DisplayName("URL template")]
         public string? URLTemplate { get; set; }

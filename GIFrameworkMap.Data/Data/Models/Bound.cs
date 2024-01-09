@@ -33,6 +33,5 @@ namespace GIFrameworkMaps.Data.Models
         [DisplayName("Top right Y co-ordinate")]
         [Range(-20048966.1, 20048966.1)]
         public decimal TopRightY { get; set; }
-
     }
 }

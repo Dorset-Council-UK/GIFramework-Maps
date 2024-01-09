@@ -1,11 +1,10 @@
 ﻿using AutoMapper;
 using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.ViewModels;
-using System.Collections.Generic;
 
 namespace GIFrameworkMaps.Data
 {
-    public class AutoMapping : Profile
+	public class AutoMapping : Profile
     {
         public AutoMapping()
         {
@@ -50,8 +49,6 @@ namespace GIFrameworkMaps.Data
                 .ForMember(cl => cl.ProxyMapRequests, lvm => lvm.MapFrom(s => s.Layer!.ProxyMapRequests))
                 .ForMember(cl => cl.ProxyMetaRequests, lvm => lvm.MapFrom(s => s.Layer!.ProxyMetaRequests));
 
-
         }
-
     }
 }

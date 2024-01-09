@@ -38,8 +38,6 @@ if (!String.IsNullOrEmpty(builder.Configuration.GetSection("KeyVault")["Name"]))
         .OfType<X509Certificate2>()
         .Single();
 
-
-
     builder.Configuration.AddAzureKeyVault(
         new Uri($"https://{builder.Configuration.GetSection("KeyVault")["Name"]}.vault.azure.net/"),
             new ClientCertificateCredential(
@@ -113,10 +111,11 @@ builder.Services.AddHttpForwarder();
 
 //Setting this here ensures that the connection string is used from the secrets or KeyVault. 
 //We have had examples where this has not worked as expected unless put here in this form.
-ApplicationInsightsServiceOptions AppInsightOptions = new ApplicationInsightsServiceOptions();
-AppInsightOptions.ConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
+ApplicationInsightsServiceOptions AppInsightOptions = new()
+{
+  ConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"]
+};
 builder.Services.AddApplicationInsightsTelemetry(AppInsightOptions);
-
 
 var app = builder.Build();
 var forwarder = app.Services.GetService<IHttpForwarder>();

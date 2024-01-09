@@ -1,30 +1,46 @@
 ﻿import { Type as olGeomType } from "ol/geom/Geometry";
 
 export class AnnotationTool {
+  button: HTMLButtonElement;
+  buttonContainer: HTMLDivElement;
+  buttonTitle: string;
+  name: string;
+  olDrawType: olGeomType;
+  optionsHTML?: string;
 
-    button: HTMLButtonElement;
-    buttonContainer: HTMLDivElement;
-    buttonTitle: string;
-    name: string;
-    olDrawType: olGeomType;
-    optionsHTML?: string;
+  constructor(
+    name: string,
+    buttonTitle: string,
+    className: string,
+    innerHTML: string,
+    olDrawType: olGeomType,
+  ) {
+    this.button = document.createElement("button");
+    this.buttonContainer = document.createElement("div");
+    this.name = name;
+    this.olDrawType = olDrawType;
 
-    constructor(name: string, buttonTitle: string, className: string, innerHTML: string, olDrawType: olGeomType) {
-        this.button = document.createElement('button');
-        this.buttonContainer = document.createElement('div');
-        this.name = name;
-        this.olDrawType = olDrawType;
-
-        this.buttonContainer.appendChild(this.button);
-        this.buttonContainer.classList.add(className, 'gifw-annotation-control', 'ol-unselectable', 'ol-control', 'ol-hidden');
-        this.button.innerHTML = innerHTML;
-        this.buttonTitle = buttonTitle;
-        this.button.setAttribute('title', buttonTitle);
-    }
-
+    this.buttonContainer.appendChild(this.button);
+    this.buttonContainer.classList.add(
+      className,
+      "gifw-annotation-control",
+      "ol-unselectable",
+      "ol-control",
+      "ol-hidden",
+    );
+    this.button.innerHTML = innerHTML;
+    this.buttonTitle = buttonTitle;
+    this.button.setAttribute("title", buttonTitle);
+  }
 }
 
-export const PolygonTool = new AnnotationTool('Polygon', 'Draw a polygon', 'gifw-polygon-control', '<i class="bi bi-bounding-box-circles"></i>', 'Polygon');
+export const PolygonTool = new AnnotationTool(
+  "Polygon",
+  "Draw a polygon",
+  "gifw-polygon-control",
+  '<i class="bi bi-bounding-box-circles"></i>',
+  "Polygon",
+);
 PolygonTool.optionsHTML = `
     <div class="form-group row mb-1">
         <label class="form-label">Line colour</label>
@@ -70,7 +86,13 @@ PolygonTool.optionsHTML = `
     </div>
 `;
 
-export const LineTool = new AnnotationTool('Line', 'Draw a line', 'gifw-line-string-control', '<i class="bi bi-share"></i>', 'LineString');
+export const LineTool = new AnnotationTool(
+  "Line",
+  "Draw a line",
+  "gifw-line-string-control",
+  '<i class="bi bi-share"></i>',
+  "LineString",
+);
 LineTool.optionsHTML = `
     <div class="form-group row mb-1">
         <label class="form-label">Line colour</label>
@@ -104,7 +126,13 @@ LineTool.optionsHTML = `
     </div>
 `;
 
-export const PointTool = new AnnotationTool('Point', 'Draw a point', 'gifw-point-control', '<i class="bi bi-geo"></i>', 'Point');
+export const PointTool = new AnnotationTool(
+  "Point",
+  "Draw a point",
+  "gifw-point-control",
+  '<i class="bi bi-geo"></i>',
+  "Point",
+);
 PointTool.optionsHTML = `
     <div class="form-group row mb-1">
         <label class="form-label">Shape</label>
@@ -176,7 +204,13 @@ PointTool.optionsHTML = `
     </div>
 `;
 
-export const CircleTool = new AnnotationTool('Circle', 'Draw a circle', 'gifw-circle-control', '<i class="bi bi-circle"></i>', 'Circle');
+export const CircleTool = new AnnotationTool(
+  "Circle",
+  "Draw a circle",
+  "gifw-circle-control",
+  '<i class="bi bi-circle"></i>',
+  "Circle",
+);
 CircleTool.optionsHTML = `
     <div class="form-group row mb-1">
         <label class="form-label">Line colour</label>
@@ -222,7 +256,13 @@ CircleTool.optionsHTML = `
     </div>
 `;
 
-export const TextTool = new AnnotationTool('Text', 'Add text', 'gifw-text-control', '<i class="bi bi-fonts"></i>', 'Point');
+export const TextTool = new AnnotationTool(
+  "Text",
+  "Add text",
+  "gifw-text-control",
+  '<i class="bi bi-fonts"></i>',
+  "Point",
+);
 TextTool.optionsHTML = `
     <div class="form-group row mb-1">
         <label class="form-label">Text</label>

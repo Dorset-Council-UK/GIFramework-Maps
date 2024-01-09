@@ -1,13 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data.Models.ViewModels.Management
 {
-    public class AnalyticsViewModel
+	public class AnalyticsViewModel
     {
         public AnalyticsViewModel()
         {

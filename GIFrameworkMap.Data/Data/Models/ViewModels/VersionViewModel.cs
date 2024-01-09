@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using GIFrameworkMaps.Data.Models.Tour;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
 
 namespace GIFrameworkMaps.Data.Models.ViewModels
 {
-    public class VersionViewModel
+	public class VersionViewModel
     {
         public int Id { get; set; }
         public string? Name { get; set; }

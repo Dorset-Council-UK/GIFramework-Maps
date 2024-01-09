@@ -7,13 +7,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
-    [Authorize(Roles = "GIFWAdmin")]
+  [Authorize(Roles = "GIFWAdmin")]
     public class ManagementVersionController : Controller
     {
         //dependancy injection
@@ -209,7 +208,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 "contact your system administrator.");
                 return RedirectToAction("Edit", new { Id = id });
             }
-            
         }
 
         // GET: Version/AddContact/1
@@ -417,7 +415,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             var viewModel = new CustomiseLayerEditModel() { Layer = layer, Version = version, Category = category, LayerCustomisation = model.LayerCustomisation };
 
             return View(viewModel);
-
 
         }
 

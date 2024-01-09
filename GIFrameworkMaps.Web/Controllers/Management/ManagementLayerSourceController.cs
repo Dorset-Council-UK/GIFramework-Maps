@@ -69,7 +69,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     {
                         return RedirectToAction(nameof(Index));
                     }
-                    
                 }
                 catch (DbUpdateException ex)
                 {
@@ -119,7 +118,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     {
                         return RedirectToAction(nameof(Edit), new { id = editModel.LayerSourceOption.LayerSourceId });
                     }
-
                 }
                 catch (DbUpdateException ex)
                 {
@@ -132,9 +130,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             //RebuildViewModel(ref editModel, editModel.LayerSource);
             return View(editModel);
         }
-
-
-
 
         // GET: LayerSource/Edit/1
         public async Task<IActionResult> Edit(int id)
@@ -326,6 +321,5 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             model.AvailableLayerSourceTypes = new SelectList(layerSourceTypes, "Id", "Name", layerSource.LayerSourceTypeId);
             return model;
         }
-
     }
 }

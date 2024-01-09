@@ -6,6 +6,5 @@
         public required Layer Layer { get; set; }
         public required Category Category { get; set; }
         public VersionLayer? LayerCustomisation { get; set; }
-
     }
 }
