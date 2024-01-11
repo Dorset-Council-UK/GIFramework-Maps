@@ -49,4 +49,27 @@ const managementBundle =
     }
 };
 
-module.exports = { mapBundle, managementBundle };
+const themeSwitcherBundle = {
+  entry: ['./Scripts/ThemeSwitcher.ts'],
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
+    ],
+  },
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js'],
+  },
+  optimization: {
+    usedExports: true
+  },
+  output: {
+    filename: 'ThemeSwitcher.js',
+    path: path.resolve(__dirname, 'wwwroot/js'),
+    publicPath: ''
+  }
+};
+module.exports = { mapBundle, managementBundle, themeSwitcherBundle };

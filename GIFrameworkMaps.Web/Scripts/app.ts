@@ -12,7 +12,6 @@ import { Welcome } from "./Welcome";
 import { VersionViewModel } from "./Interfaces/VersionViewModel";
 import { Tour } from "./Tour";
 import { Alert, AlertSeverity, AlertType, Helper } from "./Util";
-import { ThemeSwitcher } from "./ThemeSwitcher";
 
 /*variables passed from index.cshtml. Use sparingly*/
 declare let gifw_appinsights_key: string;
@@ -44,7 +43,6 @@ document.addEventListener("DOMContentLoaded", () => {
       .getElementById("CookieControlLink")
       .addEventListener("click", CookieControl.open);
   }
-  new ThemeSwitcher(document.getElementById('gifw-theme-switcher'), "Theme");
 
   const mapId = "giframeworkMap";
 
