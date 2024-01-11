@@ -156,6 +156,7 @@ export class MetadataViewer {
           accessRights:
             doc.getElementsByTagName("dct:accessRights")[0]?.innerHTML,
           keywords: keywords,
+          attribution: "",
           dataLinks: refs,
           documentURL: cswMetadataURL.toString(),
         };
@@ -206,6 +207,7 @@ export class MetadataViewer {
             const CSWMetadata: CSWMetadata = {
               title: matchedLayer[0].title || layer.name,
               abstract: matchedLayer[0].abstract || "No description provided",
+              attribution: matchedLayer[0].attribution,
               accessRights: "",
               keywords: matchedLayer[0].keywords,
               dataLinks: [
@@ -242,6 +244,7 @@ export class MetadataViewer {
       const CSWMetadata: CSWMetadata = {
         title: layer.name,
         abstract: layer.layerSource.description || "No description provided",
+        attribution: layer.layerSource.attribution.renderedAttributionHTML,
         accessRights: "",
         keywords: null,
         dataLinks: null,
@@ -270,6 +273,7 @@ export class MetadataViewer {
                 ${isFiltered ? this.renderLayerFilteredWarning() : ""}
                 <p class="text-pre-line">${CSWMetadata.abstract}</p>
                 ${this.renderMetadataKeywords(CSWMetadata.keywords)}
+                ${this.renderAttribution(CSWMetadata.attribution)}
                 ${this.renderMetadataDataLinks(
                   CSWMetadata.dataLinks,
                   CSWMetadata.documentURL,
@@ -282,6 +286,7 @@ export class MetadataViewer {
                 ${isFiltered ? this.renderLayerFilteredWarning() : ""}
                 <p class="text-pre-line">No description</p>
                 ${this.renderMetadataKeywords(CSWMetadata.keywords)}
+                ${this.renderAttribution(CSWMetadata.attribution)}
                 ${this.renderMetadataDataLinks(
                   CSWMetadata.dataLinks,
                   CSWMetadata.documentURL,
@@ -294,6 +299,7 @@ export class MetadataViewer {
   private static renderMetadataKeywords(keywords: string[]): string {
     if (keywords && keywords.length !== 0) {
       const keywordContainer = document.createElement("div");
+      keywordContainer.className = "pb-2"
       keywords.forEach((k) => {
         const badge = Badge.create(k, [
           "rounded-pill",
@@ -304,7 +310,7 @@ export class MetadataViewer {
         keywordContainer.appendChild(badge);
       });
 
-      return `<h6>Keywords</h6>${keywordContainer.innerHTML}`;
+      return `<h6>Keywords</h6>${keywordContainer.outerHTML}`;
     }
     return "";
   }
@@ -344,7 +350,18 @@ export class MetadataViewer {
       return `<h6>Access rights</h6>${accessRightsHTML}`;
     }
     return "";
-  }
+    }
+
+    private static renderAttribution(attribution: string): string {
+        if (attribution) {
+            let attributionHTML = `<p>`;
+            attributionHTML += attribution;
+            attributionHTML += `</p>`;
+
+            return `<h6>Attribution</h6>${attributionHTML}`;
+        }
+        return "";
+    }
 
   private static renderLayerFilteredWarning(): string {
     return `<div class="alert alert-info small p-2">
