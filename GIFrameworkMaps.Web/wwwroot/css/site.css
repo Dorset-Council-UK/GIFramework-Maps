@@ -241,3 +241,9 @@ footer img.brand {
 [data-bs-theme="dark"] .pagination button {
   color: white;
 }
+[data-bs-theme="dark"] .table-primary a {
+  color: var(
+    --bs-table-color-state,
+    var(--bs-table-color-type, var(--bs-table-color))
+  );
+}
