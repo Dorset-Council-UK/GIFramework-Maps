@@ -149,7 +149,7 @@
   border-color: white;
 }
 .giframeworkMap .ol-mouse-position {
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(var(--bs-body-bg-rgb), 0.8);
   top: unset;
   right: unset;
   left: 0;
@@ -162,6 +162,15 @@
   max-width: calc(100% - 10em);
   backdrop-filter: blur(2px);
   font-size: 0.8rem;
+  background: rgba(var(--bs-body-bg-rgb), 0.8);
+}
+.giframeworkMap .ol-attribution ul {
+  text-shadow: none;
+  color: var(--bs-body-color);
+}
+[data-bs-theme="dark"] .giframeworkMap .ol-attribution a {
+  color: var(--bs-body-color);
+  text-decoration: underline;
 }
 .giframeworkMap .ol-compass {
   font-size: 1.5rem;
@@ -264,8 +273,8 @@
 @media (min-width: 768px) {
   .giframeworkMap aside#sidebar-container .sidebar-panels {
     width: 45%;
-    top: 49px;
-    max-height: calc(100% - 49px);
+    top: 48px;
+    max-height: calc(100% - 48px);
   }
   .giframeworkMap .sidebar-button.sidebar-open {
     display: block;
@@ -303,7 +312,7 @@
   justify-content: space-between;
   position: sticky;
   top: 0px;
-  background: linear-gradient(0deg, transparent 0%, white 15%);
+  background: linear-gradient(0deg, transparent 0%, var(--bs-body-bg) 15%);
   z-index: 10;
 }
 /*BASEMAPS*/
@@ -318,6 +327,13 @@
   margin-top: 0.5rem;
   border-color: #e0e0e0;
 }
+[data-bs-theme="dark"]
+  .giframeworkMap
+  aside#sidebar-container
+  .sidebar-panels
+  .card.basemaps-selector {
+  background-color: var(--bs-body-bg);
+}
 .giframeworkMap
   aside#sidebar-container
   .sidebar-panels
@@ -325,6 +341,13 @@
   box-shadow: 2px 2px 5px #e0e0e0;
   border-color: var(--primary-color-transparent-50);
   transition: all 0.2s ease;
+}
+[data-bs-theme="dark"]
+  .giframeworkMap
+  aside#sidebar-container
+  .sidebar-panels
+  .card.basemaps-selector:hover {
+  box-shadow: 2px 2px 5px #000000;
 }
 .giframeworkMap
   aside#sidebar-container
@@ -373,7 +396,7 @@
 
 .giframeworkMap .search-control {
   position: absolute;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(var(--bs-body-bg-rgb), 0.8);
   padding: 0.25rem 0.5rem;
   backdrop-filter: blur(2px);
   border-radius: 0 0 4px 0;
@@ -399,8 +422,23 @@
     width: 35%;
   }
 }
+.giframeworkMap .search-control form input {
+  border-color: var(--primary-color);
+}
+.giframeworkMap .search-control form input:active,
+.giframeworkMap .search-control form input:focus,
+.giframeworkMap .search-control .btn:active,
+.giframeworkMap .search-control .btn:focus {
+  box-shadow: 0 0 0 0.1rem var(--primary-color-transparent-50);
+}
 .giframeworkMap .search-control .btn {
-  background-color: white;
+  background-color: var(--bs-body-bg);
+}
+.giframeworkMap #gifw-search-configure-button {
+  border-color: var(--primary-color);
+}
+.giframeworkMap #gifw-search-configure-button:focus-visible {
+  color: var(--bs-secondary);
 }
 
 .giframeworkMap #gifw-search-results {
@@ -425,7 +463,6 @@
   background: none;
   color: unset;
 }
-
 .giframeworkMap .layer-switcher-tree .accordion-body ul {
   margin: 0.5rem 0;
 }
@@ -437,9 +474,9 @@
   margin: 0 1em 0 1em;
 }
 /*overrides the colour of the default accordion caret which is blue*/
-.giframeworkMap .layer-switcher-tree .accordion-button:not(.collapsed)::after {
+/*.giframeworkMap .layer-switcher-tree .accordion-button:not(.collapsed)::after {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000000'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
-}
+}*/
 .giframeworkMap .layer-switcher-tree .accordion-button::before {
   content: "";
   background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iY3VycmVudENvbG9yIj48cGF0aCBmaWxsPSIjZmZkMjgzIiBkPSJNMi41MTUgMTQuMTU4YTEuMDUgMS4wNSAwIDAgMS0uNTk4LS40MzJjLS4xNTctLjI0My0uMTMyLS4wMzUtLjQ5NC00LjEyOWwtLjMyOC0zLjgzMWExLjA1IDEuMDUgMCAwIDEgLjcxMy0uOTcyYy4xMDMtLjAzNi4yOTgtLjAzNyA2LjI0Ni0uMDM3bDYuMjQ2LjAzN2ExLjA1IDEuMDUgMCAwIDEgLjcxMy45OCAzNjguOTcgMzY4Ljk3IDAgMCAxLS4zMjggMy44MjdsLS4zNzYgMy44NjJhMSAxIDAgMCAxLS40ODYuNjAyYy0uMjM4LjEzLjE5Mi4xMjMtNS43NzkuMTIxbC01LjUzLS4wMjl6TTEuMzU2IDQuMjAzYy4wMDItLjU4MS4yOTEtMS4xMTguNzE0LTEuMzI3bC4xMi0uMDU5IDIuMTQtLjAwN2MyLjMzNy0uMDA4IDIuMjQtLjAxMyAyLjQ5Mi4xNDMuMDkxLjA1Ni4yMDcuMTkuNTUzLjYzNmwuNDM4LjU2NS0zLjA0My4wMTMtMy4xOTQuMDctLjE4Ni4wNzVjLS4wMzEuMDE2LS4wMzUuMDAyLS4wMzUtLjEwOXoiLz48cGF0aCBkPSJNLjU0IDQuODY4bC0uMDQtLjg3YTIgMiAwIDAgMSAyLTJoMy42NzJhMiAyIDAgMCAxIDEuNDE0LjU4NmwuODI4LjgyOGEyIDIgMCAwIDAgMS40MTQuNTg2aDMuOTgyYTIgMiAwIDAgMSAxLjk5MiAyLjE4MWwtLjYzNyA3YTIgMiAwIDAgMS0xLjk5MSAxLjgxOUgyLjgyNmEyIDIgMCAwIDEtMS45OTEtMS44MTlsLS42MzctN2ExLjk5IDEuOTkgMCAwIDEgLjM0Mi0xLjMxem0xLjY1LjEzYTEgMSAwIDAgMC0uOTk2IDEuMDlsLjYzNyA3YTEgMSAwIDAgMCAuOTk1LjkxaDEwLjM0OGExIDEgMCAwIDAgLjk5NS0uOTFsLjYzNy03YTEgMSAwIDAgMC0uOTk2LTEuMDl6bTQuNjktMS43MDdhMSAxIDAgMCAwLS43MDgtLjI5M0gyLjVhMSAxIDAgMCAwLTEgLjk4MWwuMDA2LjEzOWExLjk5IDEuOTkgMCAwIDEgLjY4NC0uMTJoNS4zOTZsLS43MDctLjcwN3oiLz48L3N2Zz4=");
@@ -498,7 +535,7 @@
   z-index: 10000;
   pointer-events: none;
   font-size: 2rem;
-  background-color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(var(--bs-body-bg-rgb), 0.7);
   transform: translate(-50%, -50%) !important;
   padding: 1rem;
   border-radius: 1rem;
@@ -511,7 +548,7 @@
 /*Popups*/
 .giframeworkMapContainer .ol-popup {
   position: absolute;
-  background-color: white;
+  background-color: var(--bs-body-bg);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
   padding: 15px;
   border-radius: 10px;
@@ -539,7 +576,7 @@
 }
 
 .giframeworkMapContainer .ol-popup:after {
-  border-top-color: white;
+  border-top-color: var(--bs-body-bg);
   border-width: 10px;
   left: 48px;
   margin-left: -10px;
@@ -608,7 +645,11 @@
 .giframeworkMap .btn-outline-primary {
   color: var(--primary-color);
   border-color: var(--primary-color);
-  background-color: white;
+  background-color: var(--bs-body-bg);
+}
+[data-bs-theme="dark"] .giframeworkMap .btn-outline-primary,
+[data-bs-theme="dark"] .giframeworkMap .danger {
+  color: white;
 }
 
 .giframeworkMap .btn-outline-primary:active,
@@ -624,6 +665,7 @@
 
 .giframeworkMap .btn-outline-secondary:hover {
   background-color: var(--bs-gray);
+  color: white;
 }
 
 .giframeworkMap .form-check-input:checked {

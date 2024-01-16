@@ -7,4 +7,4 @@ const devConfig = {
     devtool: 'inline-source-map'
 };
 
-module.exports = [merge(common.mapBundle, devConfig), merge(common.managementBundle, devConfig)]
+module.exports = [merge(common.mapBundle, devConfig), merge(common.managementBundle, devConfig), merge(common.themeSwitcherBundle, devConfig)]

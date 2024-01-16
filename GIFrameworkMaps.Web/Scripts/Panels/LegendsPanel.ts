@@ -1,6 +1,7 @@
 ﻿import { SidebarPanel } from "../Interfaces/SidebarPanel";
 import { Sidebar } from "../Sidebar";
 import { GIFWMap } from "../Map";
+import { getCurrentTheme } from "../ThemeSwitcher";
 
 export class LegendsPanel implements SidebarPanel {
   container: string;
@@ -45,8 +46,12 @@ export class LegendsPanel implements SidebarPanel {
         .querySelector(this.container)
         .querySelector("#gifw-legends-container") as HTMLDivElement
     ).innerHTML = "";
+    let colorOpts = "";
+    if (getCurrentTheme() === "dark") {
+      colorOpts = "bgColor:0x212529;fontColor:0xFFFFFF"
+    }
     const legends = this.gifwMapInstance.getLegendURLs(
-      "fontAntiAliasing:true;forceLabels:on;countMatched:true;hideEmptyRules:true;",
+      `fontAntiAliasing:true;forceLabels:on;countMatched:true;hideEmptyRules:true;${colorOpts}`,
     );
 
     if (legends.availableLegends.length !== 0) {
