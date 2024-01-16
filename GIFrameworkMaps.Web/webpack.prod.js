@@ -13,4 +13,4 @@ const prodConfig = {
     }
 };
 
-module.exports = [merge(common.mapBundle, prodConfig), merge(common.managementBundle, prodConfig)]
+module.exports = [merge(common.mapBundle, prodConfig), merge(common.managementBundle, prodConfig), merge(common.themeSwitcherBundle, prodConfig)]

@@ -24,8 +24,9 @@
     <link rel="apple-touch-icon-precomposed" sizes="180x180" href="~/apple-touch-icon.png">
     <link rel="icon" sizes="192x192" href="~/android-chrome-192x192.png">
     <link rel="icon" sizes="512x512" href="~/android-chrome-512x512.png">
-
+    <script src="~/js/ThemeSwitcher.js" asp-append-version="true"></script>
     <partial name="_AnalyticsHeadPartial" model=@analyticsModel />
+
 </head>
 <body class="d-flex flex-column">
     <partial name="_AnalyticsPartial" model=@analyticsModel />
@@ -56,6 +57,7 @@
                         }
                     </ul>
                     <ul class="navbar-nav">
+                        <partial name="_ThemeSwitcherMenu" />
                         <partial name="_LoginPartial" />
                     </ul>
                 </div>

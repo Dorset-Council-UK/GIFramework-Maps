@@ -37,12 +37,13 @@
     
     <link rel="manifest" href="@Url.Action("WebManifest","API",new{id=ViewData["VersionID"]})">
     @await RenderSectionAsync("Styles", required: false)
+    <script src="~/js/ThemeSwitcher.js" type="module" asp-append-version="true"></script>
     <partial name="_AnalyticsHeadPartial" model=@analyticsModel />
 </head>
 <body class="d-flex flex-column giframeworkMap">
     <partial name="_AnalyticsPartial" model=@analyticsModel />
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark border-bottom box-shadow">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark box-shadow">
             <div class="container-fluid gx-0">
                 <span class="navbar-brand">
                     @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["LogoURL"])))
@@ -89,6 +90,7 @@
                         
                     </ul>
                     <ul class="navbar-nav">
+                        <partial name="_ThemeSwitcherMenu"/>
                         @if (User.Identity.IsAuthenticated)
                         {
                             <partial name="~/Views/Map/Partials/Bookmarks.cshtml" />

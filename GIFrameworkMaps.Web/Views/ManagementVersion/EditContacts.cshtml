@@ -1,6 +1,9 @@
-﻿@using Microsoft.Graph.Beta.Models;
+﻿@using Microsoft.Extensions.Configuration
+@using Microsoft.Graph.Beta.Models;
 @model GIFrameworkMaps.Data.Models.ViewModels.Management.VersionEditModel
+@inject IConfiguration configuration;
 @{
+    string appName = configuration.GetValue<string>("GIFrameworkMaps:appName");
     ViewData["Title"] = $"Manage version users for '{Model.Version.Name}'";
     List<string> emailList = new List<string>();
     List<string> ContactableUsers = Model.Version.VersionContacts.Where(u => u.Enabled == true).Select(u => u.UserId).ToList();
@@ -32,7 +35,7 @@
 @if (Model.Version.VersionContacts.Any())
 {
 
-    <a href="mailto:@(mailingList)?subject=Re:%20DorsetExplorer%20version%20=%20@(Model.Version.Name)" class="btn btn-primary float-end"><i class="bi bi-envelope-at"></i> Draft an email</a>
+    <a href="mailto:@(mailingList)?subject=Re:%20@(appName)%20version%20=%20@(Model.Version.Name)" class="btn btn-primary float-end"><i class="bi bi-envelope-at"></i> Draft an email</a>
     @if (Model.Version.VersionContacts.Count > 0){
     <table id="userTable" class="table table-bordered table-striped mt-2">
         <thead>
