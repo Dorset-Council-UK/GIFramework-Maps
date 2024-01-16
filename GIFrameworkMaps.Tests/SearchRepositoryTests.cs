@@ -181,7 +181,7 @@ namespace GIFrameworkMaps.Tests
             string testJSONResult = File.ReadAllText("Data/places.json");
 
             var results = SearchRepository.GetResultsFromJSONString(testJSONResult, searchDefinition);
-            decimal[] expectedBbox = { 358385.0m, 88725.0m, 359113.0m, 89225.0m};
+            decimal[] expectedBbox = [358385.0m, 88725.0m, 359113.0m, 89225.0m];
 
             Assert.That(results, Has.Exactly(1).Items);
 
@@ -201,7 +201,7 @@ namespace GIFrameworkMaps.Tests
             string testJSONResult = File.ReadAllText("Data/places.json");
 
             var results = SearchRepository.GetResultsFromJSONString(testJSONResult, searchDefinition);
-            decimal[] expectedBbox = { 358385.0m, 88725.0m, 359113.0m, 89225.0m };
+            decimal[] expectedBbox = [358385.0m, 88725.0m, 359113.0m, 89225.0m];
 
             Assert.That(results, Has.Exactly(1).Items);
 
@@ -237,7 +237,7 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-            int[] returnedCoords = { decimal.ToInt32(results[0].X), decimal.ToInt32(results[0].Y) };
+            int[] returnedCoords = [decimal.ToInt32(results[0].X), decimal.ToInt32(results[0].Y)];
             return returnedCoords;
         }
 
@@ -250,7 +250,7 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-            Assert.AreEqual(results.Count, 0);
+            Assert.That(results.Count, Is.EqualTo(0));
 
         }
 
@@ -266,7 +266,7 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-            int[] returnedCoords = { decimal.ToInt32(results[0].X), decimal.ToInt32(results[0].Y) };
+            int[] returnedCoords = [decimal.ToInt32(results[0].X), decimal.ToInt32(results[0].Y)];
             return returnedCoords;
         }
 
@@ -293,7 +293,7 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-            decimal[] returnedCoords = { results[0].X, results[0].Y };
+            decimal[] returnedCoords = [results[0].X, results[0].Y];
             return returnedCoords;
         }
 
@@ -306,8 +306,8 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-            Assert.AreEqual(results.Count, 0);
-        }
+			Assert.That(results.Count, Is.EqualTo(0));
+		}
 
         [Test]
         [TestCase("50° 39′ 41.8″ N 2° 36′ 22.0″ W", ExpectedResult = new double[] { -2.60611, 50.66161 })]
@@ -319,7 +319,7 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-            decimal[] returnedCoords = { results[0].X, results[0].Y };
+            decimal[] returnedCoords = [results[0].X, results[0].Y];
             return returnedCoords;
         }
 
@@ -332,7 +332,7 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-            Assert.AreEqual(results.Count, 0);
+            Assert.That(results.Count, Is.EqualTo(0));
         }
 
         [Test]
@@ -346,7 +346,7 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-            decimal[] returnedCoords = { results[0].X, results[0].Y };
+            decimal[] returnedCoords = [results[0].X, results[0].Y];
             return returnedCoords;
         }
 
@@ -359,7 +359,7 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-            Assert.AreEqual(results.Count, 0);
+            Assert.That(results.Count, Is.EqualTo(0));
 
         }
 
@@ -374,7 +374,7 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-            decimal[] returnedCoords = { results[0].X, results[0].Y };
+            decimal[] returnedCoords = [results[0].X, results[0].Y];
             return returnedCoords;
         }
 
@@ -387,7 +387,7 @@ namespace GIFrameworkMaps.Tests
 
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
-            Assert.AreEqual(results.Count, 0);
+            Assert.That(results.Count, Is.EqualTo(0));
         }
     }
 }
