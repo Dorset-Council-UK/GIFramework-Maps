@@ -16,6 +16,8 @@ export default class AnnotationStyle extends Style {
   opacity: number;
   pointType: string;
   size: number;
+  radiusNumber: number;
+  radiusUnit: string;
   strokeColour: string;
   strokeColourHex: string;
   strokeStyle: "solid" | "dashed" | "dotted";
@@ -44,6 +46,8 @@ export default class AnnotationStyle extends Style {
     this.labelText = "";
     this.pointType = "pin";
     this.size = 24;
+    this.radiusNumber = 100;
+    this.radiusUnit = "Metres";
     this.strokeStyle = "solid";
     this.strokeWidth = 2;
     this.fontFamily = "Arial";
@@ -139,6 +143,8 @@ export default class AnnotationStyle extends Style {
     clone.opacity = this.opacity;
     clone.pointType = this.pointType;
     clone.size = this.size;
+    clone.radiusNumber = this.radiusNumber;
+    clone.radiusUnit = this.radiusUnit;
     clone.strokeColour = this.strokeColour;
     clone.strokeColourHex = this.strokeColourHex;
     clone.strokeStyle = this.strokeStyle;
@@ -170,7 +176,7 @@ export default class AnnotationStyle extends Style {
           lineDash = [1, 10];
           lineCap = "round";
           break;
-      }
+        }
       this.setFill(
         new Fill({
           color: this.fillColour,
@@ -293,6 +299,8 @@ export default class AnnotationStyle extends Style {
     }
     this.pointType = e.detail.style.pointType || this.pointType;
     this.size = e.detail.style.size || this.size;
+    this.radiusNumber = e.detail.style.radiusNumber || this.radiusNumber;
+    this.radiusUnit = e.detail.style.radiusUnit || this.radiusUnit;
     this.strokeColourHex =
       e.detail.style.strokeColourHex || this.strokeColourHex;
     this.strokeStyle = e.detail.style.strokeStyle || this.strokeStyle;
@@ -315,5 +323,5 @@ export default class AnnotationStyle extends Style {
       e.detail.style.borderColourHex || this.borderColourHex;
     this.borderWidth = e.detail.style.borderWidth || this.borderWidth;
     this.rebuildForTool(this.activeTool);
-  }
+    }
 }

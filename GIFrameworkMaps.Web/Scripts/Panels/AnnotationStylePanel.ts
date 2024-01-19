@@ -142,6 +142,12 @@ export default class AnnotationStylePanel implements SidebarPanel {
             case "size":
               control.value = this.activeStyle.size.toString();
               break;
+            case "radiusNumber":
+              control.value = this.activeStyle.radiusNumber.toString();
+              break;
+            case "radiusUnit":
+              control.value = this.activeStyle.radiusUnit;
+              break;
             case "strokeColour":
               control.value = `#${this.activeStyle.strokeColourHex}`;
               break;
@@ -227,6 +233,12 @@ export default class AnnotationStylePanel implements SidebarPanel {
         break;
       case "size":
         this.activeStyle.size = parseFloat(control.value);
+        break;
+      case "radiusNumber":
+         this.activeStyle.radiusNumber = parseFloat(control.value);
+        break;
+      case "radiusUnit":
+         this.activeStyle.radiusUnit = control.value;
         break;
       case "strokeColour":
         this.activeStyle.strokeColourHex = control.value.slice(1);
