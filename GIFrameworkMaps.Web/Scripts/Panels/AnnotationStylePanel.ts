@@ -143,7 +143,8 @@ export default class AnnotationStylePanel implements SidebarPanel {
               control.value = this.activeStyle.size.toString();
               break;
             case "radiusNumber":
-              control.value = this.activeStyle.radiusNumber.toString();
+                  control.value = this.activeStyle.radiusNumber.toString();
+                  control.setAttribute("input-text", control.value);
               break;
             case "radiusUnit":
               control.value = this.activeStyle.radiusUnit;
@@ -185,6 +186,9 @@ export default class AnnotationStylePanel implements SidebarPanel {
             });
             if (control.getAttribute("data-style-property") == "labelText") {
               control.setAttribute("input-text", control.value); // Strangely, the text value does not get passed with the control to this.updateStyle, and so I have had to create this new attribute...
+              }
+            if (control.getAttribute("data-style-property") == "radiusNumber") {
+                control.setAttribute("input-text", control.value);
             }
             if (
               control.getAttribute("data-style-property") == "pointHasBorder"
@@ -235,7 +239,7 @@ export default class AnnotationStylePanel implements SidebarPanel {
         this.activeStyle.size = parseFloat(control.value);
         break;
       case "radiusNumber":
-         this.activeStyle.radiusNumber = parseFloat(control.value);
+         this.activeStyle.radiusNumber = parseFloat(control.getAttribute("input-text"));
         break;
       case "radiusUnit":
          this.activeStyle.radiusUnit = control.value;
