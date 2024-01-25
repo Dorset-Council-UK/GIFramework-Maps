@@ -95,6 +95,7 @@ namespace GIFrameworkMaps.Data
                                     .Include(v => v.Bound)
                                     .Include(v => v.Theme)
                                     .Include(v => v.WelcomeMessage)
+									.Include(v => v.MapProjection)
                                     .Include(v => v.TourDetails)
                                         .ThenInclude(t => t!.Steps)
                                     .Include(v => v.VersionBasemaps)

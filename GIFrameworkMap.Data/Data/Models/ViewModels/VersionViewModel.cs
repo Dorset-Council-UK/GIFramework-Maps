@@ -18,6 +18,7 @@ namespace GIFrameworkMaps.Data.Models.ViewModels
         public Bound? Bound { get; set; }
         public WelcomeMessage? WelcomeMessage { get; set; }
         public TourDetails? TourDetails { get; set; }
+		public Projection? MapProjection { get; set; }
         public string? AppRoot { get; set; }
         public string? GoogleMapsAPIKey { get; set; }
         public bool IsLoggedIn { get; set; }

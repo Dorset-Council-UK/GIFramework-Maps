@@ -4,6 +4,7 @@ import { Category } from "./Category";
 import { Theme } from "./Theme";
 import { TourDetails } from "./Tour/TourDetails";
 import { WelcomeMessage } from "./WelcomeMessage";
+import { Projection } from "./Projection";
 
 export interface VersionViewModel {
   id: number;
@@ -19,6 +20,7 @@ export interface VersionViewModel {
   bound: Bound;
   welcomeMessage: WelcomeMessage;
   tourDetails: TourDetails;
+  mapProjection: Projection;
   appRoot: string;
   appInsightsKey: string;
   googleMapsAPIKey: string;

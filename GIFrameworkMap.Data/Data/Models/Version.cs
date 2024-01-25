@@ -36,16 +36,19 @@ namespace GIFrameworkMaps.Data.Models
         public int? TourDetailsId { get; set; }
         [Display(Name = "Version Notes (optional)"), MaxLength(500)]
         public string? VersionNotes { get; set; }
-        public List<VersionUser> VersionUsers { get; set; } = new();
-        public List<VersionBasemap> VersionBasemaps { get; set; } = new();
-        public List<VersionCategory> VersionCategories { get; set; } = new();
-        public List<VersionAnalytic> VersionAnalytics { get; set; } = new();
-        public List<VersionContact> VersionContacts { get; set; } = new();
-        public List<VersionLayer> VersionLayerCustomisations { get; set; } = new();  
+		[Display(Name="Map Projection")]
+		public int? MapProjectionId { get; set; }
+        public List<VersionUser> VersionUsers { get; set; } = [];
+        public List<VersionBasemap> VersionBasemaps { get; set; } = [];
+        public List<VersionCategory> VersionCategories { get; set; } = [];
+        public List<VersionAnalytic> VersionAnalytics { get; set; } = [];
+        public List<VersionContact> VersionContacts { get; set; } = [];
+        public List<VersionLayer> VersionLayerCustomisations { get; set; } = [];  
         //navigation properties
         public virtual Bound? Bound { get; set; }
         public virtual Theme? Theme { get; set; }
         public virtual WelcomeMessage? WelcomeMessage { get; set; }
         public virtual TourDetails? TourDetails { get; set; }
+		public virtual Projection? MapProjection { get; set; }
     }
 }
