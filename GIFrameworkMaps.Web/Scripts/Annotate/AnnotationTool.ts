@@ -261,7 +261,7 @@ export const BufferTool = new AnnotationTool(
     "Draw a buffer",
     "gifw-buffer-control",
     '<i class="bi bi-record-circle"></i>',
-    "Circle",
+    "Point",
 );
 BufferTool.optionsHTML = `
     <div class="form-group row mb-1">

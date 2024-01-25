@@ -162,7 +162,7 @@ export default class AnnotationStyle extends Style {
   public rebuildForTool(tool: AnnotationTool) {
     this.clear();
     this.activeTool = tool;
-    if (tool.olDrawType != "Point" && tool.name != "Text") {
+    if (tool.name === "Buffer" || (tool.olDrawType != "Point" && tool.name != "Text")) {
       let lineDash: number[] | null;
       let lineCap: CanvasLineCap;
       switch (this.strokeStyle) {
