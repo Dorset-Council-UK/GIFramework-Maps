@@ -2,17 +2,19 @@
 import { ImageTile, View as olView } from "ol";
 import * as olLayer from "ol/layer";
 import * as olSource from "ol/source";
+import * as olProj from "ol/proj";
 import { Layer } from "../Interfaces/Layer";
 import { Options as ImageWMSOptions } from "ol/source/ImageWMS";
 import { Options as TileWMSOptions } from "ol/source/TileWMS";
 import { Options as XYZOptions } from "ol/source/XYZ";
-import { Extent } from "ol/extent";
+import { Extent, applyTransform, containsExtent } from "ol/extent";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { LayerGroup } from "./LayerGroup";
 import TileGrid from "ol/tilegrid/TileGrid";
 import BaseLayer from "ol/layer/Base";
 import { Mapping as MappingUtil } from "../Util";
 import LayerRenderer from "ol/renderer/Layer";
+import { getTransform, transformExtent } from "ol/proj";
 
 export class GIFWLayerGroup implements LayerGroup {
   layers: Layer[];
@@ -45,7 +47,7 @@ export class GIFWLayerGroup implements LayerGroup {
       | olLayer.Tile<olSource.TileWMS>
       | olLayer.Image<olSource.ImageWMS>
     > = [];
-    const viewProj = "EPSG:3857";
+    const viewProj = `EPSG:${this.gifwMapInstance.config.mapProjection?.epsgCode ?? "3857"}`;
     if (this.layers !== null) {
       this.layers.forEach((layer) => {
         //let opts: Record<string, any> = {};
@@ -90,6 +92,14 @@ export class GIFWLayerGroup implements LayerGroup {
             layer.bound.topRightX,
             layer.bound.topRightY,
           ];
+          const extentProj = olProj.get('EPSG:3857');
+          const reprojectedSourceExtent = transformExtent(extent, extentProj, "EPSG:4326");
+          const viewProj = olProj.get(`EPSG:${this.gifwMapInstance.config.mapProjection?.epsgCode ?? '3857'}`);
+          if (containsExtent(reprojectedSourceExtent, viewProj.getWorldExtent())) {
+            extent = transformExtent(viewProj.getWorldExtent(), 'EPSG:4326', `EPSG:${this.gifwMapInstance.config.mapProjection?.epsgCode ?? '3857'}`);
+          } else {
+            extent = transformExtent(extent, 'EPSG:3857', `EPSG:${this.gifwMapInstance.config.mapProjection?.epsgCode ?? '3857'}`);
+          }
         }
         switch (layer.layerSource.layerSourceType.name) {
           case "XYZ": {
@@ -345,12 +355,14 @@ export class GIFWLayerGroup implements LayerGroup {
         layer.set("hasBeenOpened", true);
         if (this.layerGroupType === LayerGroupType.Basemap) {
           const currentView = this.gifwMapInstance.olMap.getView();
+          const fromLonLat = getTransform('EPSG:4326', currentView.getProjection());
           this.gifwMapInstance.olMap.setView(
             new olView({
               center: currentView.getCenter(),
               zoom: currentView.getZoom(),
               rotation: currentView.getRotation(),
-              extent: layer.getExtent(),
+              projection: currentView.getProjection(),
+              extent: applyTransform(currentView.getProjection().getWorldExtent(), fromLonLat),
               constrainOnlyCenter: true,
               maxZoom: layer.getMaxZoom(),
               minZoom:

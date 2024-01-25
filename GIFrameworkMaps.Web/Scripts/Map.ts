@@ -2,7 +2,7 @@
 import * as olControl from "ol/control";
 import * as olProj from "ol/proj";
 import * as olLayer from "ol/layer";
-import { Extent, containsExtent, containsCoordinate } from "ol/extent";
+import { Extent, containsExtent, containsCoordinate, applyTransform } from "ol/extent";
 import * as gifwSidebar from "../Scripts/Sidebar";
 import * as gifwSidebarCollection from "../Scripts/SidebarCollection";
 import { GIFWMousePositionControl } from "../Scripts/MousePositionControl";
@@ -80,12 +80,21 @@ export class GIFWMap {
   public initMap(): olMap {
     /*TODO - THIS IS A NASTY MEGA FUNCTION OF ALMOST 300 LINES OF CODE. SIMPLIFY!!!
 
-        //register projections /*TODO Make this more dynamic, allowing other projections to be loaded*/
-    proj4.defs(
-      "EPSG:27700",
-      "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs",
-    );
-    register(proj4);
+    //register projections /*TODO Make this more dynamic, allowing other projections to be loaded*/
+    const viewProjectionCode = `EPSG:${this.config.mapProjection?.epsgCode ?? "3857"}`;
+    if (this.config.mapProjection?.proj4Definition !== null) {
+      proj4.defs(
+        `EPSG:${this.config.mapProjection.epsgCode}`,
+        this.config.mapProjection.proj4Definition,
+      );
+      register(proj4);
+      const addedProj = olProj.get(`EPSG:${this.config.mapProjection.epsgCode}`);
+      addedProj.setWorldExtent([this.config.mapProjection.minBoundX, this.config.mapProjection.minBoundY, this.config.mapProjection.maxBoundX, this.config.mapProjection.maxBoundY]);
+    }
+    const viewProjection = olProj.get(viewProjectionCode);
+    const fromLonLat = olProj.getTransform('EPSG:4326', viewProjection);
+    const from3857 = olProj.getTransform('EPSG:3857', viewProjection);
+    
     //parse permalink params
     let permalinkParams: Record<string, string> = {};
     if (window.location.hash !== "") {
@@ -228,17 +237,17 @@ export class GIFWMap {
     this.popupOverlay = new GIFWPopupOverlay(popupEle);
 
     //define max extent of view
-    let startExtent: number[] = [];
+    //let startExtent: number[] = [];
     let startMaxZoom: number = 22;
     let startMinZoom: number = 0;
     const startBasemap = this.config.basemaps.find((b) => b.isDefault);
     if (startBasemap !== null) {
-      startExtent = [
-        startBasemap.bound.bottomLeftX,
-        startBasemap.bound.bottomLeftY,
-        startBasemap.bound.topRightX,
-        startBasemap.bound.topRightY,
-      ];
+      //startExtent = [
+      //  startBasemap.bound.bottomLeftX,
+      //  startBasemap.bound.bottomLeftY,
+      //  startBasemap.bound.topRightX,
+      //  startBasemap.bound.topRightY,
+      //];
       startMaxZoom = startBasemap.maxZoom;
       startMinZoom = startBasemap.minZoom;
     }
@@ -246,7 +255,7 @@ export class GIFWMap {
     //get passed in view parameters
     //The zoom and center should always be overwritten by the versions start bounds or the url hash
     let defaultZoom = 10;
-    let defaultCenter = [-2.3314, 50.7621];
+    let defaultCenter = [50.7621, -2.3314];
     let defaultRotation = 0;
     let defaultCRS = 4326;
     let defaultBbox: number[];
@@ -301,11 +310,11 @@ export class GIFWMap {
         center: olProj.transform(
           defaultCenter,
           olProj.get(`EPSG:${defaultCRS}`),
-          olProj.get(`EPSG:3857`),
+          olProj.get(`EPSG:${this.config.mapProjection?.epsgCode ?? "3857"}`),
         ),
         zoom: defaultZoom,
-        projection: "EPSG:3857",
-        extent: startExtent,
+        projection: `EPSG:${this.config.mapProjection?.epsgCode ?? "3857"}`,
+        extent: applyTransform(viewProjection.getWorldExtent(), fromLonLat),
         constrainOnlyCenter: true,
         maxZoom: startMaxZoom,
         minZoom: startMinZoom,
@@ -379,8 +388,8 @@ export class GIFWMap {
         this.config.bound.topRightY,
       ];
       const mapSize = map.getSize();
-
-      map.getView().fit(bounds, { size: mapSize });
+      const reprojectedExtent = applyTransform(bounds, from3857);
+      map.getView().fit(reprojectedExtent, { size: mapSize });
     }
     //add attribution size checker and app height variable
     window.addEventListener("resize", () => {
