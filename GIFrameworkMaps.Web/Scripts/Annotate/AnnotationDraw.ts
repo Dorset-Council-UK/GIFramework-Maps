@@ -84,10 +84,13 @@ export default class AnnotationDraw extends Draw {
       if (!annotationLayer.getVisible()) {
         annotationLayer.setVisible(true);
       }
-      let feature = e.feature;
-      if (annotationStyle.activeTool.name === 'Buffer') {
+        let feature = e.feature;
+
+    const bufferDistance = annotationStyle.radiusNumber;
+    const bufferUnit = annotationStyle.radiusUnit;
+      if (annotationStyle.activeTool.name === "Buffer") {
         //create the buffer feature
-        
+
         const formatter = new GeoJSON({
           dataProjection: "EPSG:4326",
         });
@@ -98,7 +101,7 @@ export default class AnnotationDraw extends Draw {
         );
 
         const point = turfPoint((featureGeom as Point).getCoordinates());
-        const buffer = Buffer(point, 100, { units: "meters" });
+        const buffer = Buffer(point, bufferDistance, { units: bufferUnit });
 
         const bufferedFeature = formatter.readFeature(
           buffer,
@@ -111,14 +114,18 @@ export default class AnnotationDraw extends Draw {
         feature = new Feature(bufferedGeometry);
         annotationLayer.getSource().addFeature(feature);
       }
+
       feature.setStyle(annotationStyle);
       const timestamp = new Date().toLocaleString("en-GB", { timeZone: "UTC" });
       feature.set("gifw-popup-title", `${type} added at ${timestamp}`);
-      feature.set("gifw-geometry-type", type);
+        feature.set("gifw-geometry-type", type);
+        const popupText = (annotationStyle.activeTool.name === "Buffer"
+            ? `<h1>Annotation</h1><p>Buffer of ${bufferDistance} ${bufferUnit} added at ${timestamp}</p>`
+            : `<h1>Annotation</h1><p>${type} added at ${timestamp}</p>`);
       this.addPopupOptionsToFeature(
         feature,
         annotationLayer,
-        `<h1>Annotation</h1><p>${type} added at ${timestamp}</p>`,
+        popupText,
       );
       this.tip = "Click to start drawing";
       if (

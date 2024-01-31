@@ -257,11 +257,11 @@ CircleTool.optionsHTML = `
 `;
 
 export const BufferTool = new AnnotationTool(
-    "Buffer",
-    "Draw a buffer",
-    "gifw-buffer-control",
-    '<i class="bi bi-record-circle"></i>',
-    "Point",
+  "Buffer",
+  "Draw a buffer",
+  "gifw-buffer-control",
+  '<i class="bi bi-record-circle"></i>',
+  "Point",
 );
 BufferTool.optionsHTML = `
     <div class="form-group row mb-1">
@@ -269,11 +269,11 @@ BufferTool.optionsHTML = `
         <div class="input-group mb-3">
             <input type="text" class="form-control" id="radiusNumber" data-style-property="radiusNumber">
                 <select class="form-select" id="radiusUnit" data-style-property="radiusUnit">
-                    <option selected value="Metres">Metres</option>
-                    <option value="Kilometres">Kilometres</option>
-                    <option value="Miles">Miles</option>
-                    <option value="Yards">Yards</option>
-                    <option value="Feet">Feet</option>
+                    <option selected value="meters">Metres</option>
+                    <option value="kilometers">Kilometres</option>
+                    <option value="miles">Miles</option>
+                    <option value="yards">Yards</option>
+                    <option value="feet">Feet</option>
                 </select>
         </div>
     </div>

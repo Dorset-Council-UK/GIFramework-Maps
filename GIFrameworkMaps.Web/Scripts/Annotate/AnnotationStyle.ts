@@ -17,7 +17,7 @@ export default class AnnotationStyle extends Style {
   pointType: string;
   size: number;
   radiusNumber: number;
-  radiusUnit: string;
+  radiusUnit: "meters" | "kilometers" | "miles" | "yards" | "feet";
   strokeColour: string;
   strokeColourHex: string;
   strokeStyle: "solid" | "dashed" | "dotted";
@@ -47,7 +47,7 @@ export default class AnnotationStyle extends Style {
     this.pointType = "pin";
     this.size = 24;
     this.radiusNumber = 100;
-    this.radiusUnit = "Metres";
+    this.radiusUnit = "meters";
     this.strokeStyle = "solid";
     this.strokeWidth = 2;
     this.fontFamily = "Arial";
@@ -162,7 +162,10 @@ export default class AnnotationStyle extends Style {
   public rebuildForTool(tool: AnnotationTool) {
     this.clear();
     this.activeTool = tool;
-    if (tool.name === "Buffer" || (tool.olDrawType != "Point" && tool.name != "Text")) {
+    if (
+      tool.name === "Buffer" ||
+      (tool.olDrawType != "Point" && tool.name != "Text")
+    ) {
       let lineDash: number[] | null;
       let lineCap: CanvasLineCap;
       switch (this.strokeStyle) {
@@ -176,7 +179,7 @@ export default class AnnotationStyle extends Style {
           lineDash = [1, 10];
           lineCap = "round";
           break;
-        }
+      }
       this.setFill(
         new Fill({
           color: this.fillColour,
@@ -323,5 +326,5 @@ export default class AnnotationStyle extends Style {
       e.detail.style.borderColourHex || this.borderColourHex;
     this.borderWidth = e.detail.style.borderWidth || this.borderWidth;
     this.rebuildForTool(this.activeTool);
-    }
+  }
 }
