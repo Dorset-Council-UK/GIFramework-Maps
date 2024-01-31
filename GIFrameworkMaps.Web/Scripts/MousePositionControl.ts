@@ -25,7 +25,7 @@ export class GIFWMousePositionControl extends olControl.Control {
   }
 
   public init(): olControl.MousePosition {
-    let mousePositionProjection = olProj.get("EPSG:27700");
+    let mousePositionProjection = olProj.get(this.projection);
     const preferredProjectionEPSG = UserSettings.getItem(
       "MousePositionProjection-Code",
     );
@@ -151,7 +151,7 @@ export class GIFWMousePositionControl extends olControl.Control {
     } else if (code === "43261") {
       return `EPSG:4326`;
     } else {
-      return `EPSG:${code}`;
+      return `EPSG:${code.replace("EPSG:", "")}`;
     }
   }
 
@@ -159,6 +159,7 @@ export class GIFWMousePositionControl extends olControl.Control {
     code: string,
     decimals: number,
     coord: number[],
+    includeUnit: boolean = true,
   ): string {
     const x = coord[0];
     const y = coord[1];
@@ -172,9 +173,13 @@ export class GIFWMousePositionControl extends olControl.Control {
       return toStringHDMS([x, y], decimals);
     } else if (code === "4326") {
       /*lat/lon requires flipping the x/y values*/
-      return `Lat: ${y.toFixed(decimals)} Lon: ${x.toFixed(decimals)}`;
+      return `${includeUnit ? "Lat: " : ""}${y.toFixed(decimals)} ${
+        includeUnit ? "Lon: " : ""
+      }${x.toFixed(decimals)}`;
     } else {
-      return `X: ${x.toFixed(decimals)} Y: ${y.toFixed(decimals)}`;
+      return `${includeUnit ? "X: " : ""}${x.toFixed(decimals)} ${
+        includeUnit ? "Y: " : ""
+      }${y.toFixed(decimals)}`;
     }
   }
 
@@ -182,6 +187,7 @@ export class GIFWMousePositionControl extends olControl.Control {
     code: string,
     decimals: number,
     coord: number[],
+    includeUnit: boolean = true,
   ): string[] {
     const x = coord[0];
     const y = coord[1];
@@ -198,9 +204,15 @@ export class GIFWMousePositionControl extends olControl.Control {
       return [`${splitString[0]}${splitString[1]}`, `${splitString[2].trim()}`];
     } else if (code === "4326") {
       /*lat/lon requires flipping the x/y values*/
-      return [`Lat: ${y.toFixed(decimals)}`, `Lon: ${x.toFixed(decimals)}`];
+      return [
+        `${includeUnit ? "Lat: " : ""}${y.toFixed(decimals)}`,
+        `${includeUnit ? "Lon: " : ""}${x.toFixed(decimals)}`,
+      ];
     } else {
-      return [`X: ${x.toFixed(decimals)}`, `Y: ${y.toFixed(decimals)}`];
+      return [
+        `${includeUnit ? "X: " : ""}${x.toFixed(decimals)}`,
+        `${includeUnit ? "Y: " : ""}${y.toFixed(decimals)}`,
+      ];
     }
   }
 

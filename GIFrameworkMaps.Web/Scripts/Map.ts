@@ -87,9 +87,19 @@ export class GIFWMap {
         `EPSG:${this.config.mapProjection.epsgCode}`,
         this.config.mapProjection.proj4Definition,
       );
+      //Adds GML version to get round GML readFeature issues - https://github.com/openlayers/openlayers/issues/3898#issuecomment-120899034
+      proj4.defs(
+        `http://www.opengis.net/gml/srs/epsg.xml#${this.config.mapProjection.epsgCode}`,
+        this.config.mapProjection.proj4Definition,
+      );
       register(proj4);
       const addedProj = olProj.get(`EPSG:${this.config.mapProjection.epsgCode}`);
+      const addedGMLProj = olProj.get(`http://www.opengis.net/gml/srs/epsg.xml#${this.config.mapProjection.epsgCode}`);
       addedProj.setWorldExtent([this.config.mapProjection.minBoundX, this.config.mapProjection.minBoundY, this.config.mapProjection.maxBoundX, this.config.mapProjection.maxBoundY]);
+      addedGMLProj.setWorldExtent([this.config.mapProjection.minBoundX, this.config.mapProjection.minBoundY, this.config.mapProjection.maxBoundX, this.config.mapProjection.maxBoundY]);
+
+      olProj.addEquivalentProjections([addedProj, addedGMLProj])
+
     }
     const viewProjection = olProj.get(viewProjectionCode);
     const fromLonLat = olProj.getTransform('EPSG:4326', viewProjection);
@@ -115,7 +125,7 @@ export class GIFWMap {
       tipLabel: "Reset rotation (Alt-Shift and Drag to rotate)",
     });
     //mouse position controls. TODO - alow DB setting of initial coord system
-    const mousePosition = new GIFWMousePositionControl("27700", 0);
+    const mousePosition = new GIFWMousePositionControl(viewProjectionCode, 0);
     const contextMenu = new GIFWContextMenu(mousePosition);
     //add measure
     const measureControl = new Measure(this);

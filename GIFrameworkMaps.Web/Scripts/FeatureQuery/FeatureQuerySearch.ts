@@ -498,7 +498,7 @@ export class FeatureQuerySearch {
               }
 
               const wfsFeatureInfoRequest = new WFS().writeGetFeature({
-                srsName: "EPSG:3857",
+                srsName: this._gifwMapInstance.olMap.getView().getProjection().getCode(),
                 featureTypes: [featureTypeName],
                 featureNS: featureDescription.targetNamespace,
                 featurePrefix: featureDescription.targetPrefix,
@@ -660,8 +660,9 @@ export class FeatureQuerySearch {
         })
         .then((data) => {
           //if the request was a WFS, use the GML reader, else use the WMSGetFeatureInfo reader
+          const viewProjection = this._gifwMapInstance.olMap.getView().getProjection();
           const features = request.wfsRequest
-            ? new GML3().readFeatures(data)
+            ? new GML3().readFeatures(data, {dataProjection: viewProjection})
             : new WMSGetFeatureInfo().readFeatures(data);
 
           const response: FeatureQueryResponse = {
