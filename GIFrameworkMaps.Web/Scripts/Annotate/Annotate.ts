@@ -12,6 +12,7 @@ import AnnotationStyleEvent from "./AnnotationStyleEvent";
 import {
   AnnotationTool,
   CircleTool,
+  BufferTool,
   LineTool,
   PointTool,
   PolygonTool,
@@ -79,6 +80,7 @@ export default class Annotate extends olControl {
       LineTool,
       PointTool,
       CircleTool,
+      BufferTool,
       TextTool,
     ];
 

@@ -256,6 +256,73 @@ CircleTool.optionsHTML = `
     </div>
 `;
 
+export const BufferTool = new AnnotationTool(
+  "Buffer",
+  "Draw a buffer",
+  "gifw-buffer-control",
+  '<i class="bi bi-record-circle"></i>',
+  "Point",
+);
+BufferTool.optionsHTML = `
+    <div class="form-group row mb-1">
+        <label class="form-label">Radius</label>
+        <div class="col-sm-10 col-md-8">
+            <div class="input-group mb-3">
+                <input type="number" class="form-control" id="radiusNumber" data-style-property="radiusNumber">
+                    <select class="form-select" id="radiusUnit" data-style-property="radiusUnit">
+                        <option selected value="meters">Metres</option>
+                        <option value="kilometers">Kilometres</option>
+                        <option value="miles">Miles</option>
+                        <option value="yards">Yards</option>
+                        <option value="feet">Feet</option>
+                    </select>
+            </div>
+        </div>
+    </div>
+    <div class="form-group row mb-1">
+        <label class="form-label">Line colour</label>
+        <div>
+            <input type="color" class="form-range" data-style-property="strokeColour" list="annotationColors" id="colors" />
+                <datalist id="annotationColors">
+                    <option value="#648fff"></option>
+                    <option value="#785EF0"></option>
+                    <option value="#DC267F"></option>
+                    <option value="#FE6100"></option>
+                    <option value="#FFB000"></option>
+                    <option value="#000000"></option>
+                </datalist>
+        </div>
+    </div>
+    <div class="form-group row mb-1">
+        <label class="form-label">Fill colour</label>
+        <div>
+            <input type="color" class="form-range" data-style-property="fillColour" list="annotationColors" id="colors" />
+        </div>
+    </div>
+    <div class="form-group row mb-1">
+        <label class="form-label">Fill opacity</label>
+        <div>
+            <input type="range" class="form-range" data-style-property="opacity" min="0" max="1" value="0.2" step="0.1">
+        </div>
+    </div>
+    <div class="form-group row mb-1">
+        <label class="form-label">Line width</label>
+        <div>
+            <input type="range" class="form-range" data-style-property="strokeWidth" min="1" max="5" value="2">
+        </div>
+    </div>
+    <div class="form-group row mb-1">
+        <label class="form-label">Line Style</label>
+        <div>
+            <select class="form-select" data-style-property="strokeStyle">
+                <option selected value="solid">Solid</option>
+                <option value="dashed">Dashed</option>
+                <option value="dotted">Dotted</option>
+            </select>
+        </div>
+    </div>
+`;
+
 export const TextTool = new AnnotationTool(
   "Text",
   "Add text",

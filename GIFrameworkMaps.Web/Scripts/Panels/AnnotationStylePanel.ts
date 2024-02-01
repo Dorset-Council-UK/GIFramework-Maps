@@ -30,11 +30,6 @@ export default class AnnotationStylePanel implements SidebarPanel {
         this.rebuildFromStyle(this.activeStyle, true);
       } else {
         Sidebar.close();
-        //let alertDiv = document.createElement('div');
-        //alertDiv.classList.add('alert', 'alert-info');
-        //alertDiv.innerHTML = 'There are no drawing tools currently active and no annotations selected for modification. You can close this sidebar.';
-        //this.optionsPanel.innerHTML = '';
-        //this.optionsPanel.appendChild(alertDiv);
       }
     }
   }
@@ -106,7 +101,7 @@ export default class AnnotationStylePanel implements SidebarPanel {
    */
   private rebuildFromStyle(
     style: AnnotationStyle,
-    inhibitRender: boolean = false,
+      inhibitRender: boolean = false,
   ) {
     this.activeStyle = style;
     if (this.activeStyle) {
@@ -141,6 +136,23 @@ export default class AnnotationStylePanel implements SidebarPanel {
               break;
             case "size":
               control.value = this.activeStyle.size.toString();
+              break;
+            case "radiusNumber":
+              control.value = this.activeStyle.radiusNumber.toString();
+                  control.setAttribute("input-text", control.value);
+                  if (this.activeStyle.editMode === "edit") {
+                      control.disabled = true;
+                  } else {
+                      control.disabled = false;
+                  }
+              break;
+            case "radiusUnit":
+                  control.value = this.activeStyle.radiusUnit;
+                  if (this.activeStyle.editMode === "edit") {
+                      control.disabled = true;
+                  } else {
+                      control.disabled = false;
+                  }
               break;
             case "strokeColour":
               control.value = `#${this.activeStyle.strokeColourHex}`;
@@ -179,6 +191,9 @@ export default class AnnotationStylePanel implements SidebarPanel {
             });
             if (control.getAttribute("data-style-property") == "labelText") {
               control.setAttribute("input-text", control.value); // Strangely, the text value does not get passed with the control to this.updateStyle, and so I have had to create this new attribute...
+            }
+            if (control.getAttribute("data-style-property") == "radiusNumber") {
+              control.setAttribute("input-text", control.value);
             }
             if (
               control.getAttribute("data-style-property") == "pointHasBorder"
@@ -227,6 +242,19 @@ export default class AnnotationStylePanel implements SidebarPanel {
         break;
       case "size":
         this.activeStyle.size = parseFloat(control.value);
+        break;
+      case "radiusNumber":
+        this.activeStyle.radiusNumber = parseFloat(
+          control.getAttribute("input-text"),
+        );
+        break;
+      case "radiusUnit":
+        this.activeStyle.radiusUnit = control.value as
+          | "meters"
+          | "kilometers"
+          | "miles"
+          | "yards"
+          | "feet";
         break;
       case "strokeColour":
         this.activeStyle.strokeColourHex = control.value.slice(1);
