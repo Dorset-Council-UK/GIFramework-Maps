@@ -20,7 +20,10 @@ export default class AnnotationDraw extends Draw {
     annotationLayer: AnnotationLayer,
     annotationStyle: AnnotationStyle,
   ) {
-    const tip = "Click to start drawing";
+      const tip = (annotationStyle.activeTool.name === "Buffer" 
+          ? "Click to draw a buffer"
+          : "Click to start drawing"
+      );
     super({
       source: annotationLayer.getSource(),
       type: type,
@@ -127,7 +130,11 @@ export default class AnnotationDraw extends Draw {
         annotationLayer,
         popupText,
       );
-      this.tip = "Click to start drawing";
+        if (annotationStyle.activeTool.name === "Buffer") {
+            this.tip = "Click to draw a buffer";
+        } else {
+            this.tip = "Click to start drawing";
+        }
       if (
         annotationStyle.activeTool.name == "Text" &&
         annotationStyle.labelText.trim().length == 0

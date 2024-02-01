@@ -266,15 +266,17 @@ export const BufferTool = new AnnotationTool(
 BufferTool.optionsHTML = `
     <div class="form-group row mb-1">
         <label class="form-label">Radius</label>
-        <div class="input-group mb-3">
-            <input type="text" class="form-control" id="radiusNumber" data-style-property="radiusNumber">
-                <select class="form-select" id="radiusUnit" data-style-property="radiusUnit">
-                    <option selected value="meters">Metres</option>
-                    <option value="kilometers">Kilometres</option>
-                    <option value="miles">Miles</option>
-                    <option value="yards">Yards</option>
-                    <option value="feet">Feet</option>
-                </select>
+        <div class="col-sm-10 col-md-8">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" id="radiusNumber" data-style-property="radiusNumber">
+                    <select class="form-select" id="radiusUnit" data-style-property="radiusUnit">
+                        <option selected value="meters">Metres</option>
+                        <option value="kilometers">Kilometres</option>
+                        <option value="miles">Miles</option>
+                        <option value="yards">Yards</option>
+                        <option value="feet">Feet</option>
+                    </select>
+            </div>
         </div>
     </div>
     <div class="form-group row mb-1">
