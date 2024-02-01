@@ -22,19 +22,14 @@ export default class AnnotationStylePanel implements SidebarPanel {
     this.render();
   }
 
-  render() {
+  render(editMode: "create" | "edit" = "create") {
     if (this.optionsPanel) {
       if (this.activeStyle) {
         this.optionsPanel.innerHTML = this.activeStyle.activeTool.optionsHTML;
 
-        this.rebuildFromStyle(this.activeStyle, true);
+        this.rebuildFromStyle(this.activeStyle, true, editMode);
       } else {
         Sidebar.close();
-        //let alertDiv = document.createElement('div');
-        //alertDiv.classList.add('alert', 'alert-info');
-        //alertDiv.innerHTML = 'There are no drawing tools currently active and no annotations selected for modification. You can close this sidebar.';
-        //this.optionsPanel.innerHTML = '';
-        //this.optionsPanel.appendChild(alertDiv);
       }
     }
   }
@@ -75,7 +70,7 @@ export default class AnnotationStylePanel implements SidebarPanel {
         "gifw-annotate-update-panel",
         (e: AnnotationStyleEvent) => {
           if (e.detail?.style) {
-            this.rebuildFromStyle(e.detail.style);
+            this.rebuildFromStyle(e.detail.style, undefined, e.detail.editMode);
             sidebar.open();
           } else {
             this.activeStyle = undefined;
@@ -106,12 +101,13 @@ export default class AnnotationStylePanel implements SidebarPanel {
    */
   private rebuildFromStyle(
     style: AnnotationStyle,
-    inhibitRender: boolean = false,
+      inhibitRender: boolean = false,
+    editMode: "create" | "edit" = "create",
   ) {
     this.activeStyle = style;
     if (this.activeStyle) {
       if (!inhibitRender) {
-        this.render();
+        this.render(editMode);
         return;
       }
       if (this.optionsPanel) {
@@ -144,7 +140,12 @@ export default class AnnotationStylePanel implements SidebarPanel {
               break;
             case "radiusNumber":
               control.value = this.activeStyle.radiusNumber.toString();
-              control.setAttribute("input-text", control.value);
+                  control.setAttribute("input-text", control.value);
+                  if (editMode === "edit") {
+                      control.disabled = true;
+                  } else {
+                      control.disabled = false;
+                  }
               break;
             case "radiusUnit":
               control.value = this.activeStyle.radiusUnit;

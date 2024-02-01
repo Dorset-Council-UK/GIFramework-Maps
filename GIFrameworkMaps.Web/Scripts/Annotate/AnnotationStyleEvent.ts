@@ -2,6 +2,7 @@
 
 export default interface AnnotationStyleEvent extends CustomEvent {
   detail: {
-    style: AnnotationStyle;
+      style: AnnotationStyle;
+      editMode?: "create" | "edit";
   };
 }

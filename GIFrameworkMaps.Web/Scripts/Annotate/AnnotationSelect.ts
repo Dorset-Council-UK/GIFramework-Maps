@@ -192,7 +192,8 @@ export default class AnnotationSelect extends Select {
           document.getElementById(this.gifwMapInstance.id).dispatchEvent(
             new CustomEvent("gifw-annotate-update-panel", {
               detail: {
-                style: feature.getStyle(),
+                    style: feature.getStyle(),
+                editMode: "edit",
               },
             }) as AnnotationStyleEvent,
           );
