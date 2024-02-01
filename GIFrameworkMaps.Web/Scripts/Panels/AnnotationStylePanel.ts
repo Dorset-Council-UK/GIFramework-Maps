@@ -147,7 +147,12 @@ export default class AnnotationStylePanel implements SidebarPanel {
                   }
               break;
             case "radiusUnit":
-              control.value = this.activeStyle.radiusUnit;
+                  control.value = this.activeStyle.radiusUnit;
+                  if (this.activeStyle.editMode === "edit") {
+                      control.disabled = true;
+                  } else {
+                      control.disabled = false;
+                  }
               break;
             case "strokeColour":
               control.value = `#${this.activeStyle.strokeColourHex}`;
