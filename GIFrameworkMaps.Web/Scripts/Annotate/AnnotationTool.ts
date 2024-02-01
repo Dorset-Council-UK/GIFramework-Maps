@@ -268,7 +268,7 @@ BufferTool.optionsHTML = `
         <label class="form-label">Radius</label>
         <div class="col-sm-10 col-md-8">
             <div class="input-group mb-3">
-                <input type="text" class="form-control" id="radiusNumber" data-style-property="radiusNumber">
+                <input type="number" class="form-control" id="radiusNumber" data-style-property="radiusNumber">
                     <select class="form-select" id="radiusUnit" data-style-property="radiusUnit">
                         <option selected value="meters">Metres</option>
                         <option value="kilometers">Kilometres</option>

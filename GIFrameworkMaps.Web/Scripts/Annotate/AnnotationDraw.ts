@@ -20,10 +20,10 @@ export default class AnnotationDraw extends Draw {
     annotationLayer: AnnotationLayer,
     annotationStyle: AnnotationStyle,
   ) {
-      const tip = (annotationStyle.activeTool.name === "Buffer" 
-          ? "Click to draw a buffer"
-          : "Click to start drawing"
-      );
+    const tip = (annotationStyle.activeTool.name === "Buffer" 
+        ? "Click to draw a buffer"
+        : "Click to start drawing"
+    );
     super({
       source: annotationLayer.getSource(),
       type: type,
