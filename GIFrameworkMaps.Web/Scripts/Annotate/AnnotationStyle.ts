@@ -26,7 +26,7 @@ export default class AnnotationStyle extends Style {
   borderColourHex: string;
   pointHasBorder: boolean;
   borderWidth: number;
-
+  editMode: "edit" | "create";
   constructor(gifwMap: GIFWMap) {
     super();
     this.gifwMapInstance = gifwMap;
@@ -55,6 +55,7 @@ export default class AnnotationStyle extends Style {
     this.borderColour = "rgb(0, 0, 0)";
     this.borderColourHex = "000000";
     this.borderWidth = 0.5;
+    this.editMode = "create";
     this.setFill(
       new Fill({
         color: this.fillColour,

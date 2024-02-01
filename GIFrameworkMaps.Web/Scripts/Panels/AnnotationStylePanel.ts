@@ -22,12 +22,12 @@ export default class AnnotationStylePanel implements SidebarPanel {
     this.render();
   }
 
-  render(editMode: "create" | "edit" = "create") {
+  render() {
     if (this.optionsPanel) {
       if (this.activeStyle) {
         this.optionsPanel.innerHTML = this.activeStyle.activeTool.optionsHTML;
 
-        this.rebuildFromStyle(this.activeStyle, true, editMode);
+        this.rebuildFromStyle(this.activeStyle, true);
       } else {
         Sidebar.close();
       }
@@ -70,7 +70,7 @@ export default class AnnotationStylePanel implements SidebarPanel {
         "gifw-annotate-update-panel",
         (e: AnnotationStyleEvent) => {
           if (e.detail?.style) {
-            this.rebuildFromStyle(e.detail.style, undefined, e.detail.editMode);
+            this.rebuildFromStyle(e.detail.style);
             sidebar.open();
           } else {
             this.activeStyle = undefined;
@@ -102,12 +102,11 @@ export default class AnnotationStylePanel implements SidebarPanel {
   private rebuildFromStyle(
     style: AnnotationStyle,
       inhibitRender: boolean = false,
-    editMode: "create" | "edit" = "create",
   ) {
     this.activeStyle = style;
     if (this.activeStyle) {
       if (!inhibitRender) {
-        this.render(editMode);
+        this.render();
         return;
       }
       if (this.optionsPanel) {
@@ -141,7 +140,7 @@ export default class AnnotationStylePanel implements SidebarPanel {
             case "radiusNumber":
               control.value = this.activeStyle.radiusNumber.toString();
                   control.setAttribute("input-text", control.value);
-                  if (editMode === "edit") {
+                  if (this.activeStyle.editMode === "edit") {
                       control.disabled = true;
                   } else {
                       control.disabled = false;

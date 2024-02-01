@@ -189,11 +189,12 @@ export default class AnnotationSelect extends Select {
       this.selectedFeatures.forEach((feature) => {
         this.updateSelectionBackdrop(feature);
         if (feature.getStyle() instanceof AnnotationStyle) {
+          const style = feature.getStyle();
+          (style as AnnotationStyle).editMode = "edit";
           document.getElementById(this.gifwMapInstance.id).dispatchEvent(
             new CustomEvent("gifw-annotate-update-panel", {
               detail: {
-                    style: feature.getStyle(),
-                editMode: "edit",
+                    style: style,
               },
             }) as AnnotationStyleEvent,
           );
