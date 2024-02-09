@@ -57,6 +57,9 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Version" asp-action="Index">Change version</a>
+                        </li>
                         @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["PrivacyLink"])) && Uri.IsWellFormedUriString(Convert.ToString(ViewData["PrivacyLink"]), UriKind.Absolute))
                         {
                             <li class="nav-item">
