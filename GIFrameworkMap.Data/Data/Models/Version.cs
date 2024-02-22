@@ -36,8 +36,7 @@ namespace GIFrameworkMaps.Data.Models
         public int? TourDetailsId { get; set; }
         [Display(Name = "Version Notes (optional)"), MaxLength(500)]
         public string? VersionNotes { get; set; }
-		[Display(Name="Map Projection")]
-		public int? MapProjectionId { get; set; }
+		public List<VersionProjection> VersionProjections { get; set; } = [];
         public List<VersionUser> VersionUsers { get; set; } = [];
         public List<VersionBasemap> VersionBasemaps { get; set; } = [];
         public List<VersionCategory> VersionCategories { get; set; } = [];
@@ -49,6 +48,5 @@ namespace GIFrameworkMaps.Data.Models
         public virtual Theme? Theme { get; set; }
         public virtual WelcomeMessage? WelcomeMessage { get; set; }
         public virtual TourDetails? TourDetails { get; set; }
-		public virtual Projection? MapProjection { get; set; }
     }
 }

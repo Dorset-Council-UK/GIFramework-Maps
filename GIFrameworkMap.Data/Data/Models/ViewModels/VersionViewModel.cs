@@ -9,8 +9,8 @@ namespace GIFrameworkMaps.Data.Models.ViewModels
         public string? Name { get; set; }
         public string? Description { get; set; }
         public string? Slug { get; set; }
-        public List<CategoryViewModel> Categories { get; set; } = new();
-        public List<BasemapViewModel> Basemaps { get; set; } = new();
+        public List<CategoryViewModel> Categories { get; set; } = [];
+        public List<BasemapViewModel> Basemaps { get; set; } = [];
         public string? HelpURL { get; set; }
         public string? FeedbackURL { get; set; }
         public bool ShowLogin { get; set; }
@@ -18,7 +18,7 @@ namespace GIFrameworkMaps.Data.Models.ViewModels
         public Bound? Bound { get; set; }
         public WelcomeMessage? WelcomeMessage { get; set; }
         public TourDetails? TourDetails { get; set; }
-		public Projection? MapProjection { get; set; }
+		public List<ProjectionViewModel> AvailableProjections { get; set; } = [];
         public string? AppRoot { get; set; }
         public string? GoogleMapsAPIKey { get; set; }
         public bool IsLoggedIn { get; set; }

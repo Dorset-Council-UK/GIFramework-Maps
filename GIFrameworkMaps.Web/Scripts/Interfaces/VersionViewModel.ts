@@ -20,7 +20,7 @@ export interface VersionViewModel {
   bound: Bound;
   welcomeMessage: WelcomeMessage;
   tourDetails: TourDetails;
-  mapProjection: Projection;
+  availableProjections: Projection[];
   appRoot: string;
   appInsightsKey: string;
   googleMapsAPIKey: string;

@@ -95,7 +95,6 @@ namespace GIFrameworkMaps.Data
                                     .Include(v => v.Bound)
                                     .Include(v => v.Theme)
                                     .Include(v => v.WelcomeMessage)
-									.Include(v => v.MapProjection)
                                     .Include(v => v.TourDetails)
                                         .ThenInclude(t => t!.Steps)
                                     .Include(v => v.VersionBasemaps)
@@ -132,6 +131,8 @@ namespace GIFrameworkMaps.Data
                                         .ThenInclude(l => l!.LayerSource)
                                         .ThenInclude(l => l!.Attribution)
                                     .Include(v => v.VersionLayerCustomisations)
+									.Include(v => v.VersionProjections)
+										.ThenInclude(p => p.Projection)
                                     .AsSplitQuery()
                                     .AsNoTrackingWithIdentityResolution()
                                     .FirstOrDefault(v => v.Id == versionId);
@@ -157,8 +158,11 @@ namespace GIFrameworkMaps.Data
             List<Data.Models.ViewModels.CategoryViewModel> categories =
                 _mapper.Map<List<Data.Models.VersionCategory>, List<Data.Models.ViewModels.CategoryViewModel>>(version.VersionCategories);
 
-            //remove duplicates
-            var allLayers = (from cat in version.VersionCategories from layers in cat.Category!.Layers select layers).ToList();
+			List<Data.Models.ViewModels.ProjectionViewModel> projections =
+				_mapper.Map<List<Data.Models.VersionProjection>, List<Data.Models.ViewModels.ProjectionViewModel>>(version.VersionProjections);
+
+			//remove duplicates
+			var allLayers = (from cat in version.VersionCategories from layers in cat.Category!.Layers select layers).ToList();
             var dupes = allLayers.GroupBy(l => l.LayerId).Where(l => l.Count() > 1).ToList();
             foreach(var duplicate in dupes)
             {
@@ -189,10 +193,20 @@ namespace GIFrameworkMaps.Data
                     }
                 }
             }
+			if (projections.Count == 0)
+			{
+				throw new ApplicationException($"No projections were defined for version {version.Name}. This is an invalid configuration.");
+			}
+			if(!projections.Any(p => p.IsDefaultMapProjection))
+			{
+				projections.First().IsDefaultMapProjection = true;
+				_logger.LogWarning("Version {version} does not have a default map projection set. First projection has been automatically selected", version.Name);
+			}
 
             var viewModel = _mapper.Map<Data.Models.ViewModels.VersionViewModel>(version);
             viewModel.Categories = categories;
             viewModel.Basemaps = basemaps;
+			viewModel.AvailableProjections = projections;
 
             return viewModel;
         }

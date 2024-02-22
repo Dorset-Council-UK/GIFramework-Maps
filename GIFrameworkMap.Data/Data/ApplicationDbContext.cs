@@ -50,6 +50,7 @@ namespace GIFrameworkMaps.Data
             modelBuilder.Entity<VersionCategory>().HasKey(v => new { v.CategoryId, v.VersionId });
             modelBuilder.Entity<VersionAnalytic>().HasKey(v => new { v.AnalyticsDefinitionId, v.VersionId });
             modelBuilder.Entity<VersionContact>().HasKey(v => new { v.VersionContactId, v.VersionId });
+			modelBuilder.Entity<VersionProjection>().HasKey(v => new { v.ProjectionId, v.VersionId });
             modelBuilder.Entity<CategoryLayer>().HasKey(c => new { c.CategoryId, c.LayerId });
             modelBuilder.Entity<VersionSearchDefinition>().HasKey(v => new { v.SearchDefinitionId, v.VersionId });
             modelBuilder.Entity<VersionPrintConfiguration>().HasKey(v => new { v.PrintConfigurationId, v.VersionId });
