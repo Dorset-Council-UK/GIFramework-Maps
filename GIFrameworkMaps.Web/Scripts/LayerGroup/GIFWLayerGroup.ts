@@ -46,8 +46,9 @@ export class GIFWLayerGroup implements LayerGroup {
       | olLayer.Tile<olSource.XYZ>
       | olLayer.Tile<olSource.TileWMS>
       | olLayer.Image<olSource.ImageWMS>
-    > = [];
-    const viewProj = `EPSG:${this.gifwMapInstance.config.mapProjection?.epsgCode ?? "3857"}`;
+      > = [];
+    const defaultMapProjection = this.gifwMapInstance.config.availableProjections.filter(p => p.isDefaultMapProjection === true)[0];
+    const viewProj = `EPSG:${defaultMapProjection.epsgCode ?? "3857"}`;
     if (this.layers !== null) {
       this.layers.forEach((layer) => {
         //let opts: Record<string, any> = {};
@@ -94,11 +95,11 @@ export class GIFWLayerGroup implements LayerGroup {
           ];
           const extentProj = olProj.get('EPSG:3857');
           const reprojectedSourceExtent = transformExtent(extent, extentProj, "EPSG:4326");
-          const viewProj = olProj.get(`EPSG:${this.gifwMapInstance.config.mapProjection?.epsgCode ?? '3857'}`);
+          const viewProj = olProj.get(`EPSG:${defaultMapProjection.epsgCode ?? '3857'}`);
           if (containsExtent(reprojectedSourceExtent, viewProj.getWorldExtent())) {
-            extent = transformExtent(viewProj.getWorldExtent(), 'EPSG:4326', `EPSG:${this.gifwMapInstance.config.mapProjection?.epsgCode ?? '3857'}`);
+            extent = transformExtent(viewProj.getWorldExtent(), 'EPSG:4326', `EPSG:${defaultMapProjection.epsgCode ?? '3857'}`);
           } else {
-            extent = transformExtent(extent, 'EPSG:3857', `EPSG:${this.gifwMapInstance.config.mapProjection?.epsgCode ?? '3857'}`);
+            extent = transformExtent(extent, 'EPSG:3857', `EPSG:${defaultMapProjection.epsgCode ?? '3857'}`);
           }
         }
         switch (layer.layerSource.layerSourceType.name) {

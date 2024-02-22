@@ -3,7 +3,8 @@ import * as olProj from "ol/proj";
 import { toStringHDMS } from "ol/coordinate";
 import { Modal } from "bootstrap";
 import { UserSettings } from "./UserSettings";
-import { Projection } from "./Util";
+import { Projection } from "./Interfaces/Projection";
+import { Projection as utilProjection } from "./Util";
 /**
  * A customised mouse position control that handles BNG Alphanumeric and setting decimal places
  *
@@ -16,11 +17,17 @@ export class GIFWMousePositionControl extends olControl.Control {
   projection: string;
   decimals: number;
   control: olControl.MousePosition;
+  availableProjections: Projection[];
 
-  constructor(startProjection: string, decimals: number) {
+  constructor(
+    startProjection: string,
+    decimals: number,
+    availableProjections: Projection[],
+  ) {
     super({});
     this.projection = startProjection;
     this.decimals = decimals;
+    this.availableProjections = availableProjections;
     this.init();
   }
 
@@ -66,7 +73,23 @@ export class GIFWMousePositionControl extends olControl.Control {
   }
 
   private attachCoordConfiguratorControls(): void {
-    //add coordinate configurator
+    //add projections to coordinate configurator
+    const list = document.getElementById(
+      "coordConfigProjection",
+    ) as HTMLSelectElement;
+    const nonDefaultProjections = this.availableProjections.filter(
+      (p) => p.epsgCode !== 4326 && p.epsgCode !== 3857,
+    );
+    if (nonDefaultProjections.length !== 0) {
+      nonDefaultProjections.forEach((proj) => {
+        const opt = document.createElement("option");
+        opt.value = proj.epsgCode.toString();
+        opt.text = proj.name;
+        opt.dataset.gifwDefaultDecimals = "2"; //TODO - Make this DB settable
+        list.add(opt);
+      });
+    }
+
     document.getElementById("giframeworkMap").addEventListener("click", (e) => {
       if ((e.target as HTMLAnchorElement).id === "coordinate-configurator") {
         //open modal for metadata
@@ -166,7 +189,7 @@ export class GIFWMousePositionControl extends olControl.Control {
     if (code === "277001") {
       //this is a funny one that requires specific handling, hence the fake EPSG Code
       //do coord conversion
-      return Projection.convertBNGToAlpha(x, y, true);
+      return utilProjection.convertBNGToAlpha(x, y, true);
     } else if (code === "43261") {
       //this is a funny one that requires specific handling, hence the fake EPSG Code
       //do coord conversion
@@ -194,7 +217,7 @@ export class GIFWMousePositionControl extends olControl.Control {
     if (code === "277001") {
       //this is a funny one that requires specific handling, hence the fake EPSG Code
       //do coord conversion
-      return [Projection.convertBNGToAlpha(x, y, true)];
+      return [utilProjection.convertBNGToAlpha(x, y, true)];
     } else if (code === "43261") {
       //this is a funny one that requires specific handling, hence the fake EPSG Code
       //do coord conversion

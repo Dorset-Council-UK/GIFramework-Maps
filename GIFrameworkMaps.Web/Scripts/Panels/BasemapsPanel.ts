@@ -122,20 +122,6 @@ export class BasemapsPanel implements SidebarPanel {
     }`;
     meta.id = `basemaps-meta-${basemapConfiguration.id}`;
 
-    const source = basemap.getSource();
-    if (source.getProjection) {
-      const proj = source.getProjection() as Projection;
-      if (
-        proj &&
-        proj.getCode() !==
-          this.gifwMapInstance.olMap.getView().getProjection().getCode()
-      ) {
-        meta.insertAdjacentHTML(
-          "afterbegin",
-          `<div class="alert alert-warning">The projection of the source data is different from the map. This basemap may have some rendering issues (such as blurring or mis-matching)</div>`,
-        );
-      }
-    }
     const opacityControls = PanelHelper.renderSliderControl(
       basemapConfiguration.id,
       basemap.getOpacity() * 100,
@@ -159,6 +145,21 @@ export class BasemapsPanel implements SidebarPanel {
     meta.appendChild(opacityControls);
     meta.appendChild(saturationControls);
     meta.appendChild(aboutLink);
+
+    const source = basemap.getSource();
+    if (source.getProjection) {
+      const proj = source.getProjection() as Projection;
+      if (
+        proj &&
+        proj.getCode() !==
+        this.gifwMapInstance.olMap.getView().getProjection().getCode()
+      ) {
+        meta.insertAdjacentHTML(
+          "beforeend",
+          `<p><span class="bi bi-exclamation-circle"></span> The projection of the source data is different from the map. This basemap may have some rendering issues (such as blurring or mis-matching)</p>`,
+        );
+      }
+    }
     return meta;
   }
 

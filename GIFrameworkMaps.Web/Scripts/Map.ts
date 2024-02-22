@@ -2,7 +2,12 @@
 import * as olControl from "ol/control";
 import * as olProj from "ol/proj";
 import * as olLayer from "ol/layer";
-import { Extent, containsExtent, containsCoordinate, applyTransform } from "ol/extent";
+import {
+  Extent,
+  containsExtent,
+  containsCoordinate,
+  applyTransform,
+} from "ol/extent";
 import * as gifwSidebar from "../Scripts/Sidebar";
 import * as gifwSidebarCollection from "../Scripts/SidebarCollection";
 import { GIFWMousePositionControl } from "../Scripts/MousePositionControl";
@@ -41,6 +46,7 @@ import {
   Mapping as MappingHelper,
 } from "./Util";
 import LayerRenderer from "ol/renderer/Layer";
+import { Projection } from "./Interfaces/Projection";
 
 export class GIFWMap {
   id: string;
@@ -78,33 +84,18 @@ export class GIFWMap {
    * @returns OpenLayers map reference to the created map
    * */
   public initMap(): olMap {
-    /*TODO - THIS IS A NASTY MEGA FUNCTION OF ALMOST 300 LINES OF CODE. SIMPLIFY!!!
+    /*TODO - THIS IS A NASTY MEGA FUNCTION OF ALMOST 300 LINES OF CODE. SIMPLIFY!!!*/
 
-    //register projections /*TODO Make this more dynamic, allowing other projections to be loaded*/
-    const viewProjectionCode = `EPSG:${this.config.mapProjection?.epsgCode ?? "3857"}`;
-    if (this.config.mapProjection?.proj4Definition !== null) {
-      proj4.defs(
-        `EPSG:${this.config.mapProjection.epsgCode}`,
-        this.config.mapProjection.proj4Definition,
-      );
-      //Adds GML version to get round GML readFeature issues - https://github.com/openlayers/openlayers/issues/3898#issuecomment-120899034
-      proj4.defs(
-        `http://www.opengis.net/gml/srs/epsg.xml#${this.config.mapProjection.epsgCode}`,
-        this.config.mapProjection.proj4Definition,
-      );
-      register(proj4);
-      const addedProj = olProj.get(`EPSG:${this.config.mapProjection.epsgCode}`);
-      const addedGMLProj = olProj.get(`http://www.opengis.net/gml/srs/epsg.xml#${this.config.mapProjection.epsgCode}`);
-      addedProj.setWorldExtent([this.config.mapProjection.minBoundX, this.config.mapProjection.minBoundY, this.config.mapProjection.maxBoundX, this.config.mapProjection.maxBoundY]);
-      addedGMLProj.setWorldExtent([this.config.mapProjection.minBoundX, this.config.mapProjection.minBoundY, this.config.mapProjection.maxBoundX, this.config.mapProjection.maxBoundY]);
+    //register projections
+    this.registerProjections(this.config.availableProjections);
+    const defaultMapProjection = this.config.availableProjections.filter(
+      (p) => p.isDefaultMapProjection === true,
+    )[0];
+    const mapProjectionCode = `EPSG:${defaultMapProjection.epsgCode}`;
+    const viewProjection = olProj.get(mapProjectionCode);
+    const fromLonLat = olProj.getTransform("EPSG:4326", viewProjection);
+    const from3857 = olProj.getTransform("EPSG:3857", viewProjection);
 
-      olProj.addEquivalentProjections([addedProj, addedGMLProj])
-
-    }
-    const viewProjection = olProj.get(viewProjectionCode);
-    const fromLonLat = olProj.getTransform('EPSG:4326', viewProjection);
-    const from3857 = olProj.getTransform('EPSG:3857', viewProjection);
-    
     //parse permalink params
     let permalinkParams: Record<string, string> = {};
     if (window.location.hash !== "") {
@@ -125,7 +116,11 @@ export class GIFWMap {
       tipLabel: "Reset rotation (Alt-Shift and Drag to rotate)",
     });
     //mouse position controls. TODO - alow DB setting of initial coord system
-    const mousePosition = new GIFWMousePositionControl(viewProjectionCode, 0);
+    const mousePosition = new GIFWMousePositionControl(
+      defaultMapProjection.epsgCode.toString(),
+      0,
+      this.config.availableProjections,
+    );
     const contextMenu = new GIFWContextMenu(mousePosition);
     //add measure
     const measureControl = new Measure(this);
@@ -320,10 +315,10 @@ export class GIFWMap {
         center: olProj.transform(
           defaultCenter,
           olProj.get(`EPSG:${defaultCRS}`),
-          olProj.get(`EPSG:${this.config.mapProjection?.epsgCode ?? "3857"}`),
+          olProj.get(mapProjectionCode),
         ),
         zoom: defaultZoom,
-        projection: `EPSG:${this.config.mapProjection?.epsgCode ?? "3857"}`,
+        projection: mapProjectionCode,
         extent: applyTransform(viewProjection.getWorldExtent(), fromLonLat),
         constrainOnlyCenter: true,
         maxZoom: startMaxZoom,
@@ -475,6 +470,37 @@ export class GIFWMap {
       });
 
     return map;
+  }
+
+  private registerProjections(availableProjections: Projection[]) {
+    availableProjections.forEach((projection) => {
+      if (projection.proj4Definition !== null) {
+        proj4.defs(`EPSG:${projection.epsgCode}`, projection.proj4Definition);
+        //Adds GML version to get round GML readFeature issues - https://github.com/openlayers/openlayers/issues/3898#issuecomment-120899034
+        proj4.defs(
+          `http://www.opengis.net/gml/srs/epsg.xml#${projection.epsgCode}`,
+          projection.proj4Definition,
+        );
+        register(proj4);
+        const addedProj = olProj.get(`EPSG:${projection.epsgCode}`);
+        const addedGMLProj = olProj.get(
+          `http://www.opengis.net/gml/srs/epsg.xml#${projection.epsgCode}`,
+        );
+        addedProj.setWorldExtent([
+          projection.minBoundX,
+          projection.minBoundY,
+          projection.maxBoundX,
+          projection.maxBoundY,
+        ]);
+        addedGMLProj.setWorldExtent([
+          projection.minBoundX,
+          projection.minBoundY,
+          projection.maxBoundX,
+          projection.maxBoundY,
+        ]);
+        olProj.addEquivalentProjections([addedProj, addedGMLProj]);
+      }
+    });
   }
 
   /**
