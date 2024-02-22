@@ -7,6 +7,7 @@
   minBoundY: number;
   maxBoundX: number;
   maxBoundY: number;
+  defaultRenderedDecimalPlaces: number;
   isDefaultMapProjection: boolean;
   isDefaultViewProjection: boolean;
 }

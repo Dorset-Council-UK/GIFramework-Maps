@@ -85,8 +85,17 @@ export class GIFWMousePositionControl extends olControl.Control {
         const opt = document.createElement("option");
         opt.value = proj.epsgCode.toString();
         opt.text = proj.name;
-        opt.dataset.gifwDefaultDecimals = "2"; //TODO - Make this DB settable
+        opt.dataset.gifwDefaultDecimals =
+          proj.defaultRenderedDecimalPlaces.toString();
         list.add(opt);
+        if (proj.epsgCode === 27700) {
+          //add the 277001 fake projection for BNG Alphanumeric representation
+          //TODO - Make this smarter!
+          const opt = document.createElement("option");
+          opt.value = "277001";
+          opt.text = "British National Grid Alphanumeric";
+          list.add(opt);
+        }
       });
     }
 

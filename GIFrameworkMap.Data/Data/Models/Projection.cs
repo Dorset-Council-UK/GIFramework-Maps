@@ -10,5 +10,6 @@
 		public decimal MinBoundY { get; set; }
 		public decimal MaxBoundX { get; set; }
 		public decimal MaxBoundY { get; set; }
+		public int DefaultRenderedDecimalPlaces { get; set; }
 	}
 }

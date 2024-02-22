@@ -118,7 +118,7 @@ export class GIFWMap {
     //mouse position controls. TODO - alow DB setting of initial coord system
     const mousePosition = new GIFWMousePositionControl(
       defaultMapProjection.epsgCode.toString(),
-      0,
+      defaultMapProjection.defaultRenderedDecimalPlaces,
       this.config.availableProjections,
     );
     const contextMenu = new GIFWContextMenu(mousePosition);
