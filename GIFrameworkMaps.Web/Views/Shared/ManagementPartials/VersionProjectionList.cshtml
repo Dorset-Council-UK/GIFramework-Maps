@@ -1,0 +1,45 @@
+﻿@model GIFrameworkMaps.Data.Models.ViewModels.Management.VersionEditModel
+
+@foreach (var projection in Model.AvailableProjections)
+{
+    bool isChecked = Model.SelectedProjections != null && Model.SelectedProjections.Where(p => p == projection.EPSGCode).Count() != 0;
+    <div class="form-check">
+        <input type="checkbox"
+        class="form-check-input"
+        name="SelectedProjections"
+        value="@projection.EPSGCode"
+        id="SelectedProjections__@projection.EPSGCode"
+        @(Html.Raw(isChecked ? "checked=\"checked\"" : "")) />
+        <label class="form-check-label" for="SelectedProjections__@projection.EPSGCode">@projection.Name</label>
+    </div>
+}
+
+<div class="mt-3">
+
+    <label asp-for="MapProjection" class="control-label"></label>
+    <select name="MapProjection" class="form-select" id="MapProjection">
+    @foreach (var projection in Model.AvailableProjections)
+    {
+        bool isSelected = Model.MapProjection == projection.EPSGCode;
+            <!option value="@projection.EPSGCode" @(Html.Raw(isSelected ? "selected" : ""))>
+                @projection.Name (EPSG:@projection.EPSGCode)
+        </!option>
+    }
+    </select>
+    <span asp-validation-for="MapProjection" class="text-danger"></span>
+</div>
+
+<div class="mt-3">
+
+    <label asp-for="ViewProjection" class="control-label"></label>
+    <select name="ViewProjection" class="form-select" id="ViewProjection">
+        @foreach (var projection in Model.AvailableProjections)
+        {
+            bool isSelected = Model.ViewProjection == projection.EPSGCode;
+            <!option value="@projection.EPSGCode" @(Html.Raw(isSelected ? "selected" : ""))>
+                @projection.Name (EPSG:@projection.EPSGCode)
+            </!option>
+        }
+    </select>
+    <span asp-validation-for="ViewProjection" class="text-danger"></span>
+</div>

@@ -1,4 +1,6 @@
 ﻿@model List<GIFrameworkMaps.Data.Models.WebLayerServiceDefinition>
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 @{
     ViewData["Title"] = "Create a layer";
     //TODO Temporary hack using url.content to generate correct link
@@ -67,6 +69,7 @@
                                     <input class="form-check-input mt-0" type="checkbox" value="@proxyEndpoint" id="use-proxy"><label class="ms-2" for="use-proxy">Use proxy</label>
                                 </div>
                                 <button class="btn btn-outline-primary" type="button" id="web-service-text-connect">Connect</button>
+                                <input type="hidden" id="preferred-projections-list" value="@Configuration["GIFrameworkMaps:PreferredProjections"]" />
                             </div>
                         </div>
                     </form>

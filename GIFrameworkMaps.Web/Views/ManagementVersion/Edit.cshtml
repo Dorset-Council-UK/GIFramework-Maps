@@ -113,7 +113,9 @@
                 <input type="submit" value="Save" class="btn btn-primary btn-lg" />
                 <a asp-action="Index" class="btn btn-link">Cancel</a>
             </div>
-
+            <div class="mb-3">
+                <a asp-action="Delete" asp-route-id="@Model.Version.Id" class="btn btn-danger">Delete</a>
+            </div>
         
         </div>
         <div class="col-md-6">
@@ -135,7 +137,14 @@
                     <partial name="ManagementPartials/VersionBasemapList" model="Model" view-data="ViewData" />
                 </div>
             </div>
-
+            <div class="card mb-2">
+                <div class="card-header">
+                    Projections
+                </div>
+                <div class="card-body">
+                    <partial name="ManagementPartials/VersionProjectionList" model="Model" view-data="ViewData" />
+                </div>
+            </div>
             <div class="card mb-2">
                 <div class="card-header">
                     Categories
@@ -146,7 +155,7 @@
             </div>
         </div>
     </div>
-    <a asp-action="Delete" asp-route-id="@Model.Version.Id" class="btn btn-danger">Delete</a>
+
 
 </form>
 
