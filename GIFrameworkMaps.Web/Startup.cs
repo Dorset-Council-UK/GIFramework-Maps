@@ -171,7 +171,12 @@ namespace GIFrameworkMaps.Web
                     pattern: "Management/User/{action=Index}/{id?}",
                     defaults: new { controller = "ManagementUser", action = "Index" });
 
-                endpoints.MapControllerRoute("General_Map_Redirect", "Map", new { controller = "Map", action = "RedirectToGeneral" });
+				endpoints.MapControllerRoute(
+					name: "ManagementInterface-System-Projection",
+					pattern: "Management/System/Projection/{action=Index}/{id?}",
+					defaults: new { controller = "ManagementProjection", action = "Index" });
+
+				endpoints.MapControllerRoute("General_Map_Redirect", "Map", new { controller = "Map", action = "RedirectToGeneral" });
                 
                 endpoints.MapControllerRoute(
                     name: "default",

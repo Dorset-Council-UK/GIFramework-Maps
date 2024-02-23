@@ -45,6 +45,8 @@ namespace GIFrameworkMaps.Data
         Task<List<LocalSearchDefinition>> GetLocalSearchDefinitions();
         Task<List<Microsoft.Graph.Beta.Models.User>> GetUsers();
         Task<Microsoft.Graph.Beta.Models.User?> GetUser(string id);
-        AnalyticsViewModel GetAnalyticsModel();
+		Task<Projection?> GetProjection(int id);
+		Task<List<Projection>> GetProjections();
+		AnalyticsViewModel GetAnalyticsModel();
     }
 }

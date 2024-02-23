@@ -1,0 +1,61 @@
+﻿@model List<GIFrameworkMaps.Data.Models.Projection>
+@{
+    ViewData["Title"] = "Projections";
+}
+
+<partial name="ManagementPartials/BackToManagementHome" />
+
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Register, edit and delete projections</p>
+
+<a href="@Url.Action("Register")" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Register new projection</a>
+
+@if (Model != null)
+{
+    <table id="projectionTable" class="table table-bordered table-striped mt-2">
+        <thead>
+            <tr>
+                <th>EPSG Code</th><th>Name</th><th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (GIFrameworkMaps.Data.Models.Projection projection in Model.OrderBy(a => a.EPSGCode))
+            {
+                <tr>
+                    <td>@projection.EPSGCode</td>
+                    <td>@Html.ActionLink(projection.Name, "Edit", new { id = projection.EPSGCode })</td>
+                    <td>@projection.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No projections have been registered yet</div>
+}
+
+@section Scripts {
+    <script>
+        const opts = {
+            perPage: 50,
+            perPageSelect: [10, 25, 50, 100, ["All", 0]],
+            classes:
+            {
+                input: "form-control",
+                top: "datatable-top px-0",
+                selector: "form-select",
+                paginationList: "pagination",
+                paginationListItem: "page-item",
+                paginationListItemLink: "page-link",
+                active: 'active',
+                disabled: 'disabled'
+            }
+        };
+        const dataTable = new simpleDatatables.DataTable("#projectionTable", opts);
+    </script>
+}
+
+            
+
+
