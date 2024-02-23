@@ -91,6 +91,9 @@ export class GIFWMap {
     const defaultMapProjection = this.config.availableProjections.filter(
       (p) => p.isDefaultMapProjection === true,
     )[0];
+    const defaultViewProjection = this.config.availableProjections.filter(
+      (p) => p.isDefaultViewProjection === true,
+    )[0];
     const mapProjectionCode = `EPSG:${defaultMapProjection.epsgCode}`;
     const viewProjection = olProj.get(mapProjectionCode);
     const fromLonLat = olProj.getTransform("EPSG:4326", viewProjection);
@@ -117,8 +120,8 @@ export class GIFWMap {
     });
     //mouse position controls. TODO - alow DB setting of initial coord system
     const mousePosition = new GIFWMousePositionControl(
-      defaultMapProjection.epsgCode.toString(),
-      defaultMapProjection.defaultRenderedDecimalPlaces,
+      defaultViewProjection.epsgCode.toString(),
+      defaultViewProjection.defaultRenderedDecimalPlaces,
       this.config.availableProjections,
     );
     const contextMenu = new GIFWContextMenu(mousePosition);

@@ -32,7 +32,9 @@ export class GIFWMousePositionControl extends olControl.Control {
   }
 
   public init(): olControl.MousePosition {
-    let mousePositionProjection = olProj.get(this.projection);
+    let mousePositionProjection = olProj.get(
+      this.getProjectionString(this.projection),
+    );
     const preferredProjectionEPSG = UserSettings.getItem(
       "MousePositionProjection-Code",
     );

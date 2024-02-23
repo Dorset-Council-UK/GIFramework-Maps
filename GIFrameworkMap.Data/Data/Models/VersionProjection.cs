@@ -6,6 +6,6 @@
 		public int ProjectionId { get; set; }
 		public bool IsDefaultMapProjection { get; set; }
 		public bool IsDefaultViewProjection {  get; set; }
-		public required Projection Projection { get; set; }
+		public Projection? Projection { get; set; }
     }
 }

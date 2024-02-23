@@ -50,15 +50,15 @@ namespace GIFrameworkMaps.Data
                 .ForMember(cl => cl.ProxyMetaRequests, lvm => lvm.MapFrom(s => s.Layer!.ProxyMetaRequests));
 
 			CreateMap<VersionProjection, ProjectionViewModel>()
-				.ForMember(vp => vp.EPSGCode, pvm => pvm.MapFrom(s => s.Projection.EPSGCode))
-				.ForMember(vp => vp.Name, pvm => pvm.MapFrom(s => s.Projection.Name))
-				.ForMember(vp => vp.Description, pvm => pvm.MapFrom(s => s.Projection.Description))
-				.ForMember(vp => vp.Proj4Definition, pvm => pvm.MapFrom(s => s.Projection.Proj4Definition))
-				.ForMember(vp => vp.DefaultRenderedDecimalPlaces, pvm => pvm.MapFrom(s => s.Projection.DefaultRenderedDecimalPlaces))
-				.ForMember(vp => vp.MinBoundX, pvm => pvm.MapFrom(s => s.Projection.MinBoundX))
-				.ForMember(vp => vp.MinBoundY, pvm => pvm.MapFrom(s => s.Projection.MinBoundY))
-				.ForMember(vp => vp.MaxBoundX, pvm => pvm.MapFrom(s => s.Projection.MaxBoundX))
-				.ForMember(vp => vp.MaxBoundY, pvm => pvm.MapFrom(s => s.Projection.MaxBoundY))
+				.ForMember(vp => vp.EPSGCode, pvm => pvm.MapFrom(s => s.Projection!.EPSGCode))
+				.ForMember(vp => vp.Name, pvm => pvm.MapFrom(s => s.Projection!.Name))
+				.ForMember(vp => vp.Description, pvm => pvm.MapFrom(s => s.Projection!.Description))
+				.ForMember(vp => vp.Proj4Definition, pvm => pvm.MapFrom(s => s.Projection!.Proj4Definition))
+				.ForMember(vp => vp.DefaultRenderedDecimalPlaces, pvm => pvm.MapFrom(s => s.Projection!.DefaultRenderedDecimalPlaces))
+				.ForMember(vp => vp.MinBoundX, pvm => pvm.MapFrom(s => s.Projection!.MinBoundX))
+				.ForMember(vp => vp.MinBoundY, pvm => pvm.MapFrom(s => s.Projection!.MinBoundY))
+				.ForMember(vp => vp.MaxBoundX, pvm => pvm.MapFrom(s => s.Projection!.MaxBoundX))
+				.ForMember(vp => vp.MaxBoundY, pvm => pvm.MapFrom(s => s.Projection!.MaxBoundY))
 				.ForMember(vp => vp.IsDefaultViewProjection, pvm => pvm.MapFrom(s => s.IsDefaultViewProjection))
 				.ForMember(vp => vp.IsDefaultMapProjection, pvm => pvm.MapFrom(s => s.IsDefaultMapProjection));
 
