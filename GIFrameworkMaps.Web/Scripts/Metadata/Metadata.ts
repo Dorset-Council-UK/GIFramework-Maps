@@ -369,7 +369,7 @@ export class Metadata {
           if (n.nodeName === "Attribution") {
             n.childNodes.forEach((c) => {
               if (c.nodeName === "Title") {
-                attribution = c.textContent.replace(
+                attribution = c.textContent.replaceAll(
                   "{{CURRENT_YEAR}}",
                   new Date().getFullYear().toString(),
                 );

@@ -16,6 +16,8 @@ export default class AnnotationStyle extends Style {
   opacity: number;
   pointType: string;
   size: number;
+  radiusNumber: number;
+  radiusUnit: "meters" | "kilometers" | "miles" | "yards" | "feet";
   strokeColour: string;
   strokeColourHex: string;
   strokeStyle: "solid" | "dashed" | "dotted";
@@ -24,7 +26,7 @@ export default class AnnotationStyle extends Style {
   borderColourHex: string;
   pointHasBorder: boolean;
   borderWidth: number;
-
+  editMode: "edit" | "create";
   constructor(gifwMap: GIFWMap) {
     super();
     this.gifwMapInstance = gifwMap;
@@ -44,6 +46,8 @@ export default class AnnotationStyle extends Style {
     this.labelText = "";
     this.pointType = "pin";
     this.size = 24;
+    this.radiusNumber = 100;
+    this.radiusUnit = "meters";
     this.strokeStyle = "solid";
     this.strokeWidth = 2;
     this.fontFamily = "Arial";
@@ -51,6 +55,7 @@ export default class AnnotationStyle extends Style {
     this.borderColour = "rgb(0, 0, 0)";
     this.borderColourHex = "000000";
     this.borderWidth = 0.5;
+    this.editMode = "create";
     this.setFill(
       new Fill({
         color: this.fillColour,
@@ -139,6 +144,8 @@ export default class AnnotationStyle extends Style {
     clone.opacity = this.opacity;
     clone.pointType = this.pointType;
     clone.size = this.size;
+    clone.radiusNumber = this.radiusNumber;
+    clone.radiusUnit = this.radiusUnit;
     clone.strokeColour = this.strokeColour;
     clone.strokeColourHex = this.strokeColourHex;
     clone.strokeStyle = this.strokeStyle;
@@ -156,7 +163,10 @@ export default class AnnotationStyle extends Style {
   public rebuildForTool(tool: AnnotationTool) {
     this.clear();
     this.activeTool = tool;
-    if (tool.olDrawType != "Point" && tool.name != "Text") {
+    if (
+      tool.name === "Buffer" ||
+      (tool.olDrawType != "Point" && tool.name != "Text")
+    ) {
       let lineDash: number[] | null;
       let lineCap: CanvasLineCap;
       switch (this.strokeStyle) {
@@ -293,6 +303,8 @@ export default class AnnotationStyle extends Style {
     }
     this.pointType = e.detail.style.pointType || this.pointType;
     this.size = e.detail.style.size || this.size;
+    this.radiusNumber = e.detail.style.radiusNumber || this.radiusNumber;
+    this.radiusUnit = e.detail.style.radiusUnit || this.radiusUnit;
     this.strokeColourHex =
       e.detail.style.strokeColourHex || this.strokeColourHex;
     this.strokeStyle = e.detail.style.strokeStyle || this.strokeStyle;

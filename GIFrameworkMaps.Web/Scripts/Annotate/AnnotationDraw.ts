@@ -1,4 +1,6 @@
-﻿import * as Condition from "ol/events/condition";
+﻿import Buffer from "@turf/buffer";
+import { point as turfPoint } from "@turf/helpers";
+import * as Condition from "ol/events/condition";
 import Feature from "ol/Feature";
 import { Draw } from "ol/interaction";
 import { Fill, Style, Text } from "ol/style";
@@ -7,6 +9,8 @@ import { GIFWPopupOptions } from "../Popups/PopupOptions";
 import Geometry, { Type as olGeomType } from "ol/geom/Geometry";
 import AnnotationLayer from "./AnnotationLayer";
 import AnnotationStyle from "./AnnotationStyle";
+import { Point, Polygon } from "ol/geom";
+import { GeoJSON } from "ol/format";
 
 export default class AnnotationDraw extends Draw {
   tip: string;
@@ -16,7 +20,10 @@ export default class AnnotationDraw extends Draw {
     annotationLayer: AnnotationLayer,
     annotationStyle: AnnotationStyle,
   ) {
-    const tip = "Click to start drawing";
+    const tip = (annotationStyle.activeTool.name === "Buffer" 
+        ? "Click to draw a buffer"
+        : "Click to start drawing"
+    );
     super({
       source: annotationLayer.getSource(),
       type: type,
@@ -80,23 +87,61 @@ export default class AnnotationDraw extends Draw {
       if (!annotationLayer.getVisible()) {
         annotationLayer.setVisible(true);
       }
-      e.feature.setStyle(annotationStyle);
+        let feature = e.feature;
+
+    const bufferDistance = annotationStyle.radiusNumber;
+    const bufferUnit = annotationStyle.radiusUnit;
+      if (annotationStyle.activeTool.name === "Buffer") {
+        //create the buffer feature
+
+        const formatter = new GeoJSON({
+          dataProjection: "EPSG:4326",
+        });
+        const featureGeom = e.feature.getGeometry();
+        featureGeom.transform(
+          this.getMap().getView().getProjection(),
+          "EPSG:4326",
+        );
+
+        const point = turfPoint((featureGeom as Point).getCoordinates());
+        const buffer = Buffer(point, bufferDistance, { units: bufferUnit });
+
+        const bufferedFeature = formatter.readFeature(
+          buffer,
+        ) as Feature<Polygon>;
+        const bufferedGeometry = bufferedFeature.getGeometry();
+        bufferedGeometry.transform(
+          "EPSG:4326",
+          this.getMap().getView().getProjection(),
+        );
+        feature = new Feature(bufferedGeometry);
+        annotationLayer.getSource().addFeature(feature);
+      }
+
+      feature.setStyle(annotationStyle);
       const timestamp = new Date().toLocaleString("en-GB", { timeZone: "UTC" });
-      e.feature.set("gifw-popup-title", `${type} added at ${timestamp}`);
-      e.feature.set("gifw-geometry-type", type);
+      feature.set("gifw-popup-title", `${type} added at ${timestamp}`);
+        feature.set("gifw-geometry-type", type);
+        const popupText = (annotationStyle.activeTool.name === "Buffer"
+            ? `<h1>Annotation</h1><p>Buffer of ${bufferDistance} ${bufferUnit} added at ${timestamp}</p>`
+            : `<h1>Annotation</h1><p>${type} added at ${timestamp}</p>`);
       this.addPopupOptionsToFeature(
-        e.feature,
+        feature,
         annotationLayer,
-        `<h1>Annotation</h1><p>${type} added at ${timestamp}</p>`,
+        popupText,
       );
-      this.tip = "Click to start drawing";
+        if (annotationStyle.activeTool.name === "Buffer") {
+            this.tip = "Click to draw a buffer";
+        } else {
+            this.tip = "Click to start drawing";
+        }
       if (
         annotationStyle.activeTool.name == "Text" &&
         annotationStyle.labelText.trim().length == 0
       ) {
         // Do not draw a feature if the 'Add text' tool is active but no text has been specified
         setTimeout(() => {
-          annotationLayer.getSource().removeFeature(e.feature); // Unfortunately, abortDrawing() does not work properly when called by listeners of the drawstart event and a timeout is needed here to allow other events to complete, otherwise removal of the feature errors!
+          annotationLayer.getSource().removeFeature(feature); // Unfortunately, abortDrawing() does not work properly when called by listeners of the drawstart event and a timeout is needed here to allow other events to complete, otherwise removal of the feature errors!
         }, 500);
       }
     });
