@@ -1171,12 +1171,14 @@ export class GIFWMap {
           if (source instanceof TileWMS || source instanceof ImageWMS) {
             const view = this.olMap.getView();
             const viewport = this.olMap.getViewport();
+            //version is forced to 1.1.0 to get around lat/lon flipping issues
             let params = {
               LEGEND_OPTIONS: additionalLegendOptions,
               bbox: view.calculateExtent().toString(),
               srcwidth: viewport.clientWidth,
               srcheight: viewport.clientHeight,
-              crs: view.getProjection().getCode(),
+              srs: view.getProjection().getCode(),
+              version: "1.1.0",
             };
             //merge valid params from the source and add to the legend
             // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Disabled to make make handling this generic object easier. The code is safe as written
