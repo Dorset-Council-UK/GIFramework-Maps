@@ -8,33 +8,6 @@
 <h1>@ViewData["Title"]</h1>
 <p class="lead">Check and update system settings and cache</p>
 
-@* <div class="row">
-    <h2>Cache</h2>
-    <p>Click the big red button below to clear the in memory cache for the application.</p>
-    <p>All cached objects will be purged and will need to be retrieved from storage again.</p>
-    <form asp-controller="ManagementSystem" asp-action="PurgeCache" method="post">
-        <input type="submit" class="btn btn-danger" value="Purge Memory Cache" />
-    </form>
-</div>
-<br>
-<div class="row">
-    <h2>Web layer service definitions</h2>
-    <p>Create, edit and delete web layer service definitions</p>
-    <p>
-        <a href="@Url.Action("Index","ManagementWebLayerServiceDefinition")" class="btn btn-primary"><i class="bi"></i> Manage web layer service definitions</a>
-    </p>
-</div>
-<br>
-<div class="row">
-    <h2>Site analytics and cookie control</h2>
-    <p>Add and manage analytics</p>
-    <p>
-        <a href="@Url.Action("Index","ManagementAnalytics")" class="btn btn-primary"><i class="bi"></i> Manage analytics</a>
-    </p>
-</div> *@
-
-            
-
 <div class="container">
     <div class="row row-cols-1 row-cols-md-3 g-4">
         <div class="col">
@@ -58,7 +31,7 @@
                     <p class="card-text">Create, edit and delete web layer service definitions available to users and administrators</p>
                 </div>
                 <div class="card-footer">
-                    <a href="@Url.Action("Index","ManagementWebLayerServiceDefinition")" class="btn btn-primary"><i class="bi"></i> Manage web layer service definitions</a>
+                    <a href="@Url.Action("Index","ManagementWebLayerServiceDefinition")" class="btn btn-primary">Manage web layer service definitions</a>
                 </div>
             </div>
         </div>
@@ -69,7 +42,7 @@
                     <p class="card-text">Create, edit and delete analytics providers and cookie control</p>
                 </div>
                 <div class="card-footer">
-                    <a href="@Url.Action("Index","ManagementAnalytics")" class="btn btn-primary"><i class="bi"></i> Manage analytics</a>
+                    <a href="@Url.Action("Index","ManagementAnalytics")" class="btn btn-primary">Manage analytics</a>
                 </div>
             </div>
         </div>
@@ -80,12 +53,9 @@
                     <p class="card-text">Create, edit and delete projections available in the app</p>
                 </div>
                 <div class="card-footer">
-                    <a href="@Url.Action("Index","ManagementProjection")" class="btn btn-primary"><i class="bi"></i> Manage projections</a>
+                    <a href="@Url.Action("Index","ManagementProjection")" class="btn btn-primary">Manage projections</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
-        
-
-

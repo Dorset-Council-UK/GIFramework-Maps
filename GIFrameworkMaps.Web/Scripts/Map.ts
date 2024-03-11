@@ -250,12 +250,6 @@ export class GIFWMap {
     let startMinZoom: number = 0;
     const startBasemap = this.config.basemaps.find((b) => b.isDefault);
     if (startBasemap !== null) {
-      //startExtent = [
-      //  startBasemap.bound.bottomLeftX,
-      //  startBasemap.bound.bottomLeftY,
-      //  startBasemap.bound.topRightX,
-      //  startBasemap.bound.topRightY,
-      //];
       startMaxZoom = startBasemap.maxZoom;
       startMinZoom = startBasemap.minZoom;
     }
