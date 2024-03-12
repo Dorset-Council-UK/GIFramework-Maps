@@ -2,12 +2,7 @@
 import * as olControl from "ol/control";
 import * as olProj from "ol/proj";
 import * as olLayer from "ol/layer";
-import {
-  Extent,
-  containsExtent,
-  containsCoordinate,
-  applyTransform,
-} from "ol/extent";
+import { Extent, containsExtent, applyTransform } from "ol/extent";
 import * as gifwSidebar from "../Scripts/Sidebar";
 import * as gifwSidebarCollection from "../Scripts/SidebarCollection";
 import { GIFWMousePositionControl } from "../Scripts/MousePositionControl";
@@ -1106,25 +1101,35 @@ export class GIFWMap {
   }
 
   /**
-   * Checks to see if the passed in extent is reachable in the current map
+   * Checks to see if the passed in extent is reachable in the current map, based on both the active basemap and the maps projection
    * @param extent The Extent to check
    * @returns Boolean, true if extent is reachable, false otherwise
    */
   public isExtentAvailableInCurrentMap(extent: Extent): boolean {
     const activeBasemap = this.getActiveBasemap();
-    const maxBasemapExtent = activeBasemap.getExtent();
-    return containsExtent(maxBasemapExtent, extent);
-  }
-
-  /**
-   * Checks to see if the passed in coordinate is reachable in the current map
-   * @param coord The coordinates to check in the current map views coordinate system
-   *  @returns Boolean, true if coordinate is reachable, false otherwise
-   */
-  public isCoordinateAvailableInCurrentMap(coord: number[]): boolean {
-    const activeBasemap = this.getActiveBasemap();
-    const maxBasemapExtent = activeBasemap.getExtent();
-    return containsCoordinate(maxBasemapExtent, coord);
+    const reprojectedExtent = olProj.transformExtent(
+      extent,
+      this.olMap.getView().getProjection(),
+      "EPSG:4326",
+    );
+    const maxBasemapExtent = olProj.transformExtent(
+      activeBasemap.getExtent(),
+      this.olMap.getView().getProjection(),
+      "EPSG:4326",
+    );
+    const maxMapProjectionExtent = this.olMap
+      .getView()
+      .getProjection()
+      .getWorldExtent();
+    const withinBasemapExtent = containsExtent(
+      maxBasemapExtent,
+      reprojectedExtent,
+    );
+    const withinMapProjectionExtent = containsExtent(
+      maxMapProjectionExtent,
+      reprojectedExtent,
+    );
+    return withinBasemapExtent && withinMapProjectionExtent;
   }
 
   /**
