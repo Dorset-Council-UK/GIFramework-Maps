@@ -150,7 +150,7 @@ export class GIFWGeolocation extends olControl {
 
     //    this.olGeolocation.getAccuracy = () => { return this.simulatedAccuracy[Math.floor(Math.random() * (this.simulatedAccuracy.length - 0 + 1) + 0)];}
     //    this.olGeolocation.getHeading = () => { return this.simulatedHeading[Math.floor(Math.random() * (this.simulatedHeading.length - 0 + 1) + 0)];}
-    //    this.olGeolocation.getPosition = () => {return transform(this.simulatedCoordinates[this._simModeIndex],'EPSG:4326','EPSG:3857');}
+    //this.olGeolocation.getPosition = () => { return transform(this.simulatedCoordinates[this._simModeIndex], 'EPSG:4326', this.olGeolocation.getProjection()); }
 
     //}
   }
