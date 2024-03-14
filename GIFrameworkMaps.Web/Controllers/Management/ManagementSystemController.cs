@@ -25,11 +25,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View();
         }
 
-        public IActionResult Cache()
-        {
-            return View();
-        }
-
         [HttpPost]
         public IActionResult PurgeCache()
         {
@@ -43,5 +38,5 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             TempData["MessageType"] = success ? "success" : "error";
             return RedirectToAction("Index");
         }
-    }
+	}
 }

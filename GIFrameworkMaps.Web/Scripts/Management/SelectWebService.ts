@@ -3,11 +3,16 @@ import { LayerResource } from "../Interfaces/OGCMetadata/LayerResource";
 import { Metadata } from "../Metadata/Metadata";
 
 export class SelectWebService {
+  preferredProjections: string[] = [];
   _fuseInstance: Fuse<LayerResource>;
 
   constructor() {}
 
   public init() {
+    //set preferred projections
+    const preferredProjectionsInput = (document.getElementById('preferred-projections-list') as HTMLInputElement);
+    this.preferredProjections = preferredProjectionsInput.value.split(",");
+
     //hook up connect buttons
     const listConnectBtn = document.getElementById("web-service-list-connect");
     const urlConnectBtn = document.getElementById("web-service-text-connect");
@@ -115,14 +120,7 @@ export class SelectWebService {
     container.id = layer.name;
     header.textContent = layer.title;
     desc.textContent = layer.abstract;
-    const preferredProjections = [
-      "EPSG:3857",
-      "EPSG:900913",
-      "EPSG:27700",
-      "EPSG:4326",
-      "CRS:84",
-    ];
-    const preferredProjection = preferredProjections.find((p) =>
+    const preferredProjection = this.preferredProjections.find((p) =>
       layer.projections.includes(p),
     );
     if (preferredProjection) {

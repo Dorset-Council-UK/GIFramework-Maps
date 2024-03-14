@@ -1,0 +1,105 @@
+﻿@model GIFrameworkMaps.Data.Models.Projection
+@{
+    ViewData["Title"] = $"Edit projection '{Model.Name}' (EPSG:{Model.EPSGCode})";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div>
+    <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/gui/system/#projections" class="btn btn-outline-primary" target="_blank"
+       role="button">Stuck? Read the help documentation</a>
+</div>
+
+<div class="row mt-2 mb-2">
+    <div class="col-md-8">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <input type="hidden" asp-for="EPSGCode" />
+            <div class="mb-3">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Proj4Definition" class="control-label"></label>
+                <textarea asp-for="Proj4Definition" class="form-control"></textarea>
+                <div class="form-text">You can use Proj4JS or WKT style definitions. Get the definitions from <a href="https://epsg.io" target="_blank">https://epsg.io</a> or <a href="https://epsg.org/home.html" target="_blank">https://epsg.org/</a></div>
+                <span asp-validation-for="Proj4Definition" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="DefaultRenderedDecimalPlaces" class="control-label"></label>
+                <div class="row">
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <input asp-for="DefaultRenderedDecimalPlaces" class="form-control" type="number" />
+                    </div>
+                </div>
+                <div class="form-text">This controls how many decimal places will be shown by default when rendering these coordinates</div>
+                <span asp-validation-for="DefaultRenderedDecimalPlaces" class="text-danger"></span>
+            </div>
+
+            <h2>Bounds of coordinate system</h2>
+            <div class="mb-3">
+                <label asp-for="MinBoundX" class="control-label"></label>
+                <div class="row">
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <input asp-for="MinBoundX" class="form-control" />
+                    </div>
+                </div>
+                <span asp-validation-for="MinBoundX" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="MinBoundY" class="control-label"></label>
+                <div class="row">
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <input asp-for="MinBoundY" class="form-control" />
+                    </div>
+                </div>
+                <span asp-validation-for="MinBoundY" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="MaxBoundX" class="control-label"></label>
+                <div class="row">
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <input asp-for="MaxBoundX" class="form-control" />
+                    </div>
+                </div>
+                <span asp-validation-for="MaxBoundX" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="MaxBoundY" class="control-label"></label>
+                <div class="row">
+                    <div class="col-lg-3 col-md-4 col-6">
+                        <input asp-for="MaxBoundY" class="form-control" />
+                    </div>
+                </div>
+                <span asp-validation-for="MaxBoundY" class="text-danger"></span>
+            </div>
+
+
+
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+            </div>
+        </form>
+        
+    </div>
+</div>
+<a asp-action="Delete" asp-route-id="@Model.EPSGCode" class="btn btn-danger">Delete</a>
+
+
+
+            
+
+

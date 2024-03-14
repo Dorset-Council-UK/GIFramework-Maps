@@ -88,4 +88,11 @@
     <_ContentIncludedByDefault Remove="Views\ManagementLayer\ListTemplateHelperPartial.cshtml" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="Views\Shared\ManagementPartials\VersionProjectionList.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

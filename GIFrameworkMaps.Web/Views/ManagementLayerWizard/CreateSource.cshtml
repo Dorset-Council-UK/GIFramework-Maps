@@ -39,6 +39,13 @@
                 </div>
             </div>
 
+            <div class="mb-3">
+                <label asp-for="Projection" class="control-label"></label>
+                <input asp-for="Projection" class="form-control" />
+                <span asp-validation-for="Projection" class="text-danger"></span>
+                <span class="form-text">Leave blank for automatic projection selection based on map - <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/gui/layers/#auto-projection" target="_blank">Learn more</a></span>
+            </div>
+
             <a href="#advancedSettings" class="btn btn-link my-3 ps-0" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="advancedSettings"><i class="bi bi-caret-right"></i> Advanced settings</a>
 
             <div class="collapse border-start border-bottom border-5 ps-3 mb-3" id="advancedSettings">
@@ -59,12 +66,6 @@
                     <label asp-for="Format" class="control-label"></label>
                     <input asp-for="Format" class="form-control" />
                     <span asp-validation-for="Format" class="text-danger"></span>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="Projection" class="control-label"></label>
-                    <input asp-for="Projection" class="form-control" />
-                    <span asp-validation-for="Projection" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">

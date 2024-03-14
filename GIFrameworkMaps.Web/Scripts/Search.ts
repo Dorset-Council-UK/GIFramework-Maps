@@ -429,6 +429,19 @@ export class Search {
    */
   private zoomToResult(result: SearchResult) {
     const sourceProj = olProj.get(`EPSG:${result.epsg}`);
+    if (sourceProj === null) {
+      console.error(
+        `Source projection EPSG:${result.epsg} is not available in this version.`,
+      );
+      const errDialog = new CustomError(
+        AlertType.Popup,
+        AlertSeverity.Danger,
+        "Something went wrong",
+        "<p>We couldn't zoom you to your search result due to an internal error. The developers have been informed.</p>",
+      );
+      errDialog.show();
+      return;
+    }
     const targetProj = this.gifwMapInstance.olMap.getView().getProjection();
     let closeOnRender = false;
     if (this.gifwMapInstance.getPercentOfMapCoveredWithOverlays() > 50) {
