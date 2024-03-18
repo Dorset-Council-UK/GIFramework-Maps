@@ -200,7 +200,7 @@ export class GIFWMousePositionControl extends olControl.Control {
     if (code === "277001") {
       //this is a funny one that requires specific handling, hence the fake EPSG Code
       //do coord conversion
-      return utilProjection.convertBNGToAlpha(x, y, true);
+      return utilProjection.convertBNGEastingNorthingToAlpha(x, y, true);
     } else if (code === "43261") {
       //this is a funny one that requires specific handling, hence the fake EPSG Code
       //do coord conversion
@@ -228,7 +228,7 @@ export class GIFWMousePositionControl extends olControl.Control {
     if (code === "277001") {
       //this is a funny one that requires specific handling, hence the fake EPSG Code
       //do coord conversion
-      return [utilProjection.convertBNGToAlpha(x, y, true)];
+      return [utilProjection.convertBNGEastingNorthingToAlpha(x, y, true)];
     } else if (code === "43261") {
       //this is a funny one that requires specific handling, hence the fake EPSG Code
       //do coord conversion
