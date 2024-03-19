@@ -44,11 +44,9 @@ export class Projection {
       .toString()
       .padStart(5, "0");
 
-    return `${prefix}
-    ${includeSpaces ? " " : ""}
-    ${e}
-    ${includeSpaces ? " " : ""}
-    ${n}`;
+    const sp = includeSpaces ? " " : "";
+
+    return `${prefix}${sp}${e}${sp}${n}`;
   }
   private static prefixes = [
     ["SV", "SW", "SX", "SY", "SZ", "TV", "TW"],
