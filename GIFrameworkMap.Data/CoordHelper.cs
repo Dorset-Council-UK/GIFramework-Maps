@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 [assembly: InternalsVisibleTo("GIFrameworkMaps.Tests")]
@@ -45,36 +46,11 @@ namespace GIFrameworkMaps.Data
             return false;
         }
 
-        /// <summary>
-        /// Attempts to convert an OSGB alphanumeric grid reference to its 12 figure equivilant
-        /// </summary>
-        /// <param name="gridRef">The full grid reference (e.g ST6664601667)</param>
-        /// <returns>An array of 2 integers representing the X and Y portions of the converted grid reference</returns>
-        public static int[] ConvertAlphaBNGTo12Figure(string gridRef)
-        {
-            string x, y;
-            gridRef = gridRef.Replace(" ", "");
-            var alpha = gridRef[..2];
-            var xy = TranslateOSGBAlphaCharactersToNumerics(alpha.ToUpper());
-            if(xy != null)
-            {
-                x = xy[0].ToString();
-                y = xy[1].ToString();
-                gridRef = gridRef[2..];
-                x += gridRef[..(gridRef.Length / 2)];
-                y += gridRef[(gridRef.Length / 2)..];
-                for(int i = x.Length; i < 6; i++)
-                {
-                    x += "0";
-                    y += "0";
-                }
-                int[] returnCoords = new int[2];
-                returnCoords[0] = int.Parse(x);
-                returnCoords[1] = int.Parse(y);
-                return returnCoords;
-            }
-            throw new ArgumentOutOfRangeException(nameof(gridRef), "Grid reference not recognised");
-        }
+		internal static bool ValidateBNGGridReference(string gridref)
+		{
+			Regex pattern = BNGRegEx();
+			return pattern.IsMatch(gridref.ToUpper());
+		}
 
         /// <summary>
         /// Attempts to convert a WGS84 coordinate represented in degrees minutes and seconds to its Decimal equivilant
@@ -90,7 +66,7 @@ namespace GIFrameworkMaps.Data
             /*the second part will be the numbers until either an apostrophe symbol is hit or a space*/
             /*the third part will be the numbers until the last number in the string*/
             /*This could perhaps be better done with regular expressions*/
-            var firstBreak = dmsCoord.IndexOfAny(new char[] { ' ', '°' });
+            var firstBreak = dmsCoord.IndexOfAny([' ', '°']);
             var degrees = dmsCoord[..firstBreak];
 
             var startPointOfSecondSection = dmsCoord.IndexOfAny("0123456789".ToCharArray(),firstBreak);
@@ -135,397 +111,42 @@ namespace GIFrameworkMaps.Data
             return decimal.Round((degrees + minutes + seconds) * multiplier,5);
         }
 
-        /// <summary>
-        /// Translates the Alpha part of an OSGB grid reference to their equivilant numerics
-        /// </summary>
-        /// <param name="alpha">The alpha characters e.g. ST (upper case)</param>
-        /// <returns>An array of 2 integers representing the X and Y numeric</returns>
-        public static int[]? TranslateOSGBAlphaCharactersToNumerics(string alpha)
-        {
-            int[] return_array = new int[2];
-            switch (alpha)
-            {
-                case "SV":
-                    {
-                        return_array[0] = 0;
-                        return_array[1] = 0;
-                        break;
-                    }
+		/// <summary>
+		/// Attempts to convert an OSGB alphanumeric grid reference to its 12 figure equivilant
+		/// </summary>
+		/// <param name="gridRef">The full grid reference (e.g ST6664601667)</param>
+		/// <returns>An array of 2 integers representing the X and Y portions of the converted grid reference</returns>
+		/// <remarks>Adapted from OS Transform from Ordnance Survey (OGL v3) https://github.com/OrdnanceSurvey/os-transform/</remarks>
+		public static int[] ConvertAlphaBNGTo12Figure(string gridref)
+		{
+			gridref = gridref.ToUpper().Trim().Replace(" ","");
+			if (!ValidateBNGGridReference(gridref))
+			{
+				throw new ArgumentOutOfRangeException(nameof(gridref), "Grid reference not recognised");
+			}
+			string gridLetters = "VWXYZQRSTULMNOPFGHJKABCDE";
 
-                case "SW":
-                    {
-                        return_array[0] = 1;
-                        return_array[1] = 0;
-                        break;
-                    }
+			string refGrid = gridref.ToUpper().Replace(" ", "");
 
-                case "SX":
-                    {
-                        return_array[0] = 2;
-                        return_array[1] = 0;
-                        break;
-                    }
+			int majorEasting = gridLetters.IndexOf(refGrid[0]) % 5 * 500000 - 1000000;
+			int majorNorthing = (int)(Math.Floor((decimal)gridLetters.IndexOf(refGrid[0]) / 5) * 500000 - 500000);
 
-                case "SY":
-                    {
-                        return_array[0] = 3;
-                        return_array[1] = 0;
-                        break;
-                    }
+			int minorEasting = gridLetters.IndexOf(refGrid[1]) % 5 * 100000;
+			int minorNorthing = (int)(Math.Floor((decimal)gridLetters.IndexOf(refGrid[1]) / 5) * 100000);
 
-                case "SZ":
-                    {
-                        return_array[0] = 4;
-                        return_array[1] = 0;
-                        break;
-                    }
+			int i = (refGrid.Length - 2) / 2;
+			double m = Math.Pow(10, 5 - i);
 
-                case "TV":
-                    {
-                        return_array[0] = 5;
-                        return_array[1] = 0;
-                        break;
-                    }
+			int e = majorEasting + minorEasting + (int.Parse(refGrid.Substring(2, i)) * (int)m);
+			int n = majorNorthing + minorNorthing + (int.Parse(refGrid.Substring(i + 2, i)) * (int)m);
 
-                case "SR":
-                    {
-                        return_array[0] = 1;
-                        return_array[1] = 1;
-                        break;
-                    }
-
-                case "SS":
-                    {
-                        return_array[0] = 2;
-                        return_array[1] = 1;
-                        break;
-                    }
-
-                case "ST":
-                    {
-                        return_array[0] = 3;
-                        return_array[1] = 1;
-                        break;
-                    }
-
-                case "SU":
-                    {
-                        return_array[0] = 4;
-                        return_array[1] = 1;
-                        break;
-                    }
-
-                case "TQ":
-                    {
-                        return_array[0] = 5;
-                        return_array[1] = 1;
-                        break;
-                    }
-
-                case "TR":
-                    {
-                        return_array[0] = 6;
-                        return_array[1] = 1;
-                        break;
-                    }
-
-                case "SM":
-                    {
-                        return_array[0] = 1;
-                        return_array[1] = 2;
-                        break;
-                    }
-
-                case "SN":
-                    {
-                        return_array[0] = 2;
-                        return_array[1] = 2;
-                        break;
-                    }
-
-                case "SO":
-                    {
-                        return_array[0] = 3;
-                        return_array[1] = 2;
-                        break;
-                    }
-
-                case "SP":
-                    {
-                        return_array[0] = 4;
-                        return_array[1] = 2;
-                        break;
-                    }
-
-                case "TL":
-                    {
-                        return_array[0] = 5;
-                        return_array[1] = 2;
-                        break;
-                    }
-
-                case "TM":
-                    {
-                        return_array[0] = 6;
-                        return_array[1] = 2;
-                        break;
-                    }
-
-                case "SH":
-                    {
-                        return_array[0] = 2;
-                        return_array[1] = 3;
-                        break;
-                    }
-
-                case "SJ":
-                    {
-                        return_array[0] = 3;
-                        return_array[1] = 3;
-                        break;
-                    }
-
-                case "SK":
-                    {
-                        return_array[0] = 4;
-                        return_array[1] = 3;
-                        break;
-                    }
-
-                case "TF":
-                    {
-                        return_array[0] = 5;
-                        return_array[1] = 3;
-                        break;
-                    }
-
-                case "TG":
-                    {
-                        return_array[0] = 6;
-                        return_array[1] = 3;
-                        break;
-                    }
-
-                case "SC":
-                    {
-                        return_array[0] = 2;
-                        return_array[1] = 4;
-                        break;
-                    }
-
-                case "SD":
-                    {
-                        return_array[0] = 3;
-                        return_array[1] = 4;
-                        break;
-                    }
-
-                case "SE":
-                    {
-                        return_array[0] = 4;
-                        return_array[1] = 4;
-                        break;
-                    }
-
-                case "TA":
-                    {
-                        return_array[0] = 5;
-                        return_array[1] = 4;
-                        break;
-                    }
-
-                case "NW":
-                    {
-                        return_array[0] = 1;
-                        return_array[1] = 5;
-                        break;
-                    }
-
-                case "NX":
-                    {
-                        return_array[0] = 2;
-                        return_array[1] = 5;
-                        break;
-                    }
-
-                case "NY":
-                    {
-                        return_array[0] = 3;
-                        return_array[1] = 5;
-                        break;
-                    }
-
-                case "NZ":
-                    {
-                        return_array[0] = 4;
-                        return_array[1] = 5;
-                        break;
-                    }
-
-                case "NR":
-                    {
-                        return_array[0] = 1;
-                        return_array[1] = 6;
-                        break;
-                    }
-
-                case "NS":
-                    {
-                        return_array[0] = 2;
-                        return_array[1] = 6;
-                        break;
-                    }
-
-                case "NT":
-                    {
-                        return_array[0] = 3;
-                        return_array[1] = 6;
-                        break;
-                    }
-
-                case "NU":
-                    {
-                        return_array[0] = 4;
-                        return_array[1] = 6;
-                        break;
-                    }
-
-                case "NL":
-                    {
-                        return_array[0] = 0;
-                        return_array[1] = 7;
-                        break;
-                    }
-
-                case "NM":
-                    {
-                        return_array[0] = 1;
-                        return_array[1] = 7;
-                        break;
-                    }
-
-                case "NN":
-                    {
-                        return_array[0] = 2;
-                        return_array[1] = 7;
-                        break;
-                    }
-
-                case "NO":
-                    {
-                        return_array[0] = 3;
-                        return_array[1] = 7;
-                        break;
-                    }
-
-                case "NF":
-                    {
-                        return_array[0] = 0;
-                        return_array[1] = 8;
-                        break;
-                    }
-
-                case "NG":
-                    {
-                        return_array[0] = 1;
-                        return_array[1] = 8;
-                        break;
-                    }
-
-                case "NH":
-                    {
-                        return_array[0] = 2;
-                        return_array[1] = 8;
-                        break;
-                    }
-
-                case "NJ":
-                    {
-                        return_array[0] = 3;
-                        return_array[1] = 8;
-                        break;
-                    }
-
-                case "NK":
-                    {
-                        return_array[0] = 4;
-                        return_array[1] = 8;
-                        break;
-                    }
-
-                case "NA":
-                    {
-                        return_array[0] = 0;
-                        return_array[1] = 9;
-                        break;
-                    }
-
-                case "NB":
-                    {
-                        return_array[0] = 1;
-                        return_array[1] = 9;
-                        break;
-                    }
-
-                case "NC":
-                    {
-                        return_array[0] = 2;
-                        return_array[1] = 9;
-                        break;
-                    }
-
-                case "ND":
-                    {
-                        return_array[0] = 3;
-                        return_array[1] = 9;
-                        break;
-                    }
-
-                case "HP":
-                    {
-                        return_array[0] = 4;
-                        return_array[1] = 12;
-                        break;
-                    }
-
-                case "HT":
-                    {
-                        return_array[0] = 3;
-                        return_array[1] = 11;
-                        break;
-                    }
-
-                case "HU":
-                    {
-                        return_array[0] = 4;
-                        return_array[1] = 11;
-                        break;
-                    }
-
-                case "HY":
-                    {
-                        return_array[0] = 3;
-                        return_array[1] = 10;
-                        break;
-                    }
-
-                case "HZ":
-                    {
-                        return_array[0] = 4;
-                        return_array[1] = 10;
-                        break;
-                    }
-
-                default:
-                    {
-                        return null;
-                    }
-            }
-
-            return return_array;
-        }
+			return [e, n];
+		}
 
         [GeneratedRegex("[NSEW]")]
         private static partial Regex NSEWRegex();
-    }
+
+		[GeneratedRegex("^[THJONS][VWXYZQRSTULMNOPFGHJKABCDE] ?[0-9]{1,5} ?[0-9]{1,5}$")]
+		private static partial Regex BNGRegEx();
+	}
 }

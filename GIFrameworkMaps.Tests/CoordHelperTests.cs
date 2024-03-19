@@ -74,10 +74,12 @@ namespace GIFrameworkMaps.Tests
         [Test]
         [TestCase("SY6773568359", ExpectedResult = new int[] { 367_735, 68_359 })]
         [TestCase("sy 677 683", ExpectedResult = new int[] { 367_700, 68_300 })]
+		[TestCase("SU 37292   15488",ExpectedResult = new int[] { 437_292, 115_488 })]
         [TestCase("SV00", ExpectedResult = new int[] { 0, 0 })]
         [TestCase("HP9999999999", ExpectedResult = new int[] { 499_999, 1_299_999 })]
         [TestCase("TM 99 99 99 99", ExpectedResult = new int[] { 699990, 299990 })]
-        public int[] ConvertAlphaBNGTo12Figure_Valid(string gridref)
+		[TestCase("JM999999", ExpectedResult = new int[] { 699900, 1299900 })]
+		public int[] ConvertAlphaBNGTo12Figure_Valid(string gridref)
         {
             return CoordHelper.ConvertAlphaBNGTo12Figure(gridref);
         }
@@ -85,8 +87,8 @@ namespace GIFrameworkMaps.Tests
         [Test]
         [TestCase("badinput")]
         [TestCase("")]
-        [TestCase("JM99999")]
-        public void ConvertAlphaBNGTo12Figure_Invalid(string gridref)
+        [TestCase("ZZ999999")]
+		public void ConvertAlphaBNGTo12Figure_Invalid(string gridref)
         {
             Assert.Throws<ArgumentOutOfRangeException>(delegate { CoordHelper.ConvertAlphaBNGTo12Figure(gridref); });
 
