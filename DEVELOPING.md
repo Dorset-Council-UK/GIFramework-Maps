@@ -11,7 +11,7 @@ To run GIFrameworkMaps with minimal modification, you will need.
 - Run an `npm update` to download the dependencies
     - In Visual Studio this can be done by installing the NPM Task Runner Extension and using Task Runner Explorer
     - Alternatively just use the command line
-- Run the Entity Framework migrations
+- Run the Entity Framework migrations against the GIFrameworkMaps.Web project
     - Using Visual Studio
         - `Update-Database`
     - Using .Net CLI
@@ -59,14 +59,14 @@ It's entirely optional to download these extensions. You can download these by g
 ### Running the application
 Once you’ve followed the steps above, you’re ready to run the application. 
 
-- Run the Entity Framework migrations to create the empty tables in your database
+- Run an `npm update` to download the dependencies
+    - In Visual Studio this can be done by installing the NPM Task Runner Extension and using Task Runner Explorer
+    - Alternatively just use the command line
+- Run the Entity Framework migrations against the GIFrameworkMaps.Web project
     - Using Visual Studio
         - `Update-Database`
     - Using .Net CLI
         - `dotnet ef database update`
-- Run an `npm update` to download the dependencies
-    - In Visual Studio this can be done by installing the NPM Task Runner Extension and using Task Runner Explorer
-    - Alternatively just use the command line
 - Build and Run!
 
 This will give you a minimal starting application, with a few basic basemaps, to get you started. Start modifying your database either directly or by using the adminstration functions in the application to start adding layers, basemaps, versions and so on.
