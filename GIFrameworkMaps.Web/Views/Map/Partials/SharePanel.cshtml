@@ -1,4 +1,6 @@
-﻿<div class="card-body pt-0">
+﻿@using Microsoft.Extensions.Configuration;
+@inject IConfiguration configuration;
+<div class="card-body pt-0">
     <div class="card-title-closeable py-3">
         <h5 class="card-title">Share</h5>
         <button type="button" class="btn-close" data-gifw-dismiss-sidebar="legends" aria-label="Close"></button>
@@ -21,15 +23,18 @@
         <h6>Generate a short link</h6>
         <p>Generate a shorter link that does everything the link above does, but shorter!</p>
         <button id="gifw-generate-short-link" class="btn btn-outline-primary">Generate short link</button>
-        <h6 class="mt-2">Embed the map in your own page</h6>
-        <p>Copy the code below and paste into your webpage to embed the map</p>
-        <div class="my-2">
-            <label for="gifw-share-embed-code" class="visually-hidden">Embed code</label>
-            <textarea class="form-control" id="gifw-share-embed-code" readonly rows="6"></textarea>
-            <button class="btn btn-outline-primary my-2" type="button" data-gifw-copy-target="#gifw-share-embed-code" data-bs-toggle="tooltip" data-bs-title="Copied to clipboard!" data-bs-trigger="manual">
-                <i class="bi bi-clipboard"></i> Copy<span class="visually-hidden"> the embed code to the clipboard</span>
-            </button>
-        </div>
+        @if (!configuration.GetValue<bool>("GIFrameworkMaps:HideEmbedOption"))
+        {
+            <h6 class="mt-2">Embed the map in your own page</h6>
+            <p>Copy the code below and paste into your webpage to embed the map</p>
+            <div class="my-2">
+                <label for="gifw-share-embed-code" class="visually-hidden">Embed code</label>
+                <textarea class="form-control" id="gifw-share-embed-code" readonly rows="6"></textarea>
+                <button class="btn btn-outline-primary my-2" type="button" data-gifw-copy-target="#gifw-share-embed-code" data-bs-toggle="tooltip" data-bs-title="Copied to clipboard!" data-bs-trigger="manual">
+                    <i class="bi bi-clipboard"></i> Copy<span class="visually-hidden"> the embed code to the clipboard</span>
+                </button>
+            </div>   
+        }
     </div>
 
     
