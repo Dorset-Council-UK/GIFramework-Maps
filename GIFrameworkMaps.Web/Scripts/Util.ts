@@ -646,6 +646,7 @@ export class Mapping {
     //get the current view
     const view = map.olMap.getView();
     const center = view.getCenter();
+    const projectionCode = view.getProjection().getCode();
     const lonlat = toLonLat(center, view.getProjection());
     let hash = `#map=${view.getZoom().toFixed(2)}/${lonlat[1].toFixed(
       5,
@@ -712,7 +713,7 @@ export class Mapping {
             const encodedSRData = Helper.b64EncodeUnicode(
               JSON.stringify(searchResultData),
             );
-            hash += `&sr=${coords[0]},${coords[1]}&srdata=${encodedSRData}`;
+            hash += `&sr=${coords[0]},${coords[1]}&srepsg=${projectionCode.replace("EPSG:", "")}&srdata=${encodedSRData}`;
           } catch (e) {
             console.warn(
               "Could not generate search result component for permalink",
