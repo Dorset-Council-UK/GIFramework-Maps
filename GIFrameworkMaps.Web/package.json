@@ -66,8 +66,7 @@
   },
   "-vs-binding": {
     "ProjectOpened": [
-      "watch:webpack",
-      "watch:prettier"
+      "watch:webpack"
     ]
   }
 }
