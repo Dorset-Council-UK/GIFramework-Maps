@@ -15,6 +15,7 @@
         Where(a => a.Enabled == true).
         Where(a => a.RequireLogin == false).
         Where(a => a.FeaturedVersion == true).
+        Where(a => a.Hidden == false).
         OrderBy(a => a.Name))
         {
             <div class="col">
@@ -39,6 +40,7 @@
         Where(a => a.Enabled == true).
         Where(a => a.RequireLogin == false).
         Where(a => a.FeaturedVersion == false).
+        Where(a => a.Hidden == false).
         OrderBy(a => a.Name))
         {
             <div class="col">

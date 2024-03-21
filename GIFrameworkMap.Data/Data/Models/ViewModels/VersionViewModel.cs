@@ -16,6 +16,7 @@ namespace GIFrameworkMaps.Data.Models.ViewModels
 		public string? VersionImageURL { get; set; }
         public bool ShowLogin { get; set; }
 		public bool FeaturedVersion { get; set; }
+		public bool Hidden { get; set; }
         public Theme? Theme { get; set; }
         public Bound? Bound { get; set; }
         public WelcomeMessage? WelcomeMessage { get; set; }

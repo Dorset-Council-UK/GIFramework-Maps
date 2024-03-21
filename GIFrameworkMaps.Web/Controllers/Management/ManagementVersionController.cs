@@ -146,6 +146,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.RequireLogin,
                 a => a.ShowLogin,
 				a => a.FeaturedVersion,
+				a => a.Hidden,
                 a => a.HelpURL,
                 a => a.FeedbackURL,
                 a => a.RedirectionURL,
