@@ -21,6 +21,7 @@ using NodaTime.Serialization.SystemTextJson;
 using NodaTime;
 using Npgsql;
 using Microsoft.Extensions.Hosting;
+using GIFrameworkMaps.Web.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -116,6 +117,8 @@ ApplicationInsightsServiceOptions AppInsightOptions = new()
   ConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"]
 };
 builder.Services.AddApplicationInsightsTelemetry(AppInsightOptions);
+builder.Services.AddApplicationInsightsTelemetryProcessor<UnwantedTelemetryFilter>();
+
 
 var app = builder.Build();
 var forwarder = app.Services.GetService<IHttpForwarder>();

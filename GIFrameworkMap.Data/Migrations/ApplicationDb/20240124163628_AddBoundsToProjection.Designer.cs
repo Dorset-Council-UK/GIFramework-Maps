@@ -3,6 +3,7 @@ using System;
 using GIFrameworkMaps.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240124163628_AddBoundsToProjection")]
+    partial class AddBoundsToProjection
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -422,9 +425,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("EPSGCode"));
 
-                    b.Property<int>("DefaultRenderedDecimalPlaces")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
@@ -674,6 +674,9 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.Property<string>("HelpURL")
                         .HasColumnType("text");
 
+                    b.Property<int?>("MapProjectionId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -709,6 +712,8 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.HasKey("Id");
 
                     b.HasIndex("BoundId");
+
+                    b.HasIndex("MapProjectionId");
 
                     b.HasIndex("ThemeId");
 
@@ -863,27 +868,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.HasIndex("VersionId");
 
                     b.ToTable("VersionPrintConfiguration", "giframeworkmaps");
-                });
-
-            modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionProjection", b =>
-                {
-                    b.Property<int>("ProjectionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("VersionId")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsDefaultMapProjection")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDefaultViewProjection")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("ProjectionId", "VersionId");
-
-                    b.HasIndex("VersionId");
-
-                    b.ToTable("VersionProjection", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionSearchDefinition", b =>
@@ -1206,6 +1190,10 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("GIFrameworkMaps.Data.Models.Projection", "MapProjection")
+                        .WithMany()
+                        .HasForeignKey("MapProjectionId");
+
                     b.HasOne("GIFrameworkMaps.Data.Models.Theme", "Theme")
                         .WithMany()
                         .HasForeignKey("ThemeId")
@@ -1221,6 +1209,8 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                         .HasForeignKey("WelcomeMessageId");
 
                     b.Navigation("Bound");
+
+                    b.Navigation("MapProjection");
 
                     b.Navigation("Theme");
 
@@ -1335,23 +1325,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.Navigation("Version");
                 });
 
-            modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionProjection", b =>
-                {
-                    b.HasOne("GIFrameworkMaps.Data.Models.Projection", "Projection")
-                        .WithMany()
-                        .HasForeignKey("ProjectionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("GIFrameworkMaps.Data.Models.Version", null)
-                        .WithMany("VersionProjections")
-                        .HasForeignKey("VersionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Projection");
-                });
-
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionSearchDefinition", b =>
                 {
                     b.HasOne("GIFrameworkMaps.Data.Models.Search.SearchDefinition", "SearchDefinition")
@@ -1413,8 +1386,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.Navigation("VersionContacts");
 
                     b.Navigation("VersionLayerCustomisations");
-
-                    b.Navigation("VersionProjections");
 
                     b.Navigation("VersionUsers");
                 });

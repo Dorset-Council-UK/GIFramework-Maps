@@ -38,7 +38,7 @@
     "nunjucks": "3.2.4",
     "ol": "8.2.0",
     "ol-contextmenu": "5.3.0",
-    "proj4": "2.9.2",
+    "proj4": "2.10.0",
     "shepherd.js": "11.2.0",
     "sortablejs": "1.15.1",
     "uuid": "9.0.1"
@@ -66,8 +66,7 @@
   },
   "-vs-binding": {
     "ProjectOpened": [
-      "watch:webpack",
-      "watch:prettier"
+      "watch:webpack"
     ]
   }
 }

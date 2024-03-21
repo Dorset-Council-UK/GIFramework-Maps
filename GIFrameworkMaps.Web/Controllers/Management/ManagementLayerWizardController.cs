@@ -123,7 +123,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             {
                 try
                 {
-
                     var urlOpt = new LayerSourceOption { Name = "url", Value = model.BaseURL };
                     var paramsOpt = new LayerSourceOption
                     {
@@ -132,13 +131,13 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         @$"{{
                                 ""LAYERS"":""{model.LayerName}"", 
                                 ""FORMAT"":""{model.Format}"",
-                                ""CRS"": ""{model.Projection}"",
-                                ""VERSION"": ""{model.Version}""
+                                {(!string.IsNullOrEmpty(model.Projection) ? @$"""CRS"": ""{model.Projection}""," : "")}
+								""VERSION"": ""{model.Version}""
                             }}"
                     };
                     model.LayerSource.LayerSourceOptions.Add(urlOpt);
                     model.LayerSource.LayerSourceOptions.Add(paramsOpt);
-                    if(model.Projection != "EPSG:3857")
+                    if(!string.IsNullOrEmpty(model.Projection))
                     {
                         model.LayerSource.LayerSourceOptions.Add(new LayerSourceOption { Name = "projection", Value = model.Projection });
                     }

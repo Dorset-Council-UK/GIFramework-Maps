@@ -5,7 +5,10 @@ import { BroadcastReceiver } from "./BroadcastReceiver";
 import { BasemapsPanel } from "./Panels/BasemapsPanel";
 import { LayersPanel } from "./Panels/LayersPanel";
 import { PrintPanel } from "./Panels/PrintPanel";
-import { ApplicationInsights } from "@microsoft/applicationinsights-web";
+import {
+  ApplicationInsights,
+  ITelemetryItem,
+} from "@microsoft/applicationinsights-web";
 import { LegendsPanel } from "./Panels/LegendsPanel";
 import { SharePanel } from "./Panels/SharePanel";
 import { Welcome } from "./Welcome";
@@ -26,11 +29,15 @@ if (gifw_appinsights_key != "") {
       disableCookiesUsage: true,
     },
   });
-  try {
-    appInsights.loadAppInsights();
-  } catch (ex) {
-    console.error("Failed to load application insights", ex);
-  }
+  //the following telemetry filter removes the broadcasthub pings
+  const filteringFunction = (envelope: ITelemetryItem) => {
+    if ((envelope.baseData["name"] as string).indexOf("broadcasthub") !== -1) {
+      return false;
+    }
+    return true;
+  };
+  appInsights.addTelemetryInitializer(filteringFunction);
+  appInsights.loadAppInsights();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -162,7 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     })
     .catch((error) => {
-      console.error("Failed to get load the app", error);
+      console.error("Failed to load the app", error);
       //show an alert that covers the screen
       const alert = new Alert(
         AlertType.Popup,

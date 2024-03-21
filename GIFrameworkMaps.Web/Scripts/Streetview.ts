@@ -39,7 +39,10 @@ export class Streetview {
       );
       link.textContent = "Checking for Street View Imagery";
       (link as HTMLElement).dataset.gifwStreetViewUrl = "";
-      const latlon = toLonLat(event.coordinate);
+      const latlon = toLonLat(
+        event.coordinate,
+        contextMenu.control.getMap().getView().getProjection(),
+      );
       const streetviewURL = await this.getGoogleStreetviewAtLocation(
         latlon[1],
         latlon[0],

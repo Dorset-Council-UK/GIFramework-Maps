@@ -2,7 +2,7 @@
 import * as olControl from "ol/control";
 import * as olProj from "ol/proj";
 import * as olLayer from "ol/layer";
-import { Extent, containsExtent, containsCoordinate } from "ol/extent";
+import { Extent, containsExtent, applyTransform } from "ol/extent";
 import * as gifwSidebar from "../Scripts/Sidebar";
 import * as gifwSidebarCollection from "../Scripts/SidebarCollection";
 import { GIFWMousePositionControl } from "../Scripts/MousePositionControl";
@@ -41,6 +41,7 @@ import {
   Mapping as MappingHelper,
 } from "./Util";
 import LayerRenderer from "ol/renderer/Layer";
+import { Projection } from "./Interfaces/Projection";
 
 export class GIFWMap {
   id: string;
@@ -78,14 +79,21 @@ export class GIFWMap {
    * @returns OpenLayers map reference to the created map
    * */
   public initMap(): olMap {
-    /*TODO - THIS IS A NASTY MEGA FUNCTION OF ALMOST 300 LINES OF CODE. SIMPLIFY!!!
+    /*TODO - THIS IS A NASTY MEGA FUNCTION OF ALMOST 300 LINES OF CODE. SIMPLIFY!!!*/
 
-        //register projections /*TODO Make this more dynamic, allowing other projections to be loaded*/
-    proj4.defs(
-      "EPSG:27700",
-      "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs",
-    );
-    register(proj4);
+    //register projections
+    this.registerProjections(this.config.availableProjections);
+    const defaultMapProjection = this.config.availableProjections.filter(
+      (p) => p.isDefaultMapProjection === true,
+    )[0];
+    const defaultViewProjection = this.config.availableProjections.filter(
+      (p) => p.isDefaultViewProjection === true,
+    )[0];
+    const mapProjectionCode = `EPSG:${defaultMapProjection.epsgCode}`;
+    const viewProjection = olProj.get(mapProjectionCode);
+    const fromLonLat = olProj.getTransform("EPSG:4326", viewProjection);
+    const from3857 = olProj.getTransform("EPSG:3857", viewProjection);
+
     //parse permalink params
     let permalinkParams: Record<string, string> = {};
     if (window.location.hash !== "") {
@@ -106,7 +114,11 @@ export class GIFWMap {
       tipLabel: "Reset rotation (Alt-Shift and Drag to rotate)",
     });
     //mouse position controls. TODO - alow DB setting of initial coord system
-    const mousePosition = new GIFWMousePositionControl("27700", 0);
+    const mousePosition = new GIFWMousePositionControl(
+      defaultViewProjection.epsgCode.toString(),
+      defaultViewProjection.defaultRenderedDecimalPlaces,
+      this.config.availableProjections,
+    );
     const contextMenu = new GIFWContextMenu(mousePosition);
     //add measure
     const measureControl = new Measure(this);
@@ -228,17 +240,11 @@ export class GIFWMap {
     this.popupOverlay = new GIFWPopupOverlay(popupEle);
 
     //define max extent of view
-    let startExtent: number[] = [];
+    //let startExtent: number[] = [];
     let startMaxZoom: number = 22;
     let startMinZoom: number = 0;
     const startBasemap = this.config.basemaps.find((b) => b.isDefault);
     if (startBasemap !== null) {
-      startExtent = [
-        startBasemap.bound.bottomLeftX,
-        startBasemap.bound.bottomLeftY,
-        startBasemap.bound.topRightX,
-        startBasemap.bound.topRightY,
-      ];
       startMaxZoom = startBasemap.maxZoom;
       startMinZoom = startBasemap.minZoom;
     }
@@ -246,7 +252,7 @@ export class GIFWMap {
     //get passed in view parameters
     //The zoom and center should always be overwritten by the versions start bounds or the url hash
     let defaultZoom = 10;
-    let defaultCenter = [-2.3314, 50.7621];
+    let defaultCenter = [50.7621, -2.3314];
     let defaultRotation = 0;
     let defaultCRS = 4326;
     let defaultBbox: number[];
@@ -301,11 +307,11 @@ export class GIFWMap {
         center: olProj.transform(
           defaultCenter,
           olProj.get(`EPSG:${defaultCRS}`),
-          olProj.get(`EPSG:3857`),
+          olProj.get(mapProjectionCode),
         ),
         zoom: defaultZoom,
-        projection: "EPSG:3857",
-        extent: startExtent,
+        projection: mapProjectionCode,
+        extent: applyTransform(viewProjection.getWorldExtent(), fromLonLat),
         constrainOnlyCenter: true,
         maxZoom: startMaxZoom,
         minZoom: startMinZoom,
@@ -379,8 +385,8 @@ export class GIFWMap {
         this.config.bound.topRightY,
       ];
       const mapSize = map.getSize();
-
-      map.getView().fit(bounds, { size: mapSize });
+      const reprojectedExtent = applyTransform(bounds, from3857);
+      map.getView().fit(reprojectedExtent, { size: mapSize });
     }
     //add attribution size checker and app height variable
     window.addEventListener("resize", () => {
@@ -456,6 +462,37 @@ export class GIFWMap {
       });
 
     return map;
+  }
+
+  private registerProjections(availableProjections: Projection[]) {
+    availableProjections.forEach((projection) => {
+      if (projection.proj4Definition !== null) {
+        proj4.defs(`EPSG:${projection.epsgCode}`, projection.proj4Definition);
+        //Adds GML version to get round GML readFeature issues - https://github.com/openlayers/openlayers/issues/3898#issuecomment-120899034
+        proj4.defs(
+          `http://www.opengis.net/gml/srs/epsg.xml#${projection.epsgCode}`,
+          projection.proj4Definition,
+        );
+        register(proj4);
+        const addedProj = olProj.get(`EPSG:${projection.epsgCode}`);
+        const addedGMLProj = olProj.get(
+          `http://www.opengis.net/gml/srs/epsg.xml#${projection.epsgCode}`,
+        );
+        addedProj.setWorldExtent([
+          projection.minBoundX,
+          projection.minBoundY,
+          projection.maxBoundX,
+          projection.maxBoundY,
+        ]);
+        addedGMLProj.setWorldExtent([
+          projection.minBoundX,
+          projection.minBoundY,
+          projection.maxBoundX,
+          projection.maxBoundY,
+        ]);
+        olProj.addEquivalentProjections([addedProj, addedGMLProj]);
+      }
+    });
   }
 
   /**
@@ -1064,25 +1101,35 @@ export class GIFWMap {
   }
 
   /**
-   * Checks to see if the passed in extent is reachable in the current map
+   * Checks to see if the passed in extent is reachable in the current map, based on both the active basemap and the maps projection
    * @param extent The Extent to check
    * @returns Boolean, true if extent is reachable, false otherwise
    */
   public isExtentAvailableInCurrentMap(extent: Extent): boolean {
     const activeBasemap = this.getActiveBasemap();
-    const maxBasemapExtent = activeBasemap.getExtent();
-    return containsExtent(maxBasemapExtent, extent);
-  }
-
-  /**
-   * Checks to see if the passed in coordinate is reachable in the current map
-   * @param coord The coordinates to check in the current map views coordinate system
-   *  @returns Boolean, true if coordinate is reachable, false otherwise
-   */
-  public isCoordinateAvailableInCurrentMap(coord: number[]): boolean {
-    const activeBasemap = this.getActiveBasemap();
-    const maxBasemapExtent = activeBasemap.getExtent();
-    return containsCoordinate(maxBasemapExtent, coord);
+    const reprojectedExtent = olProj.transformExtent(
+      extent,
+      this.olMap.getView().getProjection(),
+      "EPSG:4326",
+    );
+    const maxBasemapExtent = olProj.transformExtent(
+      activeBasemap.getExtent(),
+      this.olMap.getView().getProjection(),
+      "EPSG:4326",
+    );
+    const maxMapProjectionExtent = this.olMap
+      .getView()
+      .getProjection()
+      .getWorldExtent();
+    const withinBasemapExtent = containsExtent(
+      maxBasemapExtent,
+      reprojectedExtent,
+    );
+    const withinMapProjectionExtent = containsExtent(
+      maxMapProjectionExtent,
+      reprojectedExtent,
+    );
+    return withinBasemapExtent && withinMapProjectionExtent;
   }
 
   /**
@@ -1123,12 +1170,14 @@ export class GIFWMap {
           if (source instanceof TileWMS || source instanceof ImageWMS) {
             const view = this.olMap.getView();
             const viewport = this.olMap.getViewport();
+            //version is forced to 1.1.0 to get around lat/lon flipping issues
             let params = {
               LEGEND_OPTIONS: additionalLegendOptions,
               bbox: view.calculateExtent().toString(),
               srcwidth: viewport.clientWidth,
               srcheight: viewport.clientHeight,
-              crs: view.getProjection().getCode(),
+              srs: view.getProjection().getCode(),
+              version: "1.1.0",
             };
             //merge valid params from the source and add to the legend
             // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Disabled to make make handling this generic object easier. The code is safe as written

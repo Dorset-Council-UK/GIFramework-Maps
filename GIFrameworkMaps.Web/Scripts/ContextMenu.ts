@@ -1,7 +1,6 @@
 ﻿import ContextMenu, { CallbackObject, Item, SingleItem } from "ol-contextmenu";
 import * as olProj from "ol/proj";
 import { GIFWMousePositionControl } from "../Scripts/MousePositionControl";
-import { Streetview } from "./Streetview";
 
 export interface ContextMenuDataObject {
   mousePosition: GIFWMousePositionControl;
@@ -10,13 +9,11 @@ export interface ContextMenuDataObject {
 export class GIFWContextMenu {
   control: ContextMenu;
   items: Item[];
-  streetviewInstance: Streetview;
 
   constructor(mousePosition: GIFWMousePositionControl) {
     this.setItems(mousePosition);
     this.setControl();
     this.addListeners();
-    this.streetviewInstance = new Streetview("[apikeygoeshere]");
   }
 
   private setItems(mousePosition: GIFWMousePositionControl) {
@@ -70,8 +67,8 @@ export class GIFWContextMenu {
         this.enable();
       }
     });
-    this.control.on("open", function (event) {
-      for (const item of (this as ContextMenu).options.items) {
+    this.control.on("open", (event) => {
+      for (const item of (this.control as ContextMenu).options.items) {
         if (typeof item === "object") {
           if ("data" in item) {
             const itemData: ContextMenuDataObject = (item as SingleItem)
@@ -81,27 +78,36 @@ export class GIFWContextMenu {
             const projectionString =
               itemData.mousePosition.getProjectionString(projectionCode);
             const coordDecimals = itemData.mousePosition.decimals;
-            const clickCoord = this.map_.getCoordinateFromPixel(event.pixel);
+            const clickCoord = this.control
+              .getMap()
+              .getCoordinateFromPixel(event.pixel);
             const transformedCoord = olProj.transform(
               clickCoord,
-              "EPSG:3857",
+              this.control.getMap().getView().getProjection(),
               projectionString,
             );
-            const coord = itemData.mousePosition.formatCoordinates(
+            const displayCoord = itemData.mousePosition.formatCoordinates(
               projectionCode,
               coordDecimals,
               transformedCoord,
             );
-            itemData.coord = coord;
-            this.clear();
-            this.extend([
+            const clipboardCoord =
+              itemData.mousePosition.formatCoordinatesAsArray(
+                projectionCode,
+                coordDecimals,
+                transformedCoord,
+                false,
+              );
+            itemData.coord = clipboardCoord.join(", ");
+            this.control.clear();
+            this.control.extend([
               {
-                text: coord,
+                text: displayCoord,
                 classname: "context-menu-item-readonly",
-              },
+              } as Item,
               "-",
             ]);
-            this.extend(this.options.items);
+            this.control.extend(this.control.options.items);
           }
         }
       }

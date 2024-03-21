@@ -13,165 +13,57 @@ import { ImageWMS, Source, TileWMS } from "ol/source";
 import { LayerSource } from "./Interfaces/Layer";
 import LayerRenderer from "ol/renderer/Layer";
 
-interface IPrefixArrayMember {
-  xBase: number;
-  yBase: number;
-}
-interface IPrefixArray {
-  [prefix: string]: IPrefixArrayMember;
-}
 export class Projection {
-  static convertBNGToAlpha(
+  /**
+   * Converts a British National Grid Easting/Northing to the Alphanumeric grid
+   * @param x The Easting value
+   * @param y The Northing value
+   * @param includeSpaces Whether to include spaces seperating the alpha and numeric parts in the output
+   * @returns A formatted British National Grid Alphanumeric coordinate, or the text 'Outside UK'
+   * @author Ordnance Survey - https://github.com/OrdnanceSurvey/os-transform
+   */
+  static convertBNGEastingNorthingToAlpha(
     x: number,
     y: number,
     includeSpaces?: boolean,
   ): string {
-    //round to nearest whole
-    x = Math.round(x);
-    y = Math.round(y);
-    //Get the alpha
-    const xRounded = Math.floor(x / 100000) * 100000;
-    const yRounded = Math.floor(y / 100000) * 100000;
-    let alpha = "";
-    for (const prefix in this.prefixes) {
-      if (
-        this.prefixes[prefix].xBase == xRounded &&
-        this.prefixes[prefix].yBase == yRounded
-      ) {
-        alpha = prefix;
-      }
-    }
-
-    if (alpha == "") {
-      //Set the the parsed point
+    if (x < 0 || x >= 700000 || y < 0 || y >= 1300000) {
       return "Outside UK";
-    } else {
-      //Get the numeric part
-      const easting = x - this.prefixes[alpha].xBase;
-      const northing = y - this.prefixes[alpha].yBase;
-
-      //To string
-      const eastingAsString = easting.toString();
-      const northingAsString = northing.toString();
-
-      //Make up spaces
-      let xPrefix = "";
-      if (eastingAsString.length < 5) {
-        for (let i = 0; i < 5 - eastingAsString.length; i++) {
-          xPrefix += "0";
-        }
-      }
-      let yPrefix = "";
-      if (northingAsString.length < 5) {
-        for (let i = 0; i < 5 - northingAsString.length; i++) {
-          yPrefix += "0";
-        }
-      }
-
-      //Combine back together
-      const numeric = `${xPrefix}${eastingAsString}${
-        includeSpaces ? " " : ""
-      }${yPrefix}${northingAsString}`;
-
-      //Set the the parsed point
-      return `${alpha}${includeSpaces ? " " : ""}${numeric}`;
     }
-  }
-  private static prefixes: IPrefixArray = {
-    HL: { xBase: 0, yBase: 1200000 },
-    HQ: { xBase: 0, yBase: 1100000 },
-    HV: { xBase: 0, yBase: 1000000 },
-    NA: { xBase: 0, yBase: 900000 },
-    NF: { xBase: 0, yBase: 800000 },
-    NL: { xBase: 0, yBase: 700000 },
-    NQ: { xBase: 0, yBase: 600000 },
-    NV: { xBase: 0, yBase: 500000 },
-    SA: { xBase: 0, yBase: 400000 },
-    SF: { xBase: 0, yBase: 300000 },
-    SL: { xBase: 0, yBase: 200000 },
-    SQ: { xBase: 0, yBase: 100000 },
-    SV: { xBase: 0, yBase: 0 },
-    HM: { xBase: 100000, yBase: 1200000 },
-    HR: { xBase: 100000, yBase: 1100000 },
-    HW: { xBase: 100000, yBase: 1000000 },
-    NB: { xBase: 100000, yBase: 900000 },
-    NG: { xBase: 100000, yBase: 800000 },
-    NM: { xBase: 100000, yBase: 700000 },
-    NR: { xBase: 100000, yBase: 600000 },
-    NW: { xBase: 100000, yBase: 500000 },
-    SB: { xBase: 100000, yBase: 400000 },
-    SG: { xBase: 100000, yBase: 300000 },
-    SM: { xBase: 100000, yBase: 200000 },
-    SR: { xBase: 100000, yBase: 100000 },
-    SW: { xBase: 100000, yBase: 0 },
-    HN: { xBase: 200000, yBase: 1200000 },
-    HS: { xBase: 200000, yBase: 1100000 },
-    HX: { xBase: 200000, yBase: 1000000 },
-    NC: { xBase: 200000, yBase: 900000 },
-    NH: { xBase: 200000, yBase: 800000 },
-    NN: { xBase: 200000, yBase: 700000 },
-    NS: { xBase: 200000, yBase: 600000 },
-    NX: { xBase: 200000, yBase: 500000 },
-    SC: { xBase: 200000, yBase: 400000 },
-    SH: { xBase: 200000, yBase: 300000 },
-    SN: { xBase: 200000, yBase: 200000 },
-    SS: { xBase: 200000, yBase: 100000 },
-    SX: { xBase: 200000, yBase: 0 },
-    HO: { xBase: 300000, yBase: 1200000 },
-    HT: { xBase: 300000, yBase: 1100000 },
-    HY: { xBase: 300000, yBase: 1000000 },
-    ND: { xBase: 300000, yBase: 900000 },
-    NJ: { xBase: 300000, yBase: 800000 },
-    NO: { xBase: 300000, yBase: 700000 },
-    NT: { xBase: 300000, yBase: 600000 },
-    NY: { xBase: 300000, yBase: 500000 },
-    SD: { xBase: 300000, yBase: 400000 },
-    SJ: { xBase: 300000, yBase: 300000 },
-    SO: { xBase: 300000, yBase: 200000 },
-    ST: { xBase: 300000, yBase: 100000 },
-    SY: { xBase: 300000, yBase: 0 },
-    HP: { xBase: 400000, yBase: 1200000 },
-    HU: { xBase: 400000, yBase: 1100000 },
-    HZ: { xBase: 400000, yBase: 1000000 },
-    NE: { xBase: 400000, yBase: 900000 },
-    NK: { xBase: 400000, yBase: 800000 },
-    NP: { xBase: 400000, yBase: 700000 },
-    NU: { xBase: 400000, yBase: 600000 },
-    NZ: { xBase: 400000, yBase: 500000 },
-    SE: { xBase: 400000, yBase: 400000 },
-    SK: { xBase: 400000, yBase: 300000 },
-    SP: { xBase: 400000, yBase: 200000 },
-    SU: { xBase: 400000, yBase: 100000 },
-    SZ: { xBase: 400000, yBase: 0 },
-    JL: { xBase: 500000, yBase: 1200000 },
-    JQ: { xBase: 500000, yBase: 1100000 },
-    JV: { xBase: 500000, yBase: 1000000 },
-    OA: { xBase: 500000, yBase: 900000 },
-    OF: { xBase: 500000, yBase: 800000 },
-    OL: { xBase: 500000, yBase: 700000 },
-    OQ: { xBase: 500000, yBase: 600000 },
-    OV: { xBase: 500000, yBase: 500000 },
-    TA: { xBase: 500000, yBase: 400000 },
-    TF: { xBase: 500000, yBase: 300000 },
-    TL: { xBase: 500000, yBase: 200000 },
-    TQ: { xBase: 500000, yBase: 100000 },
-    TV: { xBase: 500000, yBase: 0 },
-    JM: { xBase: 600000, yBase: 1200000 },
-    JR: { xBase: 600000, yBase: 1100000 },
-    JW: { xBase: 600000, yBase: 1000000 },
-    OB: { xBase: 600000, yBase: 900000 },
-    OG: { xBase: 600000, yBase: 800000 },
-    OM: { xBase: 600000, yBase: 700000 },
-    OR: { xBase: 600000, yBase: 600000 },
-    OW: { xBase: 600000, yBase: 500000 },
-    TB: { xBase: 600000, yBase: 400000 },
-    TG: { xBase: 600000, yBase: 300000 },
-    TM: { xBase: 600000, yBase: 200000 },
-    TR: { xBase: 600000, yBase: 100000 },
-    TW: { xBase: 600000, yBase: 0 },
-  };
-}
+    const xBase = Math.floor(x / 100000);
+    const yBase = Math.floor(y / 100000);
 
+    const prefix = this.prefixes[yBase][xBase];
+    if (!prefix) {
+      return "Outside UK";
+    }
+    const e = Math.floor(x % 100000)
+      .toString()
+      .padStart(5, "0");
+    const n = Math.floor(y % 100000)
+      .toString()
+      .padStart(5, "0");
+
+    const sp = includeSpaces ? " " : "";
+
+    return `${prefix}${sp}${e}${sp}${n}`;
+  }
+  private static prefixes = [
+    ["SV", "SW", "SX", "SY", "SZ", "TV", "TW"],
+    ["SQ", "SR", "SS", "ST", "SU", "TQ", "TR"],
+    ["SL", "SM", "SN", "SO", "SP", "TL", "TM"],
+    ["SF", "SG", "SH", "SJ", "SK", "TF", "TG"],
+    ["SA", "SB", "SC", "SD", "SE", "TA", "TB"],
+    ["NV", "NW", "NX", "NY", "NZ", "OV", "OW"],
+    ["NQ", "NR", "NS", "NT", "NU", "OQ", "OR"],
+    ["NL", "NM", "NN", "NO", "NP", "OL", "OM"],
+    ["NF", "NG", "NH", "NJ", "NK", "OF", "OG"],
+    ["NA", "NB", "NC", "ND", "NE", "OA", "OB"],
+    ["HV", "HW", "HX", "HY", "HZ", "JV", "JW"],
+    ["HQ", "HR", "HS", "HT", "HU", "JQ", "JR"],
+    ["HL", "HM", "HN", "HO", "HP", "JL", "JM"],
+  ];
+}
 export class Browser {
   static PrefersReducedMotion(): boolean {
     const reduceMotionQuery = window.matchMedia(

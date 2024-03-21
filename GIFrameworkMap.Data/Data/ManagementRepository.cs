@@ -406,5 +406,21 @@ namespace GIFrameworkMaps.Data
 
             return viewModel;
         }
-    }
+
+		public async Task<Projection?> GetProjection(int id)
+		{
+			var projection = await _context.Projections.FirstOrDefaultAsync(a => a.EPSGCode == id);
+
+			return projection;
+		}
+
+		public async Task<List<Projection>> GetProjections()
+		{
+			var projections = await _context.Projections
+				.AsNoTracking()
+				.ToListAsync();
+
+			return projections;
+		}
+	}
 }

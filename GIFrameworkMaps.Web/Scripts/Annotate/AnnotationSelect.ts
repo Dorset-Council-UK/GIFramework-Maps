@@ -265,9 +265,7 @@ export default class AnnotationSelect extends Select {
   ) {
     const bufferSize = 10;
     const mapExtent = this.gifwMapInstance.olMap
-      .getView()
-      .getProjection()
-      .getExtent(); // Is this okay?
+      .getView().getViewStateAndExtent().extent;
     const backdropGeometry = olPolygon.fromExtent(mapExtent);
     const resolution = this.gifwMapInstance.olMap.getView().getResolution();
     let featureHalfWidth = 0;

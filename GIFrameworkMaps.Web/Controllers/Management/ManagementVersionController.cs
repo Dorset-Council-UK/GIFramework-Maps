@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,32 +14,26 @@ using System.Threading.Tasks;
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
   [Authorize(Roles = "GIFWAdmin")]
-    public class ManagementVersionController : Controller
+    public class ManagementVersionController(
+	  ILogger<ManagementVersionController> logger,
+	  IManagementRepository repository,
+	  ICommonRepository commonRepository,
+	  ApplicationDbContext context,
+	  IConfiguration configuration
+			) : Controller
     {
         //dependancy injection
         /*NOTE: A repository pattern is used for much basic data access across the project
          * however, write and update are done directly on the context based on the advice here
          * https://learn.microsoft.com/en-us/aspnet/mvc/overview/getting-started/getting-started-with-ef-using-mvc/advanced-entity-framework-scenarios-for-an-mvc-web-application#create-an-abstraction-layer
          * */
-        private readonly ILogger<ManagementVersionController> _logger;
-        private readonly IManagementRepository _repository;
-        private readonly ICommonRepository _commonRepository;
-        private readonly ApplicationDbContext _context;
-        public ManagementVersionController(
-            ILogger<ManagementVersionController> logger,
-            IManagementRepository repository,
-            ICommonRepository commonRepository,
-            ApplicationDbContext context
-            )
-        {
-            _logger = logger;
-            _repository = repository;
-            _commonRepository = commonRepository;
-            _context = context;
-        }
+        private readonly ILogger<ManagementVersionController> _logger = logger;
+        private readonly IManagementRepository _repository = repository;
+        private readonly ICommonRepository _commonRepository = commonRepository;
+        private readonly ApplicationDbContext _context = context;
 
-        // GET: Version
-        public async Task<IActionResult> Index()
+		// GET: Version
+		public async Task<IActionResult> Index()
         {
             var versions = await _repository.GetVersions();
             return View(versions);
@@ -58,8 +53,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreatePost(VersionEditModel editModel, 
             int[] selectedBasemaps, 
-            int defaultBasemap, 
-            int[] selectedCategories,
+            int defaultBasemap,
+			int[] selectedProjections,
+			int mapProjection,
+			int viewProjection,
+			int[] selectedCategories,
             bool purgeCache)
         {
             if (ModelState.IsValid)
@@ -68,7 +66,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     _context.Add(editModel.Version);
                     UpdateVersionBasemaps(selectedBasemaps, defaultBasemap, editModel.Version);
-                    UpdateVersionCategories(selectedCategories,editModel.Version);
+					UpdateVersionProjections(selectedProjections, mapProjection, viewProjection, editModel.Version);
+					UpdateVersionCategories(selectedCategories,editModel.Version);
                     await _context.SaveChangesAsync();
                     TempData["Message"] = "New version created";
                     TempData["MessageType"] = "success";
@@ -100,6 +99,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     .ThenInclude(v => v.Basemap)
                 .Include(v => v.VersionCategories)
                     .ThenInclude(v => v.Category)
+				.Include(v => v.VersionProjections)
+					.ThenInclude(v => v.Projection)
                 .FirstOrDefaultAsync(v => v.Id == id);
 
             if (version == null)
@@ -116,19 +117,22 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id, 
             int[] selectedBasemaps, 
-            int defaultBasemap, 
-            int[] selectedCategories,
+            int defaultBasemap,
+			int[] selectedProjections,
+			int mapProjection,
+			int viewProjection,
+			int[] selectedCategories,
             bool purgeCache)
         {
             var versionToUpdate = await _context.Versions
                 .Include(v => v.VersionBasemaps)
                     .ThenInclude(v => v.Basemap)
-                .Include(v => v.VersionCategories)
+				.Include(v => v.VersionProjections)
+					.ThenInclude(v => v.Projection)
+				.Include(v => v.VersionCategories)
                     .ThenInclude(v => v.Category)
                 .Include(v => v.VersionLayerCustomisations)
                 .FirstOrDefaultAsync(v => v.Id == id);
-
-            int[] issueLayers = System.Array.Empty<int>();
 
             var editModel = new VersionEditModel() { Version = versionToUpdate };
 
@@ -154,7 +158,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 try
                 {
                     UpdateVersionBasemaps(selectedBasemaps, defaultBasemap, versionToUpdate);
-                    UpdateVersionCategories(selectedCategories, versionToUpdate);
+					UpdateVersionProjections(selectedProjections, mapProjection, viewProjection, versionToUpdate);
+					UpdateVersionCategories(selectedCategories, versionToUpdate);
                     //UpdateVersionLayers(selectedCategories, versionToUpdate, issueLayers);
                     await _context.SaveChangesAsync();
                     TempData["Message"] = "Version edited";
@@ -179,8 +184,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(editModel);
         }
 
-        // GET: Version/EditContacts/1
-        public async Task<IActionResult> EditContacts(int id)
+		// GET: Version/EditContacts/1
+		public async Task<IActionResult> EditContacts(int id)
         {
             try
             {
@@ -194,7 +199,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
                 var editModel = new VersionEditModel() { Version = version };
                 RebuildViewModel(ref editModel, version);
-                editModel.UserDetails = new Dictionary<string, Microsoft.Graph.Beta.Models.User>();
+                editModel.UserDetails = [];
                 foreach (var v in editModel.Version.VersionContacts)
                 {
                     editModel.UserDetails.Add(v.UserId, await _repository.GetUser(v.UserId));
@@ -526,15 +531,15 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private void UpdateVersionBasemaps(int[] selectedBasemaps, int defaultBasemap, Data.Models.Version versionToUpdate)
         {
-            if (!selectedBasemaps.Any())
+            if (selectedBasemaps.Length == 0)
             {
-                versionToUpdate.VersionBasemaps = new List<VersionBasemap>();
+                versionToUpdate.VersionBasemaps = [];
                 return;
             }
 
             var selectedBasemapsHS = new HashSet<int>(selectedBasemaps);
             var versionBasemaps = new HashSet<int>();
-            if(selectedBasemaps.Any())
+            if(selectedBasemaps.Length != 0)
             {
                 versionBasemaps = new HashSet<int>(versionToUpdate.VersionBasemaps.Select(c => c.BasemapId));
             }
@@ -545,9 +550,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     if (!versionBasemaps.Contains(basemap.Id))
                     {
-                        if (!versionToUpdate.VersionBasemaps.Any())
+                        if (versionToUpdate.VersionBasemaps.Count == 0)
                         {
-                            versionToUpdate.VersionBasemaps = new List<VersionBasemap>();
+                            versionToUpdate.VersionBasemaps = [];
                         }
                         versionToUpdate.VersionBasemaps.Add(new VersionBasemap { 
                             VersionId = versionToUpdate.Id, 
@@ -579,16 +584,72 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
         }
 
-        private void UpdateVersionCategories(int[] selectedCategories, Data.Models.Version versionToUpdate)
+		private void UpdateVersionProjections(int[] selectedProjections, int mapProjection, int viewProjection, Data.Models.Version versionToUpdate)
+		{
+			if (selectedProjections.Length == 0)
+			{
+				versionToUpdate.VersionProjections = [];
+				return;
+			}
+
+			var selectedProjectionsHS = new HashSet<int>(selectedProjections);
+			var versionProjections = new HashSet<int>();
+			if (selectedProjections.Length != 0)
+			{
+				versionProjections = new HashSet<int>(versionToUpdate.VersionProjections.Select(c => c.ProjectionId));
+			}
+
+			foreach (var projection in _context.Projections)
+			{
+				if (selectedProjectionsHS.Contains(projection.EPSGCode))
+				{
+					if (!versionProjections.Contains(projection.EPSGCode))
+					{
+						if (versionToUpdate.VersionProjections.Count == 0)
+						{
+							versionToUpdate.VersionProjections = [];
+						}
+						versionToUpdate.VersionProjections.Add(new VersionProjection
+						{
+							VersionId = versionToUpdate.Id,
+							ProjectionId = projection.EPSGCode,
+							IsDefaultViewProjection = (viewProjection == projection.EPSGCode),
+							IsDefaultMapProjection = (mapProjection == projection.EPSGCode)
+						});
+					}
+					else
+					{
+						//update the IsDefault value
+						var versionProjectionValue = versionToUpdate.VersionProjections
+							.Where(p => p.ProjectionId == projection.EPSGCode)
+							.FirstOrDefault();
+						versionProjectionValue.IsDefaultMapProjection = (projection.EPSGCode == mapProjection);
+						versionProjectionValue.IsDefaultViewProjection = (projection.EPSGCode == viewProjection);
+
+					}
+				}
+				else
+				{
+
+					if (versionProjections.Contains(projection.EPSGCode))
+					{
+						VersionProjection versionProjectionToRemove = versionToUpdate.VersionProjections.FirstOrDefault(i => i.ProjectionId == projection.EPSGCode);
+						_context.Remove(versionProjectionToRemove);
+					}
+				}
+			}
+		}
+
+		private void UpdateVersionCategories(int[] selectedCategories, Data.Models.Version versionToUpdate)
         {
-            if (!selectedCategories.Any())
+            if (selectedCategories.Length == 0)
             {
                 return;
             }
 
             var selectedCategoriesHS = new HashSet<int>(selectedCategories);
             var versionCategories = new HashSet<int>();
-            if (versionToUpdate.VersionCategories.Any())
+            if (versionToUpdate.VersionCategories.Count != 0)
             {
                 versionCategories = new HashSet<int>(versionToUpdate.VersionCategories.Select(c => c.CategoryId));
             }
@@ -608,7 +669,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
                 else
                 {
-
                     if (versionCategories.Contains(category.Id))
                     {
                         VersionCategory versionCategoryToRemove = versionToUpdate.VersionCategories.FirstOrDefault(i => i.CategoryId == category.Id);
@@ -625,7 +685,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             var welcomeMessages = _context.WelcomeMessages.OrderBy(t => t.Name).ToList();
             var tours = _context.TourDetails.OrderBy(t => t.Name).ToList();
             var basemaps = _context.Basemap.OrderBy(b => b.Name).ToList();
-            var categories = _context.Category.OrderBy(b => b.Name).ToList();
+			var projections = _context.Projections.OrderBy(b => b.Name).ToList();
+			var categories = _context.Category.OrderBy(b => b.Name).ToList();
+			var preferredDefaultProjectionString = configuration["GIFrameworkMaps:PreferredProjections"].Split(',').FirstOrDefault();
+			var preferredDefaultProjection = string.IsNullOrEmpty(preferredDefaultProjectionString) ? projections.First() : projections.Where(p => p.EPSGCode == int.Parse(preferredDefaultProjectionString.Replace("EPSG:", ""))).FirstOrDefault();
 
             model.AvailableThemes = new SelectList(themes, "Id", "Name", version.ThemeId);
             model.AvailableBounds = new SelectList(bounds, "Id", "Name", version.BoundId);
@@ -635,10 +698,26 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             model.AvailableBasemaps = basemaps;
             if (version.VersionBasemaps != null) {
                 model.SelectedBasemaps = version.VersionBasemaps.Select(v => v.BasemapId).ToList();
+
                 model.DefaultBasemap = version.VersionBasemaps.Where(v => v.IsDefault == true).Select(v => v.BasemapId).FirstOrDefault();
             }
-            model.AvailableCategories = categories;
-            if (version.VersionCategories.Any())
+			model.AvailableProjections = projections;
+			if (version.VersionProjections != null)
+			{
+				model.SelectedProjections = version.VersionProjections.Select(v => v.ProjectionId).ToList();
+				var mapProj = version.VersionProjections.Where(v => v.IsDefaultMapProjection).FirstOrDefault();
+				var viewProj = version.VersionProjections.Where(v => v.IsDefaultViewProjection).FirstOrDefault();
+
+				model.MapProjection = mapProj == null ? preferredDefaultProjection.EPSGCode : mapProj.ProjectionId;
+				model.ViewProjection = viewProj == null ? preferredDefaultProjection.EPSGCode : viewProj.ProjectionId;
+				//switch on the defaults
+				model.SelectedProjections.Add(preferredDefaultProjection.EPSGCode);
+				model.SelectedProjections.Add(3857);
+				model.SelectedProjections.Add(4326);
+
+			}
+			model.AvailableCategories = categories;
+            if (version.VersionCategories.Count != 0)
             {
                 model.SelectedCategories = version.VersionCategories.Select(c => c.CategoryId).ToList();
             }

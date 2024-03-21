@@ -34,5 +34,6 @@ namespace GIFrameworkMaps.Data
         DbSet<Models.ShortLink> ShortLink { get; set; }
         DbSet<Models.AnalyticsDefinition> AnalyticsDefinitions { get; set; }
         DbSet<Models.Bookmark> Bookmarks { get; set; }
+		DbSet<Models.Projection> Projections { get; set; }
     }
 }

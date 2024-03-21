@@ -172,14 +172,23 @@ export class WebLayerService {
     addLayerButton.addEventListener("click", (e) => {
       try {
         let source: olSource.ImageWMS | olSource.TileWMS;
+        const mapProjection = this.gifwMapInstance.olMap
+          .getView()
+          .getProjection();
+        const supportedProjections =
+          this.gifwMapInstance.config.availableProjections.flatMap(
+            (p) => `EPSG:${p.epsgCode}`,
+          );
         const preferredProjections = [
+          mapProjection.getCode(),
+          ...supportedProjections,
           "EPSG:3857",
           "EPSG:900913",
-          "EPSG:27700",
           "EPSG:4326",
           "CRS:84",
         ];
-        let selectedProjection = preferredProjections.find((p) =>
+        const uniqueProjections = [...new Set(preferredProjections)];
+        let selectedProjection = uniqueProjections.find((p) =>
           layerDetails.projections.includes(p),
         );
         if (!selectedProjection) {

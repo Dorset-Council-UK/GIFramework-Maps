@@ -3,7 +3,8 @@ import * as olProj from "ol/proj";
 import { toStringHDMS } from "ol/coordinate";
 import { Modal } from "bootstrap";
 import { UserSettings } from "./UserSettings";
-import { Projection } from "./Util";
+import { Projection } from "./Interfaces/Projection";
+import { Projection as utilProjection } from "./Util";
 /**
  * A customised mouse position control that handles BNG Alphanumeric and setting decimal places
  *
@@ -16,16 +17,24 @@ export class GIFWMousePositionControl extends olControl.Control {
   projection: string;
   decimals: number;
   control: olControl.MousePosition;
+  availableProjections: Projection[];
 
-  constructor(startProjection: string, decimals: number) {
+  constructor(
+    startProjection: string,
+    decimals: number,
+    availableProjections: Projection[],
+  ) {
     super({});
     this.projection = startProjection;
     this.decimals = decimals;
+    this.availableProjections = availableProjections;
     this.init();
   }
 
   public init(): olControl.MousePosition {
-    let mousePositionProjection = olProj.get("EPSG:27700");
+    let mousePositionProjection = olProj.get(
+      this.getProjectionString(this.projection),
+    );
     const preferredProjectionEPSG = UserSettings.getItem(
       "MousePositionProjection-Code",
     );
@@ -66,7 +75,32 @@ export class GIFWMousePositionControl extends olControl.Control {
   }
 
   private attachCoordConfiguratorControls(): void {
-    //add coordinate configurator
+    //add projections to coordinate configurator
+    const list = document.getElementById(
+      "coordConfigProjection",
+    ) as HTMLSelectElement;
+    const nonDefaultProjections = this.availableProjections.filter(
+      (p) => p.epsgCode !== 4326 && p.epsgCode !== 3857,
+    );
+    if (nonDefaultProjections.length !== 0) {
+      nonDefaultProjections.forEach((proj) => {
+        const opt = document.createElement("option");
+        opt.value = proj.epsgCode.toString();
+        opt.text = proj.name;
+        opt.dataset.gifwDefaultDecimals =
+          proj.defaultRenderedDecimalPlaces.toString();
+        list.add(opt);
+        if (proj.epsgCode === 27700) {
+          //add the 277001 fake projection for BNG Alphanumeric representation
+          //TODO - Make this smarter!
+          const opt = document.createElement("option");
+          opt.value = "277001";
+          opt.text = "British National Grid Alphanumeric";
+          list.add(opt);
+        }
+      });
+    }
+
     document.getElementById("giframeworkMap").addEventListener("click", (e) => {
       if ((e.target as HTMLAnchorElement).id === "coordinate-configurator") {
         //open modal for metadata
@@ -151,7 +185,7 @@ export class GIFWMousePositionControl extends olControl.Control {
     } else if (code === "43261") {
       return `EPSG:4326`;
     } else {
-      return `EPSG:${code}`;
+      return `EPSG:${code.replace("EPSG:", "")}`;
     }
   }
 
@@ -159,22 +193,27 @@ export class GIFWMousePositionControl extends olControl.Control {
     code: string,
     decimals: number,
     coord: number[],
+    includeUnit: boolean = true,
   ): string {
     const x = coord[0];
     const y = coord[1];
     if (code === "277001") {
       //this is a funny one that requires specific handling, hence the fake EPSG Code
       //do coord conversion
-      return Projection.convertBNGToAlpha(x, y, true);
+      return utilProjection.convertBNGEastingNorthingToAlpha(x, y, true);
     } else if (code === "43261") {
       //this is a funny one that requires specific handling, hence the fake EPSG Code
       //do coord conversion
       return toStringHDMS([x, y], decimals);
     } else if (code === "4326") {
       /*lat/lon requires flipping the x/y values*/
-      return `Lat: ${y.toFixed(decimals)} Lon: ${x.toFixed(decimals)}`;
+      return `${includeUnit ? "Lat: " : ""}${y.toFixed(decimals)} ${
+        includeUnit ? "Lon: " : ""
+      }${x.toFixed(decimals)}`;
     } else {
-      return `X: ${x.toFixed(decimals)} Y: ${y.toFixed(decimals)}`;
+      return `${includeUnit ? "X: " : ""}${x.toFixed(decimals)} ${
+        includeUnit ? "Y: " : ""
+      }${y.toFixed(decimals)}`;
     }
   }
 
@@ -182,13 +221,14 @@ export class GIFWMousePositionControl extends olControl.Control {
     code: string,
     decimals: number,
     coord: number[],
+    includeUnit: boolean = true,
   ): string[] {
     const x = coord[0];
     const y = coord[1];
     if (code === "277001") {
       //this is a funny one that requires specific handling, hence the fake EPSG Code
       //do coord conversion
-      return [Projection.convertBNGToAlpha(x, y, true)];
+      return [utilProjection.convertBNGEastingNorthingToAlpha(x, y, true)];
     } else if (code === "43261") {
       //this is a funny one that requires specific handling, hence the fake EPSG Code
       //do coord conversion
@@ -198,9 +238,15 @@ export class GIFWMousePositionControl extends olControl.Control {
       return [`${splitString[0]}${splitString[1]}`, `${splitString[2].trim()}`];
     } else if (code === "4326") {
       /*lat/lon requires flipping the x/y values*/
-      return [`Lat: ${y.toFixed(decimals)}`, `Lon: ${x.toFixed(decimals)}`];
+      return [
+        `${includeUnit ? "Lat: " : ""}${y.toFixed(decimals)}`,
+        `${includeUnit ? "Lon: " : ""}${x.toFixed(decimals)}`,
+      ];
     } else {
-      return [`X: ${x.toFixed(decimals)}`, `Y: ${y.toFixed(decimals)}`];
+      return [
+        `${includeUnit ? "X: " : ""}${x.toFixed(decimals)}`,
+        `${includeUnit ? "Y: " : ""}${y.toFixed(decimals)}`,
+      ];
     }
   }
 

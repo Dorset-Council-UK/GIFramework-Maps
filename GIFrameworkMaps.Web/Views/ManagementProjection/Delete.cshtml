@@ -1,15 +1,16 @@
-﻿@model GIFrameworkMaps.Data.Models.Category
+﻿@model GIFrameworkMaps.Data.Models.Projection
 @{
-    ViewData["Title"] = $"Delete layer category '{Model.Name}'";
+    ViewData["Title"] = $"Delete projection '{Model.Name}'";
 }
 
 <h1>@ViewData["Title"]</h1>
 <div class="row mt-2">
-    <h2>Are you sure you want to delete this layer category?</h2>
+    <h2>Are you sure you want to delete this projection?</h2>
     <p class="lead">This action cannot be undone.</p>
+
     <form asp-action="Delete">
         <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
-        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="EPSGCode" />
         <div class="mb-3">
             <input type="submit" value="Delete" class="btn btn-danger" />
         </div>
