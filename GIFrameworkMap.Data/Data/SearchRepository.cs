@@ -109,23 +109,23 @@ namespace GIFrameworkMaps.Data
                     if (reqSearch.Enabled)
                     {
                         IEnumerable<VersionSearchDefinition> defs = searchDefs.Where(d => d.SearchDefinitionId == reqSearch.SearchDefinitionId);
-                        if (defs.NotNullOrEmpty())
+                        if (defs.Any())
                         {
-                            var selectedDefinition = defs!.First().SearchDefinition;
+                            var selectedDefinition = defs.First().SearchDefinition;
                                                        
                             if(IsValidSearchTerm(selectedDefinition))
                             {
-                                SearchResultCategory searchResultCategory = new()
+                                var searchResultCategory = new SearchResultCategory()
                                 {
-                                    CategoryName = selectedDefinition!.Title,
-                                    Ordering = reqSearch.Order,
-                                    AttributionHtml = selectedDefinition!.AttributionHtml,
-                                    SupressGeom = selectedDefinition.SupressGeom
+									CategoryName = selectedDefinition!.Title,
+									Ordering = reqSearch.Order,
+									AttributionHtml = selectedDefinition!.AttributionHtml,
+									SupressGeom = selectedDefinition.SupressGeom
                                 };
                                 try
                                 {
                                     var results = SingleSearch(searchTerm, selectedDefinition);
-                                    if (results.NotNullOrEmpty())
+                                    if (results.Count > 0)
                                     {
                                         searchResultCategory.Results = results;
                                         searchResults.ResultCategories.Add(searchResultCategory);
@@ -137,7 +137,7 @@ namespace GIFrameworkMaps.Data
                                     searchResults.IsError = true;
                                 }
                                 // Stop search now if flag set on current search and something found since last time flag set
-                                if (searchResultCategory.Results.NotNullOrEmpty() & reqSearch.StopIfFound)
+                                if (searchResultCategory.Results.Count > 0 && reqSearch.StopIfFound)
                                     break;
                             }
                         }
@@ -214,7 +214,7 @@ namespace GIFrameworkMaps.Data
                     .ToList();
 
                 // Cache the results so they can be used next time we call this function.
-                if (defs.Any())
+                if (defs.Count > 0)
                 {
                     _memoryCache.Set("APISearchDefinitions", defs, TimeSpan.FromHours(1));
                 }
@@ -239,7 +239,7 @@ namespace GIFrameworkMaps.Data
                     .ToList();
 
                 // Cache the results so they can be used next time we call this function.
-                if (defs.Any())
+                if (defs.Count > 0)
                 {
                     _memoryCache.Set("DBSearchDefinitions", defs, TimeSpan.FromHours(1));
                 }
@@ -264,7 +264,7 @@ namespace GIFrameworkMaps.Data
                     .ToList();
 
                 // Cache the results so they can be used next time we call this function.
-                if (defs.Any())
+                if (defs.Count > 0)
                 {
                     _memoryCache.Set("LocalSearchDefinitions", defs, TimeSpan.FromHours(1));
                 }
@@ -425,7 +425,7 @@ namespace GIFrameworkMaps.Data
         {
             List<DatabaseSearchResult> dbResults = GetDBSearchResults(searchTerm, searchDefinition);
             var results = new List<SearchResult>();
-            if (dbResults.NotNullOrEmpty())
+            if (dbResults.Count > 0)
             {
                 int ordering = 1;
                 foreach (var result in dbResults)
