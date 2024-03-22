@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Security.Claims;
+using System.Threading.Tasks;
 using GIFrameworkMaps.Data;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +17,16 @@ namespace GIFrameworkMaps.Web.Controllers.Version
 
 		public async Task<IActionResult> Index()
 		{
-			var versions = await _repository.GetVersions();
+			var userId = "";
+			if (User.Identity.IsAuthenticated)
+			{
+				var claimsIdentity = (ClaimsIdentity)User.Identity;
+				var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+				userId = claim.Value;
+			}
+			
+			
+			var versions = await _commonRepository.GetVersionsListForUser(userId);
 			return View(versions);
 		}
 

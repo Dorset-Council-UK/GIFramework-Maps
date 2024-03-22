@@ -22,7 +22,7 @@ namespace GIFrameworkMaps.Data.Models
         public bool ShowLogin { get; set; } = true;
 		[Display(Name="Show as a featured version on the version home page")]
 		public bool FeaturedVersion { get; set; } = false;
-		[Display(Name = "Hide version from home page")]
+		[Display(Name = "Hide from version home page")]
 		public bool Hidden { get; set; } = false;
 		[Display(Name = "Redirection URL (optional)")]
         public string? RedirectionURL { get; set; }

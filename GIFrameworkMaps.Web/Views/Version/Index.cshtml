@@ -11,12 +11,9 @@
 <div class="container mb-3">
     <h2>Featured</h2>
     <div class="row row-cols-1 row-cols-md-3 g-4">
-        @foreach (GIFrameworkMaps.Data.Models.Version version in Model.
-        Where(a => a.Enabled == true).
-        Where(a => a.RequireLogin == false).
-        Where(a => a.FeaturedVersion == true).
-        Where(a => a.Hidden == false).
-        OrderBy(a => a.Name))
+        @foreach (GIFrameworkMaps.Data.Models.Version version in Model
+            .Where(a => a.FeaturedVersion == true)
+            .OrderBy(a => a.Name))
         {
             <div class="col">
                 <div class="card text-bg-dark h-100">
@@ -36,12 +33,9 @@
 <div class="container">
     <h2>All versions</h2>
     <div class="row row-cols-1 row-cols-md-3 g-4">
-        @foreach (GIFrameworkMaps.Data.Models.Version version in Model.
-        Where(a => a.Enabled == true).
-        Where(a => a.RequireLogin == false).
-        Where(a => a.FeaturedVersion == false).
-        Where(a => a.Hidden == false).
-        OrderBy(a => a.Name))
+        @foreach (GIFrameworkMaps.Data.Models.Version version in Model
+            .Where(a => a.FeaturedVersion == false)
+            .OrderBy(a => a.Name))
         {
             <div class="col">
                 <div class="card text-bg-dark h-100">

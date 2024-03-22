@@ -233,7 +233,16 @@ namespace GIFrameworkMaps.Data
             return versionuser;
         }
 
-        public List<ApplicationUserRole> GetUserRoles(string userId)
+		public async Task<List<Models.Version>> GetVersionsListForUser(string? userId)
+		{
+			var users_versions_list = await _context.VersionUser.Where(b => b.UserId == userId).ToListAsync();
+			var users_versions = users_versions_list.Select(a => a.Version).Where(a => (a != null) && a.RequireLogin == true && a.Hidden == false && a.Enabled == true);
+			var public_versions = await _context.Versions.Where(a => a.Enabled == true && a.RequireLogin == false && a.Hidden == false).ToListAsync();
+			
+			return [..users_versions, ..public_versions];
+		}
+
+		public List<ApplicationUserRole> GetUserRoles(string userId)
         {
             string cacheKey = $"UserRole/{userId}";
 
