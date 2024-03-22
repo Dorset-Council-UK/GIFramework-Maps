@@ -1,6 +1,6 @@
 ﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
+using GIFrameworkMaps.Data.ViewModels.Management;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -68,7 +68,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 ProxyMapRequests = useProxy,
                 ProxyMetaRequests = useProxy
             };
-            LayerEditModel editModel = new() { Layer = layer };
+            var editModel = new LayerEditViewModel() { Layer = layer };
             RebuildViewModel(ref editModel, layer);
             return View(editModel);
         }
@@ -76,7 +76,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         //POST: Layer/Create
         [HttpPost, ActionName("CreateFromSource")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(LayerEditModel editModel, int[] selectedCategories)
+        public async Task<IActionResult> CreatePost(LayerEditViewModel editModel, int[] selectedCategories)
         {
             if (ModelState.IsValid)
             {
@@ -118,7 +118,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
             //get categories this layer is in
             var categories = await _repository.GetLayerCategoriesLayerAppearsIn(layer.Id);
-            var editModel = new LayerEditModel { Layer = layer, SelectedCategories = categories.Select(c => c.CategoryId).ToList() };
+            var editModel = new LayerEditViewModel { Layer = layer, SelectedCategories = categories.Select(c => c.CategoryId).ToList() };
             RebuildViewModel(ref editModel, layer);
             return View(editModel);
         }
@@ -166,7 +166,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
             }
             layerToUpdate.LayerSource = await _repository.GetLayerSource(layerToUpdate.LayerSourceId);
-            var editModel = new LayerEditModel { Layer = layerToUpdate, SelectedCategories = selectedCategories.ToList()};
+            var editModel = new LayerEditViewModel { Layer = layerToUpdate, SelectedCategories = selectedCategories.ToList()};
             RebuildViewModel(ref editModel, layerToUpdate);
             return View(editModel);
         }
@@ -210,7 +210,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(layerToDelete);
         }
 
-        private async Task UpdateCategoryLayers(int[] selectedCategories, Data.Models.Layer layerToUpdate)
+        private async Task UpdateCategoryLayers(int[] selectedCategories, Layer layerToUpdate)
         {
             if (selectedCategories == null)
             {
@@ -233,7 +233,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         }
 
-        private void RebuildViewModel(ref Data.Models.ViewModels.Management.LayerEditModel model, Data.Models.Layer layer)
+        private void RebuildViewModel(ref LayerEditViewModel model, Layer layer)
         {
             var bounds = _context.Bound.OrderBy(t => t.Name).ToList();
             var categories = _context.Category.OrderBy(b => b.Name).ToList();

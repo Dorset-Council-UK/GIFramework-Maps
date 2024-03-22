@@ -1,5 +1,5 @@
-﻿@using Microsoft.Graph.Beta.Models;
-@model GIFrameworkMaps.Data.Models.ViewModels.Management.VersionAddContactModel
+﻿@using GIFrameworkMaps.Data.ViewModels.Management
+@model VersionAddContactViewModel
 @{
     ViewData["Title"] = "Add/Edit a version contact";
 }
@@ -20,7 +20,7 @@
                     {
                     <option value="" data-abbreviations=""></option>
                     }
-                    @foreach (User user in Model.ListOfUsers.OrderBy(u => u.DisplayName))
+                    @foreach (var user in Model.ListOfUsers.OrderBy(u => u.DisplayName))
                     {
                         
                         if (user.Id == Model.ContactEntry.UserId)

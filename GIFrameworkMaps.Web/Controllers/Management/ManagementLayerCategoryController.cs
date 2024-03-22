@@ -1,6 +1,6 @@
 ﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
+using GIFrameworkMaps.Data.ViewModels.Management;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
-    [Authorize(Roles = "GIFWAdmin")]
+	[Authorize(Roles = "GIFWAdmin")]
     public class ManagementLayerCategoryController : Controller
     {
         //dependancy injection
@@ -45,7 +45,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         public IActionResult Create()
         {
             var category = new Data.Models.Category();
-            var editModel = new CategoryEditModel() { Category = category };
+            var editModel = new CategoryEditViewModel() { Category = category };
             RebuildViewModel(ref editModel, category);
             return View(editModel);
         }
@@ -53,7 +53,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         //POST: Version/Create
         [HttpPost, ActionName("Create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(CategoryEditModel editModel, int[] selectedLayers)
+        public async Task<IActionResult> CreatePost(CategoryEditViewModel editModel, int[] selectedLayers)
         {
             if (ModelState.IsValid)
             {
@@ -75,7 +75,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
             }
 
-            editModel = new CategoryEditModel() { Category = editModel.Category };
+            editModel = new CategoryEditViewModel() { Category = editModel.Category };
             RebuildViewModel(ref editModel, editModel.Category);
             return View(editModel);
         }
@@ -92,7 +92,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             {
                 return NotFound();
             }
-            var editModel = new CategoryEditModel() { Category = category };
+            var editModel = new CategoryEditViewModel() { Category = category };
             RebuildViewModel(ref editModel, category);
             return View(editModel);
         }
@@ -107,7 +107,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 .Include(c => c.Layers)
                 .FirstOrDefaultAsync(v => v.Id == id);
 
-            var editModel = new CategoryEditModel() { Category = categoryToUpdate };
+            var editModel = new CategoryEditViewModel() { Category = categoryToUpdate };
 
             if (await TryUpdateModelAsync(
                 editModel.Category,
@@ -216,7 +216,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
         }
 
-        private void RebuildViewModel(ref Data.Models.ViewModels.Management.CategoryEditModel model, Data.Models.Category category)
+        private void RebuildViewModel(ref CategoryEditViewModel model, Data.Models.Category category)
         {
             
             var categories = _context.Category.Where(c => c.Id != category.Id).OrderBy(t => t.Name).ToList();

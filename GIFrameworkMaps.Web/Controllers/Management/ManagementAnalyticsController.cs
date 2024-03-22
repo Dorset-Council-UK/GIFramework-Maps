@@ -1,6 +1,6 @@
 ﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
+using GIFrameworkMaps.Data.ViewModels.Management;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -38,7 +38,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         public IActionResult Create()
         {
-			AnalyticsEditModel viewModel = new()
+			AnalyticsEditViewModel viewModel = new()
 			{
 				AnalyticDefinition = new AnalyticsDefinition()
 			};
@@ -48,7 +48,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(AnalyticsEditModel editModel, int[] selectedVersions)
+        public async Task<IActionResult> Create(AnalyticsEditViewModel editModel, int[] selectedVersions)
         {
             if (ModelState.IsValid)
             {
@@ -78,7 +78,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
             }
 
-			AnalyticsEditModel viewModel = new()
+			AnalyticsEditViewModel viewModel = new()
 			{
 				AnalyticDefinition = editModel.AnalyticDefinition
 			};
@@ -90,7 +90,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             var analyticRecord = _context.AnalyticsDefinitions.Include(ad => ad.VersionAnalytics).Where(a => a.Id == id).FirstOrDefault();
             if (analyticRecord != null)
             {
-				AnalyticsEditModel viewModel = new()
+				AnalyticsEditViewModel viewModel = new()
 				{
 					AnalyticDefinition = analyticRecord
 				};
@@ -108,7 +108,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(AnalyticsEditModel editModel, int[] selectedVersions)
+        public async Task<IActionResult> Edit(AnalyticsEditViewModel editModel, int[] selectedVersions)
         {
             try
             {
@@ -140,7 +140,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     "Try again, and if the problem persists, " +
                     "contact your system administrator.");
             }
-			AnalyticsEditModel viewModel = new()
+			AnalyticsEditViewModel viewModel = new()
 			{
 				AnalyticDefinition = editModel.AnalyticDefinition
 			};
@@ -177,7 +177,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return RedirectToAction(nameof(Index));
         }
 
-        private void RebuildEditModel(ref AnalyticsEditModel model)
+        private void RebuildEditModel(ref AnalyticsEditViewModel model)
         {
             var versions = _context.Versions.OrderBy(b => b.Name).ToList();
             string[] supportedProducts = { "Cloudflare", "Google Analytics (GA4)", "Microsoft Application Insights", "Microsoft Clarity" };
@@ -193,7 +193,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             ViewData["AllVersions"] = model.AvailableVersions;
             ViewData["SelectedVersions"] = model.SelectedVersions;
         }
-        private void UpdateVersionAnalytics(AnalyticsEditModel editModel, AnalyticsDefinition _contextRecord)
+        private void UpdateVersionAnalytics(AnalyticsEditViewModel editModel, AnalyticsDefinition _contextRecord)
         {
             //Update the versions this analytic will apply to
             if (!editModel.SelectedVersions.Any())
