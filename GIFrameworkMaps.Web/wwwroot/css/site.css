@@ -29,8 +29,8 @@ a:focus {
   color: #23527c;
 }
 [data-bs-theme="dark"] a:hover,
-a:focus {
-  color: rgba(255, 255, 255, 1);
+[data-bs-theme="dark"] a:focus {
+    color: rgba(255, 255, 255, 1);
 }
 .btn-primary {
   color: #fff;

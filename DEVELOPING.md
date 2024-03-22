@@ -1,20 +1,21 @@
 ## Dependencies
 To run GIFrameworkMaps with minimal modification, you will need.
-- A web server capable of running .NET 7 applications, such as IIS, Kestral or Azure (locally IIS Express or Kestral should be fine). Linux servers can use Kestral via an Nginx proxy.
+- A web server capable of running .NET applications, such as IIS, Kestral or Azure (locally IIS Express or Kestral should be fine). Linux servers can use Kestral via an Nginx proxy.
 - PostgresSQL 13+ with PostGIS extension
 
 ## Get Started
 - Clone the repository - the `main` branch should always be the latest, stable version
-- Create a user in your database with permission to create schemas and login
-- Set up your connection strings and user secrets
-- Run the Entity Framework migrations
+- Create a user in your database with permission to login
+    - You can then either [create the schema yourself](#create-the-schema-yourself) or [let EF create the schema for you](#let-ef-create-the-schema-for-you)
+- Set up your [connection strings and user secrets](#user-secrets-and-connection-strings)
+- Run an `npm update` to download the dependencies
+    - In Visual Studio this can be done by installing the NPM Task Runner Extension and using Task Runner Explorer
+    - Alternatively just use the command line
+- Run the Entity Framework migrations against the GIFrameworkMaps.Web project
     - Using Visual Studio
         - `Update-Database`
     - Using .Net CLI
         - `dotnet ef database update`
-- Run an `npm update` to download the dependencies
-    - In Visual Studio this can be done by installing the NPM Task Runner Extension and using Task Runner Explorer
-    - Alternatively just use the command line
 - Build and Run!
 
 This will give you a minimal starting application, with a few basic basemaps, to get you started. Start modifying your database
@@ -26,9 +27,14 @@ First, clone the repositiry - the `main` branch should always be the latest, sta
 ### Setting up a database
 To run the project locally you will need to create a suitable database. Postgres is the only database provider currently set up, but with minimal adjustments you could make it use any Entity Framework compatible provider. Install the PostGIS extension to enable geometries in Postgres. 
 
-In your database, create a user for Entity Framework to use and give it permission to login and create databases.
+In your database, create a user for Entity Framework to use and give it permission to login.
 
+You can either let Entity Framework create your schema for you, or create it yourself. 
+#### Create the schema yourself
 Create a schema within your database called giframeworkmaps. To avoid complex permissions, make the user account you created the owner of the schema.
+
+#### Let EF create the schema for you
+In order for EF to be able to create the schema, your user will need permission on the database to create schemas.
 
 ### User secrets and connection strings
 Once you’ve set up your database, add a user secret to your local copy of the application. In Visual Studio this is done by right-clicking on the web project and selecting “Manage user secrets”.
@@ -53,14 +59,14 @@ It's entirely optional to download these extensions. You can download these by g
 ### Running the application
 Once you’ve followed the steps above, you’re ready to run the application. 
 
-- Run the Entity Framework migrations to create the empty tables in your database
+- Run an `npm update` to download the dependencies
+    - In Visual Studio this can be done by installing the NPM Task Runner Extension and using Task Runner Explorer
+    - Alternatively just use the command line
+- Run the Entity Framework migrations against the GIFrameworkMaps.Web project
     - Using Visual Studio
         - `Update-Database`
     - Using .Net CLI
         - `dotnet ef database update`
-- Run an `npm update` to download the dependencies
-    - In Visual Studio this can be done by installing the NPM Task Runner Extension and using Task Runner Explorer
-    - Alternatively just use the command line
 - Build and Run!
 
 This will give you a minimal starting application, with a few basic basemaps, to get you started. Start modifying your database either directly or by using the adminstration functions in the application to start adding layers, basemaps, versions and so on.
