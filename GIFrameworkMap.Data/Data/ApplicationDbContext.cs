@@ -48,61 +48,27 @@ namespace GIFrameworkMaps.Data
         {
             modelBuilder.HasDefaultSchema("giframeworkmaps");
 
-			// AnalyticsDefinitions
-			// APISearchDefinitions
-			// ApplicationRoles
+			// DbSet configurations
 			modelBuilder.ApplyConfiguration(new ApplicationUserRoleConfiguration());
-			// ApplicationUserRoles
-			// Attribution
-			// Basemap
-			// Bookmarks
-			// Bound
-			// Category
-			// CategoryLayer
 			modelBuilder.ApplyConfiguration(new CategoryLayerConfiguration());
-			// DatabaseSearchDefinitions
-			// DatabaseSearchResults
 			modelBuilder.ApplyConfiguration(new DatabaseSearchResultConfiguration());
-			// Layer
 			modelBuilder.ApplyConfiguration(new LayerConfiguration());
-			// LayerSource
-			// LayerSourceOption
-			// LayerSourceType
-			// LocalSearchDefinitions
-			// PrintConfigurations
-			// Projections
 			modelBuilder.ApplyConfiguration(new ProjectionConfiguration());
-			// ProxyAllowedHosts
-			// SearchDefinitions
-			// ShortLink
 			modelBuilder.ApplyConfiguration(new ShortLinkConfiguration());
-			// Theme
-			// TourDetails
 			modelBuilder.ApplyConfiguration(new TourDetailsConfiguration());
-			// TourStep
-			// Versions
-			// VersionAnalytic ?? no DbSet and not in interface
-			modelBuilder.ApplyConfiguration(new VersionAnalyticConfiguration());
-			// VersionBasemap ?? no DbSet and not in interface
-			modelBuilder.ApplyConfiguration(new VersionBasemapConfiguration());
-			// VersionContact
 			modelBuilder.ApplyConfiguration(new VersionContactConfiguration());
-			// VersionCategory ?? no DbSet and not in interface
-			modelBuilder.ApplyConfiguration(new VersionCategoryConfiguration());
-			// VersionLayer
 			modelBuilder.ApplyConfiguration(new VersionLayerConfiguration());
-			// VersionPrintConfiguration
 			modelBuilder.ApplyConfiguration(new VersionPrintConfigurationConfiguration());
-			// VersionProjection ?? no DbSet and not in interface
-			modelBuilder.ApplyConfiguration(new VersionProjectionConfiguration());
-			// VersionSearchDefinition
 			modelBuilder.ApplyConfiguration(new VersionSearchDefinitionConfiguration());
-			// VersionUser
 			modelBuilder.ApplyConfiguration(new VersionUserConfiguration());
-			// WebLayerServiceDefinitions
 			modelBuilder.ApplyConfiguration(new WebLayerServiceDefinitionConfiguration());
-			// WelcomeMessages
 			modelBuilder.ApplyConfiguration(new WelcomeMessageConfiguration());
+
+			// Additional configurations
+			modelBuilder.ApplyConfiguration(new VersionAnalyticConfiguration());
+			modelBuilder.ApplyConfiguration(new VersionBasemapConfiguration());
+			modelBuilder.ApplyConfiguration(new VersionCategoryConfiguration());
+			modelBuilder.ApplyConfiguration(new VersionProjectionConfiguration());
         }
     }
 }
