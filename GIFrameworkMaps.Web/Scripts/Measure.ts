@@ -1,4 +1,5 @@
-﻿import { GIFWMap } from "./Map";
+﻿/* eslint-disable no-console */
+import { GIFWMap } from "./Map";
 import { Draw, Modify, Snap } from "ol/interaction";
 import VectorSource from "ol/source/Vector";
 import { Feature } from "ol";
@@ -22,13 +23,19 @@ import { GIFWPopupAction } from "./Popups/PopupAction";
 import { GIFWPopupOptions } from "./Popups/PopupOptions";
 import { MeasurementResult } from "./Interfaces/MeasurementResult";
 import { Control as olControl } from "ol/control";
-import { Color } from "./Util";
+import { Color, Alert, AlertType, AlertSeverity } from "./Util";
 import { FeatureLike } from "ol/Feature";
 import { Coordinate } from "ol/coordinate";
 import { Polygon } from "ol/geom";
+import { Modal } from "bootstrap";
+import { UserSettings } from "./UserSettings";
 
+type UnitType = 'metric' | 'imperial';
 export class Measure extends olControl {
   gifwMapInstance: GIFWMap;
+  preferredUnits: UnitType;
+  showSegmentLengths: boolean;
+  showTotals: boolean;
   _modifyControl: Modify;
   _drawControl: Draw;
   _snapControl: Snap;
@@ -44,6 +51,7 @@ export class Measure extends olControl {
   _lineMeasurementControlElement: HTMLElement;
   _measureToggleControlElement: HTMLElement;
   _clearMeasurementControlElement: HTMLElement;
+  _measureConfiguratorControlElement: HTMLElement;
   _keyboardEventAbortController: AbortController;
   constructor(gifwMapInstance: GIFWMap) {
     const measureControlElement = document.createElement("div");
@@ -63,6 +71,13 @@ export class Measure extends olControl {
     this._labelStyle = this.getLabelStyle();
     this._tipStyle = this.getTipStyle();
     this._segmentStyles = [this.getSegmentStyle()];
+
+    const measureShowSegmentsUserPref = UserSettings.getItem('measureShowSegments', undefined, ['true', 'false']);
+    const measureShowTotalsUserPref = UserSettings.getItem('measureShowTotals', undefined, ['true', 'false']);
+    this.showSegmentLengths = measureShowSegmentsUserPref === null ? true : measureShowSegmentsUserPref === "true";
+    this.showTotals = measureShowTotalsUserPref === null ? true : measureShowTotalsUserPref === "true";
+    this.preferredUnits = (UserSettings.getItem('measurePreferredUnits', undefined, ['metric', 'imperial']) as UnitType) || 'metric';
+
     this._vectorSource = new VectorSource();
 
     this._measureLayer = this.gifwMapInstance.addNativeLayerToMap(
@@ -165,13 +180,24 @@ export class Measure extends olControl {
       "gifw-clear-measure-control gifw-measure-control ol-unselectable ol-control ol-hidden";
     clearMeasuresElement.appendChild(clearMeasuresButton);
 
+
+    const measureConfiguratorButton = document.createElement("button");
+    measureConfiguratorButton.innerHTML = '<i class="bi bi-gear-fill"></i>';
+    measureConfiguratorButton.setAttribute("title", "Configure measurements");
+    const measureConfiguratorElement = document.createElement("div");
+    measureConfiguratorElement.className =
+      "gifw-configure-measure-control gifw-measure-control ol-unselectable ol-control ol-hidden";
+    measureConfiguratorElement.appendChild(measureConfiguratorButton);
+
     this.element.appendChild(rulerElement);
     this.element.appendChild(lineMeasureElement);
     this.element.appendChild(areaMeasureElement);
     this.element.appendChild(clearMeasuresElement);
+    this.element.appendChild(measureConfiguratorElement);
     this._lineMeasurementControlElement = lineMeasureElement;
     this._areaMeasurementControlElement = areaMeasureElement;
     this._clearMeasurementControlElement = clearMeasuresElement;
+    this._measureConfiguratorControlElement = measureConfiguratorElement;
     this._measureToggleControlElement = rulerElement;
   }
 
@@ -184,6 +210,8 @@ export class Measure extends olControl {
       this._lineMeasurementControlElement.querySelector("button");
     const clearMeasureButton =
       this._clearMeasurementControlElement.querySelector("button");
+    const measureConfiguratorButton =
+      this._measureConfiguratorControlElement.querySelector("button");
 
     rulerButton.addEventListener("click", () => {
       //toggle visibility of sub controls
@@ -192,6 +220,7 @@ export class Measure extends olControl {
         this._lineMeasurementControlElement.classList.remove("ol-hidden");
         this._areaMeasurementControlElement.classList.remove("ol-hidden");
         this._clearMeasurementControlElement.classList.remove("ol-hidden");
+        this._measureConfiguratorControlElement.classList.remove("ol-hidden");
         rulerButton.innerHTML = `<i class="bi bi-chevron-double-left"></i>`;
         rulerButton.setAttribute("title", "Collapse measure controls");
       } else {
@@ -205,6 +234,7 @@ export class Measure extends olControl {
           "ol-control-active",
         );
         this._clearMeasurementControlElement.classList.add("ol-hidden");
+        this._measureConfiguratorControlElement.classList.add("ol-hidden");
         rulerButton.innerHTML = `<i class="bi bi-rulers"></i>`;
         rulerButton.setAttribute("title", "Open measure controls");
       }
@@ -258,6 +288,48 @@ export class Measure extends olControl {
         }
       }
     });
+
+    measureConfiguratorButton.addEventListener("click", (e) => {
+      const measureConfiguratorModal = new Modal(
+        document.getElementById("measurement-configurator-modal"),
+        {},
+      );
+      //set values
+      (document.getElementById("measureConfigPreferredUnits") as HTMLSelectElement).value = this.preferredUnits;
+      (document.getElementById("measureConfigShowSegmentLengths") as HTMLInputElement).checked = this.showSegmentLengths;
+      (document.getElementById("measureConfigShowTotalLength") as HTMLInputElement).checked = this.showTotals;
+      measureConfiguratorModal.show();
+      e.preventDefault();
+    });
+
+    document
+      .getElementById("measureConfigForm")
+      .addEventListener("submit", (e) => {
+        const newUnits = (
+          document.getElementById("measureConfigPreferredUnits") as HTMLSelectElement
+        ).value;
+        const showSegments = (
+          document.getElementById("measureConfigShowSegmentLengths") as HTMLInputElement
+        ).checked;
+        const showTotals = (
+          document.getElementById("measureConfigShowTotalLength") as HTMLInputElement
+        ).checked;
+        this.setMeasurementPreferences(newUnits as UnitType, showSegments, showTotals);
+        const measureConfiguratorModal = Modal.getInstance(
+          document.getElementById("measurement-configurator-modal"),
+        );
+        measureConfiguratorModal.hide();
+        e.preventDefault();
+      });
+
+  }
+  private setMeasurementPreferences(newUnits: UnitType, showSegments: boolean, showTotals: boolean) {
+    this.preferredUnits = newUnits;
+    this.showSegmentLengths = showSegments;
+    this.showTotals = showTotals;
+    UserSettings.setItem('measurePreferredUnits', newUnits);
+    UserSettings.setItem('measureShowSegments', showSegments === true ? "true" : "false");
+    UserSettings.setItem('measureShowTotals', showTotals === true ? "true" : "false");
   }
 
   private activateMeasure(drawType: olGeomType) {
@@ -326,6 +398,15 @@ export class Measure extends olControl {
       tip = idleTip;
 
       this.addMeasurementInfoToPopup(e.feature as Feature<Geometry>);
+      if (!this.showTotals) {
+        const measurements = this.getMeasurementFromGeometry(e.feature.getGeometry());
+
+        const modalContent = `<p class="mb-0">Metric: ${measurements.metric} ${measurements.metricUnit}</p>
+                            <p class="mb-0">Imperial: ${measurements.imperial} ${measurements.imperialUnit}</p>
+                            <div class="alert alert-info small p-2""><span class="bi bi-info-circle"></span> You can get this information anytime by clicking the ${measurements.name} measurement you drew</div>`;
+        const totalMeasurementsModal = new Alert(AlertType.Popup, AlertSeverity.Info, `${measurements.name} measurement results`, modalContent, "#gifw-error-modal");
+        totalMeasurementsModal.show();
+      }
     });
 
     this._drawControl.on("drawabort", () => {
@@ -470,20 +551,25 @@ export class Measure extends olControl {
       );
       if (type === "Polygon") {
         point = (geometry as Polygon).getInteriorPoint();
-        label = `${measurements.metric} ${measurements.metricUnit}`;
         line = new LineString((geometry as Polygon).getCoordinates()[0]);
       } else if (type === "LineString") {
         point = new Point((geometry as Polygon).getLastCoordinate());
-        label = `${measurements.metric} ${measurements.metricUnit}`;
         line = geometry;
       }
+      label = `${measurements.metric} ${measurements.metricUnit}`;
+      if (this.preferredUnits === 'imperial') {
+        label = `${measurements.imperial} ${measurements.imperialUnit}`;
+      }
     }
-    if (segments && line && type === "LineString") {
+    if (segments && line && type === "LineString" && this.showSegmentLengths) {
       let count = 0;
       (line as LineString).forEachSegment((a: Coordinate, b: Coordinate) => {
         const segment = new LineString([a, b]);
         const measurements = this.getMeasurementFromGeometry(segment);
-        const label = `${measurements.metric} ${measurements.metricUnit}`;
+        let label = `${measurements.metric} ${measurements.metricUnit}`;
+        if (this.preferredUnits === 'imperial') {
+          label = `${measurements.imperial} ${ measurements.imperialUnit}`;
+        }
         if (this._segmentStyles.length - 1 < count) {
           this._segmentStyles.push(this.getSegmentStyle());
         }
@@ -494,7 +580,7 @@ export class Measure extends olControl {
         count++;
       });
     }
-    if (label) {
+    if (label && this.showTotals) {
       this._labelStyle.setGeometry(point);
       this._labelStyle.getText().setText(label);
       styles.push(this._labelStyle);
