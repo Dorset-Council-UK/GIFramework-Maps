@@ -1,39 +1,46 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using GIFrameworkMaps.Data.Models;
+using GIFrameworkMaps.Data.Models.Authorization;
+using GIFrameworkMaps.Data.Models.Print;
+using GIFrameworkMaps.Data.Models.Search;
+using GIFrameworkMaps.Data.Models.Tour;
+using Microsoft.EntityFrameworkCore;
 
 namespace GIFrameworkMaps.Data
 {
     public interface IApplicationDbContext
     {
-        DbSet<Models.Version> Versions { get; set; }
-        DbSet<Models.VersionUser> VersionUser { get; set; }
-        DbSet<Models.VersionSearchDefinition> VersionSearchDefinition { get; set; }
-        DbSet<Models.Search.SearchDefinition> SearchDefinitions { get; set; }
-        DbSet<Models.Search.APISearchDefinition> APISearchDefinitions { get; set; }
-        DbSet<Models.Search.DatabaseSearchDefinition> DatabaseSearchDefinitions { get; set; }
-        DbSet<Models.Search.LocalSearchDefinition> LocalSearchDefinitions { get; set; }
-        DbSet<Models.Search.DatabaseSearchResult> DatabaseSearchResults { get; set; }
-        DbSet<Models.VersionPrintConfiguration> VersionPrintConfiguration { get; set; }
-        DbSet<Models.Print.PrintConfiguration> PrintConfigurations { get; set; }
-        DbSet<Models.WelcomeMessage> WelcomeMessages { get; set; }
-        DbSet<Models.Tour.TourDetails> TourDetails { get; set; }
-        DbSet<Models.Tour.TourStep> TourStep { get; set; }
-        DbSet<Models.Layer> Layer { get; set; }
-        DbSet<Models.Basemap> Basemap { get; set; }
-        DbSet<Models.Authorization.ApplicationRole> ApplicationRoles { get; set; }
-        DbSet<Models.Authorization.ApplicationUserRole> ApplicationUserRoles { get; set; }
-        DbSet<Models.WebLayerServiceDefinition> WebLayerServiceDefinitions { get; set; }
-        DbSet<Models.ProxyAllowedHost> ProxyAllowedHosts { get; set; }
-        DbSet<Models.Attribution> Attribution { get; set; }
-        DbSet<Models.Theme> Theme { get; set; }
-        DbSet<Models.Bound> Bound { get; set; }
-        DbSet<Models.Category> Category { get; set; }
-        DbSet<Models.CategoryLayer> CategoryLayer { get; set; }
-        DbSet<Models.LayerSource> LayerSource { get; set; }
-        DbSet<Models.LayerSourceType> LayerSourceType { get; set; }
-        DbSet<Models.LayerSourceOption> LayerSourceOption { get; set; }
-        DbSet<Models.ShortLink> ShortLink { get; set; }
-        DbSet<Models.AnalyticsDefinition> AnalyticsDefinitions { get; set; }
-        DbSet<Models.Bookmark> Bookmarks { get; set; }
-		DbSet<Models.Projection> Projections { get; set; }
+        DbSet<AnalyticsDefinition> AnalyticsDefinitions { get; set; }
+        DbSet<APISearchDefinition> APISearchDefinitions { get; set; }
+        DbSet<ApplicationRole> ApplicationRoles { get; set; }
+        DbSet<ApplicationUserRole> ApplicationUserRoles { get; set; }
+        DbSet<Attribution> Attribution { get; set; }
+        DbSet<Basemap> Basemap { get; set; }
+        DbSet<Bookmark> Bookmarks { get; set; }
+        DbSet<Bound> Bound { get; set; }
+        DbSet<Category> Category { get; set; }
+        DbSet<CategoryLayer> CategoryLayer { get; set; }
+        DbSet<DatabaseSearchDefinition> DatabaseSearchDefinitions { get; set; }
+        DbSet<DatabaseSearchResult> DatabaseSearchResults { get; set; }
+        DbSet<Layer> Layer { get; set; }
+        DbSet<LayerSource> LayerSource { get; set; }
+        DbSet<LayerSourceOption> LayerSourceOption { get; set; }
+        DbSet<LayerSourceType> LayerSourceType { get; set; }
+        DbSet<LocalSearchDefinition> LocalSearchDefinitions { get; set; }
+        DbSet<PrintConfiguration> PrintConfigurations { get; set; }
+		DbSet<Projection> Projections { get; set; }
+        DbSet<ProxyAllowedHost> ProxyAllowedHosts { get; set; }
+        DbSet<SearchDefinition> SearchDefinitions { get; set; }
+        DbSet<ShortLink> ShortLink { get; set; }
+        DbSet<Theme> Theme { get; set; }
+        DbSet<TourDetails> TourDetails { get; set; }
+        DbSet<TourStep> TourStep { get; set; }
+        DbSet<Version> Versions { get; set; }
+		DbSet<VersionContact> VersionContact { get; set; }
+		DbSet<VersionLayer> VersionLayer { get; set; }
+		DbSet<VersionPrintConfiguration> VersionPrintConfiguration { get; set; }
+        DbSet<VersionSearchDefinition> VersionSearchDefinition { get; set; }
+        DbSet<VersionUser> VersionUser { get; set; }
+        DbSet<WebLayerServiceDefinition> WebLayerServiceDefinitions { get; set; }
+        DbSet<WelcomeMessage> WelcomeMessages { get; set; }
     }
 }
