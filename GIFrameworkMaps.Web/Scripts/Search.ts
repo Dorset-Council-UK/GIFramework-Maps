@@ -202,11 +202,13 @@ export class Search {
             ]),
             name: searchResultData.title,
           });
+          const searchResultEPSG = parseInt(permalinkParams.srepsg) ? parseInt(permalinkParams.srepsg) : 3857;
           this.drawSearchResultFeatureOnMap(
             resultIcon,
             searchResultData.content,
             searchResultData.title,
             this._iconStyle,
+            searchResultEPSG
           );
         }
       } catch (e) {

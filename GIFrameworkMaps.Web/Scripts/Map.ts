@@ -1060,12 +1060,15 @@ export class GIFWMap {
    * @returns A number indicating the percentage of the map that is covered by overlays
    */
   public getPercentOfMapCoveredWithOverlays(): number {
-    const mapPadding = this.getPaddingForMapCenter();
+    const leftPanelWidth = (document.querySelector("#gifw-sidebar-left") as HTMLDivElement
+    ).getBoundingClientRect().width;
+    const rightPanelWidth = (document.querySelector("#gifw-sidebar-right") as HTMLDivElement
+    ).getBoundingClientRect().width;
     const screenWidth = this.olMap
       .getOverlayContainer()
       .getBoundingClientRect().width;
-    const leftPanelPercentWidth = (mapPadding[3] / screenWidth) * 100;
-    const rightPanelPercentWidth = (mapPadding[1] / screenWidth) * 100;
+    const leftPanelPercentWidth = (leftPanelWidth / screenWidth) * 100;
+    const rightPanelPercentWidth = (rightPanelWidth / screenWidth) * 100;
     return leftPanelPercentWidth + rightPanelPercentWidth;
   }
 

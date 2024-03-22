@@ -65,8 +65,10 @@ export class SharePanel implements SidebarPanel {
     const embedCode = `<iframe src="${permalink}&embed=true" allowfullscreen width="100%" height="500px"></iframe>`;
     const embedCodeInput: HTMLTextAreaElement = container.querySelector(
       "#gifw-share-embed-code",
-    );
-    embedCodeInput.value = embedCode;
+      );
+      if (embedCodeInput) {
+        embedCodeInput.value = embedCode;
+      }
   }
 
   private attachCopyButtons(): void {
