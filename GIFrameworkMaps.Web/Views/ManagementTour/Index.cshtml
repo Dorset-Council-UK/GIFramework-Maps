@@ -1,4 +1,4 @@
-﻿@model List<GIFrameworkMaps.Data.Models.Tour.TourDetails>
+﻿@model List<GIFrameworkMaps.Data.Models.Tour.TourDetail>
 @{
     ViewData["Title"] = "Tours";
 }
@@ -19,7 +19,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (GIFrameworkMaps.Data.Models.Tour.TourDetails tour in Model.OrderBy(a => a.Name))
+            @foreach (GIFrameworkMaps.Data.Models.Tour.TourDetail tour in Model.OrderBy(a => a.Name))
             {
                 <tr>
                     <td>@tour.Id</td>

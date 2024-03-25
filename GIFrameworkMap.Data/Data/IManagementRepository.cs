@@ -31,8 +31,8 @@ namespace GIFrameworkMaps.Data
         Task<List<Category>> GetLayerCategories();
         Task<Category?> GetLayerCategory(int id);
         Task<List<CategoryLayer>> GetLayerCategoriesLayerAppearsIn(int layerId);
-        Task<TourDetails?> GetTour(int id);
-        Task<List<TourDetails>> GetTours();
+        Task<TourDetail?> GetTour(int id);
+        Task<List<TourDetail>> GetTours();
         Task<TourStep?> GetStep(int id);
         Task<List<TourStep>> GetSteps();
         Task<SearchDefinition?> GetSearchDefinition(int id);

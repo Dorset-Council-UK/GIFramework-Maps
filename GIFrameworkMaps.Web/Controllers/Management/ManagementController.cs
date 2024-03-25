@@ -28,7 +28,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         public IActionResult RenderAttributionString(int id)
         {
-            var attr = _context.Attribution.Where(a => a.Id == id).FirstOrDefault();
+            var attr = _context.Attributions.Where(a => a.Id == id).FirstOrDefault();
             if(attr != null)
             {
                 return Content(attr.RenderedAttributionHTML);

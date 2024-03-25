@@ -117,7 +117,7 @@ namespace GIFrameworkMaps.Web.Controllers
             {
                 return View("ShortLinkNotFound");
             }
-            var shortLink = await _context.ShortLink.FirstOrDefaultAsync(s => s.ShortId == id);
+            var shortLink = await _context.ShortLinks.FirstOrDefaultAsync(s => s.ShortId == id);
             shortLink.LastVisited = NodaTime.SystemClock.Instance.GetCurrentInstant();
             _context.SaveChanges();
 

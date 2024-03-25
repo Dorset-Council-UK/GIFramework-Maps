@@ -84,7 +84,7 @@ namespace GIFrameworkMaps.Tests
             var mockApplicationDbContext = new Mock<IApplicationDbContext>();
             mockApplicationDbContext.Setup(m => m.Versions).Returns(versionsMockSet.Object);
             mockApplicationDbContext.Setup(m => m.SearchDefinitions).Returns(searchDefsMockSet.Object);
-            mockApplicationDbContext.Setup(m => m.VersionSearchDefinition).Returns(versionSearchDefsMockSet.Object);
+            mockApplicationDbContext.Setup(m => m.VersionSearchDefinitions).Returns(versionSearchDefsMockSet.Object);
 
             var mockMemoryCache = new MemoryCache(new MemoryCacheOptions()); ;
             /* TO DO: Add some parameters to the mockMemoryCache? */
