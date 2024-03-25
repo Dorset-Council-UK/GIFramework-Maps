@@ -91,6 +91,7 @@ export class Measure extends olControl {
       undefined,
       undefined,
       "__measurements__",
+      {declutter:true}
     );
     this._measureLayer.on("change", () => {
       if (
@@ -330,6 +331,7 @@ export class Measure extends olControl {
     UserSettings.setItem('measurePreferredUnits', newUnits);
     UserSettings.setItem('measureShowSegments', showSegments === true ? "true" : "false");
     UserSettings.setItem('measureShowTotals', showTotals === true ? "true" : "false");
+    this._measureLayer.getSource().changed();
   }
 
   private activateMeasure(drawType: olGeomType) {
@@ -645,6 +647,7 @@ export class Measure extends olControl {
           color: `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, 0.2)`,
         }),
       }),
+      zIndex: -2,
     });
   }
 
@@ -666,7 +669,7 @@ export class Measure extends olControl {
         radius: 6,
         points: 3,
         angle: Math.PI,
-        displacement: [0, 8],
+        displacement: [0, 7],
         fill: new Fill({
           color: "rgba(0, 0, 0, 0.4)",
         }),
@@ -693,11 +696,12 @@ export class Measure extends olControl {
         radius: 8,
         points: 3,
         angle: Math.PI,
-        displacement: [0, 10],
+        displacement: [0, 8],
         fill: new Fill({
           color: "rgba(0, 0, 0, 0.7)",
         }),
       }),
+      zIndex: 0,
     });
   }
 
