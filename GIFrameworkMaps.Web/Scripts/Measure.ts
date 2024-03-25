@@ -1,5 +1,4 @@
-﻿/* eslint-disable no-console */
-import { GIFWMap } from "./Map";
+﻿import { GIFWMap } from "./Map";
 import { Draw, Modify, Snap } from "ol/interaction";
 import VectorSource from "ol/source/Vector";
 import { Feature } from "ol";
@@ -30,7 +29,7 @@ import { Polygon } from "ol/geom";
 import { Modal } from "bootstrap";
 import { UserSettings } from "./UserSettings";
 
-type UnitType = 'metric' | 'imperial';
+type UnitType = "metric" | "imperial";
 export class Measure extends olControl {
   gifwMapInstance: GIFWMap;
   preferredUnits: UnitType;
@@ -72,11 +71,29 @@ export class Measure extends olControl {
     this._tipStyle = this.getTipStyle();
     this._segmentStyles = [this.getSegmentStyle()];
 
-    const measureShowSegmentsUserPref = UserSettings.getItem('measureShowSegments', undefined, ['true', 'false']);
-    const measureShowTotalsUserPref = UserSettings.getItem('measureShowTotals', undefined, ['true', 'false']);
-    this.showSegmentLengths = measureShowSegmentsUserPref === null ? true : measureShowSegmentsUserPref === "true";
-    this.showTotals = measureShowTotalsUserPref === null ? true : measureShowTotalsUserPref === "true";
-    this.preferredUnits = (UserSettings.getItem('measurePreferredUnits', undefined, ['metric', 'imperial']) as UnitType) || 'metric';
+    const measureShowSegmentsUserPref = UserSettings.getItem(
+      "measureShowSegments",
+      undefined,
+      ["true", "false"],
+    );
+    const measureShowTotalsUserPref = UserSettings.getItem(
+      "measureShowTotals",
+      undefined,
+      ["true", "false"],
+    );
+    this.showSegmentLengths =
+      measureShowSegmentsUserPref === null
+        ? true
+        : measureShowSegmentsUserPref === "true";
+    this.showTotals =
+      measureShowTotalsUserPref === null
+        ? true
+        : measureShowTotalsUserPref === "true";
+    this.preferredUnits =
+      (UserSettings.getItem("measurePreferredUnits", undefined, [
+        "metric",
+        "imperial",
+      ]) as UnitType) || "metric";
 
     this._vectorSource = new VectorSource();
 
@@ -91,7 +108,7 @@ export class Measure extends olControl {
       undefined,
       undefined,
       "__measurements__",
-      {declutter:true}
+      { declutter: true },
     );
     this._measureLayer.on("change", () => {
       if (
@@ -180,7 +197,6 @@ export class Measure extends olControl {
     clearMeasuresElement.className =
       "gifw-clear-measure-control gifw-measure-control ol-unselectable ol-control ol-hidden";
     clearMeasuresElement.appendChild(clearMeasuresButton);
-
 
     const measureConfiguratorButton = document.createElement("button");
     measureConfiguratorButton.innerHTML = '<i class="bi bi-gear-fill"></i>';
@@ -296,9 +312,21 @@ export class Measure extends olControl {
         {},
       );
       //set values
-      (document.getElementById("measureConfigPreferredUnits") as HTMLSelectElement).value = this.preferredUnits;
-      (document.getElementById("measureConfigShowSegmentLengths") as HTMLInputElement).checked = this.showSegmentLengths;
-      (document.getElementById("measureConfigShowTotalLength") as HTMLInputElement).checked = this.showTotals;
+      (
+        document.getElementById(
+          "measureConfigPreferredUnits",
+        ) as HTMLSelectElement
+      ).value = this.preferredUnits;
+      (
+        document.getElementById(
+          "measureConfigShowSegmentLengths",
+        ) as HTMLInputElement
+      ).checked = this.showSegmentLengths;
+      (
+        document.getElementById(
+          "measureConfigShowTotalLength",
+        ) as HTMLInputElement
+      ).checked = this.showTotals;
       measureConfiguratorModal.show();
       e.preventDefault();
     });
@@ -307,30 +335,49 @@ export class Measure extends olControl {
       .getElementById("measureConfigForm")
       .addEventListener("submit", (e) => {
         const newUnits = (
-          document.getElementById("measureConfigPreferredUnits") as HTMLSelectElement
+          document.getElementById(
+            "measureConfigPreferredUnits",
+          ) as HTMLSelectElement
         ).value;
         const showSegments = (
-          document.getElementById("measureConfigShowSegmentLengths") as HTMLInputElement
+          document.getElementById(
+            "measureConfigShowSegmentLengths",
+          ) as HTMLInputElement
         ).checked;
         const showTotals = (
-          document.getElementById("measureConfigShowTotalLength") as HTMLInputElement
+          document.getElementById(
+            "measureConfigShowTotalLength",
+          ) as HTMLInputElement
         ).checked;
-        this.setMeasurementPreferences(newUnits as UnitType, showSegments, showTotals);
+        this.setMeasurementPreferences(
+          newUnits as UnitType,
+          showSegments,
+          showTotals,
+        );
         const measureConfiguratorModal = Modal.getInstance(
           document.getElementById("measurement-configurator-modal"),
         );
         measureConfiguratorModal.hide();
         e.preventDefault();
       });
-
   }
-  private setMeasurementPreferences(newUnits: UnitType, showSegments: boolean, showTotals: boolean) {
+  private setMeasurementPreferences(
+    newUnits: UnitType,
+    showSegments: boolean,
+    showTotals: boolean,
+  ) {
     this.preferredUnits = newUnits;
     this.showSegmentLengths = showSegments;
     this.showTotals = showTotals;
-    UserSettings.setItem('measurePreferredUnits', newUnits);
-    UserSettings.setItem('measureShowSegments', showSegments === true ? "true" : "false");
-    UserSettings.setItem('measureShowTotals', showTotals === true ? "true" : "false");
+    UserSettings.setItem("measurePreferredUnits", newUnits);
+    UserSettings.setItem(
+      "measureShowSegments",
+      showSegments === true ? "true" : "false",
+    );
+    UserSettings.setItem(
+      "measureShowTotals",
+      showTotals === true ? "true" : "false",
+    );
     this._measureLayer.getSource().changed();
   }
 
@@ -401,12 +448,20 @@ export class Measure extends olControl {
 
       this.addMeasurementInfoToPopup(e.feature as Feature<Geometry>);
       if (!this.showTotals) {
-        const measurements = this.getMeasurementFromGeometry(e.feature.getGeometry());
+        const measurements = this.getMeasurementFromGeometry(
+          e.feature.getGeometry(),
+        );
 
         const modalContent = `<p class="mb-0">Metric: ${measurements.metric} ${measurements.metricUnit}</p>
                             <p class="mb-0">Imperial: ${measurements.imperial} ${measurements.imperialUnit}</p>
                             <div class="alert alert-info small p-2""><span class="bi bi-info-circle"></span> You can get this information anytime by clicking the ${measurements.name} measurement you drew</div>`;
-        const totalMeasurementsModal = new Alert(AlertType.Popup, AlertSeverity.Info, `${measurements.name} measurement results`, modalContent, "#gifw-error-modal");
+        const totalMeasurementsModal = new Alert(
+          AlertType.Popup,
+          AlertSeverity.Info,
+          `${measurements.name} measurement results`,
+          modalContent,
+          "#gifw-error-modal",
+        );
         totalMeasurementsModal.show();
       }
     });
@@ -559,7 +614,7 @@ export class Measure extends olControl {
         line = geometry;
       }
       label = `${measurements.metric} ${measurements.metricUnit}`;
-      if (this.preferredUnits === 'imperial') {
+      if (this.preferredUnits === "imperial") {
         label = `${measurements.imperial} ${measurements.imperialUnit}`;
       }
     }
@@ -569,8 +624,8 @@ export class Measure extends olControl {
         const segment = new LineString([a, b]);
         const measurements = this.getMeasurementFromGeometry(segment);
         let label = `${measurements.metric} ${measurements.metricUnit}`;
-        if (this.preferredUnits === 'imperial') {
-          label = `${measurements.imperial} ${ measurements.imperialUnit}`;
+        if (this.preferredUnits === "imperial") {
+          label = `${measurements.imperial} ${measurements.imperialUnit}`;
         }
         if (this._segmentStyles.length - 1 < count) {
           this._segmentStyles.push(this.getSegmentStyle());
