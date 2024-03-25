@@ -1,21 +1,23 @@
 ﻿using GIFrameworkMaps.Data.Models;
+using GIFrameworkMaps.Data.Models.Authorization;
+using GIFrameworkMaps.Data.ViewModels;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data
 {
-    public interface ICommonRepository
+	public interface ICommonRepository
     {
-        Models.Version? GetVersionBySlug(string slug1, string slug2, string slug3);
+        Version? GetVersionBySlug(string slug1, string slug2, string slug3);
         bool CanUserAccessVersion(string userId, int id);
-        Models.Version? GetVersion(int id);
-        Models.ViewModels.VersionViewModel GetVersionViewModel(Version version);
-        List<Models.Version> GetVersions();
-        List<Models.Authorization.ApplicationUserRole> GetUserRoles(string userId);
-        List<Models.WebLayerServiceDefinition> GetWebLayerServiceDefinitions();
-        List<Models.ProxyAllowedHost> GetProxyAllowedHosts();
-        Task<List<Models.ProxyAllowedHost>> GetProxyAllowedHostsAsync();
-        Task<List<Models.Bookmark>> GetBookmarksForUserAsync(string userId);
+        Version? GetVersion(int id);
+        VersionViewModel GetVersionViewModel(Version version);
+        List<Version> GetVersions();
+        List<ApplicationUserRole> GetUserRoles(string userId);
+        List<WebLayerServiceDefinition> GetWebLayerServiceDefinitions();
+        List<ProxyAllowedHost> GetProxyAllowedHosts();
+        Task<List<ProxyAllowedHost>> GetProxyAllowedHostsAsync();
+        Task<List<Bookmark>> GetBookmarksForUserAsync(string userId);
         Task<string> GenerateShortId(string url);
         Task<string> GetFullUrlFromShortId(string shortId);
         bool IsURLCurrentApplication(string url);

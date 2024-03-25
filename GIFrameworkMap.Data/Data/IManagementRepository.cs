@@ -1,13 +1,13 @@
 ﻿using GIFrameworkMaps.Data.Models;
-using GIFrameworkMaps.Data.Models.Tour;
 using GIFrameworkMaps.Data.Models.Search;
+using GIFrameworkMaps.Data.Models.Tour;
+using GIFrameworkMaps.Data.ViewModels.Management;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
 
 namespace GIFrameworkMaps.Data
 {
-    public interface IManagementRepository
+	public interface IManagementRepository
     {
         bool PurgeCache();
         Task<Attribution?> GetAttribution(int id);

@@ -1,6 +1,5 @@
-﻿@using GIFrameworkMaps.Data.Models;
-
-@model GIFrameworkMaps.Data.Models.ViewModels.Management.CustomiseLayerEditModel;
+﻿@using GIFrameworkMaps.Data.ViewModels.Management
+@model CustomiseLayerEditViewModel
 @{
     ViewData["Title"] = $"Customise layer '{Model.Layer.Name}'";
     var hasCustomisation = Model.LayerCustomisation != null;

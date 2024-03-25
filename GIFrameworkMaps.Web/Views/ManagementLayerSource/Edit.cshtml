@@ -1,5 +1,5 @@
-﻿@using GIFrameworkMaps.Data;
-@model GIFrameworkMaps.Data.Models.ViewModels.Management.LayerSourceEditModel
+﻿@using GIFrameworkMaps.Data.ViewModels.Management
+@model LayerSourceEditViewModel
 @{
     ViewData["Title"] = $"Edit layer source '{Model.LayerSource.Name}'";
 }
@@ -78,7 +78,7 @@
                 <a href="@Url.Action("CreateOption",new {id = Model.LayerSource.Id})" class="btn btn-outline-secondary">Add option</a>
             </div>
             <div class="tab-pane fade" id="layers-tab-pane" role="tabpanel" aria-labelledby="layers-tab" tabindex="0">
-                @if(Model.LayersUsingSource.NotNullOrEmpty())
+                @if (Model.LayersUsingSource.Any())
                 {
                     <ul class="list-group">
                         @foreach (var layer in Model.LayersUsingSource)
@@ -87,7 +87,9 @@
                         }
 
                     </ul>
-                }else{
+                }
+                else
+                {
                     <div class="alert alert-info">This layer source is not being used by any layers</div>
                 }
 

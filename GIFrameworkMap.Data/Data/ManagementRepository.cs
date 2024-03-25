@@ -1,15 +1,15 @@
-﻿using GIFrameworkMaps.Data.Models;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
-using GIFrameworkMaps.Data.Models.Tour;
+﻿using Azure.Identity;
+using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Search;
+using GIFrameworkMaps.Data.Models.Tour;
+using GIFrameworkMaps.Data.ViewModels.Management;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Graph.Beta;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Graph.Beta;
-using Azure.Identity;
-using Microsoft.Extensions.Configuration;
 
 namespace GIFrameworkMaps.Data
 {
