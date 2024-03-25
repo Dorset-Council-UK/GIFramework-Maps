@@ -1,7 +1,7 @@
 ﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Authorization;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
+using GIFrameworkMaps.Data.ViewModels.Management;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
-    [Authorize(Roles = "GIFWAdmin")]
+	[Authorize(Roles = "GIFWAdmin")]
     public class ManagementUserController : Controller
     {
         //dependancy injection
@@ -54,7 +54,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             if(user != null)
             {
                 //fetch roles and version permissions
-                var editModel = new UserEditModel() { User = user };
+                var editModel = new UserEditViewModel() { User = user };
                 RebuildViewModel(ref editModel, user);
                 return View(editModel);
             }   
@@ -84,7 +84,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     "Try again, and if the problem persists, " +
                     "contact your system administrator.");
             }
-            var editModel = new UserEditModel() { 
+            var editModel = new UserEditViewModel()
+			{ 
                 SelectedRoles = selectedRoles.ToList(), 
                 SelectedVersions = selectedVersions.ToList(), 
                 User = userToUpdate
@@ -169,7 +170,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
         }
 
-        private void RebuildViewModel(ref Data.Models.ViewModels.Management.UserEditModel model, Microsoft.Graph.Beta.Models.User user)
+        private void RebuildViewModel(ref UserEditViewModel model, Microsoft.Graph.Beta.Models.User user)
         {
             var versions = _context.Versions.Where(v => v.RequireLogin == true).OrderBy(v => v.Name).ToList();
             var roles = _context.ApplicationRoles.OrderBy(r => r.RoleName).ToList();
