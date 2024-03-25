@@ -311,7 +311,6 @@ export class Measure extends olControl {
         document.getElementById("measurement-configurator-modal"),
         {},
       );
-      //set values
       (
         document.getElementById(
           "measureConfigPreferredUnits",
@@ -378,7 +377,15 @@ export class Measure extends olControl {
       "measureShowTotals",
       showTotals === true ? "true" : "false",
     );
-    this._measureLayer.getSource().changed();
+    //reset the labels and feature popup contents of any existing measurements
+    const source = this._measureLayer.getSource()
+    if (source.getFeatures().length !== 0) {
+      source.changed();
+      source.getFeatures().forEach(feat => {
+        this.addMeasurementInfoToPopup(feat);
+      })
+    }
+    
   }
 
   private activateMeasure(drawType: olGeomType) {
@@ -523,9 +530,13 @@ export class Measure extends olControl {
       removeAllAction,
     ]);
     feature.set("gifw-popup-opts", popupOpts);
+    let measurementText = `${measurements.metric} ${measurements.metricUnit}`;
+    if (this.preferredUnits === "imperial") {
+      measurementText = `${measurements.imperial} ${measurements.imperialUnit}`;
+    }
     feature.set(
       "gifw-popup-title",
-      `${measurements.metric} ${measurements.metricUnit} ${measurements.name} Measurement`,
+      `${measurementText} ${measurements.name} Measurement`,
     );
   }
 
