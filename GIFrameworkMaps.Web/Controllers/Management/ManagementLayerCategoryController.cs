@@ -83,7 +83,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/Edit/1
         public async Task<IActionResult> Edit(int id)
         {
-            var category = await _context.Category
+            var category = await _context.Categories
                 .Include(c => c.ParentCategory)
                 .Include(c => c.Layers)
                 .FirstOrDefaultAsync(v => v.Id == id);
@@ -102,7 +102,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id, int[] selectedLayers)
         {
-            var categoryToUpdate = await _context.Category
+            var categoryToUpdate = await _context.Categories
                 .Include(c => c.ParentCategory)
                 .Include(c => c.Layers)
                 .FirstOrDefaultAsync(v => v.Id == id);
@@ -158,10 +158,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var categoryToDelete = await _context.Category.FirstOrDefaultAsync(a => a.Id == id);
+            var categoryToDelete = await _context.Categories.FirstOrDefaultAsync(a => a.Id == id);
             try
             {
-                _context.Category.Remove(categoryToDelete);
+                _context.Categories.Remove(categoryToDelete);
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Layer category deleted";
                 TempData["MessageType"] = "success";
@@ -191,7 +191,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 versionCategories = new HashSet<int>(categoryToUpdate.Layers.Select(c => c.LayerId));
             }
 
-            foreach (var layer in _context.Layer)
+            foreach (var layer in _context.Layers)
             {
                 if (selectedCategoriesHS.Contains(layer.Id))
                 {
@@ -219,8 +219,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         private void RebuildViewModel(ref CategoryEditViewModel model, Data.Models.Category category)
         {
             
-            var categories = _context.Category.Where(c => c.Id != category.Id).OrderBy(t => t.Name).ToList();
-            var layers = _context.Layer.OrderBy(l => l.Name).ToList();
+            var categories = _context.Categories.Where(c => c.Id != category.Id).OrderBy(t => t.Name).ToList();
+            var layers = _context.Layers.OrderBy(l => l.Name).ToList();
 
             model.AvailableParentCategories = new SelectList(categories, "Id", "Name", category.ParentCategoryId);
 

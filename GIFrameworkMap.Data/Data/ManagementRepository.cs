@@ -32,7 +32,7 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<Attribution>> GetAttributions()
         {
-            var attributions = await _context.Attribution
+            var attributions = await _context.Attributions
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -41,7 +41,7 @@ namespace GIFrameworkMaps.Data
 
         public async Task<Attribution?> GetAttribution(int id)
         {
-            var attribution = await _context.Attribution.FirstOrDefaultAsync(a => a.Id == id);
+            var attribution = await _context.Attributions.FirstOrDefaultAsync(a => a.Id == id);
 
             return attribution;
         }
@@ -64,7 +64,7 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<Bound>> GetBounds()
         {
-            var bounds = await _context.Bound
+            var bounds = await _context.Bounds
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -73,14 +73,14 @@ namespace GIFrameworkMaps.Data
 
         public async Task<Bound?> GetBound(int id)
         {
-            var bound = await _context.Bound.FirstOrDefaultAsync(a => a.Id == id);
+            var bound = await _context.Bounds.FirstOrDefaultAsync(a => a.Id == id);
 
             return bound;
         }
 
         public async Task<List<Theme>> GetThemes()
         {
-            var themes = await _context.Theme
+            var themes = await _context.Themes
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -89,7 +89,7 @@ namespace GIFrameworkMaps.Data
 
         public async Task<Theme?> GetTheme(int id)
         {
-            var theme = await _context.Theme.FirstOrDefaultAsync(a => a.Id == id);
+            var theme = await _context.Themes.FirstOrDefaultAsync(a => a.Id == id);
 
             return theme;
         }
@@ -121,7 +121,7 @@ namespace GIFrameworkMaps.Data
 
         public async Task<Layer?> GetLayer(int id)
         {
-            var layer = await _context.Layer
+            var layer = await _context.Layers
                 .Include(l => l.LayerSource)
                 .ThenInclude(l => l!.LayerSourceType)
                 .Include(l => l.LayerSource)
@@ -133,7 +133,7 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<Layer>> GetLayers()
         {
-            var layers = await _context.Layer
+            var layers = await _context.Layers
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -142,13 +142,13 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<Layer>> GetLayersByLayerSource(int layerSourceId)
         {
-            var layers = await _context.Layer.Where(l => l.LayerSourceId == layerSourceId).AsNoTracking().ToListAsync();
+            var layers = await _context.Layers.Where(l => l.LayerSourceId == layerSourceId).AsNoTracking().ToListAsync();
             return layers;
         }
 
         public async Task<LayerSource?> GetLayerSource(int id)
         {
-            var layerSource = await _context.LayerSource
+            var layerSource = await _context.LayerSources
                 .Include(s => s.LayerSourceOptions)
                 .Include(s => s.LayerSourceType)
                 .FirstOrDefaultAsync(a => a.Id == id);
@@ -158,7 +158,7 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<LayerSource>> GetLayerSources()
         {
-            var layerSources = await _context.LayerSource
+            var layerSources = await _context.LayerSources
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -167,7 +167,7 @@ namespace GIFrameworkMaps.Data
 
         public async Task<LayerSourceOption?> GetLayerSourceOption(int id)
         {
-            var layerSource = await _context.LayerSourceOption
+            var layerSource = await _context.LayerSourceOptions
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             return layerSource;
@@ -179,7 +179,7 @@ namespace GIFrameworkMaps.Data
             return webLayerServiceDefinition;
         }
 
-        public async Task<List<TourDetails>> GetTours()
+        public async Task<List<TourDetail>> GetTours()
         {
             var tours = await _context.TourDetails
                 .Include(t => t.Steps)
@@ -189,7 +189,7 @@ namespace GIFrameworkMaps.Data
             return tours;
         }
 
-        public async Task<TourDetails?> GetTour(int id)
+        public async Task<TourDetail?> GetTour(int id)
         {
             var tour = await _context.TourDetails.Include(a => a.Steps).FirstOrDefaultAsync(a => a.Id == id);
 
@@ -198,7 +198,7 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<TourStep>> GetSteps()
         {
-            var steps = await _context.TourStep
+            var steps = await _context.TourSteps
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -207,14 +207,14 @@ namespace GIFrameworkMaps.Data
 
         public async Task<TourStep?> GetStep(int id)
         {
-            var step = await _context.TourStep.FirstOrDefaultAsync(a => a.Id == id);
+            var step = await _context.TourSteps.FirstOrDefaultAsync(a => a.Id == id);
 
             return step;
         }
 
         public async Task<Category?> GetLayerCategory(int id)
         {
-            var layerCategory = await _context.Category
+            var layerCategory = await _context.Categories
                 .Include(c => c.Layers)
                 .Include(c => c.ParentCategory)
                 .FirstOrDefaultAsync(a => a.Id == id);
@@ -224,7 +224,7 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<Category>> GetLayerCategories()
         {
-            var layerCategories = await _context.Category
+            var layerCategories = await _context.Categories
                 .Include(c => c.Layers)
                 .Include(c => c.ParentCategory)
                 .AsNoTracking()
@@ -235,7 +235,7 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<CategoryLayer>> GetLayerCategoriesLayerAppearsIn(int layerId)
         {
-            var layerCategories = await _context.CategoryLayer.Where(c => c.LayerId == layerId).ToListAsync();
+            var layerCategories = await _context.CategoryLayers.Where(c => c.LayerId == layerId).ToListAsync();
             return layerCategories;
         }
 

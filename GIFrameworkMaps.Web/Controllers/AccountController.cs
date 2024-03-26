@@ -43,7 +43,7 @@ namespace GIFrameworkMaps.Web.Controllers
 					return RedirectToAction("SignIn", "Account", new { area = "MicrosoftIdentity", redirectUri = decodedString });
 				}
 
-				await _context.ShortLink.AddAsync(new ShortLink
+				await _context.ShortLinks.AddAsync(new ShortLink
 				{
 					ShortId = shortId,
 					FullUrl = decodedString

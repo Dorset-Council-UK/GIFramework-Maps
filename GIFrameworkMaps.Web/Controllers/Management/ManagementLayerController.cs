@@ -86,7 +86,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
                     foreach(int category in selectedCategories)
                     {
-                        _context.CategoryLayer.Add(new CategoryLayer { CategoryId = category, Layer = editModel.Layer });
+                        _context.CategoryLayers.Add(new CategoryLayer { CategoryId = category, Layer = editModel.Layer });
                     }
                     
                     await _context.SaveChangesAsync();
@@ -128,7 +128,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id, int[] selectedCategories)
         {
-            var layerToUpdate = await _context.Layer.FirstOrDefaultAsync(a => a.Id == id);
+            var layerToUpdate = await _context.Layers.FirstOrDefaultAsync(a => a.Id == id);
 
             if (await TryUpdateModelAsync(
                 layerToUpdate,
@@ -189,11 +189,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var layerToDelete = await _context.Layer.FirstOrDefaultAsync(a => a.Id == id);
+            var layerToDelete = await _context.Layers.FirstOrDefaultAsync(a => a.Id == id);
 
             try
             {
-                _context.Layer.Remove(layerToDelete);
+                _context.Layers.Remove(layerToDelete);
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Layer deleted";
                 TempData["MessageType"] = "success";
@@ -214,19 +214,19 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         {
             if (selectedCategories == null)
             {
-                await _context.CategoryLayer.Where(c => c.LayerId == layerToUpdate.Id).ExecuteDeleteAsync();    
+                await _context.CategoryLayers.Where(c => c.LayerId == layerToUpdate.Id).ExecuteDeleteAsync();    
                 return;
             }
 
             //delete category layers not needed anymore
-            await _context.CategoryLayer.Where(c => c.LayerId == layerToUpdate.Id && !selectedCategories.Contains(c.CategoryId)).ExecuteDeleteAsync();
+            await _context.CategoryLayers.Where(c => c.LayerId == layerToUpdate.Id && !selectedCategories.Contains(c.CategoryId)).ExecuteDeleteAsync();
 
             //add new category layers
             foreach (int category in selectedCategories)
             {
-                if (!_context.CategoryLayer.Where(c => c.LayerId == layerToUpdate.Id && c.CategoryId == category).Any())
+                if (!_context.CategoryLayers.Where(c => c.LayerId == layerToUpdate.Id && c.CategoryId == category).Any())
                 {
-                    await _context.CategoryLayer.AddAsync(new CategoryLayer { CategoryId = category, Layer = layerToUpdate });
+                    await _context.CategoryLayers.AddAsync(new CategoryLayer { CategoryId = category, Layer = layerToUpdate });
                 }
             }
             return;
@@ -235,8 +235,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private void RebuildViewModel(ref LayerEditViewModel model, Layer layer)
         {
-            var bounds = _context.Bound.OrderBy(t => t.Name).ToList();
-            var categories = _context.Category.OrderBy(b => b.Name).ToList();
+            var bounds = _context.Bounds.OrderBy(t => t.Name).ToList();
+            var categories = _context.Categories.OrderBy(b => b.Name).ToList();
 
             model.AvailableBounds = new SelectList(bounds, "Id", "Name", layer.BoundId);
             model.AvailableCategories = categories;
