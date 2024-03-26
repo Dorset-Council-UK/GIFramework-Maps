@@ -1,17 +1,17 @@
 ﻿using AutoMapper;
 using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Authorization;
+using GIFrameworkMaps.Data.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using shortid;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using shortid;
-using GIFrameworkMaps.Data.ViewModels;
 
 namespace GIFrameworkMaps.Data
 {
