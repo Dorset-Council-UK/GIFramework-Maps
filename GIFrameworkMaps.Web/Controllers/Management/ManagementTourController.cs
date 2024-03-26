@@ -47,14 +47,14 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             DateTimeZone tz = DateTimeZoneProviders.Tzdb.GetSystemDefault();
             ZonedDateTime zdt = now.InZone(tz);
             //default the update date to now
-            var model = new TourDetails() { UpdateDate = zdt.LocalDateTime };
+            var model = new TourDetail() { UpdateDate = zdt.LocalDateTime };
             return View(model);
         }
 
         //POST: Tour/Create
         [HttpPost, ActionName("Create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(TourDetails tour, bool AddStep, DateTime UpdateDate)
+        public async Task<IActionResult> CreatePost(TourDetail tour, bool AddStep, DateTime UpdateDate)
         {
             tour.UpdateDate = LocalDateTime.FromDateTime(UpdateDate);
             ModelState.Clear();
@@ -132,7 +132,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         "contact your system administrator.");
                 }
             }
-            tourToUpdate.Steps = await _context.TourStep.Where(a => a.TourDetailsId == id).ToListAsync();
+            tourToUpdate.Steps = await _context.TourSteps.Where(a => a.TourDetailsId == id).ToListAsync();
             return View(tourToUpdate);
         }
 

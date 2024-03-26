@@ -154,7 +154,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id)
         {
-            var sourceToUpdate = await _context.LayerSource.FirstOrDefaultAsync(a => a.Id == id);
+            var sourceToUpdate = await _context.LayerSources.FirstOrDefaultAsync(a => a.Id == id);
 
             if (await TryUpdateModelAsync(
                 sourceToUpdate,
@@ -203,7 +203,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditOptionPost(int id)
         {
-            var optionToUpdate = await _context.LayerSourceOption.FirstOrDefaultAsync(a => a.Id == id);
+            var optionToUpdate = await _context.LayerSourceOptions.FirstOrDefaultAsync(a => a.Id == id);
 
             if (await TryUpdateModelAsync(
                 optionToUpdate,
@@ -248,11 +248,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var sourceToDelete = await _context.LayerSource.FirstOrDefaultAsync(a => a.Id == id);
+            var sourceToDelete = await _context.LayerSources.FirstOrDefaultAsync(a => a.Id == id);
 
             try
             {
-                _context.LayerSource.Remove(sourceToDelete);
+                _context.LayerSources.Remove(sourceToDelete);
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Layer source deleted";
                 TempData["MessageType"] = "success";
@@ -289,11 +289,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteOptionConfirm(int id)
         {
-            var optionToDelete = await _context.LayerSourceOption.FirstOrDefaultAsync(a => a.Id == id);
+            var optionToDelete = await _context.LayerSourceOptions.FirstOrDefaultAsync(a => a.Id == id);
 
             try
             {
-                _context.LayerSourceOption.Remove(optionToDelete);
+                _context.LayerSourceOptions.Remove(optionToDelete);
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Layer option deleted";
                 TempData["MessageType"] = "success";
@@ -312,8 +312,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private async Task<LayerSourceEditViewModel> RebuildViewModel(LayerSourceEditViewModel model, Data.Models.LayerSource layerSource)
         {
-            var attributions = _context.Attribution.OrderBy(t => t.Name).ToList();
-            var layerSourceTypes = _context.LayerSourceType.OrderBy(t => t.Name).ToList();
+            var attributions = _context.Attributions.OrderBy(t => t.Name).ToList();
+            var layerSourceTypes = _context.LayerSourceTypes.OrderBy(t => t.Name).ToList();
             if(model.LayerSource != null && model.LayerSource.Id != 0)
             {
                 var layers = await _repository.GetLayersByLayerSource(model.LayerSource.Id);

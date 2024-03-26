@@ -222,7 +222,7 @@ namespace GIFrameworkMaps.Data
             {
                 return true;
             }
-            var versionuser = _context.VersionUser
+            var versionuser = _context.VersionUsers
                 .AsNoTrackingWithIdentityResolution()
                 .Any(vu => vu.UserId == userId && vu.VersionId == versionId);
             
@@ -324,12 +324,12 @@ namespace GIFrameworkMaps.Data
         {
             string shortId = ShortId.Generate();
 
-            var existing = await _context.ShortLink.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
+            var existing = await _context.ShortLinks.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
             var iterations = 0;
             var maxIterations = 100;
             while (existing != null && iterations < maxIterations) {
                 shortId = ShortId.Generate();
-                existing = await _context.ShortLink.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
+                existing = await _context.ShortLinks.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
                 iterations++;
             }
             
@@ -349,7 +349,7 @@ namespace GIFrameworkMaps.Data
 
         public async Task<string> GetFullUrlFromShortId(string shortId)
         {
-            var shortLink = await _context.ShortLink.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
+            var shortLink = await _context.ShortLinks.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
             if(shortLink == null || shortLink.FullUrl == null)
             {
                 return "";

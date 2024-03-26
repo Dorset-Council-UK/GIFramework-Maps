@@ -31,14 +31,14 @@ namespace GIFrameworkMaps.Data
                 }
                 else
                 {
-                    var printConfig = _context.VersionPrintConfiguration
+                    var printConfig = _context.VersionPrintConfigurations
                         .Where(v => v.VersionId == versionId)
                         .AsNoTrackingWithIdentityResolution()
                         .Include(v => v.PrintConfiguration)
                         .FirstOrDefault();
 
                     //If null get default based on general version (which should always exist)
-                    printConfig ??= _context.VersionPrintConfiguration
+                    printConfig ??= _context.VersionPrintConfigurations
                             .Where(v => v.Version!.Slug == "general")
                             .AsNoTrackingWithIdentityResolution()
                             .Include(v => v.PrintConfiguration)

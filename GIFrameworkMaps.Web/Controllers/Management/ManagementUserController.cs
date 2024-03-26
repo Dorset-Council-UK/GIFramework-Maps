@@ -134,7 +134,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private void UpdateUserVersions(int[] selectedVersions, Microsoft.Graph.Beta.Models.User userToUpdate)
         {
-            var existingVersions = _context.VersionUser.Where(u => u.UserId == userToUpdate.Id).ToList();
+            var existingVersions = _context.VersionUsers.Where(u => u.UserId == userToUpdate.Id).ToList();
             if (selectedVersions == null)
             {
                 _context.Remove(existingVersions);
@@ -178,7 +178,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             model.AvailableVersions = versions;
             model.AvailableRoles = roles;
 
-            model.SelectedVersions = _context.VersionUser.Where(vu => vu.UserId == user.Id).Select(vu => vu.VersionId).ToList();
+            model.SelectedVersions = _context.VersionUsers.Where(vu => vu.UserId == user.Id).Select(vu => vu.VersionId).ToList();
             model.SelectedRoles = _context.ApplicationUserRoles.Where(aur => aur.UserId == user.Id).Select(aur => aur.ApplicationRoleId).ToList();
         }
     }

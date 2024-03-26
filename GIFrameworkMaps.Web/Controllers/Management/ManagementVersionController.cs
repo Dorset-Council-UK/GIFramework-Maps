@@ -239,7 +239,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     if (model.ContactEntry.VersionContactId == -1)
                     {
                         //This is a new record
-                        _context.VersionContact.Add(new VersionContact
+                        _context.VersionContacts.Add(new VersionContact
                         {
                             DisplayName = model.ContactEntry.DisplayName,
                             Enabled = model.ContactEntry.Enabled,
@@ -249,7 +249,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     }
                     else
                     {
-                        VersionContact existingRecord = _context.VersionContact.FirstOrDefault(u => u.VersionContactId == model.ContactEntry.VersionContactId);
+                        VersionContact existingRecord = _context.VersionContacts.FirstOrDefault(u => u.VersionContactId == model.ContactEntry.VersionContactId);
                         if (existingRecord != null)
                         {
                             existingRecord.DisplayName = model.ContactEntry.DisplayName;
@@ -282,7 +282,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         {
             VersionAddContactViewModel ViewModel = new()
             {
-                ContactEntry = _context.VersionContact.FirstOrDefault(u => u.VersionId == id && u.VersionContactId == VersionContactId),
+                ContactEntry = _context.VersionContacts.FirstOrDefault(u => u.VersionId == id && u.VersionContactId == VersionContactId),
                 ListOfUsers = await _repository.GetUsers()
             };
             return View("AddContact", ViewModel);
@@ -291,10 +291,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/DeleteContact/1?VersionContactId=1
         public async Task<IActionResult> DeleteContact(int id, int VersionContactId)
         {
-            var recordToDeleete = _context.VersionContact.FirstOrDefault(u => u.VersionId == id && u.VersionContactId == VersionContactId);
+            var recordToDeleete = _context.VersionContacts.FirstOrDefault(u => u.VersionId == id && u.VersionContactId == VersionContactId);
             try
             {
-                _context.VersionContact.Remove(recordToDeleete);
+                _context.VersionContacts.Remove(recordToDeleete);
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Version contact deleted";
                 TempData["MessageType"] = "success";
@@ -315,7 +315,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             //get list of all layers and customisations
             var version = _commonRepository.GetVersion(id);
             //TODO - fetch this as part of the above?
-            version.VersionLayerCustomisations = await _context.VersionLayer.
+            version.VersionLayerCustomisations = await _context.VersionLayers.
                 Include(r => r.Layer)
                 .Include(r => r.Category)
                 .Where(r => r.VersionId == version.Id)
@@ -340,7 +340,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             var layer = await _repository.GetLayer(layerId);
             var category = await _repository.GetLayerCategory(categoryId);
             //TODO - fetch this as part of the above?
-            var customisation = await _context.VersionLayer
+            var customisation = await _context.VersionLayers
 				.Include(r => r.Layer)
 				.Where(r => r.VersionId == version.Id && r.LayerId == layerId && r.CategoryId == categoryId)
 				.FirstOrDefaultAsync();
@@ -392,7 +392,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             else
             {
                 //edit
-                var customisationToUpdate = await _context.VersionLayer.Where(c => c.Id == model.LayerCustomisation.Id).FirstOrDefaultAsync();
+                var customisationToUpdate = await _context.VersionLayers.Where(c => c.Id == model.LayerCustomisation.Id).FirstOrDefaultAsync();
 
                 if (await TryUpdateModelAsync(
                     customisationToUpdate,
@@ -434,7 +434,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/DeleteLayerCustomisation/123
         public async Task<IActionResult> DeleteLayerCustomisation(int id)
         {
-            var customisation = await _context.VersionLayer.Include(r => r.Layer).Include(r => r.Category).Where(r => r.Id == id).FirstOrDefaultAsync();
+            var customisation = await _context.VersionLayers.Include(r => r.Layer).Include(r => r.Category).Where(r => r.Id == id).FirstOrDefaultAsync();
             return View(customisation);
         }
 
@@ -442,7 +442,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [HttpPost, ActionName("DeleteLayerCustomisation")]
         public async Task<IActionResult> DeleteLayerCustomisationPost(int id)
         {
-            var customisation = await _context.VersionLayer.Where(r => r.Id == id).FirstOrDefaultAsync();
+            var customisation = await _context.VersionLayers.Where(r => r.Id == id).FirstOrDefaultAsync();
             try
             {
                 
@@ -483,7 +483,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         {
             try
             {
-                await _context.VersionLayer.Where(r => r.VersionId == id).ExecuteDeleteAsync();
+                await _context.VersionLayers.Where(r => r.VersionId == id).ExecuteDeleteAsync();
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Customisations removed";
                 TempData["MessageType"] = "success";
@@ -552,7 +552,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 versionBasemaps = new HashSet<int>(versionToUpdate.VersionBasemaps.Select(c => c.BasemapId));
             }
                 
-            foreach (var basemap in _context.Basemap)
+            foreach (var basemap in _context.Basemaps)
             {
                 if (selectedBasemapsHS.Contains(basemap.Id))
                 {
@@ -662,7 +662,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 versionCategories = new HashSet<int>(versionToUpdate.VersionCategories.Select(c => c.CategoryId));
             }
 
-            foreach (var category in _context.Category)
+            foreach (var category in _context.Categories)
             {
                 if (selectedCategoriesHS.Contains(category.Id))
                 {
@@ -688,13 +688,13 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private void RebuildViewModel(ref VersionEditViewModel model, Version version)
         {
-            var themes = _context.Theme.OrderBy(t => t.Name).ToList();
-            var bounds = _context.Bound.OrderBy(t => t.Name).ToList();
+            var themes = _context.Themes.OrderBy(t => t.Name).ToList();
+            var bounds = _context.Bounds.OrderBy(t => t.Name).ToList();
             var welcomeMessages = _context.WelcomeMessages.OrderBy(t => t.Name).ToList();
             var tours = _context.TourDetails.OrderBy(t => t.Name).ToList();
-            var basemaps = _context.Basemap.OrderBy(b => b.Name).ToList();
+            var basemaps = _context.Basemaps.OrderBy(b => b.Name).ToList();
 			var projections = _context.Projections.OrderBy(b => b.Name).ToList();
-			var categories = _context.Category.OrderBy(b => b.Name).ToList();
+			var categories = _context.Categories.OrderBy(b => b.Name).ToList();
 			var preferredDefaultProjectionString = configuration["GIFrameworkMaps:PreferredProjections"].Split(',').FirstOrDefault();
 			var preferredDefaultProjection = string.IsNullOrEmpty(preferredDefaultProjectionString) ? projections.First() : projections.Where(p => p.EPSGCode == int.Parse(preferredDefaultProjectionString.Replace("EPSG:", ""))).FirstOrDefault();
 

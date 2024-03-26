@@ -53,7 +53,7 @@ namespace GIFrameworkMaps.Data
                 }
                 else
                 {
-                    var searchDefs = _context.VersionSearchDefinition
+                    var searchDefs = _context.VersionSearchDefinitions
                         .Where(v => v.VersionId == versionId)
                         .AsNoTrackingWithIdentityResolution()
                         .Include(v => v.SearchDefinition)
@@ -62,7 +62,7 @@ namespace GIFrameworkMaps.Data
                     //If null get default based on general version (which should always exist)
                     if (searchDefs is null || searchDefs.Count == 0)
                     {
-                        searchDefs = _context.VersionSearchDefinition
+                        searchDefs = _context.VersionSearchDefinitions
                             .Where(v => v.Version!.Slug == "general")
                             .AsNoTrackingWithIdentityResolution()
                             .Include(v => v.SearchDefinition)
@@ -99,7 +99,7 @@ namespace GIFrameworkMaps.Data
                     
                 /*TODO - Make this statement check the version and only get defs for that version*/
                 //Gets the full search definition details from the database
-                List<VersionSearchDefinition> searchDefs = _context.VersionSearchDefinition
+                List<VersionSearchDefinition> searchDefs = _context.VersionSearchDefinitions
                     .Include(v => v.SearchDefinition)
                     .AsNoTrackingWithIdentityResolution()
                     .ToList();

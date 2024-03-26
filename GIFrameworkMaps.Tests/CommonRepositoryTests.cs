@@ -74,7 +74,7 @@ namespace GIFrameworkMaps.Tests
 
             var mockApplicationDbContext = new Mock<IApplicationDbContext>();
             mockApplicationDbContext.Setup(m => m.Versions).Returns(versionsMockSet.Object);
-            mockApplicationDbContext.Setup(m => m.VersionUser).Returns(versionUsersMockSet.Object);
+            mockApplicationDbContext.Setup(m => m.VersionUsers).Returns(versionUsersMockSet.Object);
             mockApplicationDbContext.Setup(m => m.ApplicationRoles).Returns(rolesMockSet.Object);
             mockApplicationDbContext.Setup(m => m.ApplicationUserRoles).Returns(userRolesMockSet.Object);
             mockApplicationDbContext.Setup(m => m.Bookmarks).Returns(bookmarksMockSet.Object);

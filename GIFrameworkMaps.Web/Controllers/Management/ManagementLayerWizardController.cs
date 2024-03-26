@@ -94,7 +94,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             if (!string.IsNullOrEmpty(layerResource.Attribution))
             {
                 //attempt to get most relevant attribution
-                var attributions = _context.Attribution.ToList();
+                var attributions = _context.Attributions.ToList();
                 var closestMatch = Process.ExtractOne(layerResource.Attribution, attributions.Select(a => a.RenderedAttributionHTML), cutoff: 80);
                 if (closestMatch != null)
                 {
@@ -162,17 +162,17 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private void RebuildLayerWizardCreateSourceViewModel(ref LayerWizardCreateSourceViewModel model, LayerSource layerSource)
         {
-            var attributions = _context.Attribution.OrderBy(t => t.Name).ToList();
-            var layerSourceTypes = _context.LayerSourceType.Where(l => l.Name.Contains("WMS")).OrderBy(t => t.Id).ToList();
+            var attributions = _context.Attributions.OrderBy(t => t.Name).ToList();
+            var layerSourceTypes = _context.LayerSourceTypes.Where(l => l.Name.Contains("WMS")).OrderBy(t => t.Id).ToList();
             model.AvailableAttributions = new SelectList(attributions, "Id", "Name", layerSource.AttributionId);
             model.AvailableLayerSourceTypes = new SelectList(layerSourceTypes, "Id", "Name", layerSource.LayerSourceTypeId);
         }
 
         private void RebuildLayerWizardCreateSourceViewModel(ref LayerWizardCreateXYZSourceViewModel model, LayerSource layerSource)
         {
-            var attributions = _context.Attribution.OrderBy(t => t.Name).ToList();
+            var attributions = _context.Attributions.OrderBy(t => t.Name).ToList();
             model.AvailableAttributions = new SelectList(attributions, "Id", "Name", layerSource.AttributionId);
-            var xyzLayerSourceType = _context.LayerSourceType.Where(l => l.Name == "XYZ").FirstOrDefault();
+            var xyzLayerSourceType = _context.LayerSourceTypes.Where(l => l.Name == "XYZ").FirstOrDefault();
             model.LayerSource.LayerSourceTypeId = xyzLayerSourceType.Id;
         }
     }

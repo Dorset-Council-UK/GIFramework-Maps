@@ -47,6 +47,6 @@ namespace GIFrameworkMaps.Data.Models
         public virtual Bound? Bound { get; set; }
         public virtual Theme? Theme { get; set; }
         public virtual WelcomeMessage? WelcomeMessage { get; set; }
-        public virtual TourDetails? TourDetails { get; set; }
+        public virtual TourDetail? TourDetails { get; set; }
     }
 }

@@ -92,7 +92,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id)
         {
-            var stepToUpdate = await _context.TourStep.FirstOrDefaultAsync(a => a.Id == id);
+            var stepToUpdate = await _context.TourSteps.FirstOrDefaultAsync(a => a.Id == id);
 
             if (await TryUpdateModelAsync(
                 stepToUpdate,
@@ -141,11 +141,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var stepToDelete = await _context.TourStep.FirstOrDefaultAsync(a => a.Id == id);
+            var stepToDelete = await _context.TourSteps.FirstOrDefaultAsync(a => a.Id == id);
             var redirectTo = stepToDelete.TourDetailsId;
                 try
                 {
-                    _context.TourStep.Remove(stepToDelete);
+                    _context.TourSteps.Remove(stepToDelete);
                     await _context.SaveChangesAsync();
                 TempData["Message"] = "Tour step deleted";
                 TempData["MessageType"] = "success";
