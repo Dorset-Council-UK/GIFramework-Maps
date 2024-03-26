@@ -1,6 +1,6 @@
 ﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
+using GIFrameworkMaps.Data.ViewModels.Management;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
-    [Authorize(Roles = "GIFWAdmin")]
+	[Authorize(Roles = "GIFWAdmin")]
     public class ManagementLayerCategoryController : Controller
     {
         //dependancy injection
@@ -45,7 +45,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         public IActionResult Create()
         {
             var category = new Data.Models.Category();
-            var editModel = new CategoryEditModel() { Category = category };
+            var editModel = new CategoryEditViewModel() { Category = category };
             RebuildViewModel(ref editModel, category);
             return View(editModel);
         }
@@ -53,7 +53,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         //POST: Version/Create
         [HttpPost, ActionName("Create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(CategoryEditModel editModel, int[] selectedLayers)
+        public async Task<IActionResult> CreatePost(CategoryEditViewModel editModel, int[] selectedLayers)
         {
             if (ModelState.IsValid)
             {
@@ -75,7 +75,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
             }
 
-            editModel = new CategoryEditModel() { Category = editModel.Category };
+            editModel = new CategoryEditViewModel() { Category = editModel.Category };
             RebuildViewModel(ref editModel, editModel.Category);
             return View(editModel);
         }
@@ -83,7 +83,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/Edit/1
         public async Task<IActionResult> Edit(int id)
         {
-            var category = await _context.Category
+            var category = await _context.Categories
                 .Include(c => c.ParentCategory)
                 .Include(c => c.Layers)
                 .FirstOrDefaultAsync(v => v.Id == id);
@@ -92,7 +92,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             {
                 return NotFound();
             }
-            var editModel = new CategoryEditModel() { Category = category };
+            var editModel = new CategoryEditViewModel() { Category = category };
             RebuildViewModel(ref editModel, category);
             return View(editModel);
         }
@@ -102,12 +102,12 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id, int[] selectedLayers)
         {
-            var categoryToUpdate = await _context.Category
+            var categoryToUpdate = await _context.Categories
                 .Include(c => c.ParentCategory)
                 .Include(c => c.Layers)
                 .FirstOrDefaultAsync(v => v.Id == id);
 
-            var editModel = new CategoryEditModel() { Category = categoryToUpdate };
+            var editModel = new CategoryEditViewModel() { Category = categoryToUpdate };
 
             if (await TryUpdateModelAsync(
                 editModel.Category,
@@ -158,10 +158,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var categoryToDelete = await _context.Category.FirstOrDefaultAsync(a => a.Id == id);
+            var categoryToDelete = await _context.Categories.FirstOrDefaultAsync(a => a.Id == id);
             try
             {
-                _context.Category.Remove(categoryToDelete);
+                _context.Categories.Remove(categoryToDelete);
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Layer category deleted";
                 TempData["MessageType"] = "success";
@@ -191,7 +191,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 versionCategories = new HashSet<int>(categoryToUpdate.Layers.Select(c => c.LayerId));
             }
 
-            foreach (var layer in _context.Layer)
+            foreach (var layer in _context.Layers)
             {
                 if (selectedCategoriesHS.Contains(layer.Id))
                 {
@@ -216,11 +216,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
         }
 
-        private void RebuildViewModel(ref Data.Models.ViewModels.Management.CategoryEditModel model, Data.Models.Category category)
+        private void RebuildViewModel(ref CategoryEditViewModel model, Data.Models.Category category)
         {
             
-            var categories = _context.Category.Where(c => c.Id != category.Id).OrderBy(t => t.Name).ToList();
-            var layers = _context.Layer.OrderBy(l => l.Name).ToList();
+            var categories = _context.Categories.Where(c => c.Id != category.Id).OrderBy(t => t.Name).ToList();
+            var layers = _context.Layers.OrderBy(l => l.Name).ToList();
 
             model.AvailableParentCategories = new SelectList(categories, "Id", "Name", category.ParentCategoryId);
 

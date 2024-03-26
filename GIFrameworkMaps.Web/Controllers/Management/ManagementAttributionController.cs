@@ -88,7 +88,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id)
         {
-            var attributionToUpdate = await _context.Attribution.FirstOrDefaultAsync(a => a.Id == id);
+            var attributionToUpdate = await _context.Attributions.FirstOrDefaultAsync(a => a.Id == id);
 
             if (await TryUpdateModelAsync(
                 attributionToUpdate,
@@ -132,13 +132,13 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var attributionToDelete = await _context.Attribution.FirstOrDefaultAsync(a => a.Id == id);
-            var linkedLayers = await _context.LayerSource.Where(l => l.Attribution.Id == id).ToListAsync();
+            var attributionToDelete = await _context.Attributions.FirstOrDefaultAsync(a => a.Id == id);
+            var linkedLayers = await _context.LayerSources.Where(l => l.Attribution.Id == id).ToListAsync();
             if (linkedLayers.Count == 0)
             {
                 try
                 {
-                    _context.Attribution.Remove(attributionToDelete);
+                    _context.Attributions.Remove(attributionToDelete);
                     await _context.SaveChangesAsync();
                     TempData["Message"] = "Attribution deleted";
                     TempData["MessageType"] = "success";

@@ -1,7 +1,7 @@
 ﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Authorization;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
+using GIFrameworkMaps.Data.ViewModels.Management;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
-    [Authorize(Roles = "GIFWAdmin")]
+	[Authorize(Roles = "GIFWAdmin")]
     public class ManagementUserController : Controller
     {
         //dependancy injection
@@ -54,7 +54,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             if(user != null)
             {
                 //fetch roles and version permissions
-                var editModel = new UserEditModel() { User = user };
+                var editModel = new UserEditViewModel() { User = user };
                 RebuildViewModel(ref editModel, user);
                 return View(editModel);
             }   
@@ -84,7 +84,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     "Try again, and if the problem persists, " +
                     "contact your system administrator.");
             }
-            var editModel = new UserEditModel() { 
+            var editModel = new UserEditViewModel()
+			{ 
                 SelectedRoles = selectedRoles.ToList(), 
                 SelectedVersions = selectedVersions.ToList(), 
                 User = userToUpdate
@@ -133,7 +134,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private void UpdateUserVersions(int[] selectedVersions, Microsoft.Graph.Beta.Models.User userToUpdate)
         {
-            var existingVersions = _context.VersionUser.Where(u => u.UserId == userToUpdate.Id).ToList();
+            var existingVersions = _context.VersionUsers.Where(u => u.UserId == userToUpdate.Id).ToList();
             if (selectedVersions == null)
             {
                 _context.Remove(existingVersions);
@@ -169,7 +170,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
         }
 
-        private void RebuildViewModel(ref Data.Models.ViewModels.Management.UserEditModel model, Microsoft.Graph.Beta.Models.User user)
+        private void RebuildViewModel(ref UserEditViewModel model, Microsoft.Graph.Beta.Models.User user)
         {
             var versions = _context.Versions.Where(v => v.RequireLogin == true).OrderBy(v => v.Name).ToList();
             var roles = _context.ApplicationRoles.OrderBy(r => r.RoleName).ToList();
@@ -177,7 +178,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             model.AvailableVersions = versions;
             model.AvailableRoles = roles;
 
-            model.SelectedVersions = _context.VersionUser.Where(vu => vu.UserId == user.Id).Select(vu => vu.VersionId).ToList();
+            model.SelectedVersions = _context.VersionUsers.Where(vu => vu.UserId == user.Id).Select(vu => vu.VersionId).ToList();
             model.SelectedRoles = _context.ApplicationUserRoles.Where(aur => aur.UserId == user.Id).Select(aur => aur.ApplicationRoleId).ToList();
         }
     }

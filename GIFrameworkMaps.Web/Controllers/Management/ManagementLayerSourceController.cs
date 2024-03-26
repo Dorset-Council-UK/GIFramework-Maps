@@ -1,6 +1,6 @@
 ﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
+using GIFrameworkMaps.Data.ViewModels.Management;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
-    [Authorize(Roles = "GIFWAdmin")]
+	[Authorize(Roles = "GIFWAdmin")]
     public class ManagementLayerSourceController : Controller
     {
         //dependancy injection
@@ -43,7 +43,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         public async Task<IActionResult> Create()
         {
             var layerSource = new LayerSource();
-            var editModel = new LayerSourceEditModel();
+            var editModel = new LayerSourceEditViewModel();
             editModel = await RebuildViewModel(editModel, layerSource);
             return View(editModel);
         }
@@ -51,7 +51,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         //POST: LayerSource/Create
         [HttpPost, ActionName("Create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(LayerSourceEditModel editModel, bool AddOption)
+        public async Task<IActionResult> CreatePost(LayerSourceEditViewModel editModel, bool AddOption)
         {
             if (ModelState.IsValid)
             {
@@ -87,20 +87,23 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         {
             var layerSource = await _repository.GetLayerSource(id);
 
-            if (layerSource == null)
+            if (layerSource is null)
             {
                 return NotFound();
             }
 
-            LayerSourceOption opt = new() { LayerSourceId = layerSource.Id};
-            LayerSourceOptionEditModel editModel = new()  { LayerSourceOption=opt, LayerSource = layerSource };
+            var editModel = new LayerSourceOptionEditViewModel()
+			{
+				LayerSourceOption = new() { LayerSourceId = layerSource.Id },
+				LayerSource = layerSource
+			};
             return View(editModel);
         }
 
         //POST: LayerSource/CreateOption
         [HttpPost, ActionName("CreateOption")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateOptionPost(LayerSourceOptionEditModel editModel, bool AddAnother)
+        public async Task<IActionResult> CreateOptionPost(LayerSourceOptionEditViewModel editModel, bool AddAnother)
         {
             if (ModelState.IsValid)
             {
@@ -141,7 +144,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 return NotFound();
             }
 
-            var editModel = new LayerSourceEditModel { LayerSource = layerSource };
+            var editModel = new LayerSourceEditViewModel { LayerSource = layerSource };
             editModel = await RebuildViewModel(editModel, layerSource);
             return View(editModel);
         }
@@ -151,7 +154,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id)
         {
-            var sourceToUpdate = await _context.LayerSource.FirstOrDefaultAsync(a => a.Id == id);
+            var sourceToUpdate = await _context.LayerSources.FirstOrDefaultAsync(a => a.Id == id);
 
             if (await TryUpdateModelAsync(
                 sourceToUpdate,
@@ -191,7 +194,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 return NotFound();
             }
 
-            var editModel = new LayerSourceOptionEditModel { LayerSourceOption = layerSourceOption, LayerSource = layerSource };
+            var editModel = new LayerSourceOptionEditViewModel { LayerSourceOption = layerSourceOption, LayerSource = layerSource };
             return View(editModel);
         }
 
@@ -200,7 +203,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditOptionPost(int id)
         {
-            var optionToUpdate = await _context.LayerSourceOption.FirstOrDefaultAsync(a => a.Id == id);
+            var optionToUpdate = await _context.LayerSourceOptions.FirstOrDefaultAsync(a => a.Id == id);
 
             if (await TryUpdateModelAsync(
                 optionToUpdate,
@@ -245,11 +248,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var sourceToDelete = await _context.LayerSource.FirstOrDefaultAsync(a => a.Id == id);
+            var sourceToDelete = await _context.LayerSources.FirstOrDefaultAsync(a => a.Id == id);
 
             try
             {
-                _context.LayerSource.Remove(sourceToDelete);
+                _context.LayerSources.Remove(sourceToDelete);
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Layer source deleted";
                 TempData["MessageType"] = "success";
@@ -277,7 +280,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 return NotFound();
             }
 
-            var editModel = new LayerSourceOptionEditModel { LayerSourceOption = layerSourceOption, LayerSource = layerSource };
+            var editModel = new LayerSourceOptionEditViewModel { LayerSourceOption = layerSourceOption, LayerSource = layerSource };
             return View(editModel);
         }
 
@@ -286,11 +289,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteOptionConfirm(int id)
         {
-            var optionToDelete = await _context.LayerSourceOption.FirstOrDefaultAsync(a => a.Id == id);
+            var optionToDelete = await _context.LayerSourceOptions.FirstOrDefaultAsync(a => a.Id == id);
 
             try
             {
-                _context.LayerSourceOption.Remove(optionToDelete);
+                _context.LayerSourceOptions.Remove(optionToDelete);
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Layer option deleted";
                 TempData["MessageType"] = "success";
@@ -307,10 +310,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(optionToDelete);
         }
 
-        private async Task<LayerSourceEditModel> RebuildViewModel(Data.Models.ViewModels.Management.LayerSourceEditModel model, Data.Models.LayerSource layerSource)
+        private async Task<LayerSourceEditViewModel> RebuildViewModel(LayerSourceEditViewModel model, Data.Models.LayerSource layerSource)
         {
-            var attributions = _context.Attribution.OrderBy(t => t.Name).ToList();
-            var layerSourceTypes = _context.LayerSourceType.OrderBy(t => t.Name).ToList();
+            var attributions = _context.Attributions.OrderBy(t => t.Name).ToList();
+            var layerSourceTypes = _context.LayerSourceTypes.OrderBy(t => t.Name).ToList();
             if(model.LayerSource != null && model.LayerSource.Id != 0)
             {
                 var layers = await _repository.GetLayersByLayerSource(model.LayerSource.Id);

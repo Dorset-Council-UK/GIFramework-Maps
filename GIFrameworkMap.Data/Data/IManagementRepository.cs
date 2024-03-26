@@ -1,13 +1,13 @@
 ﻿using GIFrameworkMaps.Data.Models;
-using GIFrameworkMaps.Data.Models.Tour;
 using GIFrameworkMaps.Data.Models.Search;
+using GIFrameworkMaps.Data.Models.Tour;
+using GIFrameworkMaps.Data.ViewModels.Management;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
 
 namespace GIFrameworkMaps.Data
 {
-    public interface IManagementRepository
+	public interface IManagementRepository
     {
         bool PurgeCache();
         Task<Attribution?> GetAttribution(int id);
@@ -31,8 +31,8 @@ namespace GIFrameworkMaps.Data
         Task<List<Category>> GetLayerCategories();
         Task<Category?> GetLayerCategory(int id);
         Task<List<CategoryLayer>> GetLayerCategoriesLayerAppearsIn(int layerId);
-        Task<TourDetails?> GetTour(int id);
-        Task<List<TourDetails>> GetTours();
+        Task<TourDetail?> GetTour(int id);
+        Task<List<TourDetail>> GetTours();
         Task<TourStep?> GetStep(int id);
         Task<List<TourStep>> GetSteps();
         Task<SearchDefinition?> GetSearchDefinition(int id);

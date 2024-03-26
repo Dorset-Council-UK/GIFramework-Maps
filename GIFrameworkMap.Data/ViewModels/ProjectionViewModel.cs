@@ -1,5 +1,6 @@
-﻿
-namespace GIFrameworkMaps.Data.Models.ViewModels
+﻿using GIFrameworkMaps.Data.Models;
+
+namespace GIFrameworkMaps.Data.ViewModels
 {
 	public class ProjectionViewModel : Projection
 	{

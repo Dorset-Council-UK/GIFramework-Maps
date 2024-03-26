@@ -11,10 +11,11 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using shortid;
+using GIFrameworkMaps.Data.ViewModels;
 
 namespace GIFrameworkMaps.Data
 {
-    public class CommonRepository : ICommonRepository
+	public class CommonRepository : ICommonRepository
     {
         //dependancy injection
         private readonly ILogger<CommonRepository> _logger;
@@ -149,17 +150,12 @@ namespace GIFrameworkMaps.Data
             }
         }
 
-        public Models.ViewModels.VersionViewModel GetVersionViewModel(Models.Version version)
+        public VersionViewModel GetVersionViewModel(Models.Version version)
         {
 
-            List<Data.Models.ViewModels.BasemapViewModel> basemaps =
-                _mapper.Map<List<Data.Models.VersionBasemap>, List<Data.Models.ViewModels.BasemapViewModel>>(version.VersionBasemaps);
-
-            List<Data.Models.ViewModels.CategoryViewModel> categories =
-                _mapper.Map<List<Data.Models.VersionCategory>, List<Data.Models.ViewModels.CategoryViewModel>>(version.VersionCategories);
-
-			List<Data.Models.ViewModels.ProjectionViewModel> projections =
-				_mapper.Map<List<Data.Models.VersionProjection>, List<Data.Models.ViewModels.ProjectionViewModel>>(version.VersionProjections);
+            List<BasemapViewModel> basemaps = _mapper.Map<List<VersionBasemap>, List<BasemapViewModel>>(version.VersionBasemaps);
+            List<CategoryViewModel> categories = _mapper.Map<List<VersionCategory>, List<CategoryViewModel>>(version.VersionCategories);
+			List<ProjectionViewModel> projections = _mapper.Map<List<VersionProjection>, List<ProjectionViewModel>>(version.VersionProjections);
 
 			//remove duplicates
 			var allLayers = (from cat in version.VersionCategories from layers in cat.Category!.Layers select layers).ToList();
@@ -203,7 +199,7 @@ namespace GIFrameworkMaps.Data
 				_logger.LogWarning("Version {version} does not have a default map projection set. First projection has been automatically selected", version.Name);
 			}
 
-            var viewModel = _mapper.Map<Data.Models.ViewModels.VersionViewModel>(version);
+            var viewModel = _mapper.Map<VersionViewModel>(version);
             viewModel.Categories = categories;
             viewModel.Basemaps = basemaps;
 			viewModel.AvailableProjections = projections;
@@ -226,7 +222,7 @@ namespace GIFrameworkMaps.Data
             {
                 return true;
             }
-            var versionuser = _context.VersionUser
+            var versionuser = _context.VersionUsers
                 .AsNoTrackingWithIdentityResolution()
                 .Any(vu => vu.UserId == userId && vu.VersionId == versionId);
             
@@ -328,12 +324,12 @@ namespace GIFrameworkMaps.Data
         {
             string shortId = ShortId.Generate();
 
-            var existing = await _context.ShortLink.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
+            var existing = await _context.ShortLinks.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
             var iterations = 0;
             var maxIterations = 100;
             while (existing != null && iterations < maxIterations) {
                 shortId = ShortId.Generate();
-                existing = await _context.ShortLink.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
+                existing = await _context.ShortLinks.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
                 iterations++;
             }
             
@@ -353,7 +349,7 @@ namespace GIFrameworkMaps.Data
 
         public async Task<string> GetFullUrlFromShortId(string shortId)
         {
-            var shortLink = await _context.ShortLink.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
+            var shortLink = await _context.ShortLinks.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
             if(shortLink == null || shortLink.FullUrl == null)
             {
                 return "";
