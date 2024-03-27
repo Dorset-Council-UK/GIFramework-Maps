@@ -5,14 +5,14 @@
 
 <h1>@ViewData["Title"]</h1>
 
-<a asp-action="Edit" asp-controller="ManagementTour" asp-route-id="@Model.TourDetailsId" class="btn btn-link">Cancel</a>
+<a asp-action="Edit" asp-controller="ManagementTour" asp-route-id="@Model.TourDetailId" class="btn btn-link">Cancel</a>
 
 <form asp-action="Edit">
     <div class="row mt-4">
         <div class="col-md-6">
 
             <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
-            <input type"hidden" asp-for="TourDetailsId" class="form-control" />
+            <input type"hidden" asp-for="TourDetailId" class="form-control" />
 
             <div class="mb-3">
                 <label asp-for="Title" class="control-label"></label>
@@ -56,7 +56,7 @@
 
             <div class="mb-3">
                 <input type="submit" value="Save changes" class="btn btn-lg btn-primary" />
-                <a asp-action="Edit" asp-controller="ManagementTour" asp-route-id="@Model.TourDetailsId" class="btn btn-link">Cancel</a>
+                <a asp-action="Edit" asp-controller="ManagementTour" asp-route-id="@Model.TourDetailId" class="btn btn-link">Cancel</a>
             </div>
 
         </div>
