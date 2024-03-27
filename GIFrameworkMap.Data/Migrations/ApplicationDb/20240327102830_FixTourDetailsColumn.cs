@@ -19,7 +19,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 			migrationBuilder.Sql(
 				@"
 					UPDATE giframeworkmaps.""TourSteps""
-					SET ""TourDetailId"" = ""TourDetailsId""
+					SET ""TourDetailId"" = ""TourDetailsId"";
 				");
 
             migrationBuilder.DropColumn(
