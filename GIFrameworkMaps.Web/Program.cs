@@ -62,11 +62,15 @@ builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddDbContext<ApplicationDbContext>(
+builder.Services.AddDbContextPool<ApplicationDbContext>(
     options => {
-        options.UseNpgsql("name=ConnectionStrings:GIFrameworkMaps", x => { x.MigrationsHistoryTable("__EFMigrationsHistory", "giframeworkmaps"); x.UseNodaTime(); });
+        options.UseNpgsql("name=ConnectionStrings:GIFrameworkMaps", x => {
+			x.MigrationsHistoryTable("__EFMigrationsHistory", "giframeworkmaps");
+			x.UseNodaTime();
+		});
         options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
-    });
+		//options.LogTo(Console.WriteLine);
+	});
 
 builder.Services.AddAutoMapper(typeof(ApplicationDbContext));
 
