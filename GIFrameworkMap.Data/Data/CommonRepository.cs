@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Kiota.Http.Generated;
 using shortid;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace GIFrameworkMaps.Data
     {
         //dependancy injection
         private readonly ILogger<CommonRepository> _logger;
-        private readonly IApplicationDbContext _context;
+        private readonly ApplicationDbContext _context;
         private readonly IMemoryCache _memoryCache;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -27,7 +28,7 @@ namespace GIFrameworkMaps.Data
         public CommonRepository(ILogger<CommonRepository> logger, IApplicationDbContext context, IMemoryCache memoryCache, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _logger = logger;
-            _context = context;
+            _context = (ApplicationDbContext)context;
             _memoryCache = memoryCache;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
@@ -84,53 +85,57 @@ namespace GIFrameworkMaps.Data
 			EF.CompileAsyncQuery(
 				(ApplicationDbContext context, int id) =>
 					context.Versions
+						//.AsNoTracking()
+						//.AsNoTrackingWithIdentityResolution()
+						.AsSplitQuery()
 						.Include(v => v.Bound)
 						.Include(v => v.Theme)
 						.Include(v => v.WelcomeMessage)
 						.Include(v => v.TourDetails)
 							.ThenInclude(t => t!.Steps)
 						.Include(v => v.VersionBasemaps)
-							.ThenInclude(v => v.Basemap)
-							.ThenInclude(l => l!.LayerSource)
-							.ThenInclude(l => l!.LayerSourceOptions)
+							.ThenInclude(vb => vb.Basemap)
+							.ThenInclude(b => b!.LayerSource)
+							.ThenInclude(ls => ls!.LayerSourceOptions)
 						.Include(v => v.VersionBasemaps)
-							.ThenInclude(l => l.Basemap)
-							.ThenInclude(l => l!.LayerSource)
-							.ThenInclude(l => l!.LayerSourceType)
+							.ThenInclude(vb => vb.Basemap)
+							.ThenInclude(b => b!.LayerSource)
+							.ThenInclude(ls => ls!.LayerSourceType)
 						.Include(v => v.VersionBasemaps)
-							.ThenInclude(l => l.Basemap)
-							.ThenInclude(l => l!.LayerSource)
-							.ThenInclude(l => l!.Attribution)
+							.ThenInclude(vb => vb.Basemap)
+							.ThenInclude(b => b!.LayerSource)
+							.ThenInclude(ls => ls!.Attribution)
 						.Include(v => v.VersionBasemaps)
-							.ThenInclude(l => l.Basemap)
-							.ThenInclude(l => l!.Bound)
+							.ThenInclude(vb => vb.Basemap)
+							.ThenInclude(b => b!.Bound)
 						.Include(v => v.VersionCategories)
-							.ThenInclude(v => v.Category)
+							.ThenInclude(vc => vc.Category)
 							.ThenInclude(c => c!.Layers)
 							.ThenInclude(cl => cl.Layer)
 							.ThenInclude(l => l!.LayerSource)
 							.ThenInclude(ls => ls!.LayerSourceOptions)
 						.Include(v => v.VersionCategories)
-							.ThenInclude(v => v.Category)
+							.ThenInclude(vc => vc.Category)
 							.ThenInclude(c => c!.Layers)
 							.ThenInclude(cl => cl.Layer)
 							.ThenInclude(l => l!.LayerSource)
-							.ThenInclude(l => l!.LayerSourceType)
+							.ThenInclude(ls => ls!.LayerSourceType)
 						.Include(v => v.VersionCategories)
-							.ThenInclude(v => v.Category)
+							.ThenInclude(vc => vc.Category)
 							.ThenInclude(c => c!.Layers)
 							.ThenInclude(cl => cl.Layer)
 							.ThenInclude(l => l!.LayerSource)
-							.ThenInclude(l => l!.Attribution)
+							.ThenInclude(ls => ls!.Attribution)
 						.Include(v => v.VersionLayerCustomisations)
 						.Include(v => v.VersionProjections)
-							.ThenInclude(p => p.Projection)
+							.ThenInclude(vp => vp.Projection)
 						.FirstOrDefault(v => v.Id == id));
 
 		public async Task<Models.Version?> GetVersion(int versionId)
         {
             string cacheKey = "Version/" + versionId.ToString();
 
+			_memoryCache.Remove(cacheKey);
             // Check to see if the version has already been cached and, if so, return that.
             if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
             {
@@ -138,9 +143,12 @@ namespace GIFrameworkMaps.Data
             }
             else
             {
-                var version = await GetFullVersion((ApplicationDbContext)_context, versionId);
+				// Using .Include() is eager loading
+				// Using .Reference().Load() or .Collection().Load() is explicit loading
 
-                if (version is not null && string.IsNullOrEmpty(version.HelpURL))
+				var version = await GetFullVersion(_context, versionId);
+
+				if (version is not null && string.IsNullOrEmpty(version.HelpURL))
                 {
                     var generalVersion = GetVersionBySlug("general", "", "");
                     version.HelpURL = generalVersion!.HelpURL;
@@ -156,6 +164,7 @@ namespace GIFrameworkMaps.Data
 		{
 			string cacheKey = "Version/" + versionId.ToString();
 
+			_memoryCache.Remove(cacheKey);
 			// Check to see if the version has already been cached and, if so, return that.
 			if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
 			{
@@ -309,8 +318,21 @@ namespace GIFrameworkMaps.Data
             
             return versionuser;
         }
+		public bool CanUserAccessVersionOriginal(string userId, int versionId)
+		{
+			var version = GetVersion(versionId).Result;
+			if (version != null && !version.RequireLogin)
+			{
+				return true;
+			}
+			var versionuser = _context.VersionUsers
+				.AsNoTrackingWithIdentityResolution()
+				.Any(vu => vu.UserId == userId && vu.VersionId == versionId);
 
-        public List<ApplicationUserRole> GetUserRoles(string userId)
+			return versionuser;
+		}
+
+		public List<ApplicationUserRole> GetUserRoles(string userId)
         {
             string cacheKey = $"UserRole/{userId}";
 

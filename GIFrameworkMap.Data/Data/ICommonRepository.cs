@@ -9,9 +9,11 @@ namespace GIFrameworkMaps.Data
 	public interface ICommonRepository
     {
         Version? GetVersionBySlug(string slug1, string slug2, string slug3);
-        Task<bool> CanUserAccessVersion(string userId, int id);
 
-        Task<Version?> GetVersion(int id);
+        Task<bool> CanUserAccessVersion(string userId, int id);
+		bool CanUserAccessVersionOriginal(string userId, int id);
+
+		Task<Version?> GetVersion(int id);
 		[System.Obsolete("Remove this later after benchmarks are done")]
 		Version? GetVersionOriginal(int id);
 

@@ -169,7 +169,7 @@ namespace GIFrameworkMaps.Web.Controllers
         public async Task<IActionResult> VersionConfiguration(int id)
         {
             var version = await _repository.GetVersion(id);
-            if (version != null)
+			if (version != null)
             {
                 if (!version.Enabled)
                 {
