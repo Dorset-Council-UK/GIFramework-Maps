@@ -247,3 +247,25 @@ footer img.brand {
     var(--bs-table-color-type, var(--bs-table-color))
   );
 }
+
+/*version cards*/
+.version-image-card {
+    min-height: 200px;
+    background-size: cover;
+    border-color:darkgray;
+}
+.version-image-card:hover{
+    filter: brightness(1.2);
+    box-shadow: 2px 2px 5px #e0e0e0;
+    transition: all 0.2s ease;
+}
+[data-bs-theme="dark"] .version-image-card:hover {
+    box-shadow: 2px 2px 5px var(--bs-body-bg);
+    transition: all 0.2s ease;
+}
+.version-image-card a {
+    text-decoration: none;
+    color: white;
+}
+
+

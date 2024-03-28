@@ -4,6 +4,7 @@ import { Broadcast } from "./Broadcast";
 import { CreateLayerFromSource } from "./CreateLayerFromSource";
 import { CreateSource } from "./CreateSource";
 import accessibleAutocomplete from "accessible-autocomplete";
+import { Tooltip } from "bootstrap";
 
 addEventListener("DOMContentLoaded", () => {
   //attach collapse caret changer
@@ -45,6 +46,8 @@ addEventListener("DOMContentLoaded", () => {
     });
   }
   //attach other general things that should appear everywhere
+  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+  [...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl));
 });
 
 //TODO - This method of initializing stuff is HORRIBLE. Replace with something better
