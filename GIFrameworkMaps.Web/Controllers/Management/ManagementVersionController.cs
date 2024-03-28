@@ -313,7 +313,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         public async Task<IActionResult> LayerCustomisation(int id)
         {
             //get list of all layers and customisations
-            var version = _commonRepository.GetVersion(id);
+            var version = await _commonRepository.GetVersion(id);
             //TODO - fetch this as part of the above?
             version.VersionLayerCustomisations = await _context.VersionLayers.
                 Include(r => r.Layer)
@@ -336,7 +336,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         public async Task<IActionResult> EditLayerCustomisation(int id, int layerId, int categoryId)
         {
             //get the layer details and any existing customisations
-            var version = _commonRepository.GetVersion(id);
+            var version = await _commonRepository.GetVersion(id);
             var layer = await _repository.GetLayer(layerId);
             var category = await _repository.GetLayerCategory(categoryId);
             //TODO - fetch this as part of the above?
@@ -422,7 +422,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
             }
 
-            var version = _commonRepository.GetVersion(model.Version.Id);
+            var version = await _commonRepository.GetVersion(model.Version.Id);
             var layer = await _repository.GetLayer(model.Layer.Id);
             var category = await _repository.GetLayerCategory(model.Category.Id);
             var viewModel = new CustomiseLayerEditViewModel() { Layer = layer, Version = version, Category = category, LayerCustomisation = model.LayerCustomisation };
@@ -463,19 +463,17 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         }
 
         // GET Version/RemoveAllCustomisations/1
-        public IActionResult RemoveAllCustomisations(int id)
+        public async Task<IActionResult> RemoveAllCustomisations(int id)
         {
-            var version = _commonRepository.GetVersion(id);
-            if (version != null)
-            {
-                return View(version);
-            }
-            else
-            {
-                TempData["Message"] = "Version could not be found";
-                TempData["MessageType"] = "danger";
-                return RedirectToAction("Index");
-            }
+            var version = await _commonRepository.GetVersion(id);
+			if (version is null)
+			{
+				TempData["Message"] = "Version could not be found";
+				TempData["MessageType"] = "danger";
+				return RedirectToAction("Index");
+			}
+
+            return View(version);
         }
         // POST Version/RemoveAllCustomisations/1
         [HttpPost, ActionName("RemoveAllCustomisations")]
@@ -496,7 +494,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     "Try again, and if the problem persists, " +
                     "contact your system administrator.");
             }
-            var version = _commonRepository.GetVersion(id);
+            var version = await _commonRepository.GetVersion(id);
             return View(version);
         }
 

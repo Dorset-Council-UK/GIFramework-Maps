@@ -71,7 +71,7 @@ namespace GIFrameworkMaps.Web.Controllers
                 if (authResult.Succeeded)
                 {
                     //now we get the full details
-                    var fullVersionDetails = _repository.GetVersion(version.Id);
+                    var fullVersionDetails = await _repository.GetVersion(version.Id);
                     var viewModel = _repository.GetVersionViewModel(fullVersionDetails);
                     ViewData["AnalyticsModel"] = _adminRepository.GetAnalyticsModel();
 

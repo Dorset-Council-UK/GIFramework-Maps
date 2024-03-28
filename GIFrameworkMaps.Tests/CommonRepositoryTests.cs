@@ -125,26 +125,27 @@ namespace GIFrameworkMaps.Tests
         [TestCase(1, ExpectedResult = "General version")]
         [TestCase(2, ExpectedResult = "Valid Version Test")]
         [TestCase(3, ExpectedResult = "Valid Version Test 2")]
-        public string GetVersion_VersionDoesExist(int id)
+        public async Task<string> GetVersion_VersionDoesExist(int id)
         {
-            return sut.GetVersion(id).Name;
+			var version = await sut.GetVersion(id);
+			return version.Name;
         }
 
         [Test]
         [TestCase(0)]
         [TestCase(-1)]
         [TestCase(int.MaxValue)]
-        public void GetVersion_VersionDoesNotExist(int id)
+        public async Task GetVersion_VersionDoesNotExist(int id)
         {
-            var version = sut.GetVersion(id);
+            var version = await sut.GetVersion(id);
 
             Assert.That(version, Is.Null);
         }
 
         [Test]
-        public void GetVersions()
+        public async Task GetVersions()
         {
-            var versions = sut.GetVersions();
+            var versions = await sut.GetVersions();
 
             Assert.That(versions.Count, Is.EqualTo(5));
         }
@@ -153,9 +154,9 @@ namespace GIFrameworkMaps.Tests
         [TestCase("36850518-dd0a-48e0-9004-cdaf30d82746",4,ExpectedResult =true)]
         [TestCase("36850518-dd0a-48e0-9004-cdaf30d82746", 1, ExpectedResult = true)]
         [TestCase("36850518-dd0a-48e0-9004-cdaf30d82746", 5, ExpectedResult = false)]
-        public bool CanUserAccessVersion_UserExists_VersionExists(string userId, int versionId)
+        public async Task<bool> CanUserAccessVersion_UserExists_VersionExists(string userId, int versionId)
         {
-            return sut.CanUserAccessVersion(userId, versionId);
+            return await sut.CanUserAccessVersion(userId, versionId);
         }
 
         [Test]
