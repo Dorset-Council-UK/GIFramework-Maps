@@ -89,7 +89,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id)
         {
-            var themeToUpdate = await _context.Theme.FirstOrDefaultAsync(a => a.Id == id);
+            var themeToUpdate = await _context.Themes.FirstOrDefaultAsync(a => a.Id == id);
 
             if (await TryUpdateModelAsync(
                 themeToUpdate,
@@ -138,11 +138,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var themeToDelete = await _context.Theme.FirstOrDefaultAsync(a => a.Id == id);
+            var themeToDelete = await _context.Themes.FirstOrDefaultAsync(a => a.Id == id);
 
                 try
                 {
-                    _context.Theme.Remove(themeToDelete);
+                    _context.Themes.Remove(themeToDelete);
                     await _context.SaveChangesAsync();
                 TempData["Message"] = "Theme deleted";
                 TempData["MessageType"] = "success";

@@ -6,7 +6,7 @@ using NodaTime;
 
 namespace GIFrameworkMaps.Data.Models.Tour
 {
-    public class TourDetails
+    public class TourDetail
     {
         public int Id { get; set; }
 

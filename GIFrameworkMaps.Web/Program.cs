@@ -67,9 +67,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(
         options.UseNpgsql("name=ConnectionStrings:GIFrameworkMaps", x => { x.MigrationsHistoryTable("__EFMigrationsHistory", "giframeworkmaps"); x.UseNodaTime(); });
         options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
     });
-/*TODO Not sure about this line. Is this correct?
- Seems to be the only way to get AutoMapper set up in the Data Access project*/
-builder.Services.AddAutoMapper(typeof(GIFrameworkMaps.Data.ApplicationDbContext));
+
+builder.Services.AddAutoMapper(typeof(ApplicationDbContext));
 
 /*Simple check to see if the Azure AD ClientId is available, which is required for user auth*/
 if (!String.IsNullOrEmpty(builder.Configuration.GetSection("AzureAd")["ClientId"]))

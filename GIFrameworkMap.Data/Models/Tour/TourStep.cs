@@ -23,6 +23,6 @@ namespace GIFrameworkMaps.Data.Models.Tour
         public int StepNumber { get; set; }
 
         [Display(Name = "Tour to link step to")]
-        public int TourDetailsId { get; set; }
+        public int TourDetailId { get; set; }
     }
 }

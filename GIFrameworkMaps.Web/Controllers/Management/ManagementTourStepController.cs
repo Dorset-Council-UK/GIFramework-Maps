@@ -40,10 +40,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 return NotFound();
             }
 
-            var step = new TourStep { TourDetailsId = tourDetails.Id, StepNumber = tourDetails.Steps.Count + 1 };
+            var step = new TourStep { TourDetailId = tourDetails.Id, StepNumber = tourDetails.Steps.Count + 1 };
             return View(step);
         }
-
+		 
         //POST: TourStep/Create
         [HttpPost, ActionName("Create")]
         [ValidateAntiForgeryToken]
@@ -59,9 +59,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     TempData["MessageType"] = "success";
                     if (addAnother)
                     {
-                        return RedirectToAction("Create", new { tourId = step.TourDetailsId });
+                        return RedirectToAction("Create", new { tourId = step.TourDetailId });
                     }
-                    return RedirectToAction("Edit","ManagementTour",new {id=step.TourDetailsId});
+                    return RedirectToAction("Edit","ManagementTour",new {id=step.TourDetailId});
                 }
                 catch (DbUpdateException ex)
                 {
@@ -92,7 +92,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id)
         {
-            var stepToUpdate = await _context.TourStep.FirstOrDefaultAsync(a => a.Id == id);
+            var stepToUpdate = await _context.TourSteps.FirstOrDefaultAsync(a => a.Id == id);
 
             if (await TryUpdateModelAsync(
                 stepToUpdate,
@@ -102,7 +102,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.AttachToSelector,
                 a => a.AttachToPosition,
                 a => a.StepNumber,
-                a => a.TourDetailsId))
+                a => a.TourDetailId))
             {
 
                 try
@@ -110,7 +110,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     await _context.SaveChangesAsync();
                     TempData["Message"] = "Tour step edited";
                     TempData["MessageType"] = "success";
-                    return RedirectToAction("Edit", "ManagementTour",new {id=stepToUpdate.TourDetailsId});
+                    return RedirectToAction("Edit", "ManagementTour",new {id=stepToUpdate.TourDetailId});
                 }
                 catch (DbUpdateException ex )
                 {
@@ -141,11 +141,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var stepToDelete = await _context.TourStep.FirstOrDefaultAsync(a => a.Id == id);
-            var redirectTo = stepToDelete.TourDetailsId;
+            var stepToDelete = await _context.TourSteps.FirstOrDefaultAsync(a => a.Id == id);
+            var redirectTo = stepToDelete.TourDetailId;
                 try
                 {
-                    _context.TourStep.Remove(stepToDelete);
+                    _context.TourSteps.Remove(stepToDelete);
                     await _context.SaveChangesAsync();
                 TempData["Message"] = "Tour step deleted";
                 TempData["MessageType"] = "success";

@@ -44,6 +44,9 @@
 .giframeworkMap .gifw-measure-control.gifw-clear-measure-control {
   left: 7.25rem;
 }
+.giframeworkMap .gifw-measure-control.gifw-configure-measure-control {
+    left: 9.5rem;
+}
 .giframeworkMap .gifw-annotation-control {
   right: unset;
   left: 0.5rem;

@@ -1,8 +1,8 @@
-﻿@model GIFrameworkMaps.Data.Models.ViewModels.VersionViewModel
-@using GIFrameworkMaps.Data.Models.ViewModels.Management;
-@using GIFrameworkMaps.Data.Models;
-@using Microsoft.Extensions.Configuration;
-@inject IConfiguration configuration;
+﻿@using GIFrameworkMaps.Data.ViewModels
+@using GIFrameworkMaps.Data.ViewModels.Management
+@using Microsoft.Extensions.Configuration
+@model VersionViewModel
+@inject IConfiguration configuration
 @{
     string logoURL = Model.Theme.LogoURL;
 }
@@ -23,7 +23,7 @@
     analyticsModel.VersionID = int.Parse(ViewData["VersionID"].ToString());
     string applicationInsightsKey = "";
     string cookieControl = "None";
-    foreach (AnalyticsDefinition analytic in analyticsModel.AvailableAnalytics)
+    foreach (var analytic in analyticsModel.AvailableAnalytics)
     {
         if ((analyticsModel.VersionID == -1 || analytic.VersionAnalytics.Count == 0 || analytic.VersionAnalytics.Where(v => v.VersionId == analyticsModel.VersionID).FirstOrDefault() != null) && analytic.Enabled)
         {
@@ -128,6 +128,8 @@
     <partial name="Partials/Modals/ShortLinkModal" />
 
     <partial name="Partials/Modals/AddBookmarkModal" model="new GIFrameworkMaps.Data.Models.Bookmark()"/>
+
+    <partial name="Partials/Modals/MeasurementConfiguratorModal" />
 }
 @section Scripts{
     <script>

@@ -1,18 +1,18 @@
-﻿using GIFrameworkMaps.Data;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
+﻿using FuzzySharp;
+using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
+using GIFrameworkMaps.Data.ViewModels.Management;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
-using FuzzySharp;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
-    public class ManagementLayerWizardController : Controller
+	public class ManagementLayerWizardController : Controller
     {
         private readonly ILogger<ManagementLayerWizardController> _logger;
         private readonly ICommonRepository _commonRepository;
@@ -82,7 +82,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [HttpPost]
         public IActionResult CreateSource(string layerDetails, string projection, string format) {
 
-            LayerResource layerResource = JsonSerializer.Deserialize<LayerResource>(layerDetails);
+            var layerResource = JsonSerializer.Deserialize<LayerResource>(layerDetails);
 
             var layerSource = new LayerSource
             {
@@ -94,7 +94,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             if (!string.IsNullOrEmpty(layerResource.Attribution))
             {
                 //attempt to get most relevant attribution
-                var attributions = _context.Attribution.ToList();
+                var attributions = _context.Attributions.ToList();
                 var closestMatch = Process.ExtractOne(layerResource.Attribution, attributions.Select(a => a.RenderedAttributionHTML), cutoff: 80);
                 if (closestMatch != null)
                 {
@@ -103,7 +103,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     attributionMatched = true;
                 }
             }
-            var editModel = new LayerWizardCreateSourceViewModel {
+            var editModel = new LayerWizardCreateSourceViewModel
+			{
                 BaseURL = layerResource.BaseUrl,
                 Format = format,
                 Projection = projection,
@@ -159,19 +160,19 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View("CreateSource", model);
         }
 
-        private void RebuildLayerWizardCreateSourceViewModel(ref Data.Models.ViewModels.Management.LayerWizardCreateSourceViewModel model, Data.Models.LayerSource layerSource)
+        private void RebuildLayerWizardCreateSourceViewModel(ref LayerWizardCreateSourceViewModel model, LayerSource layerSource)
         {
-            var attributions = _context.Attribution.OrderBy(t => t.Name).ToList();
-            var layerSourceTypes = _context.LayerSourceType.Where(l => l.Name.Contains("WMS")).OrderBy(t => t.Id).ToList();
+            var attributions = _context.Attributions.OrderBy(t => t.Name).ToList();
+            var layerSourceTypes = _context.LayerSourceTypes.Where(l => l.Name.Contains("WMS")).OrderBy(t => t.Id).ToList();
             model.AvailableAttributions = new SelectList(attributions, "Id", "Name", layerSource.AttributionId);
             model.AvailableLayerSourceTypes = new SelectList(layerSourceTypes, "Id", "Name", layerSource.LayerSourceTypeId);
         }
 
-        private void RebuildLayerWizardCreateSourceViewModel(ref Data.Models.ViewModels.Management.LayerWizardCreateXYZSourceViewModel model, Data.Models.LayerSource layerSource)
+        private void RebuildLayerWizardCreateSourceViewModel(ref LayerWizardCreateXYZSourceViewModel model, LayerSource layerSource)
         {
-            var attributions = _context.Attribution.OrderBy(t => t.Name).ToList();
+            var attributions = _context.Attributions.OrderBy(t => t.Name).ToList();
             model.AvailableAttributions = new SelectList(attributions, "Id", "Name", layerSource.AttributionId);
-            var xyzLayerSourceType = _context.LayerSourceType.Where(l => l.Name == "XYZ").FirstOrDefault();
+            var xyzLayerSourceType = _context.LayerSourceTypes.Where(l => l.Name == "XYZ").FirstOrDefault();
             model.LayerSource.LayerSourceTypeId = xyzLayerSourceType.Id;
         }
     }

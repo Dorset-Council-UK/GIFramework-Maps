@@ -274,13 +274,13 @@ namespace GIFrameworkMaps.Web
                     Name = "Default",
                     LogoURL = "https://gistaticprod.blob.core.windows.net/giframeworkmaps/print-logos/gifw-logo-colour-with-clearzone.png"
                 };
-                context.VersionPrintConfiguration.Add(new Data.Models.VersionPrintConfiguration
+                context.VersionPrintConfigurations.Add(new Data.Models.VersionPrintConfiguration
                 {
                     Version = version,
                     PrintConfiguration = printConfig
                 });
 
-                if (!context.Basemap.Any())
+                if (!context.Basemaps.Any())
                 {
                     var osmLayerSource = new Data.Models.LayerSource
                     {
@@ -373,7 +373,7 @@ namespace GIFrameworkMaps.Web
             foreach(Data.Models.Search.SearchDefinition def in searchDefs)
             {
                 context.SearchDefinitions.Add(def);
-                context.VersionSearchDefinition.Add(new Data.Models.VersionSearchDefinition
+                context.VersionSearchDefinitions.Add(new Data.Models.VersionSearchDefinition
                 {
                     Version = version,
                     SearchDefinition = def,

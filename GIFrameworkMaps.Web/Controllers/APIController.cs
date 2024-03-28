@@ -217,7 +217,7 @@ namespace GIFrameworkMaps.Web.Controllers
                 {
                     return StatusCode(500);
                 }
-                await _context.ShortLink.AddAsync(new ShortLink { 
+                await _context.ShortLinks.AddAsync(new ShortLink { 
                     ShortId = shortId,
                     FullUrl = url
                 });

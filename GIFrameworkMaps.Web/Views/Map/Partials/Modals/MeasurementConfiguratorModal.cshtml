@@ -1,0 +1,47 @@
+﻿<div class="modal" tabindex="-1" id="measurement-configurator-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Measurement settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="row" id="measureConfigForm">
+                    <div class="mb-3 col-12">
+                        <label for="measureConfigPreferredUnits" class="form-label">Preferred units</label>
+                        <select class="form-select" id="measureConfigPreferredUnits">
+                            <option value="metric">Metric (metres/kilometres)</option>
+                            <option value="imperial">Imperial (yards/miles)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="measureConfigShowSegmentLengths">
+                            <label class="form-check-label" for="measureConfigShowSegmentLengths">
+                                Show segment lengths on map
+                            </label>
+                            <div class="form-text">
+                                Shows the individual lengths of each segment of a line measurement on the map
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="measureConfigShowTotalLength">
+                            <label class="form-check-label" for="measureConfigShowTotalLength">
+                                Show total length/area on map
+                            </label>
+                            <div class="form-text">
+                                Shows the total length/area of your measurement on the map
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>

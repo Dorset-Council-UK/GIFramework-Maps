@@ -1,6 +1,6 @@
 ﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
-using GIFrameworkMaps.Data.Models.ViewModels.Management;
+using GIFrameworkMaps.Data.ViewModels.Management;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -68,7 +68,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 ProxyMapRequests = useProxy,
                 ProxyMetaRequests = useProxy
             };
-            LayerEditModel editModel = new() { Layer = layer };
+            var editModel = new LayerEditViewModel() { Layer = layer };
             RebuildViewModel(ref editModel, layer);
             return View(editModel);
         }
@@ -76,7 +76,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         //POST: Layer/Create
         [HttpPost, ActionName("CreateFromSource")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(LayerEditModel editModel, int[] selectedCategories)
+        public async Task<IActionResult> CreatePost(LayerEditViewModel editModel, int[] selectedCategories)
         {
             if (ModelState.IsValid)
             {
@@ -86,7 +86,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
                     foreach(int category in selectedCategories)
                     {
-                        _context.CategoryLayer.Add(new CategoryLayer { CategoryId = category, Layer = editModel.Layer });
+                        _context.CategoryLayers.Add(new CategoryLayer { CategoryId = category, Layer = editModel.Layer });
                     }
                     
                     await _context.SaveChangesAsync();
@@ -118,7 +118,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
             //get categories this layer is in
             var categories = await _repository.GetLayerCategoriesLayerAppearsIn(layer.Id);
-            var editModel = new LayerEditModel { Layer = layer, SelectedCategories = categories.Select(c => c.CategoryId).ToList() };
+            var editModel = new LayerEditViewModel { Layer = layer, SelectedCategories = categories.Select(c => c.CategoryId).ToList() };
             RebuildViewModel(ref editModel, layer);
             return View(editModel);
         }
@@ -128,7 +128,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id, int[] selectedCategories)
         {
-            var layerToUpdate = await _context.Layer.FirstOrDefaultAsync(a => a.Id == id);
+            var layerToUpdate = await _context.Layers.FirstOrDefaultAsync(a => a.Id == id);
 
             if (await TryUpdateModelAsync(
                 layerToUpdate,
@@ -166,7 +166,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
             }
             layerToUpdate.LayerSource = await _repository.GetLayerSource(layerToUpdate.LayerSourceId);
-            var editModel = new LayerEditModel { Layer = layerToUpdate, SelectedCategories = selectedCategories.ToList()};
+            var editModel = new LayerEditViewModel { Layer = layerToUpdate, SelectedCategories = selectedCategories.ToList()};
             RebuildViewModel(ref editModel, layerToUpdate);
             return View(editModel);
         }
@@ -189,11 +189,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var layerToDelete = await _context.Layer.FirstOrDefaultAsync(a => a.Id == id);
+            var layerToDelete = await _context.Layers.FirstOrDefaultAsync(a => a.Id == id);
 
             try
             {
-                _context.Layer.Remove(layerToDelete);
+                _context.Layers.Remove(layerToDelete);
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Layer deleted";
                 TempData["MessageType"] = "success";
@@ -210,33 +210,33 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(layerToDelete);
         }
 
-        private async Task UpdateCategoryLayers(int[] selectedCategories, Data.Models.Layer layerToUpdate)
+        private async Task UpdateCategoryLayers(int[] selectedCategories, Layer layerToUpdate)
         {
             if (selectedCategories == null)
             {
-                await _context.CategoryLayer.Where(c => c.LayerId == layerToUpdate.Id).ExecuteDeleteAsync();    
+                await _context.CategoryLayers.Where(c => c.LayerId == layerToUpdate.Id).ExecuteDeleteAsync();    
                 return;
             }
 
             //delete category layers not needed anymore
-            await _context.CategoryLayer.Where(c => c.LayerId == layerToUpdate.Id && !selectedCategories.Contains(c.CategoryId)).ExecuteDeleteAsync();
+            await _context.CategoryLayers.Where(c => c.LayerId == layerToUpdate.Id && !selectedCategories.Contains(c.CategoryId)).ExecuteDeleteAsync();
 
             //add new category layers
             foreach (int category in selectedCategories)
             {
-                if (!_context.CategoryLayer.Where(c => c.LayerId == layerToUpdate.Id && c.CategoryId == category).Any())
+                if (!_context.CategoryLayers.Where(c => c.LayerId == layerToUpdate.Id && c.CategoryId == category).Any())
                 {
-                    await _context.CategoryLayer.AddAsync(new CategoryLayer { CategoryId = category, Layer = layerToUpdate });
+                    await _context.CategoryLayers.AddAsync(new CategoryLayer { CategoryId = category, Layer = layerToUpdate });
                 }
             }
             return;
 
         }
 
-        private void RebuildViewModel(ref Data.Models.ViewModels.Management.LayerEditModel model, Data.Models.Layer layer)
+        private void RebuildViewModel(ref LayerEditViewModel model, Layer layer)
         {
-            var bounds = _context.Bound.OrderBy(t => t.Name).ToList();
-            var categories = _context.Category.OrderBy(b => b.Name).ToList();
+            var bounds = _context.Bounds.OrderBy(t => t.Name).ToList();
+            var categories = _context.Categories.OrderBy(b => b.Name).ToList();
 
             model.AvailableBounds = new SelectList(bounds, "Id", "Name", layer.BoundId);
             model.AvailableCategories = categories;
