@@ -132,7 +132,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         "contact your system administrator.");
                 }
             }
-            tourToUpdate.Steps = await _context.TourSteps.Where(a => a.TourDetailsId == id).ToListAsync();
+            tourToUpdate.Steps = await _context.TourSteps.Where(a => a.TourDetailId == id).ToListAsync();
             return View(tourToUpdate);
         }
 
