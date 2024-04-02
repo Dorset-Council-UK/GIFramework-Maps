@@ -342,7 +342,10 @@ TextTool.optionsHTML = `
         <div>
             <select class="form-select" aria-label="Font" data-style-property="font">
                 <option selected value="Arial">Arial</option>
-                <option value="Tahoma">Tahoma</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Impact">Impact</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Courier New">Courier New</option>
             </select>
         </div>
     </div>
