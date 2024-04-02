@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.Kiota.Http.Generated;
 using shortid;
 using System;
 using System.Collections.Generic;
@@ -52,19 +51,18 @@ namespace GIFrameworkMaps.Data
             {
                 return cacheValue;
             }
-            else
-            {
-                Models.Version? version = _context.Versions
-                    .AsNoTrackingWithIdentityResolution()
-                    .FirstOrDefault(v => v.Slug == slug);
 
-                // Cache the results so they can be used next time we call this function.
-                if (version is not null)
-                {
-                    _memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));
-                }
-                return version;
+            Models.Version? version = _context.Versions
+				.IgnoreAutoIncludes()
+                .AsNoTrackingWithIdentityResolution()
+                .FirstOrDefault(v => v.Slug == slug);
+
+            // Cache the results so they can be used next time we call this function.
+            if (version is not null)
+            {
+                _memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));
             }
+            return version;
         }
 
         /// <summary>
@@ -81,154 +79,105 @@ namespace GIFrameworkMaps.Data
                     ? "/" + CreateSlug(slugParts.Skip(1).ToArray()) : "");
         }
 
-		private static readonly Func<ApplicationDbContext, int, Task<Models.Version?>> GetFullVersion =
+		private static readonly Func<ApplicationDbContext, int, Task<Models.Version?>> GetVersionCompiled =
 			EF.CompileAsyncQuery(
 				(ApplicationDbContext context, int id) =>
 					context.Versions
-						//.AsNoTracking()
-						//.AsNoTrackingWithIdentityResolution()
+						.Where(o => o.Id == id)
 						.AsSplitQuery()
-						.Include(v => v.Bound)
-						.Include(v => v.Theme)
-						.Include(v => v.WelcomeMessage)
-						.Include(v => v.TourDetails)
-							.ThenInclude(t => t!.Steps)
-						.Include(v => v.VersionBasemaps)
-							.ThenInclude(vb => vb.Basemap)
-							.ThenInclude(b => b!.LayerSource)
-							.ThenInclude(ls => ls!.LayerSourceOptions)
-						.Include(v => v.VersionBasemaps)
-							.ThenInclude(vb => vb.Basemap)
-							.ThenInclude(b => b!.LayerSource)
-							.ThenInclude(ls => ls!.LayerSourceType)
-						.Include(v => v.VersionBasemaps)
-							.ThenInclude(vb => vb.Basemap)
-							.ThenInclude(b => b!.LayerSource)
-							.ThenInclude(ls => ls!.Attribution)
-						.Include(v => v.VersionBasemaps)
-							.ThenInclude(vb => vb.Basemap)
-							.ThenInclude(b => b!.Bound)
-						.Include(v => v.VersionCategories)
-							.ThenInclude(vc => vc.Category)
-							.ThenInclude(c => c!.Layers)
-							.ThenInclude(cl => cl.Layer)
-							.ThenInclude(l => l!.LayerSource)
-							.ThenInclude(ls => ls!.LayerSourceOptions)
-						.Include(v => v.VersionCategories)
-							.ThenInclude(vc => vc.Category)
-							.ThenInclude(c => c!.Layers)
-							.ThenInclude(cl => cl.Layer)
-							.ThenInclude(l => l!.LayerSource)
-							.ThenInclude(ls => ls!.LayerSourceType)
-						.Include(v => v.VersionCategories)
-							.ThenInclude(vc => vc.Category)
-							.ThenInclude(c => c!.Layers)
-							.ThenInclude(cl => cl.Layer)
-							.ThenInclude(l => l!.LayerSource)
-							.ThenInclude(ls => ls!.Attribution)
-						.Include(v => v.VersionLayerCustomisations)
-						.Include(v => v.VersionProjections)
-							.ThenInclude(vp => vp.Projection)
-						.FirstOrDefault(v => v.Id == id));
+						.FirstOrDefault());
 
 		public async Task<Models.Version?> GetVersion(int versionId)
-        {
-            string cacheKey = "Version/" + versionId.ToString();
+		{
+			//         string cacheKey = "Version/" + versionId.ToString();
 
-			_memoryCache.Remove(cacheKey);
-            // Check to see if the version has already been cached and, if so, return that.
-            if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
-            {
-                return cacheValue;
-            }
-            else
-            {
-				// Using .Include() is eager loading
-				// Using .Reference().Load() or .Collection().Load() is explicit loading
+			//         // Check to see if the version has already been cached and, if so, return that.
+			//         if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
+			//         {
+			//             return cacheValue;
+			//         }
 
-				var version = await GetFullVersion(_context, versionId);
+			var version = await GetVersionCompiled(_context, versionId);
 
-				if (version is not null && string.IsNullOrEmpty(version.HelpURL))
-                {
-                    var generalVersion = GetVersionBySlug("general", "", "");
-                    version.HelpURL = generalVersion!.HelpURL;
-                }
+			//if (version is not null && string.IsNullOrEmpty(version.HelpURL))
+			//         {
+			//             var generalVersion = GetVersionBySlug("general", "", "");
+			//             version.HelpURL = generalVersion!.HelpURL;
+			//         }
 
-                // Cache the results so they can be used next time we call this function.                
-                _memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));                
-                return version;
-            }
-        }
+			// Cache the results so they can be used next time we call this function.                
+			//_memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));                
+			return version;
+		}
 		[Obsolete("Remove this later after benchmarks are done")]
 		public Models.Version? GetVersionOriginal(int versionId)
 		{
-			string cacheKey = "Version/" + versionId.ToString();
+			//string cacheKey = "Version/" + versionId.ToString();
 
-			_memoryCache.Remove(cacheKey);
-			// Check to see if the version has already been cached and, if so, return that.
-			if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
-			{
-				return cacheValue;
-			}
-			else
-			{
-				//TODO - This mass of then includes seems pretty nasty, maybe find another way?
-				var version = _context.Versions
-									.Include(v => v.Bound)
-									.Include(v => v.Theme)
-									.Include(v => v.WelcomeMessage)
-									.Include(v => v.TourDetails)
-										.ThenInclude(t => t!.Steps)
-									.Include(v => v.VersionBasemaps)
-										.ThenInclude(v => v.Basemap)
-										.ThenInclude(l => l!.LayerSource)
-										.ThenInclude(l => l!.LayerSourceOptions)
-									.Include(v => v.VersionBasemaps)
-										.ThenInclude(l => l.Basemap)
-										.ThenInclude(l => l!.LayerSource)
-										.ThenInclude(l => l!.LayerSourceType)
-									.Include(v => v.VersionBasemaps)
-										.ThenInclude(l => l.Basemap)
-										.ThenInclude(l => l!.LayerSource)
-										.ThenInclude(l => l!.Attribution)
-									.Include(v => v.VersionBasemaps)
-										.ThenInclude(l => l.Basemap)
-										.ThenInclude(l => l!.Bound)
-									.Include(v => v.VersionCategories)
-										.ThenInclude(v => v.Category)
-										.ThenInclude(c => c!.Layers)
-										.ThenInclude(cl => cl.Layer)
-										.ThenInclude(l => l!.LayerSource)
-										.ThenInclude(ls => ls!.LayerSourceOptions)
-									.Include(v => v.VersionCategories)
-										.ThenInclude(v => v.Category)
-										.ThenInclude(c => c!.Layers)
-										.ThenInclude(cl => cl.Layer)
-										.ThenInclude(l => l!.LayerSource)
-										.ThenInclude(l => l!.LayerSourceType)
-									.Include(v => v.VersionCategories)
-										.ThenInclude(v => v.Category)
-										.ThenInclude(c => c!.Layers)
-										.ThenInclude(cl => cl.Layer)
-										.ThenInclude(l => l!.LayerSource)
-										.ThenInclude(l => l!.Attribution)
-									.Include(v => v.VersionLayerCustomisations)
-									.Include(v => v.VersionProjections)
-										.ThenInclude(p => p.Projection)
-									.AsSplitQuery()
-									.AsNoTrackingWithIdentityResolution()
-									.FirstOrDefault(v => v.Id == versionId);
+			//_memoryCache.Remove(cacheKey);
+			//// Check to see if the version has already been cached and, if so, return that.
+			//if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
+			//{
+			//	return cacheValue;
+			//}
 
-				if (version is not null && String.IsNullOrEmpty(version.HelpURL))
-				{
-					var generalVersion = GetVersionBySlug("general", "", "");
-					version.HelpURL = generalVersion!.HelpURL;
-				}
+			//TODO - This mass of then includes seems pretty nasty, maybe find another way?
+			var version = _context.Versions
+							.IgnoreAutoIncludes()
+							.Include(v => v.Bound)
+							.Include(v => v.Theme)
+							.Include(v => v.WelcomeMessage)
+							.Include(v => v.TourDetails)
+								.ThenInclude(t => t!.Steps)
+							.Include(v => v.VersionBasemaps)
+								.ThenInclude(v => v.Basemap)
+								.ThenInclude(l => l!.LayerSource)
+								.ThenInclude(l => l!.LayerSourceOptions)
+							.Include(v => v.VersionBasemaps)
+								.ThenInclude(l => l.Basemap)
+								.ThenInclude(l => l!.LayerSource)
+								.ThenInclude(l => l!.LayerSourceType)
+							.Include(v => v.VersionBasemaps)
+								.ThenInclude(l => l.Basemap)
+								.ThenInclude(l => l!.LayerSource)
+								.ThenInclude(l => l!.Attribution)
+							.Include(v => v.VersionBasemaps)
+								.ThenInclude(l => l.Basemap)
+								.ThenInclude(l => l!.Bound)
+							.Include(v => v.VersionCategories)
+								.ThenInclude(v => v.Category)
+								.ThenInclude(c => c!.Layers)
+								.ThenInclude(cl => cl.Layer)
+								.ThenInclude(l => l!.LayerSource)
+								.ThenInclude(ls => ls!.LayerSourceOptions)
+							.Include(v => v.VersionCategories)
+								.ThenInclude(v => v.Category)
+								.ThenInclude(c => c!.Layers)
+								.ThenInclude(cl => cl.Layer)
+								.ThenInclude(l => l!.LayerSource)
+								.ThenInclude(l => l!.LayerSourceType)
+							.Include(v => v.VersionCategories)
+								.ThenInclude(v => v.Category)
+								.ThenInclude(c => c!.Layers)
+								.ThenInclude(cl => cl.Layer)
+								.ThenInclude(l => l!.LayerSource)
+								.ThenInclude(l => l!.Attribution)
+							.Include(v => v.VersionLayerCustomisations)
+							.Include(v => v.VersionProjections)
+								.ThenInclude(p => p.Projection)
+							.AsSplitQuery()
+							.AsNoTrackingWithIdentityResolution()
+							.FirstOrDefault(v => v.Id == versionId);
 
-				// Cache the results so they can be used next time we call this function.                
-				_memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));
-				return version;
-			}
+			//if (version is not null && String.IsNullOrEmpty(version.HelpURL))
+			//{
+			//	var generalVersion = GetVersionBySlug("general", "", "");
+			//	version.HelpURL = generalVersion!.HelpURL;
+			//}
+
+			// Cache the results so they can be used next time we call this function.                
+			//_memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));
+			return version;
 		}
 
 		public VersionViewModel GetVersionViewModel(Models.Version version)
@@ -294,12 +243,15 @@ namespace GIFrameworkMaps.Data
 
 		public async Task<List<Models.Version>> GetVersions()
         {
-            return await _context.Versions.ToListAsync();
+            return await _context.Versions
+				.IgnoreAutoIncludes()
+				.ToListAsync();
         }
 		[Obsolete("Remove this later after benchmarks are done")]
 		public List<Models.Version> GetVersionsOriginal()
 		{
 			var versions = _context.Versions
+				.IgnoreAutoIncludes()
 				.AsNoTrackingWithIdentityResolution()
 				.ToList();
 			return versions;
