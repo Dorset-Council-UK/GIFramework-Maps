@@ -94,16 +94,18 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/Edit/1
         public async Task<IActionResult> Edit(int id)
         {
-            var version = await _context.Versions
-                .Include(v => v.VersionBasemaps)
-                    .ThenInclude(v => v.Basemap)
-                .Include(v => v.VersionCategories)
-                    .ThenInclude(v => v.Category)
+			var version = await _context.Versions
+				.IgnoreAutoIncludes()
+				.Where(o => o.Id == id)
+				.Include(v => v.VersionBasemaps)
+					.ThenInclude(v => v.Basemap)
+				.Include(v => v.VersionCategories)
+					.ThenInclude(v => v.Category)
 				.Include(v => v.VersionProjections)
 					.ThenInclude(v => v.Projection)
-                .FirstOrDefaultAsync(v => v.Id == id);
+				.FirstOrDefaultAsync();
 
-            if (version == null)
+			if (version is null)
             {
                 return NotFound();
             }
@@ -125,7 +127,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             bool purgeCache)
         {
             var versionToUpdate = await _context.Versions
-                .Include(v => v.VersionBasemaps)
+				.IgnoreAutoIncludes()
+				.Include(v => v.VersionBasemaps)
                     .ThenInclude(v => v.Basemap)
 				.Include(v => v.VersionProjections)
 					.ThenInclude(v => v.Projection)
@@ -190,8 +193,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             try
             {
                 var version = await _context.Versions
-                                .Include(v => v.VersionContacts)
-                                .FirstOrDefaultAsync(v => v.Id == id);
+					.IgnoreAutoIncludes()
+					.Include(v => v.VersionContacts)
+                    .FirstOrDefaultAsync(v => v.Id == id);
 
                 if (version == null)
                 {
@@ -516,7 +520,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var versionToDelete = await _context.Versions.FirstOrDefaultAsync(a => a.Id == id);
+            var versionToDelete = await _context.Versions
+				.IgnoreAutoIncludes()
+				.FirstOrDefaultAsync(a => a.Id == id);
+
             try
             {
                 _context.Versions.Remove(versionToDelete);
