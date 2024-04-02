@@ -12,14 +12,14 @@
     <div class="card text-center h-100 version-image-card" style="background-image:linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.2)),url(@background_image)">
         <div class="card-body">
             <a asp-route="Default_Slug" asp-route-slug1="@slug1" asp-route-slug2="@slug2" asp-route-slug3="@slug3" class="stretched-link">
-                <h4 class="card-title"> @Model.Name</h4>
+                <h4 class="card-title">@Model.Name</h4>
                 <p class="card-text"><p class="card-text">@Model.Description</p>
             </a>
         </div>
         @if (Model.RequireLogin)
         {
             <div class="card-footer text-end">
-                <i class="bi bi-lock text-white" data-bs-toggle="tooltip" title="This version requires a login"></i>
+                <i class="bi bi-lock text-white" title="This version requires a login"></i>
         </div>
         }
     </div>
