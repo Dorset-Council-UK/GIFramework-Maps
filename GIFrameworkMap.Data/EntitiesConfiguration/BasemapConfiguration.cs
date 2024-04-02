@@ -4,15 +4,16 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace GIFrameworkMaps.Data.EntitiesConfiguration
 {
-	internal class VersionCategoryConfiguration : IEntityTypeConfiguration<VersionCategory>
+	internal class BasemapConfiguration : IEntityTypeConfiguration<Basemap>
 	{
-		public void Configure(EntityTypeBuilder<VersionCategory> builder)
+		public void Configure(EntityTypeBuilder<Basemap> builder)
 		{
 			builder
-				.HasKey(o => new { o.CategoryId, o.VersionId });
+				.Navigation(o => o.Bound)
+				.AutoInclude();
 
 			builder
-				.Navigation(o => o.Category)
+				.Navigation(o => o.LayerSource)
 				.AutoInclude();
 		}
 	}

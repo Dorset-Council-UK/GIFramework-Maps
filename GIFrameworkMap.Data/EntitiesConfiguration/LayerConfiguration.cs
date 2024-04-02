@@ -15,6 +15,10 @@ namespace GIFrameworkMaps.Data.EntitiesConfiguration
 			builder
 				.Property(o => o.ProxyMapRequests)
 				.HasDefaultValue(false);
+
+			builder
+				.Navigation(o => o.LayerSource)
+				.AutoInclude();
 		}
 	}
 }
