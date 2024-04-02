@@ -49,17 +49,21 @@ namespace GIFrameworkMaps.Data
         public async Task<List<Models.Version>> GetVersions()
         {
             var versions = await _context.Versions
-                .AsNoTracking()
-                .ToListAsync();
+				.IgnoreAutoIncludes()
+				.ToListAsync();
 
-            return versions;
+			return versions;
         }
 
         public async Task<Models.Version?> GetVersion(int id)
         {
-            var version = await _context.Versions.FirstOrDefaultAsync(a => a.Id == id);
+            var version = await _context.Versions
+				.IgnoreAutoIncludes()
+				.Where(o => o.Id == id)
+				.AsSplitQuery()
+				.FirstOrDefaultAsync();
 
-            return version;
+			return version;
         }
 
         public async Task<List<Bound>> GetBounds()
