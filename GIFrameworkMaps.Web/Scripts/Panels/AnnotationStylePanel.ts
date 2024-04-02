@@ -127,6 +127,9 @@ export default class AnnotationStylePanel implements SidebarPanel {
             case "font":
               control.value = this.activeStyle.fontFamily;
               break;
+            case "fontStyle":
+              control.value = this.activeStyle.fontStyle;
+              break;
             case "labelText":
               control.value = this.activeStyle.labelText;
               control.setAttribute("input-text", control.value);
@@ -234,6 +237,9 @@ export default class AnnotationStylePanel implements SidebarPanel {
       case "font":
         this.activeStyle.fontFamily = control.value;
         break;
+      case "fontStyle":
+         this.activeStyle.fontStyle = control.value;
+         break;
       case "labelText":
         this.activeStyle.labelText = control.getAttribute("input-text");
         break;

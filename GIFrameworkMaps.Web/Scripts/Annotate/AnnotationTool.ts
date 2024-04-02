@@ -350,6 +350,16 @@ TextTool.optionsHTML = `
         </div>
     </div>
     <div class="form-group row mb-1">
+        <label class="form-label">Font style</label>
+        <div>
+            <select class="form-select" aria-label="Style" data-style-property="fontStyle">
+                <option selected value="normal">Normal</option>
+                <option value="italic">Italic</option>
+                <option value="bold">Bold</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group row mb-1">
         <label class="form-label">Font colour</label>
         <div>
             <input type="color" class="form-range" data-style-property="fontColour" list="annotationColors" id="colors" />
