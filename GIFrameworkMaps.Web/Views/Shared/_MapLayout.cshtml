@@ -57,41 +57,10 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        @*TODO Need to make this conditional - link should only appear if there is more than one version active *@
+                        <partial name="_HelpMenuPartial"/>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Version" asp-action="Index">Change version</a>
                         </li>
-                        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["PrivacyLink"])) && Uri.IsWellFormedUriString(Convert.ToString(ViewData["PrivacyLink"]), UriKind.Absolute))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" target="_blank" rel="noopener" href="@ViewData["PrivacyLink"]">Privacy</a>
-                            </li>
-                        }
-                        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["ToSLink"])) && Uri.IsWellFormedUriString(Convert.ToString(ViewData["ToSLink"]), UriKind.Absolute))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" target="_blank" rel="noopener" href="@ViewData["ToSLink"]">Terms</a>
-                            </li>
-                        }
-                        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["HelpURL"])) && Uri.IsWellFormedUriString(Convert.ToString(ViewData["HelpURL"]),UriKind.Absolute))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" target="_blank" rel="noopener" href="@ViewData["HelpURL"]">Help</a>
-                            </li>
-                        }
-                         @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["FeedbackURL"])) && Uri.IsWellFormedUriString(Convert.ToString(ViewData["FeedbackURL"]),UriKind.Absolute))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" target="_blank" rel="noopener" href="@ViewData["FeedbackURL"]">Give feedback</a>
-                            </li>
-                        }
-                        @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["IncludeCookieControl"])) && Convert.ToString(ViewData["IncludeCookieControl"]) != "None")
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" id="CookieControlLink" rel="noopener" href="#">Cookie preferences</a>
-                            </li>
-                        }
-                        
                     </ul>
                     <ul class="navbar-nav">
                         <partial name="_ThemeSwitcherMenu"/>
