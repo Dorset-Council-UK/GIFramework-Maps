@@ -1,31 +1,31 @@
-using GIFrameworkMaps.Web;
-using Microsoft.AspNetCore.Builder;
 using Azure.Identity;
-using Microsoft.Extensions.Configuration;
-using System.Security.Cryptography.X509Certificates;
-using System.Linq;
-using System;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Identity.Web.UI;
-using Microsoft.Identity.Web;
 using GIFrameworkMaps.Data;
-using Microsoft.EntityFrameworkCore;
+using GIFrameworkMaps.Web;
 using GIFrameworkMaps.Web.Authorization;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.HttpOverrides;
-using Yarp.ReverseProxy.Forwarder;
-using Microsoft.ApplicationInsights.AspNetCore.Extensions;
-using NodaTime.Serialization.SystemTextJson;
-using NodaTime;
-using Npgsql;
-using Microsoft.Extensions.Hosting;
 using GIFrameworkMaps.Web.Filters;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.UI;
+using NodaTime;
+using NodaTime.Serialization.SystemTextJson;
+using Npgsql;
+using System;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using Yarp.ReverseProxy.Forwarder;
 
 var builder = WebApplication.CreateBuilder(args);
 
-if (!String.IsNullOrEmpty(builder.Configuration.GetSection("KeyVault")["Name"]))
+if (!string.IsNullOrEmpty(builder.Configuration.GetSection("KeyVault")["Name"]))
 {
     using var x509Store = new X509Store(StoreLocation.LocalMachine);
 
@@ -46,9 +46,7 @@ if (!String.IsNullOrEmpty(builder.Configuration.GetSection("KeyVault")["Name"]))
                 builder.Configuration.GetSection("KeyVault").GetSection("AzureAd")["ApplicationId"],
                 x509Certificate));
 }
-//var startup = new Startup(builder.Configuration);
 
-//startup.ConfigureServices(builder.Services);
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
@@ -69,16 +67,16 @@ builder.Services.AddDbContextPool<ApplicationDbContext>(
 			x.UseNodaTime();
 		});
         options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
-		//options.LogTo(Console.WriteLine);
+		options.LogTo(Console.WriteLine, minimumLevel: Microsoft.Extensions.Logging.LogLevel.Information);
 	});
 
 builder.Services.AddAutoMapper(typeof(ApplicationDbContext));
 
 /*Simple check to see if the Azure AD ClientId is available, which is required for user auth*/
-if (!String.IsNullOrEmpty(builder.Configuration.GetSection("AzureAd")["ClientId"]))
+if (!string.IsNullOrEmpty(builder.Configuration.GetSection("AzureAd")["ClientId"]))
 {
     builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+		.AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
 
     builder.Services.AddRazorPages()
         .AddMicrosoftIdentityUI();
@@ -100,10 +98,12 @@ else
 builder.Services.AddTransient<IAuthorizationHandler, HasAccessToVersionAuthorizationHandler>();
 builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformer>();
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("CanAccessVersion", policy => policy.AddRequirements(new HasAccessToVersionRequirement()));
-});
+builder.Services.AddAuthorizationBuilder()
+	.AddPolicy("CanAccessVersion", policy => policy.AddRequirements(new HasAccessToVersionRequirement()));
+//builder.Services.AddAuthorization(options =>
+//{
+//	options.AddPolicy("CanAccessVersion", policy => policy.AddRequirements(new HasAccessToVersionRequirement()));
+//});
 
 builder.Services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
 builder.Services.AddScoped<ICommonRepository, CommonRepository>();
@@ -122,10 +122,9 @@ ApplicationInsightsServiceOptions AppInsightOptions = new()
 builder.Services.AddApplicationInsightsTelemetry(AppInsightOptions);
 builder.Services.AddApplicationInsightsTelemetryProcessor<UnwantedTelemetryFilter>();
 
-
 var app = builder.Build();
 var forwarder = app.Services.GetService<IHttpForwarder>();
 
 var startup = new Startup(builder.Configuration);
 startup.Configure(app, app.Environment, forwarder);
-app.Run();
+await app.RunAsync();
