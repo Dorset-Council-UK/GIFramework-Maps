@@ -35,9 +35,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 return NotFound();
             }
 
+			var nextStep = tourDetail.Steps.Count == 0 ? 1 : tourDetail.Steps.Max(s => s.StepNumber) + 1;
             var step = new TourStep {
 				TourDetailId = tourDetail.Id,
-				StepNumber = tourDetail.Steps.Max(s => s.StepNumber) + 1
+				StepNumber = nextStep
 			};
             return View(step);
         }
