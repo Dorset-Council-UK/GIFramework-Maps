@@ -183,18 +183,6 @@ namespace GIFrameworkMaps.Data
             return webLayerServiceDefinition;
         }
 
-        public async Task<List<TourDetail>> GetTours()
-        {
-            return await _context.TourDetails
-				.AsNoTracking()
-				.ToListAsync();
-		}
-
-        public async Task<TourDetail?> GetTour(int id)
-        {
-            return await _context.TourDetails.FindAsync(id);
-        }
-
         public async Task<List<TourStep>> GetSteps()
         {
             return await _context.TourSteps
