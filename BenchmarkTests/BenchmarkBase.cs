@@ -12,7 +12,7 @@ namespace BenchmarkTests
 {
 	public abstract class BenchmarkBase
 	{
-		private ApplicationDbContext _context;
+		protected ApplicationDbContext _context;
 		protected ICommonRepository _commonRepository;
 
 		[GlobalSetup]
