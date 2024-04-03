@@ -33,14 +33,25 @@ namespace GIFrameworkMaps.Data
             _httpContextAccessor = httpContextAccessor;
         }
 
-        /// <summary>
-        /// Gets the basic, top-level version information by slug. This should NOT be used to get all linked entities
-        /// </summary>
-        /// <param name="slug1">First part of the URL slug</param>
-        /// <param name="slug2">Second part of the URL slug</param>
-        /// <param name="slug3">Third part of the URL slug</param>
-        /// <returns>Version object containing basic information only, or null</returns>
-        public Models.Version? GetVersionBySlug(string slug1, string slug2, string slug3)
+		/// <summary>
+		/// Compiled query to get a version by ID. This helps to improve performance and reduce memory usage.
+		/// </summary>
+		private static readonly Func<ApplicationDbContext, int, Task<Models.Version?>> GetVersionCompiled =
+			EF.CompileAsyncQuery(
+				(ApplicationDbContext context, int id) =>
+					context.Versions
+						.Where(o => o.Id == id)
+						.AsSplitQuery()
+						.FirstOrDefault());
+
+		/// <summary>
+		/// Gets the basic, top-level version information by slug. This should NOT be used to get all linked entities
+		/// </summary>
+		/// <param name="slug1">First part of the URL slug</param>
+		/// <param name="slug2">Second part of the URL slug</param>
+		/// <param name="slug3">Third part of the URL slug</param>
+		/// <returns>Version object containing basic information only, or null</returns>
+		public Models.Version? GetVersionBySlug(string slug1, string slug2, string slug3)
         {            
             string slug = CreateSlug(slug1, slug2, slug3);
 
@@ -79,47 +90,39 @@ namespace GIFrameworkMaps.Data
                     ? "/" + CreateSlug(slugParts.Skip(1).ToArray()) : "");
         }
 
-		private static readonly Func<ApplicationDbContext, int, Task<Models.Version?>> GetVersionCompiled =
-			EF.CompileAsyncQuery(
-				(ApplicationDbContext context, int id) =>
-					context.Versions
-						.Where(o => o.Id == id)
-						.AsSplitQuery()
-						.FirstOrDefault());
-
 		public async Task<Models.Version?> GetVersion(int versionId)
 		{
-			//         string cacheKey = "Version/" + versionId.ToString();
+			string cacheKey = "Version/" + versionId.ToString();
 
-			//         // Check to see if the version has already been cached and, if so, return that.
-			//         if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
-			//         {
-			//             return cacheValue;
-			//         }
+			// Check to see if the version has already been cached and, if so, return that.
+			if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
+			{
+				return cacheValue;
+			}
 
 			var version = await GetVersionCompiled(_context, versionId);
 
-			//if (version is not null && string.IsNullOrEmpty(version.HelpURL))
-			//         {
-			//             var generalVersion = GetVersionBySlug("general", "", "");
-			//             version.HelpURL = generalVersion!.HelpURL;
-			//         }
+			if (version is not null && string.IsNullOrEmpty(version.HelpURL))
+			{
+				var generalVersion = GetVersionBySlug("general", "", "");
+				version.HelpURL = generalVersion!.HelpURL;
+			}
 
-			// Cache the results so they can be used next time we call this function.                
-			//_memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));                
+			// Cache the results so they can be used next time we call this function.
+			_memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));
+
 			return version;
 		}
 		[Obsolete("Remove this later after benchmarks are done")]
 		public Models.Version? GetVersionOriginal(int versionId)
 		{
-			//string cacheKey = "Version/" + versionId.ToString();
+			string cacheKey = "Version/" + versionId.ToString();
 
-			//_memoryCache.Remove(cacheKey);
-			//// Check to see if the version has already been cached and, if so, return that.
-			//if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
-			//{
-			//	return cacheValue;
-			//}
+			// Check to see if the version has already been cached and, if so, return that.
+			if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
+			{
+				return cacheValue;
+			}
 
 			//TODO - This mass of then includes seems pretty nasty, maybe find another way?
 			var version = _context.Versions
@@ -169,14 +172,15 @@ namespace GIFrameworkMaps.Data
 							.AsNoTrackingWithIdentityResolution()
 							.FirstOrDefault(v => v.Id == versionId);
 
-			//if (version is not null && String.IsNullOrEmpty(version.HelpURL))
-			//{
-			//	var generalVersion = GetVersionBySlug("general", "", "");
-			//	version.HelpURL = generalVersion!.HelpURL;
-			//}
+			if (version is not null && String.IsNullOrEmpty(version.HelpURL))
+			{
+				var generalVersion = GetVersionBySlug("general", "", "");
+				version.HelpURL = generalVersion!.HelpURL;
+			}
 
 			// Cache the results so they can be used next time we call this function.                
-			//_memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));
+			_memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));
+
 			return version;
 		}
 
@@ -236,10 +240,6 @@ namespace GIFrameworkMaps.Data
 
             return viewModel;
         }
-
-		//private static readonly Func<ApplicationDbContext, IAsyncEnumerable<Models.Version>> GetAllVersionsAsync =
-		//	EF.CompileAsyncQuery(
-		//		(ApplicationDbContext context) => context.Versions);
 
 		public async Task<List<Models.Version>> GetVersions()
         {
