@@ -42,42 +42,39 @@ namespace GIFrameworkMaps.Data
         /// <exception cref="KeyNotFoundException">Returned when the version can not be found</exception>
         public List<VersionSearchDefinition> GetSearchDefinitionsByVersion(int versionId)
         {
-            if (_context.Versions.Where(v => v.Id == versionId).AsNoTrackingWithIdentityResolution().Any())
-            {                
-                string cacheKey = "SearchDefinitions/" + versionId.ToString();
+			if (!_context.Versions.Where(v => v.Id == versionId).AsNoTrackingWithIdentityResolution().Any())
+			{
+				throw new KeyNotFoundException($"Version with ID {versionId} does not exist");
+			}
 
-                if (_memoryCache.TryGetValue(cacheKey, out List<VersionSearchDefinition>? cacheValue))
-                {
-                    //using null forgiving operator as if a value is found in the cache it must not be null
-                    return cacheValue!;
-                }
-                else
-                {
-                    var searchDefs = _context.VersionSearchDefinitions
-                        .Where(v => v.VersionId == versionId)
-                        .AsNoTrackingWithIdentityResolution()
-                        .Include(v => v.SearchDefinition)
-                        .ToList();
+			string cacheKey = "SearchDefinitions/" + versionId.ToString();
 
-                    //If null get default based on general version (which should always exist)
-                    if (searchDefs is null || searchDefs.Count == 0)
-                    {
-                        searchDefs = _context.VersionSearchDefinitions
-                            .Where(v => v.Version!.Slug == "general")
-                            .AsNoTrackingWithIdentityResolution()
-                            .Include(v => v.SearchDefinition)
-                            .ToList();
-                    }
-
-                    // Cache the results so they can be used next time we call this function.
-                    _memoryCache.Set(cacheKey, searchDefs, TimeSpan.FromMinutes(10));
-                    return searchDefs;
-                }
-            }
-            else
+            if (_memoryCache.TryGetValue(cacheKey, out List<VersionSearchDefinition>? cacheValue))
             {
-                throw new KeyNotFoundException($"Version with ID {versionId} does not exist");
+                //using null forgiving operator as if a value is found in the cache it must not be null
+                return cacheValue!;
             }
+
+            var searchDefs = _context.VersionSearchDefinitions
+                .Where(v => v.VersionId == versionId)
+                .AsNoTrackingWithIdentityResolution()
+                .Include(v => v.SearchDefinition)
+                .ToList();
+
+            //If null get default based on general version (which should always exist)
+            if (searchDefs is null || searchDefs.Count == 0)
+            {
+                searchDefs = _context.VersionSearchDefinitions
+                    .Where(v => v.Version!.Slug == "general")
+                    .AsNoTrackingWithIdentityResolution()
+                    .Include(v => v.SearchDefinition)
+                    .ToList();
+            }
+
+            // Cache the results so they can be used next time we call this function.
+            _memoryCache.Set(cacheKey, searchDefs, TimeSpan.FromMinutes(10));
+
+            return searchDefs;
         }
 
         /// <summary>
