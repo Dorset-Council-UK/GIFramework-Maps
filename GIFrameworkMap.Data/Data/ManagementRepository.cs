@@ -185,35 +185,21 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<TourDetail>> GetTours()
         {
-            var tours = await _context.TourDetails
-                .Include(t => t.Steps)
-                .AsNoTracking()
-                .ToListAsync();
-
-            return tours;
-        }
+            return await _context.TourDetails
+				.AsNoTracking()
+				.ToListAsync();
+		}
 
         public async Task<TourDetail?> GetTour(int id)
         {
-            var tour = await _context.TourDetails.Include(a => a.Steps).FirstOrDefaultAsync(a => a.Id == id);
-
-            return tour;
+            return await _context.TourDetails.FindAsync(id);
         }
 
         public async Task<List<TourStep>> GetSteps()
         {
-            var steps = await _context.TourSteps
-                .AsNoTracking()
-                .ToListAsync();
-
-            return steps;
-        }
-
-        public async Task<TourStep?> GetStep(int id)
-        {
-            var step = await _context.TourSteps.FirstOrDefaultAsync(a => a.Id == id);
-
-            return step;
+            return await _context.TourSteps
+				.AsNoTracking()
+				.ToListAsync();
         }
 
         public async Task<Category?> GetLayerCategory(int id)
