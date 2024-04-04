@@ -9,20 +9,10 @@ namespace GIFrameworkMaps.Data
 	public interface ICommonRepository
     {
         Version? GetVersionBySlug(string slug1, string slug2, string slug3);
-
         Task<bool> CanUserAccessVersion(string userId, int id);
-		bool CanUserAccessVersionOriginal(string userId, int id);
-
 		Task<Version?> GetVersion(int id);
-		[System.Obsolete("Remove this later after benchmarks are done")]
-		Version? GetVersionOriginal(int id);
-
 		VersionViewModel GetVersionViewModel(Version version);
-
         Task<List<Version>> GetVersions();
-		[System.Obsolete("Remove this later after benchmarks are done")]
-		List<Version> GetVersionsOriginal();
-
 		List<ApplicationUserRole> GetUserRoles(string userId);
         List<WebLayerServiceDefinition> GetWebLayerServiceDefinitions();
         List<ProxyAllowedHost> GetProxyAllowedHosts();

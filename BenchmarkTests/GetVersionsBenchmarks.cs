@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
+using Microsoft.EntityFrameworkCore;
 
 namespace BenchmarkTests
 {
@@ -9,7 +10,11 @@ namespace BenchmarkTests
 		[Benchmark(Baseline = true)]
 		public List<GIFrameworkMaps.Data.Models.Version> Original()
 		{
-			return _commonRepository.GetVersionsOriginal();
+			var versions = _context.Versions
+				.IgnoreAutoIncludes()
+				.AsNoTrackingWithIdentityResolution()
+				.ToList();
+			return versions;
 		}
 
 		[Benchmark]
