@@ -43,7 +43,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         public async Task<IActionResult> Create()
         {
             var editModel = new VersionEditViewModel() { Version = new() };
-			RebuildViewModelOriginal(ref editModel, editModel.Version);
+			await RebuildViewModel(editModel, editModel.Version);
             return View(editModel);
         }
 
@@ -84,7 +84,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
 
             editModel = new VersionEditViewModel() { Version = editModel.Version };
-			RebuildViewModelOriginal(ref editModel, editModel.Version);
+			await RebuildViewModel(editModel, editModel.Version);
             return View(editModel);
         }
 
@@ -99,7 +99,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
 
             var editModel = new VersionEditViewModel() { Version = version };
-			RebuildViewModelOriginal(ref editModel, editModel.Version);
+			await RebuildViewModel(editModel, editModel.Version);
 
             return View(editModel);
         }
@@ -171,8 +171,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
             }
 
-			RebuildViewModelOriginal(ref editModel, versionToUpdate);
-            return View(editModel);
+			await RebuildViewModel(editModel, versionToUpdate);
+			return View(editModel);
         }
 
 		// GET: Version/EditContacts/1
@@ -190,7 +190,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     return NotFound();
                 }
                 var editModel = new VersionEditViewModel() { Version = version };
-				RebuildViewModelOriginal(ref editModel, editModel.Version);
+				await RebuildViewModel(editModel, editModel.Version);
                 editModel.UserDetails = [];
                 foreach (var v in editModel.Version.VersionContacts)
                 {
@@ -282,11 +282,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/DeleteContact/1?VersionContactId=1
         public async Task<IActionResult> DeleteContact(int id, int VersionContactId)
         {
-            var recordToDeleete = await _context.VersionContacts.FindAsync(new object[VersionContactId, id]);
-			var recordToDeleeteOLD = _context.VersionContacts.FirstOrDefault(u => u.VersionId == id && u.VersionContactId == VersionContactId);
+            var recordToDelete = await _context.VersionContacts.FindAsync(new object[VersionContactId, id]);
+			var recordToDeleteOLD = _context.VersionContacts.FirstOrDefault(u => u.VersionId == id && u.VersionContactId == VersionContactId);
 			try
             {
-                _context.VersionContacts.Remove(recordToDeleete);
+                _context.VersionContacts.Remove(recordToDelete);
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Version contact deleted";
                 TempData["MessageType"] = "success";
@@ -686,54 +686,75 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
 		private async Task RebuildViewModel(VersionEditViewModel model, Version version)
 		{
-			
-		}
+			var themes = await _context.Themes
+				.AsNoTracking()
+				.Select(o => new { o.Id, o.Name })
+				.OrderBy(o => o.Name)
+				.ToListAsync();
 
-		private void RebuildViewModelOriginal(ref VersionEditViewModel model, Version version)
-        {
-            var themes = _context.Themes.OrderBy(t => t.Name).ToList();
-            var bounds = _context.Bounds.OrderBy(t => t.Name).ToList();
-            var welcomeMessages = _context.WelcomeMessages.OrderBy(t => t.Name).ToList();
-            var tours = _context.TourDetails.OrderBy(t => t.Name).ToList();
-            var basemaps = _context.Basemaps.OrderBy(b => b.Name).ToList();
-			var projections = _context.Projections.OrderBy(b => b.Name).ToList();
-			var categories = _context.Categories.OrderBy(b => b.Name).ToList();
-			var preferredDefaultProjectionString = configuration["GIFrameworkMaps:PreferredProjections"].Split(',').FirstOrDefault();
-			var preferredDefaultProjection = string.IsNullOrEmpty(preferredDefaultProjectionString) ? projections.First() : projections.Where(p => p.EPSGCode == int.Parse(preferredDefaultProjectionString.Replace("EPSG:", ""))).FirstOrDefault();
+			var bounds = await _context.Bounds
+				.AsNoTracking()
+				.Select(o => new { o.Id, o.Name })
+				.OrderBy(o => o.Name)
+				.ToListAsync();
 
-            model.AvailableThemes = new SelectList(themes, "Id", "Name", version.ThemeId);
-            model.AvailableBounds = new SelectList(bounds, "Id", "Name", version.BoundId);
-            model.AvailableWelcomeMessages = new SelectList(welcomeMessages, "Id", "Name", version.WelcomeMessageId);
-            model.AvailableTours = new SelectList(tours, "Id", "Name", version.TourDetailsId);
+			var welcomeMessages = await _context.WelcomeMessages
+				.AsNoTracking()
+				.Select(o => new { o.Id, o.Name })
+				.OrderBy(o => o.Name)
+				.ToListAsync();
 
-            model.AvailableBasemaps = basemaps;
-            if (version.VersionBasemaps != null) {
-                model.SelectedBasemaps = version.VersionBasemaps.Select(v => v.BasemapId).ToList();
+			var tours = await _context.TourDetails
+				.AsNoTracking()
+				.Select(o => new { o.Id, o.Name })
+				.OrderBy(o => o.Name)
+				.ToListAsync();
 
-                model.DefaultBasemap = version.VersionBasemaps.Where(v => v.IsDefault == true).Select(v => v.BasemapId).FirstOrDefault();
-            }
-			model.AvailableProjections = projections;
-			if (version.VersionProjections != null)
+			model.AvailableThemes = new SelectList(themes, "Id", "Name", version.ThemeId);
+			model.AvailableBounds = new SelectList(bounds, "Id", "Name", version.BoundId);
+			model.AvailableWelcomeMessages = new SelectList(welcomeMessages, "Id", "Name", version.WelcomeMessageId);
+			model.AvailableTours = new SelectList(tours, "Id", "Name", version.TourDetailsId);
+
+			// Basemaps
+			model.AvailableBasemaps = await _context.Basemaps
+				.AsNoTracking()
+				.OrderBy(b => b.Name)
+				.ToListAsync();
+			model.SelectedBasemaps = version.VersionBasemaps.Select(v => v.BasemapId).ToList();
+			model.DefaultBasemap = version.VersionBasemaps.Where(v => v.IsDefault == true).Select(v => v.BasemapId).FirstOrDefault();
+
+			// Projections
+			model.AvailableProjections = await _context.Projections
+				.AsNoTracking()
+				.OrderBy(b => b.Name)
+				.ToListAsync();
+			var preferredDefaultProjectionString = configuration["GIFrameworkMaps:PreferredProjections"].Split(',').FirstOrDefault()?.Replace("EPSG:", "");
+			var preferredDefaultProjection = string.IsNullOrEmpty(preferredDefaultProjectionString)
+				? model.AvailableProjections.First()
+				: model.AvailableProjections.Where(p => p.EPSGCode == int.Parse(preferredDefaultProjectionString)).FirstOrDefault();
+
+			// Version Projections
+			var versionProjections = version.VersionProjections.ToList();
+			model.SelectedProjections = versionProjections.Select(v => v.ProjectionId).ToList();
+			model.MapProjection = versionProjections.FirstOrDefault(v => v.IsDefaultMapProjection)?.ProjectionId ?? preferredDefaultProjection.EPSGCode;
+			model.ViewProjection = versionProjections.FirstOrDefault(v => v.IsDefaultViewProjection)?.ProjectionId ?? preferredDefaultProjection.EPSGCode;
+
+			//switch on the defaults
+			model.SelectedProjections.Add(preferredDefaultProjection.EPSGCode);
+			model.SelectedProjections.Add(3857);
+			model.SelectedProjections.Add(4326);
+
+			// Categrories
+			model.AvailableCategories = await _context.Categories
+				.AsNoTracking()
+				.OrderBy(b => b.Name)
+				.ToListAsync();
+			if (version.VersionCategories.Count != 0)
 			{
-				model.SelectedProjections = version.VersionProjections.Select(v => v.ProjectionId).ToList();
-				var mapProj = version.VersionProjections.Where(v => v.IsDefaultMapProjection).FirstOrDefault();
-				var viewProj = version.VersionProjections.Where(v => v.IsDefaultViewProjection).FirstOrDefault();
-
-				model.MapProjection = mapProj == null ? preferredDefaultProjection.EPSGCode : mapProj.ProjectionId;
-				model.ViewProjection = viewProj == null ? preferredDefaultProjection.EPSGCode : viewProj.ProjectionId;
-				//switch on the defaults
-				model.SelectedProjections.Add(preferredDefaultProjection.EPSGCode);
-				model.SelectedProjections.Add(3857);
-				model.SelectedProjections.Add(4326);
-
+				model.SelectedCategories = version.VersionCategories.Select(c => c.CategoryId).ToList();
 			}
-			model.AvailableCategories = categories;
-            if (version.VersionCategories.Count != 0)
-            {
-                model.SelectedCategories = version.VersionCategories.Select(c => c.CategoryId).ToList();
-            }
-            ViewData["SelectedCategories"] = model.SelectedCategories;
-            ViewData["AllCategories"] = model.AvailableCategories;
-        }
+			ViewData["SelectedCategories"] = model.SelectedCategories;
+			ViewData["AllCategories"] = model.AvailableCategories;
+		}
     }
 }
