@@ -278,6 +278,14 @@ export default class AnnotationStyle extends Style {
       );
       this.getImage().setOpacity(1);
     } else if (tool.name == "Text") {
+        let fontStrokeWidth = 0.5
+        if (this.fontSize > 16 && this.fontSize <= 24) {
+            fontStrokeWidth = 1;
+        } else if (this.fontSize > 24 && this.fontSize <= 48) {
+            fontStrokeWidth = 2;
+        } else if (this.fontSize >= 48) {
+            fontStrokeWidth = 3;
+        }
       this.setText(
         new Text({
           fill: new Fill({
@@ -285,7 +293,7 @@ export default class AnnotationStyle extends Style {
           }),
           stroke: new Stroke({
             color: "#FFFFFF",
-            width: 1,
+            width: fontStrokeWidth,
           }),
           text: this.labelText,
             font: `${this.fontStyle} ${this.fontSize}px "${this.fontFamily}", sans-serif`,
