@@ -5,30 +5,19 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GIFrameworkMaps.Web.Controllers.Version
 {
-	public class VersionController : Controller
+	public class VersionController(ICommonRepository commonRepository) : Controller
 	{
-		private readonly ICommonRepository _commonRepository;
-		private readonly IManagementRepository _repository;
-		public VersionController(ICommonRepository commonRepository, IManagementRepository repository)
-		{
-			_commonRepository = commonRepository;
-			_repository = repository;
-		}
-
 		public async Task<IActionResult> Index()
 		{
 			var userId = "";
 			if (User.Identity.IsAuthenticated)
 			{
 				var claimsIdentity = (ClaimsIdentity)User.Identity;
-				var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+				var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
 				userId = claim.Value;
 			}
-			
-			
-			var versions = await _commonRepository.GetVersionsListForUser(userId);
+			var versions = await commonRepository.GetVersionsListForUser(userId);
 			return View(versions);
 		}
-
 	}
 }
