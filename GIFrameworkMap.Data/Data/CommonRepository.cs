@@ -40,8 +40,9 @@ namespace GIFrameworkMaps.Data
 			EF.CompileAsyncQuery(
 				(ApplicationDbContext context, int id) =>
 					context.Versions
-						.Where(o => o.Id == id)
+						.AsNoTracking()
 						.AsSplitQuery()
+						.Where(o => o.Id == id)
 						.FirstOrDefault());
 
 		/// <summary>
@@ -113,76 +114,6 @@ namespace GIFrameworkMaps.Data
 
 			return version;
 		}
-		[Obsolete("Remove this later after benchmarks are done")]
-		public Models.Version? GetVersionOriginal(int versionId)
-		{
-			string cacheKey = "Version/" + versionId.ToString();
-
-			// Check to see if the version has already been cached and, if so, return that.
-			if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
-			{
-				return cacheValue;
-			}
-
-			//TODO - This mass of then includes seems pretty nasty, maybe find another way?
-			var version = _context.Versions
-							.IgnoreAutoIncludes()
-							.Include(v => v.Bound)
-							.Include(v => v.Theme)
-							.Include(v => v.WelcomeMessage)
-							.Include(v => v.TourDetails)
-								.ThenInclude(t => t!.Steps)
-							.Include(v => v.VersionBasemaps)
-								.ThenInclude(v => v.Basemap)
-								.ThenInclude(l => l!.LayerSource)
-								.ThenInclude(l => l!.LayerSourceOptions)
-							.Include(v => v.VersionBasemaps)
-								.ThenInclude(l => l.Basemap)
-								.ThenInclude(l => l!.LayerSource)
-								.ThenInclude(l => l!.LayerSourceType)
-							.Include(v => v.VersionBasemaps)
-								.ThenInclude(l => l.Basemap)
-								.ThenInclude(l => l!.LayerSource)
-								.ThenInclude(l => l!.Attribution)
-							.Include(v => v.VersionBasemaps)
-								.ThenInclude(l => l.Basemap)
-								.ThenInclude(l => l!.Bound)
-							.Include(v => v.VersionCategories)
-								.ThenInclude(v => v.Category)
-								.ThenInclude(c => c!.Layers)
-								.ThenInclude(cl => cl.Layer)
-								.ThenInclude(l => l!.LayerSource)
-								.ThenInclude(ls => ls!.LayerSourceOptions)
-							.Include(v => v.VersionCategories)
-								.ThenInclude(v => v.Category)
-								.ThenInclude(c => c!.Layers)
-								.ThenInclude(cl => cl.Layer)
-								.ThenInclude(l => l!.LayerSource)
-								.ThenInclude(l => l!.LayerSourceType)
-							.Include(v => v.VersionCategories)
-								.ThenInclude(v => v.Category)
-								.ThenInclude(c => c!.Layers)
-								.ThenInclude(cl => cl.Layer)
-								.ThenInclude(l => l!.LayerSource)
-								.ThenInclude(l => l!.Attribution)
-							.Include(v => v.VersionLayerCustomisations)
-							.Include(v => v.VersionProjections)
-								.ThenInclude(p => p.Projection)
-							.AsSplitQuery()
-							.AsNoTrackingWithIdentityResolution()
-							.FirstOrDefault(v => v.Id == versionId);
-
-			if (version is not null && String.IsNullOrEmpty(version.HelpURL))
-			{
-				var generalVersion = GetVersionBySlug("general", "", "");
-				version.HelpURL = generalVersion!.HelpURL;
-			}
-
-			// Cache the results so they can be used next time we call this function.                
-			_memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));
-
-			return version;
-		}
 
 		public VersionViewModel GetVersionViewModel(Models.Version version)
         {
@@ -244,45 +175,24 @@ namespace GIFrameworkMaps.Data
 		public async Task<List<Models.Version>> GetVersions()
         {
             return await _context.Versions
+				.AsNoTracking()
 				.IgnoreAutoIncludes()
 				.ToListAsync();
         }
-		[Obsolete("Remove this later after benchmarks are done")]
-		public List<Models.Version> GetVersionsOriginal()
-		{
-			var versions = _context.Versions
-				.IgnoreAutoIncludes()
-				.AsNoTrackingWithIdentityResolution()
-				.ToList();
-			return versions;
-		}
 
 		public async Task<bool> CanUserAccessVersion(string userId, int versionId)
         {
             var version = await GetVersion(versionId);
-            if (version != null && !version.RequireLogin)
+            if (version is not null && !version.RequireLogin)
             {
                 return true;
             }
             var versionuser = _context.VersionUsers
-                .AsNoTrackingWithIdentityResolution()
+                .AsNoTracking()
                 .Any(vu => vu.UserId == userId && vu.VersionId == versionId);
             
             return versionuser;
         }
-		public bool CanUserAccessVersionOriginal(string userId, int versionId)
-		{
-			var version = GetVersion(versionId).Result;
-			if (version != null && !version.RequireLogin)
-			{
-				return true;
-			}
-			var versionuser = _context.VersionUsers
-				.AsNoTrackingWithIdentityResolution()
-				.Any(vu => vu.UserId == userId && vu.VersionId == versionId);
-
-			return versionuser;
-		}
 
 		public List<ApplicationUserRole> GetUserRoles(string userId)
         {
