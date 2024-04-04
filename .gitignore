@@ -347,3 +347,4 @@ healthchecksdb
 #other files
 /GIFrameworkMaps.Web/ScaffoldingReadMe.txt
 /GIFrameworkMaps.Web/.config
+/GIFrameworkMaps.Web/wwwroot/js/node_modules_dompurify_dist_purify_js.bundle.js
