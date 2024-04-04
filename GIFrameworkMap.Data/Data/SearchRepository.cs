@@ -42,7 +42,8 @@ namespace GIFrameworkMaps.Data
         /// <exception cref="KeyNotFoundException">Returned when the version can not be found</exception>
         public List<VersionSearchDefinition> GetSearchDefinitionsByVersion(int versionId)
         {
-			if (!_context.Versions.Where(v => v.Id == versionId).AsNoTrackingWithIdentityResolution().Any())
+			var version = _context.Versions.Find(versionId);
+			if (version is null)
 			{
 				throw new KeyNotFoundException($"Version with ID {versionId} does not exist");
 			}

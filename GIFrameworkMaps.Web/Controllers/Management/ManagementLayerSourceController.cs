@@ -154,7 +154,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id)
         {
-            var sourceToUpdate = await _context.LayerSources.FirstOrDefaultAsync(a => a.Id == id);
+            var sourceToUpdate = await _context.LayerSources.FindAsync(id);
 
             if (await TryUpdateModelAsync(
                 sourceToUpdate,
@@ -248,7 +248,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var sourceToDelete = await _context.LayerSources.FirstOrDefaultAsync(a => a.Id == id);
+            var sourceToDelete = await _context.LayerSources.FindAsync(id);
 
             try
             {

@@ -20,7 +20,8 @@ namespace GIFrameworkMaps.Data
 
         public Models.VersionPrintConfiguration GetPrintConfigurationByVersion(int versionId)
         {
-			if (!_context.Versions.Where(v => v.Id == versionId).AsNoTrackingWithIdentityResolution().Any())
+			var version = _context.Versions.Find(versionId);
+			if (version is null)
 			{
 				throw new KeyNotFoundException($"Version with ID {versionId} does not exist");
 			}

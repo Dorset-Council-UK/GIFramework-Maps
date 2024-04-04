@@ -105,7 +105,9 @@ namespace GIFrameworkMaps.Data
 
         public async Task<Layer?> GetLayer(int id)
         {
-            var layer = await _context.Layers
+			var layer = await _context.Layers.FindAsync(id);
+
+            var layerOriginal = await _context.Layers
                 .Include(l => l.LayerSource)
                 .ThenInclude(l => l!.LayerSourceType)
                 .Include(l => l.LayerSource)
@@ -126,13 +128,18 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<Layer>> GetLayersByLayerSource(int layerSourceId)
         {
-            var layers = await _context.Layers.Where(l => l.LayerSourceId == layerSourceId).AsNoTracking().ToListAsync();
+            var layers = await _context.Layers
+				.AsNoTracking()
+				.Where(l => l.LayerSourceId == layerSourceId)
+				.ToListAsync();
             return layers;
         }
 
         public async Task<LayerSource?> GetLayerSource(int id)
         {
-            var layerSource = await _context.LayerSources
+			var layerSource = await _context.LayerSources.FindAsync(id);
+
+            var layerSourceOriginal = await _context.LayerSources
                 .Include(s => s.LayerSourceOptions)
                 .Include(s => s.LayerSourceType)
                 .FirstOrDefaultAsync(a => a.Id == id);
@@ -172,7 +179,9 @@ namespace GIFrameworkMaps.Data
 
         public async Task<Category?> GetLayerCategory(int id)
         {
-            var layerCategory = await _context.Categories
+			var layerCategory = await _context.Categories.FindAsync(id);
+
+			var layerCategoryOriginal = await _context.Categories
                 .Include(c => c.Layers)
                 .Include(c => c.ParentCategory)
                 .FirstOrDefaultAsync(a => a.Id == id);
@@ -182,10 +191,14 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<Category>> GetLayerCategories()
         {
-            var layerCategories = await _context.Categories
+			var layerCategories = await _context.Categories
+				.AsNoTracking()
+				.ToListAsync();
+
+			var layerCategoriesOriginal = await _context.Categories
+                .AsNoTracking()
                 .Include(c => c.Layers)
                 .Include(c => c.ParentCategory)
-                .AsNoTracking()
                 .ToListAsync();
 
             return layerCategories;

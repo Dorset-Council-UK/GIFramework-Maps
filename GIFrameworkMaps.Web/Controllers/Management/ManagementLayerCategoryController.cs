@@ -83,15 +83,18 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/Edit/1
         public async Task<IActionResult> Edit(int id)
         {
-            var category = await _context.Categories
+			var category = await _context.Categories.FindAsync(id);
+
+            var categoryOriginal = await _context.Categories
                 .Include(c => c.ParentCategory)
                 .Include(c => c.Layers)
                 .FirstOrDefaultAsync(v => v.Id == id);
 
-            if (category == null)
+            if (category is null)
             {
                 return NotFound();
             }
+
             var editModel = new CategoryEditViewModel() { Category = category };
             RebuildViewModel(ref editModel, category);
             return View(editModel);
@@ -102,7 +105,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id, int[] selectedLayers)
         {
-            var categoryToUpdate = await _context.Categories
+			var categoryToUpdate = await _context.Categories.FindAsync(id);
+
+            var categoryToUpdateOriginal = await _context.Categories
                 .Include(c => c.ParentCategory)
                 .Include(c => c.Layers)
                 .FirstOrDefaultAsync(v => v.Id == id);
@@ -158,7 +163,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var categoryToDelete = await _context.Categories.FirstOrDefaultAsync(a => a.Id == id);
+            var categoryToDelete = await _context.Categories.FindAsync(id);
             try
             {
                 _context.Categories.Remove(categoryToDelete);

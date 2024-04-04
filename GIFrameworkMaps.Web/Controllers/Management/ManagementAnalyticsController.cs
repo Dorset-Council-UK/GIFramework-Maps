@@ -179,8 +179,14 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private void RebuildEditModel(ref AnalyticsEditViewModel model)
         {
+			var versionsCHECK = _context.Versions
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.OrderBy(o => o.Name)
+				.ToList();
             var versions = _context.Versions.OrderBy(b => b.Name).ToList();
-            string[] supportedProducts = { "Cloudflare", "Google Analytics (GA4)", "Microsoft Application Insights", "Microsoft Clarity" };
+
+			string[] supportedProducts = { "Cloudflare", "Google Analytics (GA4)", "Microsoft Application Insights", "Microsoft Clarity" };
             string[] supportedCookieControls = { "Civic Cookie Control" };
 
             model.AvailableProducts = new SelectList(supportedProducts);
@@ -211,7 +217,14 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 analyticVersions = new HashSet<int>(currentDefinition.VersionAnalytics.Select(c => c.VersionId));
             }
             //Generate a list of all versions that can be selected
-            List<int> AvailableVersions = _context.Versions.OrderBy(b => b.Name).Select(c => c.Id).ToList();
+				.IgnoreAutoIncludes()
+			var versionIds = _context.Versions
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.OrderBy(o => o.Name)
+				.Select(c => c.Id)
+				.ToList();
+			List<int> AvailableVersions = _context.Versions.OrderBy(b => b.Name).Select(c => c.Id).ToList();
             if (AvailableVersions != null)
             {
                 //Loop through each version and check if it is selected

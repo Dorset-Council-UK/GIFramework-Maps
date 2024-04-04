@@ -148,7 +148,13 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 existingVersionsHS = new HashSet<int>(existingVersions.Select(r => r.VersionId));
             }
 
-            foreach (var version in _context.Versions.Where(v => v.RequireLogin == true))
+			var requireLoginVersionIds = _context.Versions
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.Where(v => v.RequireLogin == true)
+				.Select(c => c.Id)
+				.ToList();
+			foreach (var version in _context.Versions.Where(v => v.RequireLogin == true))
             {
                 if (selectedVersionsHS.Contains(version.Id))
                 {
@@ -172,7 +178,13 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private void RebuildViewModel(ref UserEditViewModel model, Microsoft.Graph.Beta.Models.User user)
         {
-            var versions = _context.Versions.Where(v => v.RequireLogin == true).OrderBy(v => v.Name).ToList();
+			var versionsCHECK = _context.Versions
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.Where(v => v.RequireLogin == true)
+				.OrderBy(o => o.Name)
+				.ToList();
+			var versions = _context.Versions.Where(v => v.RequireLogin == true).OrderBy(v => v.Name).ToList();
             var roles = _context.ApplicationRoles.OrderBy(r => r.RoleName).ToList();
 
             model.AvailableVersions = versions;

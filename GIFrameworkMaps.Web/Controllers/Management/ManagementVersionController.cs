@@ -181,6 +181,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             try
             {
                 var version = await _context.Versions
+					.AsNoTracking()
 					.IgnoreAutoIncludes()
 					.Include(v => v.VersionContacts)
                     .FirstOrDefaultAsync(v => v.Id == id);
