@@ -100,11 +100,24 @@ a:focus {
 [data-bs-theme="dark"] .btn-link {
   color: white;
 }
+[data-bs-theme="dark"] .btn-outline-dark {
+    border-color: rgba(255,255,255,.8);
+    color: rgba(255,255,255,.8);
+}
+[data-bs-theme="dark"] .btn-outline-dark:hover,
+[data-bs-theme="dark"] .btn-outline-dark:focus {
+    border-color: rgba(255,255,255, 1);
+    color: rgba(255,255,255,1);
+    background-color: rgba(255,255,255,.1);
+}
+[data-bs-theme="dark"] .btn-outline-danger {
+    color: rgba(255, 255, 255, 0.85);
+}
 .nav-pills .nav-link.active,
 .nav-pills .show > .nav-link {
-  color: #fff;
-  background-color: #05476d;
-  border-color: #1861ac;
+    color: #fff;
+    background-color: #05476d;
+    border-color: #1861ac;
 }
 
 /* Sticky footer styles
