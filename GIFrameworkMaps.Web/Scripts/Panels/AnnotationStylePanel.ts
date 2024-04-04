@@ -101,7 +101,7 @@ export default class AnnotationStylePanel implements SidebarPanel {
    */
   private rebuildFromStyle(
     style: AnnotationStyle,
-      inhibitRender: boolean = false,
+    inhibitRender: boolean = false,
   ) {
     this.activeStyle = style;
     if (this.activeStyle) {
@@ -113,17 +113,20 @@ export default class AnnotationStylePanel implements SidebarPanel {
         const controls = this.optionsPanel.querySelectorAll<
           HTMLInputElement | HTMLSelectElement
         >("input, select");
-          controls.forEach((control) => {
-              const outputEle = document.querySelector(`output[for=${control.id || "invalid"}]`);
+        controls.forEach((control) => {
+          const outputEle = document.querySelector(
+            `output[for=${control.id || "invalid"}]`,
+          );
           switch (control.getAttribute("data-style-property")) {
             case "fillColour":
               control.value = `#${this.activeStyle.fillColourHex}`;
               break;
             case "opacity":
-                  control.value = this.activeStyle.opacity.toString();
-                  if (outputEle) {
-                      (outputEle as HTMLOutputElement).value = `${(this.activeStyle.opacity * 100)}%`;
-                  }
+              control.value = this.activeStyle.opacity.toString();
+              if (outputEle) {
+                (outputEle as HTMLOutputElement).value =
+                  `${this.activeStyle.opacity * 100}%`;
+              }
               break;
             case "fontColour":
               control.value = `#${this.activeStyle.fontColourHex}`;
@@ -136,9 +139,10 @@ export default class AnnotationStylePanel implements SidebarPanel {
               break;
             case "fontSize":
               control.value = this.activeStyle.fontSize.toString();
-                if (outputEle) {
-                    (outputEle as HTMLOutputElement).value = `${this.activeStyle.fontSize}px`;
-                }
+              if (outputEle) {
+                (outputEle as HTMLOutputElement).value =
+                  `${this.activeStyle.fontSize}px`;
+              }
               break;
             case "labelText":
               control.value = this.activeStyle.labelText;
@@ -148,27 +152,28 @@ export default class AnnotationStylePanel implements SidebarPanel {
               control.value = this.activeStyle.pointType;
               break;
             case "size":
-                  control.value = this.activeStyle.size.toString();
-                  if (outputEle) {
-                      (outputEle as HTMLOutputElement).value = `${this.activeStyle.size}px`;
-                  }
+              control.value = this.activeStyle.size.toString();
+              if (outputEle) {
+                (outputEle as HTMLOutputElement).value =
+                  `${this.activeStyle.size}px`;
+              }
               break;
             case "radiusNumber":
               control.value = this.activeStyle.radiusNumber.toString();
-                  control.setAttribute("input-text", control.value);
-                  if (this.activeStyle.editMode === "edit") {
-                      control.disabled = true;
-                  } else {
-                      control.disabled = false;
-                  }
+              control.setAttribute("input-text", control.value);
+              if (this.activeStyle.editMode === "edit") {
+                control.disabled = true;
+              } else {
+                control.disabled = false;
+              }
               break;
             case "radiusUnit":
-                  control.value = this.activeStyle.radiusUnit;
-                  if (this.activeStyle.editMode === "edit") {
-                      control.disabled = true;
-                  } else {
-                      control.disabled = false;
-                  }
+              control.value = this.activeStyle.radiusUnit;
+              if (this.activeStyle.editMode === "edit") {
+                control.disabled = true;
+              } else {
+                control.disabled = false;
+              }
               break;
             case "strokeColour":
               control.value = `#${this.activeStyle.strokeColourHex}`;
@@ -177,10 +182,11 @@ export default class AnnotationStylePanel implements SidebarPanel {
               control.value = this.activeStyle.strokeStyle;
               break;
             case "strokeWidth":
-                  control.value = this.activeStyle.strokeWidth.toString();
-                  if (outputEle) {
-                      (outputEle as HTMLOutputElement).value = `${this.activeStyle.strokeWidth}px`;
-                  }
+              control.value = this.activeStyle.strokeWidth.toString();
+              if (outputEle) {
+                (outputEle as HTMLOutputElement).value =
+                  `${this.activeStyle.strokeWidth}px`;
+              }
               break;
             case "pointHasBorder": {
               (control as HTMLInputElement).checked =
