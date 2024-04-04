@@ -145,9 +145,12 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.Enabled,
                 a => a.RequireLogin,
                 a => a.ShowLogin,
+				a => a.FeaturedVersion,
+				a => a.Hidden,
                 a => a.HelpURL,
                 a => a.FeedbackURL,
                 a => a.RedirectionURL,
+				a => a.VersionImageURL,
                 a => a.ThemeId,
                 a => a.BoundId,
                 a => a.WelcomeMessageId,
@@ -686,7 +689,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
         }
 
-        private void RebuildViewModel(ref VersionEditViewModel model, Version version)
+        private void RebuildViewModel(ref VersionEditViewModel model, GIFrameworkMaps.Data.Models.Version version)
         {
             var themes = _context.Themes.OrderBy(t => t.Name).ToList();
             var bounds = _context.Bounds.OrderBy(t => t.Name).ToList();
