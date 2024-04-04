@@ -58,8 +58,18 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <partial name="_HelpMenuPartial"/>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Version" asp-action="Index">Change version</a>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Change version
+                            </a>
+                            <ul class="dropdown-menu" id="gifw-version-toggler">
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Version" asp-action="Index">See all versions</a>
+                                </li>
+
+                            </ul>
                         </li>
                     </ul>
                     <ul class="navbar-nav">

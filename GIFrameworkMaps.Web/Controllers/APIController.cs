@@ -13,6 +13,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers
@@ -318,5 +320,72 @@ namespace GIFrameworkMaps.Web.Controllers
                 return BadRequest("Name must be filled in and less than 50 characters");
             }           
         }
-    }
+		[Route("api/versions/recent")]
+		public async Task<IActionResult> RecentVersions(string versionIds)
+		{
+			var userId = "";
+			if(User.Identity.IsAuthenticated)
+			{
+				var claimsIdentity = (ClaimsIdentity)User.Identity;
+				var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+				userId = claim.Value;
+			}
+			var userVersions = await _repository.GetVersionsListForUser(userId);
+			List<Data.Models.Version> filteredVersions = [];
+
+			var parsedVersionIds = versionIds?.Split(',')
+			.Where(x => int.TryParse(x, out _))
+			.Select(int.Parse)
+			.ToList();
+
+			var type = VersionListType.Recent;
+			if (parsedVersionIds != null && parsedVersionIds.Count != 0)
+			{
+				//filter the list just to those passed in versionIds
+				filteredVersions = userVersions
+									.Where(v => parsedVersionIds.Contains(v.Id))
+									.OrderByDescending(v => parsedVersionIds.IndexOf(v.Id))
+									.Take(5)
+									.ToList();
+			}
+			if(filteredVersions.Count == 0)
+			{
+				//filter the list just to the featured
+				filteredVersions = userVersions
+									.Where(v => v.FeaturedVersion == true)
+									.OrderBy(v => v.Name)
+									.Take(5)
+									.ToList();
+				type = VersionListType.Featured;
+			}
+			//project data into RecentOrFeaturedVersionsList record type
+			List<RecentOrFeaturedVersionsList> recent_versions = filteredVersions
+				.Select(v => 
+					new RecentOrFeaturedVersionsList(
+						v.Id,
+						v.Name,  
+						Url.Link("Default_Slug", new {
+							slug1=v.Slug.Split("/").FirstOrDefault(), 
+							slug2= v.Slug.Split("/").ElementAtOrDefault(1),
+							slug3= v.Slug.Split("/").ElementAtOrDefault(2)
+						}),
+						type
+						)
+					).ToList();
+
+			if(recent_versions.Count == 0)
+			{
+				return NoContent();
+			}
+
+			return Json(recent_versions);
+		}
+		private readonly record struct RecentOrFeaturedVersionsList(int Id, string Name, string URL, VersionListType Type);
+		public enum VersionListType
+		{
+			Recent,
+			Featured,
+			Favourite
+		}
+	}
  }
