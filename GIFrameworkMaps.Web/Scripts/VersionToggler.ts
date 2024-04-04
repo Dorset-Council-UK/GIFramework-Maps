@@ -41,6 +41,7 @@ export class VersionToggler {
         if (versions && versions.length !== 0) {
           versions
             .filter((v) => v.id !== this.gifwMapInstance.config.id)
+            .reverse()
             .forEach((version) => {
               const versionHtml = `<li><a class="dropdown-item" href="${version.url}">${version.name}</a></li>`;
               versionTogglerContainer.insertAdjacentHTML(

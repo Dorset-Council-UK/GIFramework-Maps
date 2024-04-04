@@ -344,7 +344,7 @@ namespace GIFrameworkMaps.Web.Controllers
 				//filter the list just to those passed in versionIds
 				filteredVersions = userVersions
 									.Where(v => parsedVersionIds.Contains(v.Id))
-									.OrderByDescending(v => parsedVersionIds.IndexOf(v.Id))
+									.OrderBy(v => parsedVersionIds.IndexOf(v.Id))
 									.Take(5)
 									.ToList();
 			}
