@@ -22,6 +22,8 @@ using NodaTime;
 using Npgsql;
 using Microsoft.Extensions.Hosting;
 using GIFrameworkMaps.Web.Filters;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +58,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 builder.Services.AddControllersWithViews().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+	options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 builder.Services.AddResponseCaching();
 builder.Services.AddSignalR();
