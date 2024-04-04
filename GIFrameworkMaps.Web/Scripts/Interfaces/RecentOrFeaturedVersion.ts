@@ -5,8 +5,8 @@
   type: VersionListType
 }
 
-enum VersionListType {
-  Recent,
-  Featured,
-  Favourite
+export enum VersionListType {
+  Recent = "Recent",
+  Featured = "Featured",
+  Favourite = "Favourite"
 }

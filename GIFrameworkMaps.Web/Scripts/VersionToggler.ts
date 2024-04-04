@@ -1,4 +1,4 @@
-﻿import { RecentOrFeaturedVersion } from "./Interfaces/RecentOrFeaturedVersion";
+﻿import { RecentOrFeaturedVersion, VersionListType } from "./Interfaces/RecentOrFeaturedVersion";
 import { GIFWMap } from "./Map";
 import { UserSettings } from "./UserSettings";
 
@@ -39,18 +39,33 @@ export class VersionToggler {
         }
         const versions: RecentOrFeaturedVersion[] = await resp.json();
         if (versions && versions.length !== 0) {
-          versions
-            .filter((v) => v.id !== this.gifwMapInstance.config.id)
-            .reverse()
-            .forEach((version) => {
-              const versionHtml = `<li><a class="dropdown-item" href="${version.url}">${version.name}</a></li>`;
-              versionTogglerContainer.insertAdjacentHTML(
-                "afterbegin",
-                versionHtml,
-              );
-            });
-          const headerHtml = `<li><h6 class="dropdown-header">${versions[0].type}</h6></li>`;
-          versionTogglerContainer.insertAdjacentHTML("afterbegin", headerHtml);
+          const recentVersions = versions.filter((v) => v.type === VersionListType.Recent && v.id !== this.gifwMapInstance.config.id);
+          const featuredVersions = versions.filter((v) => v.type === VersionListType.Featured && v.id !== this.gifwMapInstance.config.id);
+
+          if (featuredVersions.length !== 0) {
+            featuredVersions.reverse()
+              .forEach((version) => {
+                const versionHtml = `<li><a class="dropdown-item" href="${version.url}">${version.name}</a></li>`;
+                versionTogglerContainer.insertAdjacentHTML(
+                  "afterbegin",
+                  versionHtml,
+                );
+              });
+            const headerHtml = `<li><h6 class="dropdown-header">Featured</h6></li>`;
+            versionTogglerContainer.insertAdjacentHTML("afterbegin", headerHtml);
+          }
+          if (recentVersions.length !== 0) {
+            recentVersions.reverse()
+              .forEach((version) => {
+                const versionHtml = `<li><a class="dropdown-item" href="${version.url}">${version.name}</a></li>`;
+                versionTogglerContainer.insertAdjacentHTML(
+                  "afterbegin",
+                  versionHtml,
+                );
+              });
+            const headerHtml = `<li><h6 class="dropdown-header">Recent</h6></li>`;
+            versionTogglerContainer.insertAdjacentHTML("afterbegin", headerHtml);
+          }
         }
       }
     } catch (e) {

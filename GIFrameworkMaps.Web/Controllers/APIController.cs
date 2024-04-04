@@ -13,8 +13,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers
@@ -331,54 +329,65 @@ namespace GIFrameworkMaps.Web.Controllers
 				userId = claim.Value;
 			}
 			var userVersions = await _repository.GetVersionsListForUser(userId);
-			List<Data.Models.Version> filteredVersions = [];
 
 			var parsedVersionIds = versionIds?.Split(',')
 			.Where(x => int.TryParse(x, out _))
 			.Select(int.Parse)
 			.ToList();
 
-			var type = VersionListType.Recent;
+			List<RecentOrFeaturedVersionsList> recent_versions = [];
+			List<RecentOrFeaturedVersionsList> featured_versions = [];
 			if (parsedVersionIds != null && parsedVersionIds.Count != 0)
 			{
 				//filter the list just to those passed in versionIds
-				filteredVersions = userVersions
-									.Where(v => parsedVersionIds.Contains(v.Id))
-									.OrderBy(v => parsedVersionIds.IndexOf(v.Id))
-									.Take(5)
-									.ToList();
+				recent_versions = userVersions
+									.Where(v => parsedVersionIds.Contains(v.Id)) //get just the ones that match the passed in IDs
+									.OrderBy(v => parsedVersionIds.IndexOf(v.Id)) //order it by the order they were passed in
+									.Take(5) // take a maximum of 5
+									.Select(v =>
+									new RecentOrFeaturedVersionsList(
+										v.Id,
+										v.Name,
+										Url.Link("Default_Slug", new
+										{
+											slug1 = v.Slug.Split("/").FirstOrDefault(),
+											slug2 = v.Slug.Split("/").ElementAtOrDefault(1),
+											slug3 = v.Slug.Split("/").ElementAtOrDefault(2)
+										}),
+										VersionListType.Recent
+										) //project the data into the RecentOrFeaturedVersionsList type
+									).ToList();
 			}
-			if(filteredVersions.Count == 0)
+			if(recent_versions.Count < 5)
 			{
 				//filter the list just to the featured
-				filteredVersions = userVersions
-									.Where(v => v.FeaturedVersion == true)
+				featured_versions = userVersions
+									.Where(v => v.FeaturedVersion == true && !recent_versions.Select(v => v.Id).Contains(v.Id)) //select only featured versions that do not already appear in the recent versions list
 									.OrderBy(v => v.Name)
-									.Take(5)
-									.ToList();
-				type = VersionListType.Featured;
+									.Take(5 - recent_versions.Count) //Take a number that would mean the total being returned is no more than 5
+									.Select(v =>
+									new RecentOrFeaturedVersionsList(
+										v.Id,
+										v.Name,
+										Url.Link("Default_Slug", new
+										{
+											slug1 = v.Slug.Split("/").FirstOrDefault(),
+											slug2 = v.Slug.Split("/").ElementAtOrDefault(1),
+											slug3 = v.Slug.Split("/").ElementAtOrDefault(2)
+										}),
+										VersionListType.Featured
+										) //project the data into the RecentOrFeaturedVersionsList type
+									).ToList();
 			}
-			//project data into RecentOrFeaturedVersionsList record type
-			List<RecentOrFeaturedVersionsList> recent_versions = filteredVersions
-				.Select(v => 
-					new RecentOrFeaturedVersionsList(
-						v.Id,
-						v.Name,  
-						Url.Link("Default_Slug", new {
-							slug1=v.Slug.Split("/").FirstOrDefault(), 
-							slug2= v.Slug.Split("/").ElementAtOrDefault(1),
-							slug3= v.Slug.Split("/").ElementAtOrDefault(2)
-						}),
-						type
-						)
-					).ToList();
 
-			if(recent_versions.Count == 0)
+			List<RecentOrFeaturedVersionsList> combined_versions_list = [.. recent_versions, .. featured_versions];
+
+			if(combined_versions_list.Count == 0)
 			{
 				return NoContent();
 			}
 
-			return Json(recent_versions);
+			return Json(combined_versions_list);
 		}
 		private readonly record struct RecentOrFeaturedVersionsList(int Id, string Name, string URL, VersionListType Type);
 		public enum VersionListType
