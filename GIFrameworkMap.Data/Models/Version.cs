@@ -20,12 +20,18 @@ namespace GIFrameworkMaps.Data.Models
         public bool RequireLogin { get; set; }
         [Display(Name = "Show login option")]
         public bool ShowLogin { get; set; } = true;
-        [Display(Name = "Redirection URL (optional)")]
+		[Display(Name="Show as a featured version on the version home page")]
+		public bool FeaturedVersion { get; set; } = false;
+		[Display(Name = "Hide from version home page")]
+		public bool Hidden { get; set; } = false;
+		[Display(Name = "Redirection URL (optional)")]
         public string? RedirectionURL { get; set; }
         [Display(Name = "Help URL (optional)")]
         public string? HelpURL { get; set; }
         [Display(Name = "Feedback URL (optional)")]
         public string? FeedbackURL { get; set; }
+		[Display(Name="Version image URL (optional)")]
+		public string? VersionImageURL {  get; set; }
         [Display(Name="Theme")]
         public int ThemeId { get; set; }
         [Display(Name = "Start extents")]

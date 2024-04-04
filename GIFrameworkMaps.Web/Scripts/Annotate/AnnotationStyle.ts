@@ -11,6 +11,8 @@ export default class AnnotationStyle extends Style {
   fontColour: string;
   fontColourHex: string;
   fontFamily: string;
+  fontStyle: string;
+  fontSize: number;
   gifwMapInstance: GIFWMap;
   labelText: string;
   opacity: number;
@@ -51,6 +53,8 @@ export default class AnnotationStyle extends Style {
     this.strokeStyle = "solid";
     this.strokeWidth = 2;
     this.fontFamily = "Arial";
+    this.fontStyle = "normal";
+    this.fontSize = 24;
     this.pointHasBorder = false;
     this.borderColour = "rgb(0, 0, 0)";
     this.borderColourHex = "000000";
@@ -140,6 +144,8 @@ export default class AnnotationStyle extends Style {
     clone.fontColour = this.fontColour;
     clone.fontColourHex = this.fontColourHex;
     clone.fontFamily = this.fontFamily;
+    clone.fontStyle = this.fontStyle;
+    clone.fontSize = this.fontSize;
     clone.labelText = this.labelText;
     clone.opacity = this.opacity;
     clone.pointType = this.pointType;
@@ -272,6 +278,14 @@ export default class AnnotationStyle extends Style {
       );
       this.getImage().setOpacity(1);
     } else if (tool.name == "Text") {
+        let fontStrokeWidth = 0.5
+        if (this.fontSize > 16 && this.fontSize <= 24) {
+            fontStrokeWidth = 1;
+        } else if (this.fontSize > 24 && this.fontSize <= 48) {
+            fontStrokeWidth = 2;
+        } else if (this.fontSize >= 48) {
+            fontStrokeWidth = 3;
+        }
       this.setText(
         new Text({
           fill: new Fill({
@@ -279,10 +293,10 @@ export default class AnnotationStyle extends Style {
           }),
           stroke: new Stroke({
             color: "#FFFFFF",
-            width: 1,
+            width: fontStrokeWidth,
           }),
           text: this.labelText,
-          font: `${this.size}px "${this.fontFamily}", sans-serif`,
+            font: `${this.fontStyle} ${this.fontSize}px "${this.fontFamily}", sans-serif`,
           scale: window.devicePixelRatio,
         }),
       );
@@ -295,6 +309,8 @@ export default class AnnotationStyle extends Style {
     this.fillColourHex = e.detail.style.fillColourHex || this.fillColourHex;
     this.fontColourHex = e.detail.style.fontColourHex || this.fontColourHex;
     this.fontFamily = e.detail.style.fontFamily || this.fontFamily;
+    this.fontStyle = e.detail.style.fontStyle || this.fontStyle;
+    this.fontSize = e.detail.style.fontSize || this.fontSize;
     this.labelText = e.detail.style.labelText || this.labelText;
     if (e.detail.style.opacity != undefined && e.detail.style.opacity != null) {
       this.opacity = e.detail.style.opacity;

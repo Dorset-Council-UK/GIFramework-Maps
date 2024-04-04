@@ -1,0 +1,38 @@
+﻿@using Microsoft.Extensions.Configuration;
+@inject IConfiguration configuration;
+@model List<GIFrameworkMaps.Data.Models.Version>
+@{
+    string appName = configuration.GetValue<string>("GIFrameworkMaps:appName");
+    ViewData["Title"] = "Versions";
+}
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Find a @appName version</p>
+
+@if (Model.Where(a => a.FeaturedVersion == true).Count() != 0)
+{
+
+    <div class="container mb-3">
+        <h2>Featured</h2>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            @foreach (GIFrameworkMaps.Data.Models.Version version in Model
+                        .Where(a => a.FeaturedVersion == true)
+                        .OrderBy(a => a.Name))
+
+            {
+                <partial name="./Partials/VersionCardPartial" model="version" />
+            }
+        </div>
+    </div>
+}
+
+<div class="container">
+    <h2>All versions</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (GIFrameworkMaps.Data.Models.Version version in Model
+            .Where(a => a.FeaturedVersion == false)
+            .OrderBy(a => a.Name))
+        {
+            <partial name="./Partials/VersionCardPartial" model="version" />
+        }
+    </div>
+</div>
