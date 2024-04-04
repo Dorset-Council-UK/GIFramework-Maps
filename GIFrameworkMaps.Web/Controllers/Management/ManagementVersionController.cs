@@ -706,6 +706,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
 			var tours = await _context.TourDetails
 				.AsNoTracking()
+				.IgnoreAutoIncludes()
 				.Select(o => new { o.Id, o.Name })
 				.OrderBy(o => o.Name)
 				.ToListAsync();
@@ -718,6 +719,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 			// Basemaps
 			model.AvailableBasemaps = await _context.Basemaps
 				.AsNoTracking()
+				.IgnoreAutoIncludes()
 				.OrderBy(b => b.Name)
 				.ToListAsync();
 			model.SelectedBasemaps = version.VersionBasemaps.Select(v => v.BasemapId).ToList();
@@ -747,6 +749,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 			// Categrories
 			model.AvailableCategories = await _context.Categories
 				.AsNoTracking()
+				.IgnoreAutoIncludes()
 				.OrderBy(b => b.Name)
 				.ToListAsync();
 			if (version.VersionCategories.Count != 0)
