@@ -113,13 +113,17 @@ export default class AnnotationStylePanel implements SidebarPanel {
         const controls = this.optionsPanel.querySelectorAll<
           HTMLInputElement | HTMLSelectElement
         >("input, select");
-        controls.forEach((control) => {
+          controls.forEach((control) => {
+              const outputEle = document.querySelector(`output[for=${control.id || "invalid"}]`);
           switch (control.getAttribute("data-style-property")) {
             case "fillColour":
               control.value = `#${this.activeStyle.fillColourHex}`;
               break;
             case "opacity":
-              control.value = this.activeStyle.opacity.toString();
+                  control.value = this.activeStyle.opacity.toString();
+                  if (outputEle) {
+                      (outputEle as HTMLOutputElement).value = `${(this.activeStyle.opacity * 100)}%`;
+                  }
               break;
             case "fontColour":
               control.value = `#${this.activeStyle.fontColourHex}`;
@@ -138,7 +142,10 @@ export default class AnnotationStylePanel implements SidebarPanel {
               control.value = this.activeStyle.pointType;
               break;
             case "size":
-              control.value = this.activeStyle.size.toString();
+                  control.value = this.activeStyle.size.toString();
+                  if (outputEle) {
+                      (outputEle as HTMLOutputElement).value = `${this.activeStyle.size}px`;
+                  }
               break;
             case "radiusNumber":
               control.value = this.activeStyle.radiusNumber.toString();
@@ -164,7 +171,10 @@ export default class AnnotationStylePanel implements SidebarPanel {
               control.value = this.activeStyle.strokeStyle;
               break;
             case "strokeWidth":
-              control.value = this.activeStyle.strokeWidth.toString();
+                  control.value = this.activeStyle.strokeWidth.toString();
+                  if (outputEle) {
+                      (outputEle as HTMLOutputElement).value = `${this.activeStyle.strokeWidth}px`;
+                  }
               break;
             case "pointHasBorder": {
               (control as HTMLInputElement).checked =

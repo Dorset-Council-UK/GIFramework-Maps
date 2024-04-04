@@ -63,15 +63,25 @@ PolygonTool.optionsHTML = `
         </div>
     </div>
     <div class="form-group row mb-1">
-        <label class="form-label">Fill opacity</label>
-        <div>
-            <input type="range" class="form-range" data-style-property="opacity" min="0" max="1" value="0.2" step="0.1">
+        <label class="form-label" for="gifw-annotation-control-polygon-opacity">Fill opacity</label>
+        <div class="row">
+            <div class="col">
+                <input type="range" class="form-range" data-style-property="opacity" id="gifw-annotation-control-polygon-opacity" min="0" max="1" value="0.2" step="0.1" oninput="document.querySelector('output[for=gifw-annotation-control-polygon-opacity]').value=(this.value * 100) + '%'">
+            </div>
+            <div class="col-auto">
+                <output for="gifw-annotation-control-polygon-opacity" class="badge bg-primary" style="width:3rem;">20%</output>
+            </div>
         </div>
     </div>
     <div class="form-group row mb-1">
-        <label class="form-label">Line width</label>
-        <div>
-            <input type="range" class="form-range" data-style-property="strokeWidth" min="1" max="5" value="2">
+        <label class="form-label" for="gifw-annotation-control-polygon-line-width">Line width</label>
+        <div class="row">
+            <div class="col">
+                <input type="range" class="form-range" data-style-property="strokeWidth" id="gifw-annotation-control-polygon-line-width" min="1" max="5" value="2" oninput="document.querySelector('output[for=gifw-annotation-control-polygon-line-width]').value=this.value + 'px'">
+            </div>
+            <div class="col-auto">
+                <output for="gifw-annotation-control-polygon-line-width" class="badge bg-primary" style="width:3rem;">2px</output>
+            </div>
         </div>
     </div>
     <div class="form-group row mb-1">
@@ -109,9 +119,14 @@ LineTool.optionsHTML = `
         </div>
     </div>
     <div class="form-group row mb-1">
-        <label class="form-label">Line width</label>
-        <div>
-            <input type="range" class="form-range" data-style-property="strokeWidth" min="1" max="5" value="2">
+        <label class="form-label" for="gifw-annotation-control-line-width">Line width</label>
+        <div class="row">
+            <div class="col">
+                <input type="range" class="form-range" data-style-property="strokeWidth" id="gifw-annotation-control-line-width" min="1" max="5" value="2" oninput="document.querySelector('output[for=gifw-annotation-control-line-width]').value=this.value + 'px'">
+            </div>
+            <div class="col-auto">
+                <output for="gifw-annotation-control-line-width" class="badge bg-primary" style="width:3rem;">2px</output>
+            </div>
         </div>
     </div>
     <div class="form-group row mb-1">
@@ -168,9 +183,14 @@ PointTool.optionsHTML = `
         </div>
     </div>
     <div class="form-group row mb-1">
-        <label class="form-label">Size</label>
-        <div>
-            <input type="range" class="form-range" data-style-property="size" min="12" max="60" value="24" step="12">
+        <label class="form-label" for="gifw-annotation-control-point-size">Size</label>
+        <div class="row">
+            <div class="col">
+                <input type="range" class="form-range" data-style-property="size" id="gifw-annotation-control-point-size" min="12" max="60" value="24" step="12" oninput="document.querySelector('output[for=gifw-annotation-control-point-size]').value=this.value + 'px'">
+            </div>
+            <div class="col-auto">
+                <output for="gifw-annotation-control-point-size" class="badge bg-primary" style="width:3rem;">24px</output>
+            </div>
         </div>
     </div>
     <div class="form-group mb-1">
@@ -196,9 +216,14 @@ PointTool.optionsHTML = `
             </div>
         </div>
         <div class="form-group mb-1">
-            <label class="form-label" for="gifw-annotation-border-thickness">Border thickness</label>
-            <div>
-                <input id="gifw-annotation-border-thickness" type="range" class="form-range" data-style-property="borderWidth" min="0.2" max="1" value="0.5" step="0.1">
+            <label class="form-label" for="gifw-annotation-point-border-thickness">Border thickness</label>
+            <div class="row">
+                <div class="col">
+                    <input id="gifw-annotation-point-border-thickness" type="range" class="form-range" data-style-property="borderWidth" min="0.2" max="1" value="0.5" step="0.1" oninput="document.querySelector('output[for=gifw-annotation-point-border-thickness]').value=this.value + 'px'">
+                </div>
+                <div class="col-auto">
+                    <output for="gifw-annotation-point-border-thickness" class="badge bg-primary" style="width:3rem;">0.5px</output>
+                </div>
             </div>
         </div>
     </div>
@@ -233,15 +258,25 @@ CircleTool.optionsHTML = `
         </div>
     </div>
     <div class="form-group row mb-1">
-        <label class="form-label">Fill opacity</label>
-        <div>
-            <input type="range" class="form-range" data-style-property="opacity" min="0" max="1" value="0.2" step="0.1">
+        <label class="form-label" for="gifw-annotation-control-circle-opacity">Fill opacity</label>
+        <div class="row">
+            <div class="col">
+                <input type="range" class="form-range" data-style-property="opacity" id="gifw-annotation-control-circle-opacity" min="0" max="1" value="0.2" step="0.1" oninput="document.querySelector('output[for=gifw-annotation-control-circle-opacity]').value=(this.value * 100) + '%'">
+            </div>
+            <div class="col-auto">
+                <output for="gifw-annotation-control-circle-opacity" class="badge bg-primary" style="width:3rem;">20%</output>
+            </div>
         </div>
     </div>
     <div class="form-group row mb-1">
-        <label class="form-label">Line width</label>
-        <div>
-            <input type="range" class="form-range" data-style-property="strokeWidth" min="1" max="5" value="2">
+        <label class="form-label" for="gifw-annotation-control-circle-line-width">Line width</label>
+        <div class="row">
+            <div class="col">
+                <input type="range" class="form-range" data-style-property="strokeWidth" id="gifw-annotation-control-circle-line-width" min="1" max="5" value="2" oninput="document.querySelector('output[for=gifw-annotation-control-circle-line-width]').value=this.value + 'px'">
+            </div>
+            <div class="col-auto">
+                <output for="gifw-annotation-control-circle-line-width" class="badge bg-primary" style="width:3rem;">2px</output>
+            </div>
         </div>
     </div>
     <div class="form-group row mb-1">
@@ -300,15 +335,25 @@ BufferTool.optionsHTML = `
         </div>
     </div>
     <div class="form-group row mb-1">
-        <label class="form-label">Fill opacity</label>
-        <div>
-            <input type="range" class="form-range" data-style-property="opacity" min="0" max="1" value="0.2" step="0.1">
+        <label class="form-label" for="gifw-annotation-control-buffer-opacity">Fill opacity</label>
+        <div class="row">
+            <div class ="col">
+                <input type="range" class="form-range" data-style-property="opacity" id="gifw-annotation-control-buffer-opacity" min="0" max="1" value="0.2" step="0.1" oninput="document.querySelector('output[for=gifw-annotation-control-buffer-opacity]').value=(this.value * 100) + '%'">
+            </div>
+            <div class="col-auto">
+                <output for="gifw-annotation-control-buffer-opacity" class="badge bg-primary" style="width:3rem;">20%</output>
+            </div>
         </div>
     </div>
     <div class="form-group row mb-1">
-        <label class="form-label">Line width</label>
-        <div>
-            <input type="range" class="form-range" data-style-property="strokeWidth" min="1" max="5" value="2">
+        <label class="form-label" for="gifw-annotation-control-buffer-line-width">Line width</label>
+        <div class="row">
+            <div class ="col">
+                <input type="range" class="form-range" data-style-property="strokeWidth" id="gifw-annotation-control-buffer-line-width" min="1" max="5" value="2" oninput="document.querySelector('output[for=gifw-annotation-control-buffer-line-width]').value=this.value + 'px'">
+            </div>
+            <div class="col-auto">
+                <output for="gifw-annotation-control-buffer-line-width" class="badge bg-primary" style="width:3rem;">2px</output>
+            </div>
         </div>
     </div>
     <div class="form-group row mb-1">
@@ -374,9 +419,14 @@ TextTool.optionsHTML = `
         </div>
     </div>
     <div class="form-group row mb-1">
-        <label class="form-label">Font size</label>
-        <div>
-            <input type="range" class="form-range" data-style-property="size" min="16" max="64" value="24" step="8">
+        <label class="form-label" for="gifw-annotation-control-font-size">Font size</label>
+        <div class="row">
+            <div class="col">
+                <input type="range" class="form-range" data-style-property="size" id="gifw-annotation-control-font-size" min="16" max="64" value="24" step="8" oninput="document.querySelector('output[for=gifw-annotation-control-font-size]').value=this.value + 'px'">
+            </div>
+            <div class="col-auto">
+                <output for="gifw-annotation-control-font-size" class="badge bg-primary" style="width:3rem;">24px</output>
+            </div>
         </div>
     </div>
 `;
