@@ -1,0 +1,108 @@
+﻿@{
+    var num_links = 0;
+    var hasPrivacyLink = false;
+    var hasTosLink = false;
+    var hasHelpLink = false;
+    var hasFeedbackLink = false;
+    var hasCookieControlLink = false;
+    @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["PrivacyLink"])) && Uri.IsWellFormedUriString(Convert.ToString(ViewData["PrivacyLink"]), UriKind.Absolute))
+    {
+        num_links++;
+        hasPrivacyLink = true;
+    }
+    @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["ToSLink"])) && Uri.IsWellFormedUriString(Convert.ToString(ViewData["ToSLink"]), UriKind.Absolute))
+    {
+        num_links++;
+        hasTosLink = true;
+    }
+    @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["HelpURL"])) && Uri.IsWellFormedUriString(Convert.ToString(ViewData["HelpURL"]), UriKind.Absolute))
+    {
+        num_links++;
+        hasHelpLink = true;
+    }
+    @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["FeedbackURL"])) && Uri.IsWellFormedUriString(Convert.ToString(ViewData["FeedbackURL"]), UriKind.Absolute))
+    {
+        num_links++;
+        hasFeedbackLink = true;
+    }
+    @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["IncludeCookieControl"])) && Convert.ToString(ViewData["IncludeCookieControl"]) != "None")
+    {
+        num_links++;
+        hasCookieControlLink = true;
+    }
+}
+
+@if(num_links > 1)
+{
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Help
+        </a>
+        <ul class="dropdown-menu">
+            @if (hasHelpLink)
+            {
+                <li>
+                    <a class="dropdown-item" target="_blank" rel="noopener" href="@ViewData["HelpURL"]">Help documentation</a>
+                </li>
+            }
+            @if (hasFeedbackLink)
+            {
+                <li>
+                    <a class="dropdown-item" target="_blank" rel="noopener" href="@ViewData["FeedbackURL"]">Give feedback</a>
+                </li>
+            }
+            @if (hasPrivacyLink)
+            {
+                <li>
+                    <a class="dropdown-item" target="_blank" rel="noopener" href="@ViewData["PrivacyLink"]">Privacy</a>
+                </li>
+            }
+            @if (hasTosLink)
+            {
+                <li>
+                    <a class="dropdown-item" target="_blank" rel="noopener" href="@ViewData["ToSLink"]">Terms</a>
+                </li>
+            }
+            @if (hasCookieControlLink)
+            {
+                <li>
+                    <a class="dropdown-item" id="CookieControlLink" rel="noopener" href="#">Cookie preferences</a>
+                </li>
+            }
+        </ul>
+    </li>
+}
+else
+{
+    @if (hasPrivacyLink)
+    {
+        <li class="nav-item">
+            <a class="nav-link" target="_blank" rel="noopener" href="@ViewData["PrivacyLink"]">Privacy</a>
+        </li>
+    }
+    @if (hasTosLink)
+    {
+        <li class="nav-item">
+            <a class="nav-link" target="_blank" rel="noopener" href="@ViewData["ToSLink"]">Terms</a>
+        </li>
+    }
+    @if (hasHelpLink)
+    {
+        <li class="nav-item">
+            <a class="nav-link" target="_blank" rel="noopener" href="@ViewData["HelpURL"]">Help</a>
+        </li>
+    }
+    @if (hasFeedbackLink)
+    {
+        <li class="nav-item">
+            <a class="nav-link" target="_blank" rel="noopener" href="@ViewData["FeedbackURL"]">Give feedback</a>
+        </li>
+    }
+    @if (hasCookieControlLink)
+    {
+        <li class="nav-item">
+            <a class="nav-link" id="CookieControlLink" rel="noopener" href="#">Cookie preferences</a>
+        </li>
+    }
+}
+
