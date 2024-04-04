@@ -12,6 +12,7 @@ export default class AnnotationStyle extends Style {
   fontColourHex: string;
   fontFamily: string;
   fontStyle: string;
+  fontSize: number;
   gifwMapInstance: GIFWMap;
   labelText: string;
   opacity: number;
@@ -53,6 +54,7 @@ export default class AnnotationStyle extends Style {
     this.strokeWidth = 2;
     this.fontFamily = "Arial";
     this.fontStyle = "normal";
+    this.fontSize = 24;
     this.pointHasBorder = false;
     this.borderColour = "rgb(0, 0, 0)";
     this.borderColourHex = "000000";
@@ -143,6 +145,7 @@ export default class AnnotationStyle extends Style {
     clone.fontColourHex = this.fontColourHex;
     clone.fontFamily = this.fontFamily;
     clone.fontStyle = this.fontStyle;
+    clone.fontSize = this.fontSize;
     clone.labelText = this.labelText;
     clone.opacity = this.opacity;
     clone.pointType = this.pointType;
@@ -285,7 +288,7 @@ export default class AnnotationStyle extends Style {
             width: 1,
           }),
           text: this.labelText,
-            font: `${this.fontStyle} ${this.size}px "${this.fontFamily}", sans-serif`,
+            font: `${this.fontStyle} ${this.fontSize}px "${this.fontFamily}", sans-serif`,
           scale: window.devicePixelRatio,
         }),
       );
@@ -299,6 +302,7 @@ export default class AnnotationStyle extends Style {
     this.fontColourHex = e.detail.style.fontColourHex || this.fontColourHex;
     this.fontFamily = e.detail.style.fontFamily || this.fontFamily;
     this.fontStyle = e.detail.style.fontStyle || this.fontStyle;
+    this.fontSize = e.detail.style.fontSize || this.fontSize;
     this.labelText = e.detail.style.labelText || this.labelText;
     if (e.detail.style.opacity != undefined && e.detail.style.opacity != null) {
       this.opacity = e.detail.style.opacity;

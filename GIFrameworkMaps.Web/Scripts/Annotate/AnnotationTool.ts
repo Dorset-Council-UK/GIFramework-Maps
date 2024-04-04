@@ -422,7 +422,7 @@ TextTool.optionsHTML = `
         <label class="form-label" for="gifw-annotation-control-font-size">Font size</label>
         <div class="row">
             <div class="col">
-                <input type="range" class="form-range" data-style-property="size" id="gifw-annotation-control-font-size" min="16" max="64" value="24" step="8" oninput="document.querySelector('output[for=gifw-annotation-control-font-size]').value=this.value + 'px'">
+                <input type="range" class="form-range" data-style-property="fontSize" id="gifw-annotation-control-font-size" min="16" max="64" value="24" step="8" oninput="document.querySelector('output[for=gifw-annotation-control-font-size]').value=this.value + 'px'">
             </div>
             <div class="col-auto">
                 <output for="gifw-annotation-control-font-size" class="badge bg-primary" style="width:3rem;">24px</output>
