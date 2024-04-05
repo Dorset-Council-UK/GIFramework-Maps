@@ -22,7 +22,6 @@ using NodaTime;
 using Npgsql;
 using Microsoft.Extensions.Hosting;
 using GIFrameworkMaps.Web.Filters;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,7 +44,7 @@ if (!String.IsNullOrEmpty(builder.Configuration.GetSection("KeyVault")["Name"]))
         new Uri($"https://{builder.Configuration.GetSection("KeyVault")["Name"]}.vault.azure.net/"),
             new ClientCertificateCredential(
                 builder.Configuration.GetSection("KeyVault").GetSection("AzureAd")["DirectoryId"],
-                builder.Configuration.GetSection("KeyVault").GetSection("AzureAd")["ApplicationId"],
+                builder.Configuration.GetSection("KeyVault").GetSection("AzureAd")["ApplicationId"], 
                 x509Certificate));
 }
 //var startup = new Startup(builder.Configuration);
@@ -99,10 +98,8 @@ else
 builder.Services.AddTransient<IAuthorizationHandler, HasAccessToVersionAuthorizationHandler>();
 builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformer>();
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("CanAccessVersion", policy => policy.AddRequirements(new HasAccessToVersionRequirement()));
-});
+builder.Services.AddAuthorizationBuilder()
+	.AddPolicy("CanAccessVersion", policy => policy.AddRequirements(new HasAccessToVersionRequirement()));
 
 builder.Services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
 builder.Services.AddScoped<ICommonRepository, CommonRepository>();
@@ -120,7 +117,6 @@ ApplicationInsightsServiceOptions AppInsightOptions = new()
 };
 builder.Services.AddApplicationInsightsTelemetry(AppInsightOptions);
 builder.Services.AddApplicationInsightsTelemetryProcessor<UnwantedTelemetryFilter>();
-
 
 var app = builder.Build();
 var forwarder = app.Services.GetService<IHttpForwarder>();
