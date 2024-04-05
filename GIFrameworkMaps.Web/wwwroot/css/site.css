@@ -30,7 +30,7 @@ a:focus {
 }
 [data-bs-theme="dark"] a:hover,
 [data-bs-theme="dark"] a:focus {
-    color: rgba(255, 255, 255, 1);
+  color: rgba(255, 255, 255, 1);
 }
 .btn-primary {
   color: #fff;
@@ -99,6 +99,19 @@ a:focus {
 }
 [data-bs-theme="dark"] .btn-link {
   color: white;
+}
+[data-bs-theme="dark"] .btn-outline-dark {
+  border-color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.8);
+}
+[data-bs-theme="dark"] .btn-outline-dark:hover,
+[data-bs-theme="dark"] .btn-outline-dark:focus {
+  border-color: rgba(255, 255, 255, 1);
+  color: rgba(255, 255, 255, 1);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+[data-bs-theme="dark"] .btn-outline-danger {
+  color: rgba(255, 255, 255, 0.85);
 }
 .nav-pills .nav-link.active,
 .nav-pills .show > .nav-link {
