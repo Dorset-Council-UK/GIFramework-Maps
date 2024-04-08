@@ -3,8 +3,8 @@
 
 @if (Convert.ToBoolean(ViewData["ShowLogin"]) || User.Identity.IsAuthenticated)
 {
-        @if (User.Identity.IsAuthenticated)
-        {
+    @if (User.Identity.IsAuthenticated)
+    {
         <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#"><i class="bi-person-circle"></i> @User.Identity.Name</a>
             <ul class="dropdown-menu dropdown-menu-end">
@@ -19,7 +19,6 @@
                 </li>
             </ul>
         </li>
-
     }
     else
     {
