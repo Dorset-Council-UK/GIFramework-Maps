@@ -12,7 +12,7 @@ import {
   File as FileHelper,
   Browser as BrowserHelper,
 } from "./Util";
-import * as DOMPurify from 'dompurify';
+import * as DOMPurify from "dompurify";
 
 export class LayerUpload {
   dropTarget: HTMLElement;
@@ -192,20 +192,24 @@ export class LayerUpload {
         } else {
           if (!this.validateFileSize(f)) {
             failures.push(
-              DOMPurify.sanitize(`Couldn't add file ${FileHelper.getFileNameWithoutExtension(
-                f.name,
-              )} because it's too big (Max: ${
-                this.maxFileSize
-              }MB, Your file: ${(f.size / 1024 / 1024).toFixed(2)}MB)`,
-            ));
+              DOMPurify.sanitize(
+                `Couldn't add file ${FileHelper.getFileNameWithoutExtension(
+                  f.name,
+                )} because it's too big (Max: ${
+                  this.maxFileSize
+                }MB, Your file: ${(f.size / 1024 / 1024).toFixed(2)}MB)`,
+              ),
+            );
           } else {
             failures.push(
-              DOMPurify.sanitize(`Couldn't add file ${FileHelper.getFileNameWithoutExtension(
-                f.name,
-              )} because we don't know how to process ${FileHelper.getExtension(
-                f.name,
-              )} files`,
-            ));
+              DOMPurify.sanitize(
+                `Couldn't add file ${FileHelper.getFileNameWithoutExtension(
+                  f.name,
+                )} because we don't know how to process ${FileHelper.getExtension(
+                  f.name,
+                )} files`,
+              ),
+            );
           }
         }
       });

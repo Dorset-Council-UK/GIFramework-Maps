@@ -11,7 +11,7 @@
                 <li><a class="dropdown-item" id="my-account" asp-area="" asp-controller="Account" asp-action="Index">My account</a></li>
                 @if (User.IsInRole("GIFWAdmin"))
                 {
-                <li><a class="dropdown-item" id="management" asp-area="" asp-controller="Management" asp-action="Index">Manage application</a></li>
+                    <li><a class="dropdown-item" id="management" asp-area="" asp-controller="Management" asp-action="Index">Manage application</a></li>
                 }
                 <li><hr class="dropdown-divider"></li>
                 <li>
