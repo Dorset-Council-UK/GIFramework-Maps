@@ -32,12 +32,10 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<Attribution>> GetAttributions()
         {
-            var attributions = await _context.Attributions
-                .AsNoTracking()
-                .ToListAsync();
-
-            return attributions;
-        }
+            return await _context.Attributions
+				.AsNoTracking()
+				.ToListAsync();
+		}
 
         public async Task<Attribution?> GetAttribution(int id)
         {
@@ -46,12 +44,10 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<Bound>> GetBounds()
         {
-            var bounds = await _context.Bounds
-                .AsNoTracking()
-                .ToListAsync();
-
-            return bounds;
-        }
+            return await _context.Bounds
+				.AsNoTracking()
+				.ToListAsync();
+		}
 
         public async Task<Bound?> GetBound(int id)
         {
@@ -60,12 +56,10 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<Theme>> GetThemes()
         {
-            var themes = await _context.Themes
-                .AsNoTracking()
-                .ToListAsync();
-
-            return themes;
-        }
+            return await _context.Themes
+				.AsNoTracking()
+				.ToListAsync();
+		}
 
         public async Task<Theme?> GetTheme(int id)
         {
@@ -74,12 +68,10 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<WelcomeMessage>> GetWelcomeMessages()
         {
-            var welcomeMessages = await _context.WelcomeMessages
-                .AsNoTracking()
-                .ToListAsync();
-
-            return welcomeMessages;
-        }
+            return await _context.WelcomeMessages
+				.AsNoTracking()
+				.ToListAsync();
+		}
 
         public async Task<WelcomeMessage?> GetWelcomeMessage(int id)
         {
@@ -88,65 +80,42 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<WebLayerServiceDefinition>> GetWebLayerServiceDefinitions()
         {
-            var webLayerServiceDefinitions = await _context.WebLayerServiceDefinitions
-                .AsNoTracking()
-                .ToListAsync();
-
-            return webLayerServiceDefinitions;
-        }
+            return await _context.WebLayerServiceDefinitions
+				.AsNoTracking()
+				.ToListAsync();
+		}
 
         public async Task<Layer?> GetLayer(int id)
         {
-			var layer = await _context.Layers.FindAsync(id);
-
-            var layerOriginal = await _context.Layers
-                .Include(l => l.LayerSource)
-                .ThenInclude(l => l!.LayerSourceType)
-                .Include(l => l.LayerSource)
-                .ThenInclude(l => l!.LayerSourceOptions)
-                .FirstOrDefaultAsync(a => a.Id == id);
-
-            return layer;
-        }
+            return await _context.Layers.FindAsync(id);
+		}
 
         public async Task<List<Layer>> GetLayers()
         {
-            var layers = await _context.Layers
-                .AsNoTracking()
-                .ToListAsync();
-
-            return layers;
-        }
+            return await _context.Layers
+				.AsNoTracking()
+				.ToListAsync();
+		}
 
         public async Task<List<Layer>> GetLayersByLayerSource(int layerSourceId)
         {
-            var layers = await _context.Layers
+            return await _context.Layers
 				.AsNoTracking()
 				.Where(l => l.LayerSourceId == layerSourceId)
 				.ToListAsync();
-            return layers;
-        }
+		}
 
         public async Task<LayerSource?> GetLayerSource(int id)
         {
-			var layerSource = await _context.LayerSources.FindAsync(id);
-
-            var layerSourceOriginal = await _context.LayerSources
-                .Include(s => s.LayerSourceOptions)
-                .Include(s => s.LayerSourceType)
-                .FirstOrDefaultAsync(a => a.Id == id);
-
-            return layerSource;
-        }
+            return await _context.LayerSources.FindAsync(id);
+		}
 
         public async Task<List<LayerSource>> GetLayerSources()
         {
-            var layerSources = await _context.LayerSources
-                .AsNoTracking()
-                .ToListAsync();
-
-            return layerSources;
-        }
+            return await _context.LayerSources
+				.AsNoTracking()
+				.ToListAsync();
+		}
 
         public async Task<LayerSourceOption?> GetLayerSourceOption(int id)
         {
@@ -167,42 +136,34 @@ namespace GIFrameworkMaps.Data
 
         public async Task<Category?> GetLayerCategory(int id)
         {
-			var layerCategory = await _context.Categories
+            return await _context.Categories
 				.AsNoTracking()
-                .Include(c => c.ParentCategory)
-                .FirstOrDefaultAsync(a => a.Id == id);
-
-            return layerCategory;
-        }
+				.Include(c => c.ParentCategory)
+				.FirstOrDefaultAsync(a => a.Id == id);
+		}
 
         public async Task<List<Category>> GetLayerCategories()
         {
-			var layerCategories = await _context.Categories
+            return await _context.Categories
 				.AsNoTracking()
 				.Include(o => o.ParentCategory)
 				.ToListAsync();
-
-            return layerCategories;
-        }
+		}
 
         public async Task<List<CategoryLayer>> GetLayerCategoriesLayerAppearsIn(int layerId)
         {
-            var layerCategories = await _context.CategoryLayers
+            return await _context.CategoryLayers
 				.AsNoTracking()
 				.Where(c => c.LayerId == layerId)
 				.ToListAsync();
-
-            return layerCategories;
-        }
+		}
 
         public async Task<List<SearchDefinition>> GetSearchDefinitions()
         {
-            var searchDefinitions = await _context.SearchDefinitions
-                .AsNoTracking()
-                .ToListAsync();
-
-            return searchDefinitions;
-        }
+            return await _context.SearchDefinitions
+				.AsNoTracking()
+				.ToListAsync();
+		}
 
         public async Task<SearchDefinition?> GetSearchDefinition(int id)
         {
@@ -211,12 +172,10 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<APISearchDefinition>> GetAPISearchDefinitions()
         {
-            var APISearchDefinitions = await _context.APISearchDefinitions
-                .AsNoTracking()
-                .ToListAsync();
-
-            return APISearchDefinitions;
-        }
+            return await _context.APISearchDefinitions
+				.AsNoTracking()
+				.ToListAsync();
+		}
 
         public async Task<APISearchDefinition?> GetAPISearchDefinition(int id)
         {
@@ -225,12 +184,10 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<DatabaseSearchDefinition>> GetDatabaseSearchDefinitions()
         {
-            var databaseSearchDefinitions = await _context.DatabaseSearchDefinitions
-                .AsNoTracking()
-                .ToListAsync();
-
-            return databaseSearchDefinitions;
-        }
+            return await _context.DatabaseSearchDefinitions
+				.AsNoTracking()
+				.ToListAsync();
+		}
 
         public async Task<DatabaseSearchDefinition?> GetDatabaseSearchDefinition(int id)
         {
@@ -239,12 +196,10 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<LocalSearchDefinition>> GetLocalSearchDefinitions()
         {
-            var localSearchDefinitions = await _context.LocalSearchDefinitions
-                .AsNoTracking()
-                .ToListAsync();
-
-            return localSearchDefinitions;
-        }
+            return await _context.LocalSearchDefinitions
+				.AsNoTracking()
+				.ToListAsync();
+		}
 
         public async Task<LocalSearchDefinition?> GetLocalSearchDefinition(int id)
         {
@@ -347,7 +302,7 @@ namespace GIFrameworkMaps.Data
 
         public AnalyticsViewModel GetAnalyticsModel()
         {
-            AnalyticsViewModel viewModel = new()
+            var viewModel = new AnalyticsViewModel()
             {
                 AvailableAnalytics = _context.AnalyticsDefinitions
 					.AsNoTracking()
@@ -365,11 +320,9 @@ namespace GIFrameworkMaps.Data
 
 		public async Task<List<Projection>> GetProjections()
 		{
-			var projections = await _context.Projections
+			return await _context.Projections
 				.AsNoTracking()
 				.ToListAsync();
-
-			return projections;
 		}
 	}
 }
