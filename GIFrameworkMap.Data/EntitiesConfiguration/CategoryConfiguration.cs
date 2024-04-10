@@ -12,9 +12,7 @@ namespace GIFrameworkMaps.Data.EntitiesConfiguration
 				.Navigation(o => o.Layers)
 				.AutoInclude();
 
-			builder
-				.Navigation(o => o.ParentCategory)
-				.AutoInclude();
+			// Don't auto-include parent category, this will cause a circular reference
 		}
 	}
 }

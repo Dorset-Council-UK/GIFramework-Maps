@@ -83,11 +83,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/Edit/1
         public async Task<IActionResult> Edit(int id)
         {
-			var category = await _context.Categories.FindAsync(id);
-
-            var categoryOriginal = await _context.Categories
+            var category = await _context.Categories
+				.AsNoTracking()
                 .Include(c => c.ParentCategory)
-                .Include(c => c.Layers)
                 .FirstOrDefaultAsync(v => v.Id == id);
 
             if (category is null)
@@ -105,11 +103,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id, int[] selectedLayers)
         {
-			var categoryToUpdate = await _context.Categories.FindAsync(id);
-
-            var categoryToUpdateOriginal = await _context.Categories
+            var categoryToUpdate = await _context.Categories
+				.AsNoTracking()
                 .Include(c => c.ParentCategory)
-                .Include(c => c.Layers)
                 .FirstOrDefaultAsync(v => v.Id == id);
 
             var editModel = new CategoryEditViewModel() { Category = categoryToUpdate };
@@ -223,9 +219,14 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private void RebuildViewModel(ref CategoryEditViewModel model, Data.Models.Category category)
         {
-            
-            var categories = _context.Categories.Where(c => c.Id != category.Id).OrderBy(t => t.Name).ToList();
-            var layers = _context.Layers.OrderBy(l => l.Name).ToList();
+            var categories = _context.Categories
+				.Where(c => c.Id != category.Id)
+				.OrderBy(t => t.Name)
+				.ToList();
+
+            var layers = _context.Layers
+				.OrderBy(l => l.Name)
+				.ToList();
 
             model.AvailableParentCategories = new SelectList(categories, "Id", "Name", category.ParentCategoryId);
 

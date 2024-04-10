@@ -179,10 +179,8 @@ namespace GIFrameworkMaps.Data
 
         public async Task<Category?> GetLayerCategory(int id)
         {
-			var layerCategory = await _context.Categories.FindAsync(id);
-
-			var layerCategoryOriginal = await _context.Categories
-                .Include(c => c.Layers)
+			var layerCategory = await _context.Categories
+				.AsNoTracking()
                 .Include(c => c.ParentCategory)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
@@ -193,13 +191,8 @@ namespace GIFrameworkMaps.Data
         {
 			var layerCategories = await _context.Categories
 				.AsNoTracking()
+				.Include(o => o.ParentCategory)
 				.ToListAsync();
-
-			var layerCategoriesOriginal = await _context.Categories
-                .AsNoTracking()
-                .Include(c => c.Layers)
-                .Include(c => c.ParentCategory)
-                .ToListAsync();
 
             return layerCategories;
         }
