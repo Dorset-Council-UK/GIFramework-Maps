@@ -41,9 +41,7 @@ namespace GIFrameworkMaps.Data
 
         public async Task<Attribution?> GetAttribution(int id)
         {
-            var attribution = await _context.Attributions.FirstOrDefaultAsync(a => a.Id == id);
-
-            return attribution;
+            return await _context.Attributions.FindAsync(id);
         }
 
         public async Task<List<Bound>> GetBounds()
@@ -57,10 +55,8 @@ namespace GIFrameworkMaps.Data
 
         public async Task<Bound?> GetBound(int id)
         {
-            var bound = await _context.Bounds.FirstOrDefaultAsync(a => a.Id == id);
-
-            return bound;
-        }
+            return await _context.Bounds.FindAsync(id);
+		}
 
         public async Task<List<Theme>> GetThemes()
         {
@@ -73,9 +69,7 @@ namespace GIFrameworkMaps.Data
 
         public async Task<Theme?> GetTheme(int id)
         {
-            var theme = await _context.Themes.FirstOrDefaultAsync(a => a.Id == id);
-
-            return theme;
+            return await _context.Themes.FindAsync(id);
         }
 
         public async Task<List<WelcomeMessage>> GetWelcomeMessages()
@@ -89,9 +83,7 @@ namespace GIFrameworkMaps.Data
 
         public async Task<WelcomeMessage?> GetWelcomeMessage(int id)
         {
-            var welcomeMessage = await _context.WelcomeMessages.FirstOrDefaultAsync(a => a.Id == id);
-
-            return welcomeMessage;
+            return await _context.WelcomeMessages.FindAsync(id);
         }
 
         public async Task<List<WebLayerServiceDefinition>> GetWebLayerServiceDefinitions()
@@ -158,17 +150,13 @@ namespace GIFrameworkMaps.Data
 
         public async Task<LayerSourceOption?> GetLayerSourceOption(int id)
         {
-            var layerSource = await _context.LayerSourceOptions
-                .FirstOrDefaultAsync(a => a.Id == id);
+            return await _context.LayerSourceOptions.FindAsync(id);
+		}
 
-            return layerSource;
-        }
         public async Task<WebLayerServiceDefinition?> GetWebLayerServiceDefinition(int id)
         {
-            var webLayerServiceDefinition = await _context.WebLayerServiceDefinitions.FirstOrDefaultAsync(a => a.Id == id);
-
-            return webLayerServiceDefinition;
-        }
+            return await _context.WebLayerServiceDefinitions.FindAsync(id);
+		}
 
         public async Task<List<TourStep>> GetSteps()
         {
@@ -199,7 +187,11 @@ namespace GIFrameworkMaps.Data
 
         public async Task<List<CategoryLayer>> GetLayerCategoriesLayerAppearsIn(int layerId)
         {
-            var layerCategories = await _context.CategoryLayers.Where(c => c.LayerId == layerId).ToListAsync();
+            var layerCategories = await _context.CategoryLayers
+				.AsNoTracking()
+				.Where(c => c.LayerId == layerId)
+				.ToListAsync();
+
             return layerCategories;
         }
 
@@ -214,10 +206,8 @@ namespace GIFrameworkMaps.Data
 
         public async Task<SearchDefinition?> GetSearchDefinition(int id)
         {
-            var searchDefinition = await _context.SearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
-
-            return searchDefinition;
-        }
+            return await _context.SearchDefinitions.FindAsync(id);
+		}
 
         public async Task<List<APISearchDefinition>> GetAPISearchDefinitions()
         {
@@ -230,10 +220,8 @@ namespace GIFrameworkMaps.Data
 
         public async Task<APISearchDefinition?> GetAPISearchDefinition(int id)
         {
-            var APISearchDefinition = await _context.APISearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
-
-            return APISearchDefinition;
-        }
+            return await _context.APISearchDefinitions.FindAsync(id);
+		}
 
         public async Task<List<DatabaseSearchDefinition>> GetDatabaseSearchDefinitions()
         {
@@ -246,10 +234,8 @@ namespace GIFrameworkMaps.Data
 
         public async Task<DatabaseSearchDefinition?> GetDatabaseSearchDefinition(int id)
         {
-            var databaseSearchDefinition = await _context.DatabaseSearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
-
-            return databaseSearchDefinition;
-        }
+            return await _context.DatabaseSearchDefinitions.FindAsync(id);
+		}
 
         public async Task<List<LocalSearchDefinition>> GetLocalSearchDefinitions()
         {
@@ -262,10 +248,8 @@ namespace GIFrameworkMaps.Data
 
         public async Task<LocalSearchDefinition?> GetLocalSearchDefinition(int id)
         {
-            var localSearchDefinition = await _context.LocalSearchDefinitions.FirstOrDefaultAsync(a => a.Id == id);
-
-            return localSearchDefinition;
-        }
+            return await _context.LocalSearchDefinitions.FindAsync(id);
+		}
 
         public async Task<List<Microsoft.Graph.Beta.Models.User>> GetUsers()
         {
@@ -365,7 +349,10 @@ namespace GIFrameworkMaps.Data
         {
             AnalyticsViewModel viewModel = new()
             {
-                AvailableAnalytics = _context.AnalyticsDefinitions.Include(a => a.VersionAnalytics).ToList()
+                AvailableAnalytics = _context.AnalyticsDefinitions
+					.AsNoTracking()
+					.Include(a => a.VersionAnalytics)
+					.ToList()
             };
 
             return viewModel;
@@ -373,9 +360,7 @@ namespace GIFrameworkMaps.Data
 
 		public async Task<Projection?> GetProjection(int id)
 		{
-			var projection = await _context.Projections.FirstOrDefaultAsync(a => a.EPSGCode == id);
-
-			return projection;
+			return await _context.Projections.FindAsync(id);
 		}
 
 		public async Task<List<Projection>> GetProjections()
