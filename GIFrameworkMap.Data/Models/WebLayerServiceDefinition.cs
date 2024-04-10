@@ -27,11 +27,11 @@ namespace GIFrameworkMaps.Data.Models
         [DisplayName("Category (optional)")]
         public string? Category { get; set; }
 
-        [Required]
-        [DisplayName("Sort order")]
-        public int SortOrder { get; set; }
+		[Required]
+		[DisplayName("Sort order")]
+		public int SortOrder { get; set; }
 
-        public bool ProxyMetaRequests { get; set; }
+		public bool ProxyMetaRequests { get; set; }
 
         public bool ProxyMapRequests { get; set; }
 
