@@ -217,7 +217,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 analyticVersions = new HashSet<int>(currentDefinition.VersionAnalytics.Select(c => c.VersionId));
             }
             //Generate a list of all versions that can be selected
-				.IgnoreAutoIncludes()
 			var versionIds = _context.Versions
 				.AsNoTracking()
 				.IgnoreAutoIncludes()
