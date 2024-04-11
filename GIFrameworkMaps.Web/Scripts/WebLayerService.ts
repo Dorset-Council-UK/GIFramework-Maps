@@ -132,7 +132,7 @@ export class WebLayerService {
       'select[name="ogc-server-name"]',
     );
     selectEle.innerHTML = "";
-    this.serviceDefinitions.sort((a, b) => a.sortOrder - b.sortOrder);
+    this.serviceDefinitions.sort((a, b) => a.name.localeCompare(b.name));
     const groupedDefs = Helper.groupBy(
       this.serviceDefinitions,
       (defs) => defs.category,
