@@ -2,6 +2,7 @@
 using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Authorization;
 using GIFrameworkMaps.Data.Models.Print;
+using GIFrameworkMaps.Data.Models.Search;
 using MockQueryable.Moq;
 using Moq;
 using System.Collections.Generic;
@@ -23,6 +24,7 @@ namespace GIFrameworkMaps.Tests
 		{
 			var generalVersion = new Version { Name = "General version", Slug = "general", Id = 1 };
 			var printVersion = new Version { Name = "Alternative Print Config", Slug = "alt/config", Id = 6 };
+			var searchDefVersion = new Version { Name = "Custom Search Defs", Slug = "custom/searchdefs", Id = 8 };
 			var versions = new List<Version>
 			{
 				generalVersion,
@@ -32,6 +34,8 @@ namespace GIFrameworkMaps.Tests
 				new() { Name = "Requires Login 2", Slug = "requires/login/two", Id=5, RequireLogin=true },
 				printVersion,
 				new() { Name = "Null Print Config",Slug = "null/config", Id=7 },
+				searchDefVersion,
+				new() { Name = "Default Search Defs", Slug = "default/searchdefs", Id=9 }
 			};
 
 			var printConfig1 = new PrintConfiguration { Name = "Default", Id = 1 };
@@ -44,22 +48,22 @@ namespace GIFrameworkMaps.Tests
 			var printVersionConfigs = new List<VersionPrintConfiguration>
 			{
 				new() { PrintConfigurationId = 1, VersionId = generalVersion.Id, PrintConfiguration = printConfig1, Version = generalVersion },
-				new() { PrintConfigurationId = 2, VersionId = printVersion.Id, PrintConfiguration = printConfig2, Version = printVersion }
+				new() { PrintConfigurationId = 2, VersionId = printVersion.Id, PrintConfiguration = printConfig2, Version = printVersion },
 			};
 
 			var roles = new List<ApplicationRole>
 			{
-				new() { Id=1, RoleName="GIFWAdmin" }
+				new() { Id=1, RoleName="GIFWAdmin" },
 			};
 
 			var userRoles = new List<ApplicationUserRole>
 			{
-				new() { UserId = "36850518-dd0a-48e0-9004-cdaf30d82746", Role=roles.First() }
+				new() { UserId = "36850518-dd0a-48e0-9004-cdaf30d82746", Role=roles.First() },
 			};
 
 			var users = new List<VersionUser>
 			{
-				new() { UserId="36850518-dd0a-48e0-9004-cdaf30d82746", VersionId=4 }
+				new() { UserId="36850518-dd0a-48e0-9004-cdaf30d82746", VersionId=4 },
 			};
 
 			var bookmarks = new List<Bookmark>
@@ -71,6 +75,21 @@ namespace GIFrameworkMaps.Tests
 				new() { UserId="17819f99-b8d5-4495-8c48-964f5692afdc", Name="Test Bookmark 5", X=(decimal)-3894566.44, Y=(decimal)55427657.45, Zoom = 7, Id = 5 },
 			};
 
+			var localSearchDef = new LocalSearchDefinition { Name = "Coordinates - BNG 12 Figure", Title = "British National Grid Coordinates" };
+			var apiSearchDef = new APISearchDefinition { Name = "OS Places API", Title = "Addresses" };
+			var searchDefs = new List<SearchDefinition>
+			{
+				localSearchDef,
+				apiSearchDef,
+			};
+
+			var versionSearchDefs = new List<VersionSearchDefinition>
+			{
+				new() {Version = generalVersion, SearchDefinition = localSearchDef, Enabled = true, VersionId = generalVersion.Id},
+				new() {Version = generalVersion, SearchDefinition = apiSearchDef, Enabled = true, VersionId = generalVersion.Id},
+				new() {Version = searchDefVersion, SearchDefinition = apiSearchDef, Enabled = true, VersionId = searchDefVersion.Id},
+			};
+
 			var versionsMockSet = versions.AsQueryable().BuildMockDbSet();
 			var printConfigMockSet = printConfigs.AsQueryable().BuildMockDbSet();
 			var printVersionConfigsMockSet = printVersionConfigs.AsQueryable().BuildMockDbSet();
@@ -78,6 +97,8 @@ namespace GIFrameworkMaps.Tests
 			var rolesMockSet = roles.AsQueryable().BuildMockDbSet();
 			var userRolesMockSet = userRoles.AsQueryable().BuildMockDbSet();
 			var bookmarksMockSet = bookmarks.AsQueryable().BuildMockDbSet();
+			var searchDefsMockSet = searchDefs.AsQueryable().BuildMockDbSet();
+			var versionSearchDefsMockSet = versionSearchDefs.AsQueryable().BuildMockDbSet();
 
 			var mockApplicationDbContext = new Mock<IApplicationDbContext>();
 			mockApplicationDbContext.Setup(m => m.Versions).Returns(versionsMockSet.Object);
@@ -87,6 +108,8 @@ namespace GIFrameworkMaps.Tests
 			mockApplicationDbContext.Setup(m => m.ApplicationRoles).Returns(rolesMockSet.Object);
 			mockApplicationDbContext.Setup(m => m.ApplicationUserRoles).Returns(userRolesMockSet.Object);
 			mockApplicationDbContext.Setup(m => m.Bookmarks).Returns(bookmarksMockSet.Object);
+			mockApplicationDbContext.Setup(m => m.SearchDefinitions).Returns(searchDefsMockSet.Object);
+			mockApplicationDbContext.Setup(m => m.VersionSearchDefinitions).Returns(versionSearchDefsMockSet.Object);
 
 			return mockApplicationDbContext;
 		}
