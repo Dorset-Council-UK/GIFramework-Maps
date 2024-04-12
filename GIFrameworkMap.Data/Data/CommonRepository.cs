@@ -19,7 +19,7 @@ namespace GIFrameworkMaps.Data
     {
         //dependancy injection
         private readonly ILogger<CommonRepository> _logger;
-        private readonly ApplicationDbContext _context;
+        private readonly IApplicationDbContext _context;
         private readonly IMemoryCache _memoryCache;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -27,23 +27,11 @@ namespace GIFrameworkMaps.Data
         public CommonRepository(ILogger<CommonRepository> logger, IApplicationDbContext context, IMemoryCache memoryCache, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _logger = logger;
-            _context = (ApplicationDbContext)context;
+            _context = context;
             _memoryCache = memoryCache;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
-
-		/// <summary>
-		/// Compiled query to get a version by ID. This helps to improve performance and reduce memory usage.
-		/// </summary>
-		private static readonly Func<ApplicationDbContext, int, Task<Models.Version?>> GetVersionCompiled =
-			EF.CompileAsyncQuery(
-				(ApplicationDbContext context, int id) =>
-					context.Versions
-						.AsNoTracking()
-						.AsSplitQuery()
-						.Where(o => o.Id == id)
-						.FirstOrDefault());
 
 		/// <summary>
 		/// Gets the basic, top-level version information by slug. This should NOT be used to get all linked entities
@@ -77,19 +65,18 @@ namespace GIFrameworkMaps.Data
             return version;
         }
 
-        /// <summary>
-        /// Join all the parts of a slug, separated by a "/" (until we reach a blank slug).
-        /// </summary>
-        /// <param name="slugParts">A list of the slug parts (which must contain at least one).</param>
-        /// <returns></returns>
-        /// <remarks>Have created this as a generic method so it could be reused.</remarks>
-        private static string CreateSlug(params string[] slugParts)
-        {
-            return slugParts[0].ToLower() + 
-                //Append more slug parts if there are any left and the next is non-blank.
-                (slugParts.Length > 1 && !string.IsNullOrEmpty(slugParts[1]) 
-                    ? "/" + CreateSlug(slugParts.Skip(1).ToArray()) : "");
-        }
+		/// <summary>
+		/// Join all the parts of a slug, separated by a "/". Null or empty parts are ignored.
+		/// </summary>
+		/// <param name="slugParts">A list of the slug parts</param>
+		/// <returns>A list of combined slugs, in lowercase, separated by forward slash</returns>
+		private static string CreateSlug(params string[] slugParts)
+		{
+			return string.Join("/", slugParts
+				.Where(part => !string.IsNullOrEmpty(part))
+				.Select(part => part.ToLower())
+			);
+		}
 
 		public async Task<Models.Version?> GetVersion(int versionId)
 		{
@@ -101,7 +88,11 @@ namespace GIFrameworkMaps.Data
 				return cacheValue;
 			}
 
-			var version = await GetVersionCompiled(_context, versionId);
+			var version = await _context.Versions
+				.AsNoTracking()
+				.AsSplitQuery()
+				.Where(o => o.Id == versionId)
+				.FirstOrDefaultAsync();
 
 			if (version is not null && string.IsNullOrEmpty(version.HelpURL))
 			{
@@ -187,9 +178,10 @@ namespace GIFrameworkMaps.Data
             {
                 return true;
             }
-            var versionuser = _context.VersionUsers
+
+            var versionuser = await _context.VersionUsers
                 .AsNoTracking()
-                .Any(vu => vu.UserId == userId && vu.VersionId == versionId);
+                .AnyAsync(vu => vu.UserId == userId && vu.VersionId == versionId);
             
             return versionuser;
         }
