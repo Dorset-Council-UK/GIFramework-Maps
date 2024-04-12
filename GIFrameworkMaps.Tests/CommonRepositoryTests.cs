@@ -108,7 +108,7 @@ namespace GIFrameworkMaps.Tests
         {
             var versions = await sut.GetVersions();
 
-            Assert.That(versions.Count, Is.EqualTo(5));
+            Assert.That(versions.Count, Is.EqualTo(7));
         }
 
         [Test]

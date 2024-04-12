@@ -1,6 +1,7 @@
 ﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Authorization;
+using GIFrameworkMaps.Data.Models.Print;
 using MockQueryable.Moq;
 using Moq;
 using System.Collections.Generic;
@@ -20,13 +21,30 @@ namespace GIFrameworkMaps.Tests
 		/// </summary>
 		protected static Mock<IApplicationDbContext> SetupMockIApplicationDbContext()
 		{
+			var generalVersion = new Version { Name = "General version", Slug = "general", Id = 1 };
+			var printVersion = new Version { Name = "Alternative Print Config", Slug = "alt/config", Id = 6 };
 			var versions = new List<Version>
 			{
-				new() { Name = "General version", Slug= "general", Id=1 },
-				new() { Name = "Valid Version Test", Slug= "valid/version", Id=2 },
-				new() { Name = "Valid Version Test 2", Slug= "valid/version/two", Id=3 },
-				new() { Name = "Requires Login", Slug= "requires/login", Id=4, RequireLogin=true },
-				new() { Name = "Requires Login 2", Slug= "requires/login/two", Id=5, RequireLogin=true }
+				generalVersion,
+				new() { Name = "Valid Version Test", Slug = "valid/version", Id=2 },
+				new() { Name = "Valid Version Test 2", Slug = "valid/version/two", Id=3 },
+				new() { Name = "Requires Login", Slug = "requires/login", Id=4, RequireLogin=true },
+				new() { Name = "Requires Login 2", Slug = "requires/login/two", Id=5, RequireLogin=true },
+				printVersion,
+				new() { Name = "Null Print Config",Slug = "null/config", Id=7 },
+			};
+
+			var printConfig1 = new PrintConfiguration { Name = "Default", Id = 1 };
+			var printConfig2 = new PrintConfiguration { Name = "Alternative", Id = 2 };
+			var printConfigs = new List<PrintConfiguration> {
+				printConfig1,
+				printConfig2,
+			};
+
+			var printVersionConfigs = new List<VersionPrintConfiguration>
+			{
+				new() { PrintConfigurationId = 1, VersionId = generalVersion.Id, PrintConfiguration = printConfig1, Version = generalVersion },
+				new() { PrintConfigurationId = 2, VersionId = printVersion.Id, PrintConfiguration = printConfig2, Version = printVersion }
 			};
 
 			var roles = new List<ApplicationRole>
@@ -54,6 +72,8 @@ namespace GIFrameworkMaps.Tests
 			};
 
 			var versionsMockSet = versions.AsQueryable().BuildMockDbSet();
+			var printConfigMockSet = printConfigs.AsQueryable().BuildMockDbSet();
+			var printVersionConfigsMockSet = printVersionConfigs.AsQueryable().BuildMockDbSet();
 			var versionUsersMockSet = users.AsQueryable().BuildMockDbSet();
 			var rolesMockSet = roles.AsQueryable().BuildMockDbSet();
 			var userRolesMockSet = userRoles.AsQueryable().BuildMockDbSet();
@@ -61,6 +81,8 @@ namespace GIFrameworkMaps.Tests
 
 			var mockApplicationDbContext = new Mock<IApplicationDbContext>();
 			mockApplicationDbContext.Setup(m => m.Versions).Returns(versionsMockSet.Object);
+			mockApplicationDbContext.Setup(m => m.PrintConfigurations).Returns(printConfigMockSet.Object);
+			mockApplicationDbContext.Setup(m => m.VersionPrintConfigurations).Returns(printVersionConfigsMockSet.Object);
 			mockApplicationDbContext.Setup(m => m.VersionUsers).Returns(versionUsersMockSet.Object);
 			mockApplicationDbContext.Setup(m => m.ApplicationRoles).Returns(rolesMockSet.Object);
 			mockApplicationDbContext.Setup(m => m.ApplicationUserRoles).Returns(userRolesMockSet.Object);

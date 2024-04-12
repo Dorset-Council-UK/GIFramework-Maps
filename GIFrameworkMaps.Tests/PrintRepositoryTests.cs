@@ -12,22 +12,16 @@ using MockQueryable.Moq;
 
 namespace GIFrameworkMaps.Tests
 {
-	public class PrintRepositoryTests
-    {
+	internal class PrintRepositoryTests : DbContextBaseTest
+	{
         private PrintRepository sut;
 
-        [OneTimeSetUp]
-        public void OneTimeSetup()
+        [SetUp]
+        public void Setup()
         {
-            //This OneTimeSetup creates a mock dataset. It is assumed this dataset will NOT be modified by test code.
-            //If this assumption changes, the data should be moved into a [SetUp] method to maintain consistency
-            var serviceProvider = new ServiceCollection()
-               .AddLogging()
-               .BuildServiceProvider();
+			var mockIApplicationDbContext = SetupMockIApplicationDbContext();
 
-            var factory = serviceProvider.GetService<ILoggerFactory>();
-
-            var versions = new List<Version>
+			var versions = new List<Version>
             {
                 new() { Name = "General version",Slug= "general",Id=1 },
                 new() { Name = "Alternative Print Config",Slug= "alt/config",Id=2 },
@@ -56,13 +50,7 @@ namespace GIFrameworkMaps.Tests
             var mockMemoryCache = new MemoryCache(new MemoryCacheOptions()); ;
             /* TO DO: Add some parameters to the mockMemoryCache? */
 
-            sut = new PrintRepository(mockApplicationDbContext.Object, mockMemoryCache);
-        }
-
-        [SetUp]
-        public void Setup()
-        {
-
+            sut = new PrintRepository(mockIApplicationDbContext.Object, mockMemoryCache);
         }
 
         [Test]
@@ -76,8 +64,9 @@ namespace GIFrameworkMaps.Tests
         }
 
         [Test]
-        [TestCase(3, ExpectedResult = 1)]
-        public int GetPrintConfigurationByVersion_ValidVersion_DefaultConfig(int versionId)
+        [TestCase(1, ExpectedResult = 1)]
+		[TestCase(6, ExpectedResult = 2)]
+		public int GetPrintConfigurationByVersion_ValidVersion_DefaultConfig(int versionId)
         {
             var printConfig = sut.GetPrintConfigurationByVersion(versionId);
 
