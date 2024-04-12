@@ -51,7 +51,7 @@ namespace GIFrameworkMaps.Web.Controllers
                 slug1.Replace(Environment.NewLine, ""),
                 slug2?.Replace(Environment.NewLine, ""),
                 slug3?.Replace(Environment.NewLine, ""));
-            var version = _repository.GetVersionBySlug(slug1,slug2,slug3);
+            var version = await _repository.GetVersionBySlug(slug1,slug2,slug3);
             if (version != null)
             {
                 

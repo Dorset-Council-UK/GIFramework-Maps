@@ -40,7 +40,7 @@ namespace GIFrameworkMaps.Data
 		/// <param name="slug2">Second part of the URL slug</param>
 		/// <param name="slug3">Third part of the URL slug</param>
 		/// <returns>Version object containing basic information only, or null</returns>
-		public Models.Version? GetVersionBySlug(string slug1, string slug2, string slug3)
+		public async Task<Models.Version?> GetVersionBySlug(string slug1, string slug2, string slug3)
         {            
             string slug = CreateSlug(slug1, slug2, slug3);
 
@@ -52,10 +52,10 @@ namespace GIFrameworkMaps.Data
                 return cacheValue;
             }
 
-            Models.Version? version = _context.Versions
+            var version = await _context.Versions
+				.AsNoTracking()
 				.IgnoreAutoIncludes()
-                .AsNoTrackingWithIdentityResolution()
-                .FirstOrDefault(v => v.Slug == slug);
+                .FirstOrDefaultAsync(v => v.Slug == slug);
 
             // Cache the results so they can be used next time we call this function.
             if (version is not null)
@@ -96,7 +96,7 @@ namespace GIFrameworkMaps.Data
 
 			if (version is not null && string.IsNullOrEmpty(version.HelpURL))
 			{
-				var generalVersion = GetVersionBySlug("general", "", "");
+				var generalVersion = await GetVersionBySlug("general", "", "");
 				version.HelpURL = generalVersion!.HelpURL;
 			}
 

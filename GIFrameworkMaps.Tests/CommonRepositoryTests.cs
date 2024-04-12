@@ -36,9 +36,9 @@ namespace GIFrameworkMaps.Tests
         [TestCase("valid","version","", ExpectedResult = "Valid Version Test")]
         [TestCase("general", "", "", ExpectedResult = "General version")]
         [TestCase("VaLID", "VERSION", "tWo", ExpectedResult = "Valid Version Test 2")]
-        public string GetVersionBySlug(string slug1, string slug2, string slug3)
+        public async Task<string> GetVersionBySlug(string slug1, string slug2, string slug3)
         {
-			var version = sut.GetVersionBySlug(slug1, slug2, slug3);
+			var version = await sut.GetVersionBySlug(slug1, slug2, slug3);
 			return version.Name;
         }
 
@@ -46,9 +46,9 @@ namespace GIFrameworkMaps.Tests
         [TestCase("", "", "")]
         [TestCase("does", "not", "exist")]
         [TestCase("valid", "version", "doesntexist")]
-        public void GetVersionBySlug_VersionDoesNotExist(string slug1, string slug2, string slug3)
+        public async Task GetVersionBySlug_VersionDoesNotExist(string slug1, string slug2, string slug3)
         {
-            var version = sut.GetVersionBySlug(slug1, slug2, slug3);
+            var version = await sut.GetVersionBySlug(slug1, slug2, slug3);
 
             Assert.That(version, Is.Null);
         }
@@ -57,18 +57,18 @@ namespace GIFrameworkMaps.Tests
 		[TestCase("General", "", "", ExpectedResult = "general")]
 		[TestCase("VaLid", "VerSion", "", ExpectedResult = "valid/version")]
 		[TestCase("VaLid", "VerSion", "TwO", ExpectedResult = "valid/version/two")]
-		public string GetVersionBySlug_SlugIsLowercaseWithSlashes(string slug1, string slug2, string slug3)
+		public async Task<string> GetVersionBySlug_SlugIsLowercaseWithSlashes(string slug1, string slug2, string slug3)
 		{
-			var version = sut.GetVersionBySlug(slug1, slug2, slug3);
+			var version = await sut.GetVersionBySlug(slug1, slug2, slug3);
 			return version?.Slug;
 		}
 
 		[Test]
 		[TestCase("", "", "general", ExpectedResult = "general")]
 		[TestCase("valid", "", "version", ExpectedResult = "valid/version")]
-		public string GetVersionBySlug_SlugIgnoresEmptyStrings(string slug1, string slug2, string slug3)
+		public async Task<string> GetVersionBySlug_SlugIgnoresEmptyStrings(string slug1, string slug2, string slug3)
 		{
-			var version = sut.GetVersionBySlug(slug1, slug2, slug3);
+			var version = await sut.GetVersionBySlug(slug1, slug2, slug3);
 			return version?.Slug;
 		}
 
@@ -76,9 +76,9 @@ namespace GIFrameworkMaps.Tests
 		[Test]
 		[TestCase(null, null, "general", ExpectedResult = "general")]
 		[TestCase("valid", null, "version", ExpectedResult = "valid/version")]
-		public string GetVersionBySlug_SlugIgnoresNullStrings(string slug1, string slug2, string slug3)
+		public async Task<string> GetVersionBySlug_SlugIgnoresNullStrings(string slug1, string slug2, string slug3)
 		{
-			var version = sut.GetVersionBySlug(slug1, slug2, slug3);
+			var version = await sut.GetVersionBySlug(slug1, slug2, slug3);
 			return version?.Slug;
 		}
 

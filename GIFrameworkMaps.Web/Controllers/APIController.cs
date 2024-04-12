@@ -117,7 +117,7 @@ namespace GIFrameworkMaps.Web.Controllers
             Data.Models.Version version;
             if(id == 0)
             {
-                version = _repository.GetVersionBySlug("general","","");
+                version = await _repository.GetVersionBySlug("general", "", "");
             }
             else
             {
