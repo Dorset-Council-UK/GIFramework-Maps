@@ -48,13 +48,21 @@ if (!String.IsNullOrEmpty(builder.Configuration.GetSection("KeyVault")["Name"]))
                 builder.Configuration.GetSection("KeyVault").GetSection("AzureAd")["ApplicationId"],
                 x509Certificate));
 }
-//var startup = new Startup(builder.Configuration);
 
-//startup.ConfigureServices(builder.Services);
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
 });
+if (bool.TryParse(builder.Configuration["GIFrameworkMaps:SuppressXFrameOptions"], out bool suppressXFrameOptions))
+{
+	if (suppressXFrameOptions)
+	{
+		builder.Services.AddAntiforgery(x =>
+		{
+			x.SuppressXFrameOptionsHeader = true;
+		});
+	}
+}
 builder.Services.AddControllersWithViews().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
