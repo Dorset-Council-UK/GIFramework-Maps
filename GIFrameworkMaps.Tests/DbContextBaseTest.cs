@@ -100,6 +100,18 @@ namespace GIFrameworkMaps.Tests
 			var searchDefsMockSet = searchDefs.AsQueryable().BuildMockDbSet();
 			var versionSearchDefsMockSet = versionSearchDefs.AsQueryable().BuildMockDbSet();
 
+			// Mocking the Find method
+			versionsMockSet.Setup(o => o.Find(It.IsAny<object[]>())).Returns((object[] ids) =>
+			{
+				var id = (int)ids[0];
+				return versions.FirstOrDefault(v => v.Id == id);
+			});
+			versionsMockSet.Setup(o => o.FindAsync(It.IsAny<object[]>())).ReturnsAsync((object[] ids) =>
+			{
+				var id = (int)ids[0];
+				return versions.FirstOrDefault(v => v.Id == id);
+			});
+
 			var mockApplicationDbContext = new Mock<IApplicationDbContext>();
 			mockApplicationDbContext.Setup(m => m.Versions).Returns(versionsMockSet.Object);
 			mockApplicationDbContext.Setup(m => m.PrintConfigurations).Returns(printConfigMockSet.Object);
