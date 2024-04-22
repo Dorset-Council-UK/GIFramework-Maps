@@ -53,8 +53,8 @@ namespace GIFrameworkMaps.Tests
 
         [Test]
         [TestCase(1, ExpectedResult = 2)]
-        [TestCase(2, ExpectedResult = 1)]
-        [TestCase(3, ExpectedResult = 2)]
+        [TestCase(8, ExpectedResult = 1)]
+        [TestCase(9, ExpectedResult = 2)]
         public int GetSearchDefinitionsByVersion_ValidVersion(int versionId)
         {
             var searchDefs = sut.GetSearchDefinitionsByVersion(versionId);
@@ -63,7 +63,7 @@ namespace GIFrameworkMaps.Tests
         }
 
         [Test]
-        [TestCase(3, ExpectedResult = 2)]
+        [TestCase(9, ExpectedResult = 2)]
         public int GetSearchDefinitionsByVersion_ValidVersion_DefaultConfig(int versionId)
         {
             var searchDefs = sut.GetSearchDefinitionsByVersion(versionId);
@@ -72,7 +72,7 @@ namespace GIFrameworkMaps.Tests
         }
 
         [Test]
-        [TestCase(4)]
+        [TestCase(99)]
         [TestCase(0)]
         public void GetSearchDefinitionsByVersion_InvalidVersion(int versionId)
         {
