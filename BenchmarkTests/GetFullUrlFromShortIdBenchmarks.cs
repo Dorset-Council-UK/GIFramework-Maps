@@ -5,7 +5,7 @@ namespace BenchmarkTests
 {
 	[MemoryDiagnoser]
 	[Config(typeof(BenchmarkConfig))]
-	public class GetFullUrlFromShortId : BenchmarkBase
+	public class GetFullUrlFromShortIdBenchmarks : BenchmarkBase
 	{
 		private static readonly string shortId = "notThere";
 
