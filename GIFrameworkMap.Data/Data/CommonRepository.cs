@@ -46,13 +46,13 @@ namespace GIFrameworkMaps.Data
 
             string cacheKey = "VersionBySlug/" + slug;
 
-            // Check to see if the version for this slug has already been cached and, if so, return that.
-            if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
-            {
-                return cacheValue;
-            }
+			// Check to see if the version for this slug has already been cached and, if so, return that.
+			if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
+			{
+				return cacheValue;
+			}
 
-            var version = await _context.Versions
+			var version = await _context.Versions
 				.AsNoTracking()
 				.IgnoreAutoIncludes()
                 .FirstOrDefaultAsync(v => v.Slug == slug);
@@ -306,8 +306,8 @@ namespace GIFrameworkMaps.Data
 
         public async Task<string> GetFullUrlFromShortId(string shortId)
         {
-            var shortLink = await _context.ShortLinks.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
-            if(shortLink == null || shortLink.FullUrl == null)
+			var shortLink = await _context.ShortLinks.FindAsync(shortId);
+            if(shortLink is null || shortLink.FullUrl is null)
             {
                 return "";
             }
