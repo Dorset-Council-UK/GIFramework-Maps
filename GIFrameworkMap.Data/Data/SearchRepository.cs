@@ -25,6 +25,7 @@ namespace GIFrameworkMaps.Data
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMemoryCache _memoryCache;
+
         public SearchRepository(ILogger<SearchRepository> logger, IApplicationDbContext context, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache)
         {
             _logger = logger;
@@ -40,9 +41,9 @@ namespace GIFrameworkMaps.Data
         /// <param name="versionId">The ID of the version to get search definitions for</param>
         /// <returns>List of VersionSearchDefinition</returns>
         /// <exception cref="KeyNotFoundException">Returned when the version can not be found</exception>
-        public List<VersionSearchDefinition> GetSearchDefinitionsByVersion(int versionId)
+        public async Task<List<VersionSearchDefinition>> GetSearchDefinitionsByVersion(int versionId)
         {
-			var version = _context.Versions.Find(versionId);
+			var version = await _context.Versions.FindAsync(versionId);
 			if (version is null)
 			{
 				throw new KeyNotFoundException($"Version with ID {versionId} does not exist");
@@ -56,20 +57,20 @@ namespace GIFrameworkMaps.Data
                 return cacheValue!;
             }
 
-            var searchDefs = _context.VersionSearchDefinitions
+            var searchDefs = await _context.VersionSearchDefinitions
+                .AsNoTracking()
                 .Where(v => v.VersionId == versionId)
-                .AsNoTrackingWithIdentityResolution()
                 .Include(v => v.SearchDefinition)
-                .ToList();
+                .ToListAsync();
 
             //If null get default based on general version (which should always exist)
             if (searchDefs is null || searchDefs.Count == 0)
             {
-                searchDefs = _context.VersionSearchDefinitions
+                searchDefs = await _context.VersionSearchDefinitions
+                    .AsNoTracking()
                     .Where(v => v.Version!.Slug == "general")
-                    .AsNoTrackingWithIdentityResolution()
                     .Include(v => v.SearchDefinition)
-                    .ToList();
+                    .ToListAsync();
             }
 
             // Cache the results so they can be used next time we call this function.

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers
 {
@@ -30,14 +31,15 @@ namespace GIFrameworkMaps.Web.Controllers
             return Json(results);
         }
 
-        [ResponseCache(Duration = 300, VaryByQueryKeys = new string[] {"id" })]
-        public JsonResult Options(int id)
+        [ResponseCache(Duration = 300, VaryByQueryKeys = ["id"])]
+        public async Task<JsonResult> Options(int id)
         {
-            var searchOpts = _repository.GetSearchDefinitionsByVersion(id);
+            var searchOpts = await _repository.GetSearchDefinitionsByVersion(id);
+
             //convert to smaller payload required for map
             //This might be better converted with something like AutoMapper
             //but for now this works
-            List<RequiredSearch> searches = new();
+            List<RequiredSearch> searches = [];
             
             foreach(var opt in searchOpts)
             {

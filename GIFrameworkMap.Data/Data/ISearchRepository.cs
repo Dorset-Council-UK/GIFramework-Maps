@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using GIFrameworkMaps.Data.Models.Search;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data
 {
 	public interface ISearchRepository
     {
-        List<Models.VersionSearchDefinition> GetSearchDefinitionsByVersion(int versionId);
-        Models.Search.SearchResults Search(string searchTerm, List<Models.Search.RequiredSearch> requiredSearchesList);
+        Task<List<Models.VersionSearchDefinition>> GetSearchDefinitionsByVersion(int versionId);
+        SearchResults Search(string searchTerm, List<RequiredSearch> requiredSearchesList);
     }
 }
