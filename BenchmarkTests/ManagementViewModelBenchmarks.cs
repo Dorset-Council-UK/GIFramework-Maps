@@ -95,5 +95,30 @@ namespace BenchmarkTests
 			var availableWelcomeMessages = new SelectList(welcomeMessages, "Id", "Name", version.WelcomeMessageId);
 			var availableTours = new SelectList(tours, "Id", "Name", version.TourDetailsId);
 		}
+
+		[Benchmark]
+		public void SelectQueryable()
+		{
+			var themes = _context.Themes
+				.Select(o => new { o.Id, o.Name })
+				.OrderBy(o => o.Name);
+
+			var bounds = _context.Bounds
+				.Select(o => new { o.Id, o.Name })
+				.OrderBy(o => o.Name);
+
+			var welcomeMessages = _context.WelcomeMessages
+				.Select(o => new { o.Id, o.Name })
+				.OrderBy(o => o.Name);
+
+			var tours = _context.TourDetails
+				.Select(o => new { o.Id, o.Name })
+				.OrderBy(o => o.Name);
+
+			var availableThemes = new SelectList(themes, "Id", "Name", version.ThemeId);
+			var availableBounds = new SelectList(bounds, "Id", "Name", version.BoundId);
+			var availableWelcomeMessages = new SelectList(welcomeMessages, "Id", "Name", version.WelcomeMessageId);
+			var availableTours = new SelectList(tours, "Id", "Name", version.TourDetailsId);
+		}
 	}
 }
