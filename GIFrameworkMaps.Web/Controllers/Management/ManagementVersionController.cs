@@ -117,17 +117,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             bool purgeCache)
         {
 			var versionToUpdate = await _commonRepository.GetVersion(id);
-			//var versionToUpdate = await _context.Versions
-			//	.IgnoreAutoIncludes()
-			//	.Include(v => v.VersionBasemaps)
-   //                 .ThenInclude(v => v.Basemap)
-			//	.Include(v => v.VersionProjections)
-			//		.ThenInclude(v => v.Projection)
-			//	.Include(v => v.VersionCategories)
-   //                 .ThenInclude(v => v.Category)
-   //             .Include(v => v.VersionLayerCustomisations)
-   //             .FirstOrDefaultAsync(v => v.Id == id);
-
             var editModel = new VersionEditViewModel() { Version = versionToUpdate };
 
             if (await TryUpdateModelAsync(
@@ -240,8 +229,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     }
                     else
                     {
-                        VersionContact existingRecord = _context.VersionContacts.FirstOrDefault(u => u.VersionContactId == model.ContactEntry.VersionContactId);
-						var existingRecord2 = await _context.VersionContacts.FindAsync(model.ContactEntry.VersionContactId);
+                        var existingRecord = await _context.VersionContacts
+							.AsNoTracking()
+							.FirstOrDefaultAsync(o => o.VersionContactId == model.ContactEntry.VersionContactId);
                         if (existingRecord is not null)
                         {
                             existingRecord.DisplayName = model.ContactEntry.DisplayName;
@@ -250,7 +240,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         }
                     }
                     await _context.SaveChangesAsync();
-                } catch(DbUpdateException ex)
+                }
+				catch(DbUpdateException ex)
                 {
                     _logger.LogError(ex, "Version contact edit failed");
                     ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
@@ -270,7 +261,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/EditContact/1?VersionContactId=1
         public async Task<IActionResult> EditContact(int id, int VersionContactId)
         {
-			var versionContact = await _context.VersionContacts.FindAsync(new object[VersionContactId, id]);
+			var versionContact = await _context.VersionContacts.FindAsync([VersionContactId, id]);
 
 			VersionAddContactViewModel ViewModel = new()
             {
@@ -283,8 +274,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/DeleteContact/1?VersionContactId=1
         public async Task<IActionResult> DeleteContact(int id, int VersionContactId)
         {
-            var recordToDelete = await _context.VersionContacts.FindAsync(new object[VersionContactId, id]);
-			var recordToDeleteOLD = _context.VersionContacts.FirstOrDefault(u => u.VersionId == id && u.VersionContactId == VersionContactId);
+            var recordToDelete = await _context.VersionContacts.FindAsync([VersionContactId, id]);
 			try
             {
                 _context.VersionContacts.Remove(recordToDelete);
@@ -384,8 +374,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             else
             {
                 //edit
-                var customisationToUpdate = await _context.VersionLayers.Where(c => c.Id == model.LayerCustomisation.Id).FirstOrDefaultAsync();
-				var customisationToUpdate2 = await _context.VersionLayers.FindAsync(model.LayerCustomisation.Id);
+				var customisationToUpdate = await _context.VersionLayers.FindAsync(model.LayerCustomisation.Id);
 
 				if (await TryUpdateModelAsync(
                     customisationToUpdate,
@@ -443,8 +432,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [HttpPost, ActionName("DeleteLayerCustomisation")]
         public async Task<IActionResult> DeleteLayerCustomisationPost(int id)
         {
-            var customisation = await _context.VersionLayers.Where(r => r.Id == id).FirstOrDefaultAsync();
-			var customisation2 = await _context.VersionLayers.FindAsync(id);
+			var customisation = await _context.VersionLayers.FindAsync(id);
 			try
             {
                 
@@ -514,7 +502,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-			var versionToDelete = await _commonRepository.GetVersion(id);
+			var versionToDelete = await _context.Versions.FindAsync(id);
 
 			try
             {
@@ -747,7 +735,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 			model.SelectedProjections.Add(3857);
 			model.SelectedProjections.Add(4326);
 
-			// Categrories
+			// Categories
 			model.AvailableCategories = await _context.Categories
 				.AsNoTracking()
 				.IgnoreAutoIncludes()
