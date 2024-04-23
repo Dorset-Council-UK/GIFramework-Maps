@@ -216,7 +216,7 @@ namespace GIFrameworkMaps.Data
                     return cachedUsers;
                 }
             }
-            List<Microsoft.Graph.Beta.Models.User> allUsers = new();
+            List<Microsoft.Graph.Beta.Models.User> allUsers = [];
             var graphClient = GetGraphClient();
             if (graphClient != null)
             {
@@ -243,7 +243,7 @@ namespace GIFrameworkMaps.Data
                     throw new System.Exception("Graph client could not be initialized");
                 }
             }
-            if (allUsers.Any())
+            if (allUsers.Count != 0)
             {
                 _memoryCache.Set(cachekey, allUsers, System.TimeSpan.FromMinutes(5));
             }
