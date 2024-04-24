@@ -35,7 +35,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         {
             var categories = await _context.Categories
 				.AsNoTracking()
-				.IgnoreAutoIncludes()
 				.Include(o => o.ParentCategory)
 				.ToListAsync();
 
@@ -45,7 +44,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         public async Task<IActionResult> Create()
         {
             var editModel = new CategoryEditViewModel() { Category = new() };
-            await RebuildViewModel(editModel, editModel.Category);
+			await RebuildViewModel(editModel, editModel.Category);
             return View(editModel);
         }
 
@@ -80,8 +79,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         {
             var category = await _context.Categories
 				.AsNoTracking()
-				.IgnoreAutoIncludes()
 				.Include(o => o.ParentCategory)
+				.Include(o => o.Layers)
                 .FirstOrDefaultAsync(o => o.Id == id);
 
             if (category is null)
@@ -99,8 +98,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         public async Task<IActionResult> EditPost(int id, int[] selectedLayers)
         {
             var categoryToUpdate = await _context.Categories
-				.AsNoTracking()
-				.IgnoreAutoIncludes()
 				.Include(o => o.ParentCategory)
                 .FirstOrDefaultAsync(o => o.Id == id);
 

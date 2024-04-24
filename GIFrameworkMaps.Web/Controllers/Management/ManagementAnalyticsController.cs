@@ -36,13 +36,13 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(viewModel);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
 			AnalyticsEditViewModel viewModel = new()
 			{
 				AnalyticDefinition = new AnalyticsDefinition()
 			};
-			RebuildEditModel(ref viewModel);
+			await RebuildEditModel(viewModel);
             return View(viewModel);
         }
 
@@ -82,10 +82,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 			{
 				AnalyticDefinition = editModel.AnalyticDefinition
 			};
-			RebuildEditModel(ref viewModel);
+			await RebuildEditModel(viewModel);
             return View(viewModel);
         }
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
             var analyticRecord = _context.AnalyticsDefinitions.Include(ad => ad.VersionAnalytics).Where(a => a.Id == id).FirstOrDefault();
             if (analyticRecord != null)
@@ -94,7 +94,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 				{
 					AnalyticDefinition = analyticRecord
 				};
-        RebuildEditModel(ref viewModel);
+				await RebuildEditModel(viewModel);
                 return View(viewModel);
             }
             else
@@ -144,7 +144,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 			{
 				AnalyticDefinition = editModel.AnalyticDefinition
 			};
-			  RebuildEditModel(ref viewModel);
+			  await RebuildEditModel(viewModel);
             return View(viewModel);
         }
 
@@ -177,21 +177,19 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return RedirectToAction(nameof(Index));
         }
 
-        private void RebuildEditModel(ref AnalyticsEditViewModel model)
+        private async Task RebuildEditModel(AnalyticsEditViewModel model)
         {
-			var versionsCHECK = _context.Versions
+			var versions = _context.Versions
 				.AsNoTracking()
 				.IgnoreAutoIncludes()
-				.OrderBy(o => o.Name)
-				.ToList();
-            var versions = _context.Versions.OrderBy(b => b.Name).ToList();
+				.OrderBy(o => o.Name);
 
 			string[] supportedProducts = { "Cloudflare", "Google Analytics (GA4)", "Microsoft Application Insights", "Microsoft Clarity" };
             string[] supportedCookieControls = { "Civic Cookie Control" };
 
             model.AvailableProducts = new SelectList(supportedProducts);
             model.AvailableCookieControl = new SelectList(supportedCookieControls);
-            model.AvailableVersions = versions;
+            model.AvailableVersions = await versions.ToListAsync();
             if (model.AnalyticDefinition.VersionAnalytics.Any())
             {
                 model.SelectedVersions = model.AnalyticDefinition.VersionAnalytics.Select(c => c.VersionId).ToList();

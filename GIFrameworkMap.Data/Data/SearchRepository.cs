@@ -43,7 +43,7 @@ namespace GIFrameworkMaps.Data
         /// <exception cref="KeyNotFoundException">Returned when the version can not be found</exception>
         public async Task<List<VersionSearchDefinition>> GetSearchDefinitionsByVersion(int versionId)
         {
-			var version = await _context.Versions.FindAsync(versionId);
+			var version = await _context.Versions.AsNoTracking().IgnoreAutoIncludes().FirstOrDefaultAsync(v => v.Id == versionId);
 			if (version is null)
 			{
 				throw new KeyNotFoundException($"Version with ID {versionId} does not exist");
