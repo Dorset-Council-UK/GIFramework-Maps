@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using NUnit.Framework;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Tests
 {
@@ -23,21 +24,21 @@ namespace GIFrameworkMaps.Tests
         [Test]
         [TestCase(1, ExpectedResult = "Default")]
         [TestCase(6, ExpectedResult = "Alternative")]
-        public string GetPrintConfigurationByVersion_ValidVersion_SpecifiedConfig(int versionId)
+        public async Task<string> GetPrintConfigurationByVersion_ValidVersion_SpecifiedConfig(int versionId)
         {
-            var printConfig = sut.GetPrintConfigurationByVersion(versionId);
+            var printConfiguration = await sut.GetPrintConfigurationByVersion(versionId);
 
-            return printConfig.PrintConfiguration.Name;
+            return printConfiguration.PrintConfiguration.Name;
         }
 
         [Test]
         [TestCase(1, ExpectedResult = 1)]
 		[TestCase(6, ExpectedResult = 2)]
-		public int GetPrintConfigurationByVersion_ValidVersion_DefaultConfig(int versionId)
+		public async Task<int> GetPrintConfigurationByVersion_ValidVersion_DefaultConfig(int versionId)
         {
-            var printConfig = sut.GetPrintConfigurationByVersion(versionId);
+            var printConfiguration = await sut.GetPrintConfigurationByVersion(versionId);
 
-            return printConfig.PrintConfigurationId;
+            return printConfiguration.PrintConfigurationId;
         }
 
         [Test]
@@ -45,8 +46,7 @@ namespace GIFrameworkMaps.Tests
 		[TestCase(99)]
 		public void GetPrintConfigurationByVersion_InvalidVersion(int versionId)
         {
-
-            Assert.Throws<KeyNotFoundException>(delegate { sut.GetPrintConfigurationByVersion(versionId); });
-        }
+			Assert.ThrowsAsync<KeyNotFoundException>(async () => await sut.GetPrintConfigurationByVersion(versionId) );
+		}
     }
 }
