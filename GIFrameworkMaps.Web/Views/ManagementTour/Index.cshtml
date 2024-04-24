@@ -1,6 +1,9 @@
 ﻿@model List<GIFrameworkMaps.Data.Models.Tour.TourDetail>
 @{
     ViewData["Title"] = "Tours";
+
+    // Working out the base edit URL once is significantly faster than doing it for each row
+    var editUrl = Url.Action("Edit");
 }
 
 <partial name="ManagementPartials/BackToManagementHome" />
@@ -23,7 +26,7 @@
             {
                 <tr>
                     <td>@tour.Id</td>
-                    <td>@Html.ActionLink(tour.Name, "Edit", new { id = tour.Id })</td>
+                    <td><a href="@editUrl/@tour.Id">@tour.Name</a></td>
                     <td>@tour.UpdateDate.ToString("f",null)</td>
                     <td>@tour.Steps.Count</td>
                 </tr>

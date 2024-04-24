@@ -1,6 +1,9 @@
 ﻿@model List<GIFrameworkMaps.Data.Models.LayerSource>
 @{
     ViewData["Title"] = $"Manage layer sources";
+
+    // Working out the base edit URL once is significantly faster than doing it for each row
+    var editUrl = Url.Action("Edit");
 }
 
 <partial name="ManagementPartials/BackToManagementLayers" />
@@ -24,7 +27,7 @@
             {
                 <tr>
                     <td>@layerSource.Id</td>
-                    <td>@Html.ActionLink(layerSource.Name, "Edit", new { id = layerSource.Id })</td>
+                    <td><a href="@editUrl/@layerSource.Id">@layerSource.Name</a></td>
                     <td>@layerSource.Description?.Substring(0,Math.Min(layerSource.Description.Length,100))@(layerSource.Description?.Length > 100 ? "..." : "")</td>
                 </tr>
             }

@@ -1,6 +1,9 @@
 ﻿@model List<GIFrameworkMaps.Data.Models.WebLayerServiceDefinition>
 @{
     ViewData["Title"] = "Web layer service definitions";
+
+    // Working out the base edit URL once is significantly faster than doing it for each row
+    var editUrl = Url.Action("Edit");
 }
 
 <partial name="ManagementPartials/BackToManagementHome" />
@@ -23,7 +26,7 @@
             {
                 <tr>
                     <td>@webLayerServiceDefinition.Id</td>
-                    <td>@Html.ActionLink(webLayerServiceDefinition.Name, "Edit", new { id = webLayerServiceDefinition.Id })</td>
+                    <td><a href="@editUrl/@webLayerServiceDefinition.Id">@webLayerServiceDefinition.Name</a></td>
                     <td>@webLayerServiceDefinition.Category</td>
                     <td>@if (webLayerServiceDefinition.AdminOnly)
                         {

@@ -1,6 +1,9 @@
 ﻿@model List<GIFrameworkMaps.Data.Models.Theme>
 @{
     ViewData["Title"] = "Themes";
+
+    // Working out the base edit URL once is significantly faster than doing it for each row
+    var editUrl = Url.Action("Edit");
 }
 
 <partial name="ManagementPartials/BackToManagementHome" />
@@ -23,7 +26,7 @@
             {
                 <tr>
                     <td>@theme.Id</td>
-                    <td>@Html.ActionLink(theme.Name, "Edit", new { id = theme.Id })</td>
+                    <td><a href="@editUrl/@theme.Id">@theme.Name</a></td>
                     <td><span class="badge rounded-pill" style="background-color:#@theme.PrimaryColour">#@theme.PrimaryColour</span></td>
                 </tr>
             }
