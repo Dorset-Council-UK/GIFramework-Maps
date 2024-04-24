@@ -1,22 +1,16 @@
 ﻿using GIFrameworkMaps.Data;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers
 {
-  public class PrintController : Controller
+  public class PrintController(IPrintRepository repository) : Controller
     {
-        //dependancy injection
-        private readonly IPrintRepository _repository;
-        public PrintController(IPrintRepository repository)
+		[ResponseCache(Duration = 300, VaryByQueryKeys = ["id"])]
+        public async Task<JsonResult> Configuration(int id)
         {
-            _repository = repository;
-        }
-
-        [ResponseCache(Duration = 300, VaryByQueryKeys = new string[] { "id" })]
-        public JsonResult Configuration(int id)
-        {
-            var printConfiguration = _repository.GetPrintConfigurationByVersion(id).PrintConfiguration;
-            return Json(printConfiguration);
+			var printConfiguration = await repository.GetPrintConfigurationByVersion(id);
+            return Json(printConfiguration.PrintConfiguration);
         }
     }
 }
