@@ -20,10 +20,7 @@ namespace GIFrameworkMaps.Data
         private readonly IMemoryCache _memoryCache;
         private readonly IConfiguration _configuration;
 
-        public ManagementRepository(
-            IApplicationDbContext context, 
-            IMemoryCache memoryCache,
-            IConfiguration configuration)
+        public ManagementRepository(IApplicationDbContext context, IMemoryCache memoryCache, IConfiguration configuration)
         {
             _context = context;
             _memoryCache = memoryCache;
@@ -253,7 +250,7 @@ namespace GIFrameworkMaps.Data
         public async Task<Microsoft.Graph.Beta.Models.User?> GetUser(string id)
         {
             var graphClient = GetGraphClient();
-            if (graphClient != null)
+            if (graphClient is not null)
             {
                 var user = await graphClient.Users[id].GetAsync();
                 return user;
@@ -300,14 +297,14 @@ namespace GIFrameworkMaps.Data
             return false;
         }
 
-        public AnalyticsViewModel GetAnalyticsModel()
+        public async Task<AnalyticsViewModel> GetAnalyticsModel()
         {
             var viewModel = new AnalyticsViewModel()
             {
-                AvailableAnalytics = _context.AnalyticsDefinitions
+                AvailableAnalytics = await _context.AnalyticsDefinitions
 					.AsNoTracking()
 					.Include(a => a.VersionAnalytics)
-					.ToList()
+					.ToListAsync()
             };
 
             return viewModel;
