@@ -74,7 +74,7 @@ namespace GIFrameworkMaps.Web.Controllers
 					//now we get the full details
 					var fullVersionDetails = await _repository.GetVersion(version.Id);
 					var viewModel = _repository.GetVersionViewModel(fullVersionDetails);
-                    ViewData["AnalyticsModel"] = _adminRepository.GetAnalyticsModel();
+                    ViewData["AnalyticsModel"] = await _adminRepository.GetAnalyticsModel();
 
                     var host = Request.Host.ToUriComponent();
                     var pathBase = Request.PathBase.ToUriComponent();

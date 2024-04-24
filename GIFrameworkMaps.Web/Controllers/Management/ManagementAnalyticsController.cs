@@ -29,9 +29,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             _repository = repository;
             _context = context;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            AnalyticsViewModel viewModel = _repository.GetAnalyticsModel();
+            var viewModel = await _repository.GetAnalyticsModel();
 
             return View(viewModel);
         }
