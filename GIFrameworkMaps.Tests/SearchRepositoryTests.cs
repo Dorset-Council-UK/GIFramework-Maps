@@ -55,18 +55,18 @@ namespace GIFrameworkMaps.Tests
         [TestCase(1, ExpectedResult = 2)]
         [TestCase(8, ExpectedResult = 1)]
         [TestCase(9, ExpectedResult = 2)]
-        public int GetSearchDefinitionsByVersion_ValidVersion(int versionId)
+        public async Task<int> GetSearchDefinitionsByVersion_ValidVersion(int versionId)
         {
-            var searchDefs = sut.GetSearchDefinitionsByVersion(versionId);
+            var searchDefs = await sut.GetSearchDefinitionsByVersion(versionId);
 
             return searchDefs.Count;
         }
 
         [Test]
         [TestCase(9, ExpectedResult = 2)]
-        public int GetSearchDefinitionsByVersion_ValidVersion_DefaultConfig(int versionId)
+        public async Task<int> GetSearchDefinitionsByVersion_ValidVersion_DefaultConfig(int versionId)
         {
-            var searchDefs = sut.GetSearchDefinitionsByVersion(versionId);
+            var searchDefs = await sut.GetSearchDefinitionsByVersion(versionId);
 
             return searchDefs.Count;
         }
@@ -76,8 +76,7 @@ namespace GIFrameworkMaps.Tests
         [TestCase(0)]
         public void GetSearchDefinitionsByVersion_InvalidVersion(int versionId)
         {
-
-            Assert.Throws<KeyNotFoundException>(delegate { sut.GetSearchDefinitionsByVersion(versionId); });
+            Assert.ThrowsAsync<KeyNotFoundException>(async () => await sut.GetSearchDefinitionsByVersion(versionId) );
         }
 
         [Test(Description = "Gets a valid address-like JSON result and tests extracting the results, expecting a valid x and y and a properly formatted title")]
