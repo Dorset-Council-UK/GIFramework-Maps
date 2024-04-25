@@ -18,10 +18,11 @@ using Microsoft.Identity.Web.UI;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using Npgsql;
-using Microsoft.Extensions.Hosting;
-using GIFrameworkMaps.Web.Filters;
-using System.Text.Json;
+using System;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
+using Yarp.ReverseProxy.Forwarder;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,7 +79,7 @@ builder.Services.AddDbContextPool<ApplicationDbContext>(
 			x.UseNodaTime();
 		});
         options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
-		options.LogTo(Console.WriteLine, minimumLevel: Microsoft.Extensions.Logging.LogLevel.Information);
+		//options.LogTo(Console.WriteLine, minimumLevel: Microsoft.Extensions.Logging.LogLevel.Information);
 	});
 
 builder.Services.AddAutoMapper(typeof(ApplicationDbContext));
@@ -111,10 +112,6 @@ builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformer>();
 
 builder.Services.AddAuthorizationBuilder()
 	.AddPolicy("CanAccessVersion", policy => policy.AddRequirements(new HasAccessToVersionRequirement()));
-//builder.Services.AddAuthorization(options =>
-//{
-//	options.AddPolicy("CanAccessVersion", policy => policy.AddRequirements(new HasAccessToVersionRequirement()));
-//});
 
 builder.Services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
 builder.Services.AddScoped<ICommonRepository, CommonRepository>();
