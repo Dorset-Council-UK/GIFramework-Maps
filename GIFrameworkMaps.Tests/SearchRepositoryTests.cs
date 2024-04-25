@@ -179,7 +179,7 @@ namespace GIFrameworkMaps.Tests
             APISearchDefinition searchDefinition = new() { Name = "Example Address API", Title = "Addresses", MaxResults = 100, ZoomLevel = 19, EPSG = 27700, SupressGeom = false, XFieldPath = "$.results[*].DPA.X_COORDINATE", YFieldPath = "$.results[*].DPA.Y_COORDINATE" };
             string testJSONResult = File.ReadAllText("Data/addresses.json");
 
-            Assert.Throws<InvalidOperationException>(delegate { SearchRepository.GetResultsFromJSONString(testJSONResult, searchDefinition); });
+            Assert.Throws<InvalidOperationException>(() => SearchRepository.GetResultsFromJSONString(testJSONResult, searchDefinition));
 
         }
 
@@ -236,7 +236,7 @@ namespace GIFrameworkMaps.Tests
         {
             LocalSearchDefinition searchDefinition = new() { LocalSearchName = "BNGAlphaNumeric" };
 
-            Assert.Throws<System.ArgumentOutOfRangeException>(delegate { SearchRepository.LocalSearch(searchTerm, searchDefinition); });
+            Assert.Throws<ArgumentOutOfRangeException>(() => SearchRepository.LocalSearch(searchTerm, searchDefinition));
         }
 
         [Test]
