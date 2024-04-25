@@ -188,10 +188,21 @@ namespace GIFrameworkMaps.Data
 
 		public async Task<List<Models.Version>> GetVersionsListForUser(string? userId)
 		{
-			var users_versions_list = await _context.VersionUsers.Where(b => b.UserId == userId).Include(a => a.Version).ToListAsync();
-			var users_versions = users_versions_list.Select(a => a.Version).Where(a => (a != null) && a.RequireLogin == true && a.Hidden == false && a.Enabled == true);
-			var public_versions = await _context.Versions.Where(a => a.Enabled == true && a.RequireLogin == false && a.Hidden == false).ToListAsync();
-			
+			// Get user-specific versions
+			var users_versions = await _context.VersionUsers
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.Where(vu => vu.UserId == userId && vu.Version != null && vu.Version.Enabled == true && vu.Version.Hidden == false && vu.Version.RequireLogin == true)
+				.Select(vu => vu.Version)
+				.ToListAsync();
+
+			// Get public versions
+			var public_versions = await _context.Versions
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.Where(v => v.Enabled == true && v.RequireLogin == false && v.Hidden == false)
+				.ToListAsync();
+
 			return [..users_versions, ..public_versions];
 		}
 
