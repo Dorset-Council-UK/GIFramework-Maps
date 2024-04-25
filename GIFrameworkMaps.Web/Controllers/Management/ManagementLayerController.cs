@@ -235,10 +235,15 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private async Task RebuildViewModel(LayerEditViewModel model, Layer layer)
         {
-            var bounds = _context.Bounds.OrderBy(t => t.Name);
-            var categories = _context.Categories.OrderBy(b => b.Name);
+            var bounds = _context.Bounds
+				.AsNoTracking()
+				.OrderBy(o => o.Name);
 
-            model.AvailableBounds = new SelectList(bounds, "Id", "Name", layer.BoundId);
+            var categories = _context.Categories
+				.AsNoTracking()
+				.OrderBy(b => b.Name);
+
+			model.AvailableBounds = new SelectList(bounds, "Id", "Name", layer.BoundId);
             model.AvailableCategories = await categories.ToListAsync();
             ViewData["SelectedCategories"] = model.SelectedCategories;
             ViewData["AllCategories"] = model.AvailableCategories;
