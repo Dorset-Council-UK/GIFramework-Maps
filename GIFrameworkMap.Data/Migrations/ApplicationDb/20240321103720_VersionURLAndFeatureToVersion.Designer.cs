@@ -3,6 +3,7 @@ using System;
 using GIFrameworkMaps.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,14 +13,16 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240321103720_VersionURLAndFeatureToVersion")]
+    partial class VersionURLAndFeatureToVersion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("giframeworkmaps")
-                .HasAnnotation("ProductVersion", "8.0.3")
+                .HasAnnotation("ProductVersion", "8.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -70,7 +73,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.HasKey("Id");
 
-                    b.ToTable("Attributions", "giframeworkmaps");
+                    b.ToTable("Attribution", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.Authorization.ApplicationRole", b =>
@@ -139,7 +142,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.HasIndex("LayerSourceId");
 
-                    b.ToTable("Basemaps", "giframeworkmaps");
+                    b.ToTable("Basemap", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.Bookmark", b =>
@@ -204,7 +207,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.HasKey("Id");
 
-                    b.ToTable("Bounds", "giframeworkmaps");
+                    b.ToTable("Bound", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.Category", b =>
@@ -232,7 +235,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.HasIndex("ParentCategoryId");
 
-                    b.ToTable("Categories", "giframeworkmaps");
+                    b.ToTable("Category", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.CategoryLayer", b =>
@@ -250,7 +253,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.HasIndex("LayerId");
 
-                    b.ToTable("CategoryLayers", "giframeworkmaps");
+                    b.ToTable("CategoryLayer", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.Layer", b =>
@@ -317,7 +320,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.HasIndex("LayerSourceId");
 
-                    b.ToTable("Layers", "giframeworkmaps");
+                    b.ToTable("Layer", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.LayerSource", b =>
@@ -347,7 +350,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.HasIndex("LayerSourceTypeId");
 
-                    b.ToTable("LayerSources", "giframeworkmaps");
+                    b.ToTable("LayerSource", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.LayerSourceOption", b =>
@@ -372,7 +375,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.HasIndex("LayerSourceId");
 
-                    b.ToTable("LayerSourceOptions", "giframeworkmaps");
+                    b.ToTable("LayerSourceOption", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.LayerSourceType", b =>
@@ -392,7 +395,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.HasKey("Id");
 
-                    b.ToTable("LayerSourceTypes", "giframeworkmaps");
+                    b.ToTable("LayerSourceType", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.Print.PrintConfiguration", b =>
@@ -556,7 +559,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.HasKey("ShortId");
 
-                    b.ToTable("ShortLinks", "giframeworkmaps");
+                    b.ToTable("ShortLink", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.Theme", b =>
@@ -588,10 +591,10 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.HasKey("Id");
 
-                    b.ToTable("Themes", "giframeworkmaps");
+                    b.ToTable("Theme", "giframeworkmaps");
                 });
 
-            modelBuilder.Entity("GIFrameworkMaps.Data.Models.Tour.TourDetail", b =>
+            modelBuilder.Entity("GIFrameworkMaps.Data.Models.Tour.TourDetails", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -641,14 +644,14 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("TourDetailId")
+                    b.Property<int>("TourDetailsId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TourDetailId");
+                    b.HasIndex("TourDetailsId");
 
-                    b.ToTable("TourSteps", "giframeworkmaps");
+                    b.ToTable("TourStep", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.Version", b =>
@@ -676,9 +679,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.Property<string>("HelpURL")
                         .HasColumnType("text");
-
-                    b.Property<bool>("Hidden")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -809,7 +809,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.HasIndex("VersionId");
 
-                    b.ToTable("VersionContacts", "giframeworkmaps");
+                    b.ToTable("VersionContact", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionLayer", b =>
@@ -856,7 +856,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.HasIndex("LayerId", "VersionId")
                         .IsUnique();
 
-                    b.ToTable("VersionLayers", "giframeworkmaps");
+                    b.ToTable("VersionLayer", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionPrintConfiguration", b =>
@@ -871,7 +871,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.HasIndex("VersionId");
 
-                    b.ToTable("VersionPrintConfigurations", "giframeworkmaps");
+                    b.ToTable("VersionPrintConfiguration", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionProjection", b =>
@@ -916,7 +916,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.HasIndex("VersionId");
 
-                    b.ToTable("VersionSearchDefinitions", "giframeworkmaps");
+                    b.ToTable("VersionSearchDefinition", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.VersionUser", b =>
@@ -931,7 +931,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.HasIndex("VersionId");
 
-                    b.ToTable("VersionUsers", "giframeworkmaps");
+                    b.ToTable("VersionUser", "giframeworkmaps");
                 });
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.WebLayerServiceDefinition", b =>
@@ -960,6 +960,9 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     b.Property<bool>("ProxyMetaRequests")
                         .HasColumnType("boolean");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -1197,9 +1200,9 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.Tour.TourStep", b =>
                 {
-                    b.HasOne("GIFrameworkMaps.Data.Models.Tour.TourDetail", null)
+                    b.HasOne("GIFrameworkMaps.Data.Models.Tour.TourDetails", null)
                         .WithMany("Steps")
-                        .HasForeignKey("TourDetailId")
+                        .HasForeignKey("TourDetailsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -1218,7 +1221,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("GIFrameworkMaps.Data.Models.Tour.TourDetail", "TourDetails")
+                    b.HasOne("GIFrameworkMaps.Data.Models.Tour.TourDetails", "TourDetails")
                         .WithMany()
                         .HasForeignKey("TourDetailsId");
 
@@ -1403,7 +1406,7 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.Navigation("LayerSourceOptions");
                 });
 
-            modelBuilder.Entity("GIFrameworkMaps.Data.Models.Tour.TourDetail", b =>
+            modelBuilder.Entity("GIFrameworkMaps.Data.Models.Tour.TourDetails", b =>
                 {
                     b.Navigation("Steps");
                 });

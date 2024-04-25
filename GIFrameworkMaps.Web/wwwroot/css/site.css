@@ -30,7 +30,7 @@ a:focus {
 }
 [data-bs-theme="dark"] a:hover,
 [data-bs-theme="dark"] a:focus {
-    color: rgba(255, 255, 255, 1);
+  color: rgba(255, 255, 255, 1);
 }
 .btn-primary {
   color: #fff;
@@ -99,6 +99,19 @@ a:focus {
 }
 [data-bs-theme="dark"] .btn-link {
   color: white;
+}
+[data-bs-theme="dark"] .btn-outline-dark {
+  border-color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.8);
+}
+[data-bs-theme="dark"] .btn-outline-dark:hover,
+[data-bs-theme="dark"] .btn-outline-dark:focus {
+  border-color: rgba(255, 255, 255, 1);
+  color: rgba(255, 255, 255, 1);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+[data-bs-theme="dark"] .btn-outline-danger {
+  color: rgba(255, 255, 255, 0.85);
 }
 .nav-pills .nav-link.active,
 .nav-pills .show > .nav-link {
@@ -247,3 +260,26 @@ footer img.brand {
     var(--bs-table-color-type, var(--bs-table-color))
   );
 }
+
+/*version cards*/
+.version-image-card {
+    min-height: 200px;
+    background-size: cover;
+    border-color: darkgray;
+    transition: all 0.2s ease;
+}
+.version-image-card:hover{
+    filter: brightness(1.2);
+    box-shadow: 2px 2px 5px #222222;
+}
+[data-bs-theme="dark"] .version-image-card:hover {
+    box-shadow: 2px 2px 5px #444444;
+}
+.version-image-card a {
+    text-decoration: none;
+    color: white;
+}
+.version-image-card .card-footer{
+    border:none;
+}
+

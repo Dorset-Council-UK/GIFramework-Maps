@@ -18,10 +18,10 @@ using Microsoft.Identity.Web.UI;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using Npgsql;
-using System;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using Yarp.ReverseProxy.Forwarder;
+using Microsoft.Extensions.Hosting;
+using GIFrameworkMaps.Web.Filters;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,9 +51,20 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
 });
+if (bool.TryParse(builder.Configuration["GIFrameworkMaps:SuppressXFrameOptions"], out bool suppressXFrameOptions))
+{
+	if (suppressXFrameOptions)
+	{
+		builder.Services.AddAntiforgery(x =>
+		{
+			x.SuppressXFrameOptionsHeader = true;
+		});
+	}
+}
 builder.Services.AddControllersWithViews().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+	options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 builder.Services.AddResponseCaching();
 builder.Services.AddSignalR();

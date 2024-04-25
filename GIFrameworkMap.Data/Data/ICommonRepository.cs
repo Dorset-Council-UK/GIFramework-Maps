@@ -10,7 +10,8 @@ namespace GIFrameworkMaps.Data
     {
         Task<Version?> GetVersionBySlug(string slug1, string slug2, string slug3);
         Task<bool> CanUserAccessVersion(string userId, int id);
-		Task<Version?> GetVersion(int id);
+        Task<List<Version>> GetVersionsListForUser(string? userId);
+        Task<Version?> GetVersion(int id);
 		VersionViewModel GetVersionViewModel(Version version);
         Task<List<Version>> GetVersions();
 		List<ApplicationUserRole> GetUserRoles(string userId);

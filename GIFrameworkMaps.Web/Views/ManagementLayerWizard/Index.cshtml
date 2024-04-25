@@ -40,13 +40,13 @@
                                 <select class="form-select" id="service-select">
 
                                     @{
-                                        var grouped = Model.OrderBy(d => d.SortOrder).GroupBy(d => d.Category);
+                                        var grouped = Model.OrderBy(d => d.Name).GroupBy(d => d.Category);
                                     }
 
                                     @foreach (var group in grouped)
                                     {
                                         <optgroup label="@group.First().Category">
-                                            @foreach (var definition in group.OrderBy(d => d.SortOrder))
+                                            @foreach (var definition in group.OrderBy(d => d.Name))
                                             {
 
                                                 <option value="@definition.Url"

@@ -42,6 +42,7 @@ import {
 } from "./Util";
 import LayerRenderer from "ol/renderer/Layer";
 import { Projection } from "./Interfaces/Projection";
+import { VersionToggler } from "./VersionToggler";
 
 export class GIFWMap {
   id: string;
@@ -128,7 +129,7 @@ export class GIFWMap {
     const infoControl = new FeatureQuery(this);
     //add geolocation
     const geolocationControl = new GIFWGeolocation(this);
-
+    
     this.customControls.push(
       mousePosition,
       contextMenu,
@@ -406,10 +407,15 @@ export class GIFWMap {
       const bookmarkControl = new BookmarkMenu(this);
       bookmarkControl.init();
     }
+    //add version toggler
+    const versionToggler = new VersionToggler(this);
+    versionToggler.init();
+    //init controls
     measureControl.init();
     infoControl.init();
     geolocationControl.init();
 
+    //init search
     const search = new Search(
       "#search-container",
       this,
@@ -419,6 +425,7 @@ export class GIFWMap {
 
     search.init(permalinkParams);
 
+    //add streetview
     if (this.config.googleMapsAPIKey) {
       const streetview = new Streetview(this.config.googleMapsAPIKey);
       streetview.init(contextMenu);
