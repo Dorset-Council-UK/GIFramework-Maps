@@ -676,7 +676,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
         }
 
-		private async Task RebuildViewModel(VersionEditViewModel model, Version version)
+		private async Task RebuildViewModel(VersionEditViewModel model, Data.Models.Version version)
 		{
 			var themes = await _context.Themes
 				.AsNoTracking()
