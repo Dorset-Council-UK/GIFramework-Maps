@@ -7,6 +7,6 @@ namespace GIFrameworkMaps.Data
 	public interface ISearchRepository
     {
         Task<List<Models.VersionSearchDefinition>> GetSearchDefinitionsByVersion(int versionId);
-        SearchResults Search(string searchTerm, List<RequiredSearch> requiredSearchesList);
-    }
+        Task<SearchResults> Search(string searchTerm, List<RequiredSearch> requiredSearchesList);
+	}
 }

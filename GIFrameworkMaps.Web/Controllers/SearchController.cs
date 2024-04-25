@@ -19,15 +19,17 @@ namespace GIFrameworkMaps.Web.Controllers
             _logger = logger;
         }
 
-        public JsonResult Index([FromBody]SearchQuery searchQuery)
+        public async Task<JsonResult> Index([FromBody]SearchQuery searchQuery)
         {
-            _logger.LogInformation("User searched for {searchQuery}",
-                //Sanitise user input to prevent log forging
-                searchQuery.Query.Replace(Environment.NewLine, ""));
-            var results = _repository.Search(searchQuery.Query, searchQuery.Searches);
-            _logger.LogInformation("{TotalResults} results returned for query {searchQuery}", results.TotalResults,
-                //Sanitise user input to prevent log forging
-                searchQuery.Query.Replace(Environment.NewLine, ""));
+            //Sanitise user input to prevent log forging
+            _logger.LogInformation("User searched for {searchQuery}", searchQuery.Query.Replace(Environment.NewLine, ""));
+
+			//var results = await _repository.SearchOriginal(searchQuery.Query, searchQuery.Searches);
+            var results = await _repository.Search(searchQuery.Query, searchQuery.Searches);
+
+            //Sanitise user input to prevent log forging
+            _logger.LogInformation("{TotalResults} results returned for query {searchQuery}", results.TotalResults, searchQuery.Query.Replace(Environment.NewLine, ""));
+
             return Json(results);
         }
 
