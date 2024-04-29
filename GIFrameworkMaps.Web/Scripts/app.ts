@@ -15,6 +15,10 @@ import { Welcome } from "./Welcome";
 import { VersionViewModel } from "./Interfaces/VersionViewModel";
 import { Tour } from "./Tour";
 import { Alert, AlertSeverity, AlertType, Helper } from "./Util";
+import {
+  Browser as BrowserHelper,
+} from "./Util";
+import { SidebarPanel } from "./Interfaces/SidebarPanel";
 
 /*variables passed from index.cshtml. Use sparingly*/
 declare let gifw_appinsights_key: string;
@@ -76,11 +80,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         BroadcastReceiver.init(config.slug, config.appRoot);
+        let mode: 'full' | 'embed' = 'full';
+        if (window.location.hash !== "") {
+          if (BrowserHelper.extractParamFromHash(window.location.hash, 'embed') !== null) {
+            mode = 'embed';
+          }
+        }
+
+        const sidebars = Array<GIFWSidebar.Sidebar>();
+        const panels = Array<SidebarPanel>();
+
         const basemapsPanel = new BasemapsPanel("#basemaps");
-        const layersPanel = new LayersPanel("#layers-control");
-        const printPanel = new PrintPanel("#print-control");
-        const legendPanel = new LegendsPanel("#legends");
-        const sharePanel = new SharePanel("#share");
+        panels.push(basemapsPanel);
         const basemapsSidebar = new GIFWSidebar.Sidebar(
           "basemaps",
           "Background Map",
@@ -89,6 +100,11 @@ document.addEventListener("DOMContentLoaded", () => {
           1,
           basemapsPanel,
         );
+        sidebars.push(basemapsSidebar);
+
+        const layersPanel = new LayersPanel("#layers-control");
+        panels.push(layersPanel);
+
         const layersSidebar = new GIFWSidebar.Sidebar(
           "layers-control",
           "Layers",
@@ -97,6 +113,11 @@ document.addEventListener("DOMContentLoaded", () => {
           2,
           layersPanel,
         );
+        sidebars.push(layersSidebar);
+
+        const legendPanel = new LegendsPanel("#legends");
+        panels.push(legendPanel);
+
         const legendSidebar = new GIFWSidebar.Sidebar(
           "legends",
           "Legends",
@@ -105,38 +126,44 @@ document.addEventListener("DOMContentLoaded", () => {
           3,
           legendPanel,
         );
-        const shareSidebar = new GIFWSidebar.Sidebar(
-          "share",
-          "Share",
-          "Share a link to the map",
-          `${document.location.protocol}//${config.appRoot}img/panel-icons/share-icon.svg`,
-          4,
-          sharePanel,
-        );
-        const printSidebar = new GIFWSidebar.Sidebar(
-          "print-control",
-          "Export/Print",
-          "Export and Print your map",
-          `${document.location.protocol}//${config.appRoot}img/panel-icons/print-icon.svg`,
-          5,
-          printPanel,
-        );
-
-        const sidebars = Array<GIFWSidebar.Sidebar>();
-        sidebars.push(layersSidebar);
-        sidebars.push(basemapsSidebar);
-        sidebars.push(printSidebar);
         sidebars.push(legendSidebar);
-        sidebars.push(shareSidebar);
-        const map = new GIFWMaps.GIFWMap(mapId, config, sidebars);
+
+        if (mode !== 'embed') {
+          const sharePanel = new SharePanel("#share");
+          panels.push(sharePanel);
+
+          const shareSidebar = new GIFWSidebar.Sidebar(
+            "share",
+            "Share",
+            "Share a link to the map",
+            `${document.location.protocol}//${config.appRoot}img/panel-icons/share-icon.svg`,
+            4,
+            sharePanel,
+            );
+          sidebars.push(shareSidebar);
+
+          const printPanel = new PrintPanel("#print-control");
+          panels.push(printPanel);
+
+          const printSidebar = new GIFWSidebar.Sidebar(
+            "print-control",
+            "Export/Print",
+            "Export and Print your map",
+            `${document.location.protocol}//${config.appRoot}img/panel-icons/print-icon.svg`,
+            5,
+            printPanel,
+          );
+          sidebars.push(printSidebar);
+        }
+
+        const map = new GIFWMaps.GIFWMap(mapId, config, sidebars, mode);
 
         map.initMap();
-        basemapsPanel.setGIFWMapInstance(map);
-        layersPanel.setGIFWMapInstance(map);
-        printPanel.setGIFWMapInstance(map);
-        legendPanel.setGIFWMapInstance(map);
-        sharePanel.setGIFWMapInstance(map);
 
+        panels.forEach(panel => {
+          panel.setGIFWMapInstance(map);
+        });
+        
         const tooltipTriggerList = [].slice.call(
           document.querySelectorAll('[data-bs-toggle="tooltip"]'),
         );

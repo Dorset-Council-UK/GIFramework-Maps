@@ -50,6 +50,7 @@ export class GIFWMap {
   layerGroups: LayerGroup[];
   sidebars: gifwSidebar.Sidebar[];
   popupOverlay: GIFWPopupOverlay;
+  mode: 'full' | 'embed' = 'full';
   olMap: olMap;
   customControls: (
     | GIFWMousePositionControl
@@ -64,10 +65,12 @@ export class GIFWMap {
     id: string,
     config: VersionViewModel,
     sidebars: gifwSidebar.Sidebar[],
+    mode: 'full' | 'embed'
   ) {
     this.id = id;
     this.config = config;
     this.sidebars = sidebars;
+    this.mode = mode;
     this.delayPermalinkUpdate = debounce(() => {
       document
         .getElementById(this.id)
@@ -104,8 +107,10 @@ export class GIFWMap {
       );
     }
     // set up controls
+  
     const attribution = new olControl.Attribution({
-      collapsible: false,
+      collapsible: true,
+      collapsed: this.mode === 'embed',
     });
     const scaleline = new olControl.ScaleLine({
       units: "metric",
@@ -114,7 +119,7 @@ export class GIFWMap {
       autoHide: false,
       tipLabel: "Reset rotation (Alt-Shift and Drag to rotate)",
     });
-    //mouse position controls. TODO - alow DB setting of initial coord system
+    //add mouse position
     const mousePosition = new GIFWMousePositionControl(
       defaultViewProjection.epsgCode.toString(),
       defaultViewProjection.defaultRenderedDecimalPlaces,
@@ -821,9 +826,11 @@ export class GIFWMap {
     map: olMap,
     attribution: olControl.Attribution,
   ): void {
-    const small = map.getSize()[0] < 600;
-    attribution.setCollapsible(small);
-    attribution.setCollapsed(small);
+    if (this.mode !== "embed") {
+      const small = map.getSize()[0] < 600;
+      if(attribution.getCollapsed())
+      attribution.setCollapsed(small);
+    }
   }
 
   /**

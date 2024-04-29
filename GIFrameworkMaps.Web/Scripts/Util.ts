@@ -89,8 +89,15 @@ export class Browser {
         hashParams[hashParamKVP[0].toLowerCase()] = decodeURI(hashParamKVP[1]);
       }
     });
-
     return hashParams;
+  }
+
+  static extractParamFromHash(hash: string, paramName: string) {
+    const hashParams = this.extractParamsFromHash(hash);
+    if (hashParams[paramName]) {
+      return hashParams[paramName];
+    }
+    return null;
   }
 
   /**
@@ -722,6 +729,9 @@ export class Mapping {
           }
         }
       }
+    }
+    if (map.mode === 'embed') {
+      hash += '&embed=true';
     }
     const baseUrl = `${window.location.origin}${window.location.pathname}`;
     return `${baseUrl}${hash}`;

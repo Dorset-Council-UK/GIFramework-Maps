@@ -39,7 +39,8 @@
   top: 13em;
 }
 .giframeworkMap.embed .gifw-measure-control {
-  top: calc(13em - var(--embed-vertical-shift));
+  /*top: calc(13em - var(--embed-vertical-shift));*/
+  display:none;
 }
 .giframeworkMap .gifw-measure-control.ol-hidden {
   opacity: 0;
@@ -66,7 +67,8 @@
   top: 15.5em;
 }
 .giframeworkMap.embed .gifw-annotation-control {
-  top: calc(15.5em - var(--embed-vertical-shift));
+  /*top: calc(15.5em - var(--embed-vertical-shift));*/
+  display:none;
 }
 .giframeworkMap .gifw-annotation-control.ol-hidden {
   opacity: 0;
@@ -108,7 +110,8 @@
   top: 18em;
 }
 .giframeworkMap.embed .gifw-info-control {
-  top: calc(18em - var(--embed-vertical-shift));
+  /*top: calc(18em - var(--embed-vertical-shift));*/
+  display:none;
 }
 .giframeworkMap .gifw-info-control.ol-hidden {
   opacity: 0;
@@ -136,7 +139,8 @@
   top: 20.5em;
 }
 .giframeworkMap.embed .gifw-geolocation-control {
-  top: calc(20.5em - var(--embed-vertical-shift));
+  /*top: calc(20.5em - var(--embed-vertical-shift));*/
+  display:none;
 }
 .giframeworkMap .gifw-geolocation-control.gifw-geolocation-recentre-control {
   left: 2.75rem;
@@ -186,14 +190,20 @@
   backdrop-filter: blur(2px);
 }
 .giframeworkMap .ol-attribution {
-  max-width: calc(100% - 10em);
+  max-width: 70%;
   backdrop-filter: blur(2px);
   font-size: 0.8rem;
   background: rgba(var(--bs-body-bg-rgb), 0.8);
+  bottom:0;
+  right:0;
 }
 .giframeworkMap .ol-attribution ul {
   text-shadow: none;
   color: var(--bs-body-color);
+}
+.giframeworkMap .ol-attribution button{
+  width:1.7rem;
+  height:1.7rem;
 }
 [data-bs-theme="dark"] .giframeworkMap .ol-attribution a {
   color: var(--bs-body-color);
@@ -475,7 +485,9 @@
   z-index: 101;
   top: 3.5rem;
 }
-
+.giframeworkMap.embed .gifw-search-control{
+  top: .5rem;
+}
 /*Medium devices (tablets, 768px and up)*/
 @media (min-width: 768px) {
   .giframeworkMap .search-control {

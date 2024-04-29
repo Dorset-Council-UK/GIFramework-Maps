@@ -1,4 +1,5 @@
 ﻿import { Map as olMap } from "ol";
+import { GIFWMap } from "../Map";
 
 export interface SidebarPanel {
   container?: string;
@@ -6,4 +7,5 @@ export interface SidebarPanel {
   olMapInstance?: olMap;
   init: () => void;
   render: () => void;
+  setGIFWMapInstance: (map: GIFWMap) => void;
 }
