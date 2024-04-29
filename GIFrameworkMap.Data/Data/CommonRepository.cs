@@ -89,7 +89,7 @@ namespace GIFrameworkMaps.Data
 			}
 
 			var version = await _context.Versions
-				.AsNoTracking()
+				.AsNoTrackingWithIdentityResolution()
 				.AsSplitQuery()
 				.Where(o => o.Id == versionId)
 				.FirstOrDefaultAsync();
