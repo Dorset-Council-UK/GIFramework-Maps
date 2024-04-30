@@ -202,7 +202,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 				{
 					Text = model.CombineNameAndSlug(o.Name, o.Slug),
 					Value = o.Id.ToString(),
-					Selected = selectedApplicationRoleIds.Contains(o.Id)
+					Selected = selectedVersionUsersIds.Contains(o.Id)
 				})
 				.ToListAsync();
 
