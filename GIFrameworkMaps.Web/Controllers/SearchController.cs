@@ -24,7 +24,6 @@ namespace GIFrameworkMaps.Web.Controllers
             //Sanitise user input to prevent log forging
             _logger.LogInformation("User searched for {searchQuery}", searchQuery.Query.Replace(Environment.NewLine, ""));
 
-			//var results = await _repository.SearchOriginal(searchQuery.Query, searchQuery.Searches);
             var results = await _repository.Search(searchQuery.Query, searchQuery.Searches);
 
             //Sanitise user input to prevent log forging
