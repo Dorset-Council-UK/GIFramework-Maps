@@ -6,12 +6,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NodaTime;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
-    [Authorize(Roles = "GIFWAdmin")]
+	[Authorize(Roles = "GIFWAdmin")]
     public class ManagementTourController : Controller
     {
         //dependancy injection
@@ -20,24 +19,22 @@ namespace GIFrameworkMaps.Web.Controllers.Management
          * https://learn.microsoft.com/en-us/aspnet/mvc/overview/getting-started/getting-started-with-ef-using-mvc/advanced-entity-framework-scenarios-for-an-mvc-web-application#create-an-abstraction-layer
          * */
         private readonly ILogger<ManagementTourController> _logger;
-        private readonly IManagementRepository _repository;
         private readonly ApplicationDbContext _context;
-        public ManagementTourController(
-            ILogger<ManagementTourController> logger,
-            IManagementRepository repository,
-            ApplicationDbContext context
-            )
+
+        public ManagementTourController(ILogger<ManagementTourController> logger, ApplicationDbContext context)
         {
             _logger = logger;
-            _repository = repository;
             _context = context;
         }
 
         // GET: Tour
         public async Task<IActionResult> Index()
         {
-            var tours = await _repository.GetTours();
-            return View(tours);
+            var tours = await _context.TourDetails
+				.AsNoTracking()
+				.ToListAsync();
+
+			return View(tours);
         }
 
         // GET: Tour/Create
@@ -57,28 +54,27 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         public async Task<IActionResult> CreatePost(TourDetail tour, bool AddStep, DateTime UpdateDate)
         {
             tour.UpdateDate = LocalDateTime.FromDateTime(UpdateDate);
+
             ModelState.Clear();
             TryValidateModel(tour);
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Add(tour);
+                    _context.TourDetails.Add(tour);
                     await _context.SaveChangesAsync();
+
                     TempData["Message"] = "New tour created";
                     TempData["MessageType"] = "success";
-                    if (AddStep)
-                    {
-                        return RedirectToAction("Create", "ManagementTourStep", new { tourId = tour.Id });
-                    }
-                    return RedirectToAction(nameof(Index));
+
+                    return AddStep
+						? RedirectToAction("Create", "ManagementTourStep", new { tourId = tour.Id })
+						: RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateException ex)
                 {
                     _logger.LogError(ex, "Tour creation failed");
-                    ModelState.AddModelError("", "Unable to save changes. " +
-                        "Try again, and if the problem persists, " +
-                        "contact your system administrator.");
+                    ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
                 }
             }
 
@@ -88,9 +84,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Tour/Edit/1
         public async Task<IActionResult> Edit(int id)
         {
-            var tour = await _repository.GetTour(id);
+            var tour = await _context.TourDetails.FindAsync(id);
 
-            if (tour == null)
+			if (tour is null)
             {
                 return NotFound();
             }
@@ -103,20 +99,15 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id, DateTime UpdateDate)
         {
-            var tourToUpdate = await _context.TourDetails.FirstOrDefaultAsync(a => a.Id == id);
-            tourToUpdate.UpdateDate = LocalDateTime.FromDateTime(UpdateDate);
+            var tourToUpdate = await _context.TourDetails.FindAsync(id);
+			tourToUpdate.UpdateDate = LocalDateTime.FromDateTime(UpdateDate);
+
             ModelState.Clear();
             TryValidateModel(tourToUpdate);
-            if (await TryUpdateModelAsync(
-                tourToUpdate,
-                "",
-                a => a.Name,
-                a => a.Frequency,
-                a => a.Steps))
-            {
-                LocalDateTime formattedUpdateDateTime = LocalDateTime.FromDateTime(UpdateDate);
 
-                tourToUpdate.UpdateDate = formattedUpdateDateTime;
+			var updatedModel = await TryUpdateModelAsync(tourToUpdate, "", a => a.Name, a => a.Frequency, a => a.Steps);
+			if (updatedModel)
+            {
                 try
                 {
                     await _context.SaveChangesAsync();
@@ -127,21 +118,19 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 catch (DbUpdateException ex )
                 {
                     _logger.LogError(ex, "Tour edit failed");
-                    ModelState.AddModelError("", "Unable to save changes. " +
-                        "Try again, and if the problem persists, " +
-                        "contact your system administrator.");
+                    ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
                 }
             }
-            tourToUpdate.Steps = await _context.TourSteps.Where(a => a.TourDetailId == id).ToListAsync();
+
             return View(tourToUpdate);
         }
 
         // GET: Tour/Delete/1
         public async Task<IActionResult> Delete(int id)
         {
-            var tour = await _repository.GetTour(id);
+            var tour = await _context.TourDetails.FindAsync(id);
 
-            if (tour == null)
+			if (tour is null)
             {
                 return NotFound();
             }
@@ -154,23 +143,23 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var tourToDelete = await _context.TourDetails.FirstOrDefaultAsync(a => a.Id == id);
+			var tourToDelete = await _context.TourDetails.FindAsync(id);
 
-                try
-                {
-                    _context.TourDetails.Remove(tourToDelete);
-                    await _context.SaveChangesAsync();
-                TempData["Message"] = "Tour deleted";
-                TempData["MessageType"] = "success";
-                return RedirectToAction(nameof(Index));
-                }
-                catch (DbUpdateException ex)
-                {
-                    _logger.LogError(ex, "Tour delete failed");
-                    ModelState.AddModelError("", "Unable to save changes. " +
-                        "Try again, and if the problem persists, " +
-                        "contact your system administrator.");
-                }
+            try
+            {
+                _context.TourDetails.Remove(tourToDelete);
+                await _context.SaveChangesAsync();
+
+				TempData["Message"] = "Tour deleted";
+				TempData["MessageType"] = "success";
+
+				return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Tour delete failed");
+                ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
+            }
 
             return View(tourToDelete);
         }

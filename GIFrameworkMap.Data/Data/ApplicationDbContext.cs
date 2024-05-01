@@ -50,12 +50,16 @@ namespace GIFrameworkMaps.Data
 
 			// DbSet configurations
 			modelBuilder.ApplyConfiguration(new ApplicationUserRoleConfiguration());
+			modelBuilder.ApplyConfiguration(new BasemapConfiguration());
+			modelBuilder.ApplyConfiguration(new CategoryConfiguration());
 			modelBuilder.ApplyConfiguration(new CategoryLayerConfiguration());
 			modelBuilder.ApplyConfiguration(new DatabaseSearchResultConfiguration());
 			modelBuilder.ApplyConfiguration(new LayerConfiguration());
+			modelBuilder.ApplyConfiguration(new LayerSourceConfiguration());
 			modelBuilder.ApplyConfiguration(new ProjectionConfiguration());
 			modelBuilder.ApplyConfiguration(new ShortLinkConfiguration());
 			modelBuilder.ApplyConfiguration(new TourDetailConfiguration());
+			modelBuilder.ApplyConfiguration(new VersionConfiguration());
 			modelBuilder.ApplyConfiguration(new VersionContactConfiguration());
 			modelBuilder.ApplyConfiguration(new VersionLayerConfiguration());
 			modelBuilder.ApplyConfiguration(new VersionPrintConfigurationConfiguration());
@@ -69,6 +73,6 @@ namespace GIFrameworkMaps.Data
 			modelBuilder.ApplyConfiguration(new VersionBasemapConfiguration());
 			modelBuilder.ApplyConfiguration(new VersionCategoryConfiguration());
 			modelBuilder.ApplyConfiguration(new VersionProjectionConfiguration());
-        }
+		}
     }
 }

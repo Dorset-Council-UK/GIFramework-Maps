@@ -11,7 +11,7 @@ namespace GIFrameworkMaps.Data.ViewModels.Management
 
 		public IList<int> SelectedLayers { get; set; } = [];
 
-		public IList<Layer> AvailableLayers { get; set; } = [];
+		public IList<SelectListItem> AvailableLayers { get; set; } = [];
 
 	}
 }

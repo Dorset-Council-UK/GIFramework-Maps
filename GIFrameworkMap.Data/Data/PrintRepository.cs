@@ -1,58 +1,52 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using GIFrameworkMaps.Data.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data
 {
-	public class PrintRepository : IPrintRepository
+	public class PrintRepository(IApplicationDbContext context, IMemoryCache memoryCache) : IPrintRepository
     {
-        //dependancy injection
-        private readonly IApplicationDbContext _context;
-        private readonly IMemoryCache _memoryCache;
-
-        public PrintRepository(IApplicationDbContext context, IMemoryCache memoryCache)
+		public async Task<VersionPrintConfiguration> GetPrintConfigurationByVersion(int versionId)
         {
-            _context = context;
-            _memoryCache = memoryCache;
-        }
+			// Check if the version exists
+			bool versionExists = await context.Versions
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.AnyAsync(v => v.Id == versionId);
 
-        public Models.VersionPrintConfiguration GetPrintConfigurationByVersion(int versionId)
-        {
-            if (_context.Versions.Where(v => v.Id == versionId).AsNoTrackingWithIdentityResolution().Any())
-            {
-                string cacheKey = "PrintConfigurationByVersion/" + versionId.ToString();
+			if (!versionExists)
+			{
+				throw new KeyNotFoundException($"Version with ID {versionId} does not exist");
+			}
 
-                if (_memoryCache.TryGetValue(cacheKey, out Models.VersionPrintConfiguration? cacheValue))
-                {
-                    //using null forgiving operator as if a value is found in the cache it must not be null
-                    return cacheValue!;
-                }
-                else
-                {
-                    var printConfig = _context.VersionPrintConfigurations
-                        .Where(v => v.VersionId == versionId)
-                        .AsNoTrackingWithIdentityResolution()
-                        .Include(v => v.PrintConfiguration)
-                        .FirstOrDefault();
+			string cacheKey = "PrintConfigurationByVersion/" + versionId.ToString();
 
-                    //If null get default based on general version (which should always exist)
-                    printConfig ??= _context.VersionPrintConfigurations
-                            .Where(v => v.Version!.Slug == "general")
-                            .AsNoTrackingWithIdentityResolution()
-                            .Include(v => v.PrintConfiguration)
-                            .First();
+			if (memoryCache.TryGetValue(cacheKey, out Models.VersionPrintConfiguration? cacheValue))
+			{
+				//using null forgiving operator as if a value is found in the cache it must not be null
+				return cacheValue!;
+			}
 
-                    // Cache the results so they can be used next time we call this function.
-                    _memoryCache.Set(cacheKey, printConfig, TimeSpan.FromMinutes(10));
-                    return printConfig;
-                }
-            }
-            else
-            {
-                throw new KeyNotFoundException($"Version with ID {versionId} does not exist");
-            }
+			var printConfig = await context.VersionPrintConfigurations
+                .AsNoTracking()
+                .Include(o => o.PrintConfiguration)
+                .FirstOrDefaultAsync(o => o.VersionId == versionId);
+
+			// If no print config, get default based on general version (which should always exist)
+			printConfig ??= await context.VersionPrintConfigurations
+				.AsNoTracking()
+				.Where(o => o.Version!.Slug == "general")
+				.Include(o => o.PrintConfiguration)
+				.FirstAsync();
+
+            // Cache the results so they can be used next time we call this function.
+            memoryCache.Set(cacheKey, printConfig, TimeSpan.FromMinutes(10));
+
+            return printConfig;
         }
     }
 }

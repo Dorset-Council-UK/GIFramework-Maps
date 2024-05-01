@@ -1,6 +1,9 @@
 ﻿@model List<Microsoft.Graph.Beta.Models.User>
 @{
     ViewData["Title"] = "Users";
+
+    // Working out the base edit URL once is significantly faster than doing it for each row
+    var editUrl = Url.Action("Edit");
 }
 
 <partial name="ManagementPartials/BackToManagementHome" />
@@ -24,7 +27,7 @@
             {
                 <tr>
                     <td>@user.Id</td>
-                    <td>@Html.ActionLink(user.DisplayName, "Edit", new { id = user.Id })</td>
+                    <td><a href="@editUrl/@user.Id">@user.DisplayName</a></td>
                     <td>
                         @foreach(var mail in user.OtherMails)
                         {

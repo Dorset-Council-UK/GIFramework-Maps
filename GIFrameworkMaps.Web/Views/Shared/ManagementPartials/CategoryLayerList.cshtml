@@ -1,16 +1,16 @@
 ﻿@using GIFrameworkMaps.Data.ViewModels.Management
 @model CategoryEditViewModel
 
+@{
+    // Working out the base edit URL once is significantly faster than doing it for each row
+    var editUrl = Url.Action("Edit", "ManagementLayer");
+}
+
 @foreach (var layer in Model.AvailableLayers)
 {
-    bool isChecked = Model.SelectedLayers != null && Model.SelectedLayers.Where(b => b == layer.Id).Count() != 0;
+    string id = "SelectedLayers__" + layer.Value;
     <div class="form-check">
-        <input type="checkbox"
-            class="form-check-input"
-           name="SelectedLayers"
-            value="@layer.Id"
-            id="SelectedLayers__@layer.Id"
-        @(Html.Raw(isChecked ? "checked=\"checked\"" : "")) />
-        <label class="form-check-label" for="SelectedLayers__@layer.Id">@layer.Name <small>(ID: @Html.ActionLink(layer.Id.ToString(), "Edit","ManagementLayer", new{id=layer.Id}))</small></label>
+        <input type="checkbox" class="form-check-input" name="SelectedLayers" value="@layer.Value" id="@id" @(layer.Selected ? "checked=checked" : "")  />
+        <label class="form-check-label" for="@id">@layer.Text <small>(ID: <a href="@editUrl/@layer.Value">@layer.Value</a>)</small></label>
     </div>
 }

@@ -1,6 +1,9 @@
 ﻿@model List<GIFrameworkMaps.Data.Models.Search.SearchDefinition>
 @{
     ViewData["Title"] = "Search definitions";
+
+    // Working out the base edit URL once is significantly faster than doing it for each row
+    var editUrl = Url.Action("Edit");
 }
 
 <partial name="ManagementPartials/BackToManagementHome" />
@@ -25,7 +28,7 @@
             {
                 <tr>
                     <td>@searchDefinition.Id</td>
-                    <td>@Html.ActionLink(searchDefinition.Name, "Edit", new { id = searchDefinition.Id })</td>
+                    <td><a href="@editUrl/@searchDefinition.Id">@searchDefinition.Name</a></td>
                     <td>@searchDefinition.Title</td>
                 </tr>
             }

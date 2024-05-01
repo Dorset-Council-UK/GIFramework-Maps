@@ -2,6 +2,9 @@
 @model AnalyticsViewModel
 @{
     ViewData["Title"] = "System management - analytics";
+
+    // Working out the base edit URL once is significantly faster than doing it for each row
+    var editUrl = Url.Action("Edit");
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -38,7 +41,7 @@
             {
                 <tr>
                     <td>@analyticsDefinition.Id</td>
-                    <td>@Html.ActionLink(analyticsDefinition.ProductName, "Edit", new { id = analyticsDefinition.Id })</td>
+                    <td><a href="@editUrl/@analyticsDefinition.Id">@analyticsDefinition.ProductName</a></td>
                     <td>@analyticsDefinition.ProductKey</td>
                     <td>@analyticsDefinition.CookieControl</td>
                     <td>@analyticsDefinition.DateModified.ToString("dd/MM/yyyy HH:mm",null)</td>

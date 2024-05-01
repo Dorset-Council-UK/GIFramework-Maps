@@ -163,7 +163,8 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         }
       } catch (ex) {
-        throw new Error(ex);
+          console.error('There was an error creating the map');
+          throw ex; // Throw the error to preserve the stack trace
       } finally {
         Helper.removeFullScreenLoader(mapId);
       }

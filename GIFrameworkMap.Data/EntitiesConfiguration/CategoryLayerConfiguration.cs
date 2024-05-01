@@ -10,6 +10,10 @@ namespace GIFrameworkMaps.Data.EntitiesConfiguration
 		{
 			builder
 				.HasKey(o => new { o.CategoryId, o.LayerId });
+
+			builder
+				.Navigation(o => o.Layer)
+				.AutoInclude();
 		}
 	}
 }

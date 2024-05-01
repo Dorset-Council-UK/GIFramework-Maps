@@ -1,16 +1,11 @@
 ﻿@using GIFrameworkMaps.Data.ViewModels.Management
 @model UserEditViewModel
 
-@foreach (var role in Model.AvailableRoles)
+@foreach (var item in Model.AvailableRoles)
 {
-    bool isChecked = Model.AvailableRoles != null && Model.SelectedRoles.Where(b => b == role.Id).Count() != 0;
+    string id = "SelectedRoles__" + item.Value;
     <div class="form-check">
-        <input type="checkbox"
-               class="form-check-input"
-               name="SelectedRoles"
-               value="@role.Id"
-               id="SelectedRoles__@role.Id"
-        @(Html.Raw(isChecked ? "checked=\"checked\"" : "")) />
-        <label class="form-check-label" for="SelectedRoles__@role.Id">@role.RoleName</label>
+        <input type="checkbox" class="form-check-input" name="SelectedRoles" value="@item.Value" id="@id" @(item.Selected ? "checked=checked" : "") />
+        <label class="form-check-label" for="@id">@item.Text</label>
     </div>
 }
