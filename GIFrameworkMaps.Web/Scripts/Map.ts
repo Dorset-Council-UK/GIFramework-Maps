@@ -395,10 +395,12 @@ export class GIFWMap {
       map.getView().fit(reprojectedExtent, { size: mapSize });
     }
     //add attribution size checker and app height variable
-    window.addEventListener("resize", () => {
+    if (this.mode !== "embed") {
+      window.addEventListener("resize", () => {
+        this.checkAttributionSize(map, attribution);
+      });
       this.checkAttributionSize(map, attribution);
-    });
-    this.checkAttributionSize(map, attribution);
+    }
 
     //add drag and drop
     this.addDragAndDropInteraction();
@@ -826,11 +828,8 @@ export class GIFWMap {
     map: olMap,
     attribution: olControl.Attribution,
   ): void {
-    if (this.mode !== "embed") {
       const small = map.getSize()[0] < 600;
-      if(attribution.getCollapsed())
       attribution.setCollapsed(small);
-    }
   }
 
   /**
