@@ -29,20 +29,20 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             _repository = repository;
             _context = context;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            AnalyticsViewModel viewModel = _repository.GetAnalyticsModel();
+            var viewModel = await _repository.GetAnalyticsModel();
 
             return View(viewModel);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
 			AnalyticsEditViewModel viewModel = new()
 			{
 				AnalyticDefinition = new AnalyticsDefinition()
 			};
-			RebuildEditModel(ref viewModel);
+			await RebuildEditModel(viewModel);
             return View(viewModel);
         }
 
@@ -82,10 +82,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 			{
 				AnalyticDefinition = editModel.AnalyticDefinition
 			};
-			RebuildEditModel(ref viewModel);
+			await RebuildEditModel(viewModel);
             return View(viewModel);
         }
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
             var analyticRecord = _context.AnalyticsDefinitions.Include(ad => ad.VersionAnalytics).Where(a => a.Id == id).FirstOrDefault();
             if (analyticRecord != null)
@@ -94,7 +94,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 				{
 					AnalyticDefinition = analyticRecord
 				};
-        RebuildEditModel(ref viewModel);
+				await RebuildEditModel(viewModel);
                 return View(viewModel);
             }
             else
@@ -144,7 +144,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 			{
 				AnalyticDefinition = editModel.AnalyticDefinition
 			};
-			  RebuildEditModel(ref viewModel);
+			  await RebuildEditModel(viewModel);
             return View(viewModel);
         }
 
@@ -177,15 +177,19 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return RedirectToAction(nameof(Index));
         }
 
-        private void RebuildEditModel(ref AnalyticsEditViewModel model)
+        private async Task RebuildEditModel(AnalyticsEditViewModel model)
         {
-            var versions = _context.Versions.OrderBy(b => b.Name).ToList();
-            string[] supportedProducts = { "Cloudflare", "Google Analytics (GA4)", "Microsoft Application Insights", "Microsoft Clarity" };
+			var versions = _context.Versions
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.OrderBy(o => o.Name);
+
+			string[] supportedProducts = { "Cloudflare", "Google Analytics (GA4)", "Microsoft Application Insights", "Microsoft Clarity" };
             string[] supportedCookieControls = { "Civic Cookie Control" };
 
             model.AvailableProducts = new SelectList(supportedProducts);
             model.AvailableCookieControl = new SelectList(supportedCookieControls);
-            model.AvailableVersions = versions;
+            model.AvailableVersions = await versions.ToListAsync();
             if (model.AnalyticDefinition.VersionAnalytics.Any())
             {
                 model.SelectedVersions = model.AnalyticDefinition.VersionAnalytics.Select(c => c.VersionId).ToList();
@@ -211,7 +215,13 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 analyticVersions = new HashSet<int>(currentDefinition.VersionAnalytics.Select(c => c.VersionId));
             }
             //Generate a list of all versions that can be selected
-            List<int> AvailableVersions = _context.Versions.OrderBy(b => b.Name).Select(c => c.Id).ToList();
+			var versionIds = _context.Versions
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.OrderBy(o => o.Name)
+				.Select(c => c.Id)
+				.ToList();
+			List<int> AvailableVersions = _context.Versions.OrderBy(b => b.Name).Select(c => c.Id).ToList();
             if (AvailableVersions != null)
             {
                 //Loop through each version and check if it is selected

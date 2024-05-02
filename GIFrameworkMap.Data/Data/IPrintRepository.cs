@@ -1,7 +1,10 @@
-﻿namespace GIFrameworkMaps.Data
+﻿using GIFrameworkMaps.Data.Models;
+using System.Threading.Tasks;
+
+namespace GIFrameworkMaps.Data
 {
 	public interface IPrintRepository
     {
-        Models.VersionPrintConfiguration GetPrintConfigurationByVersion(int versionId);
+        Task<VersionPrintConfiguration> GetPrintConfigurationByVersion(int versionId);
     }
 }

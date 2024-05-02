@@ -23,34 +23,31 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         private readonly ILogger<ManagementLayerCategoryController> _logger;
         private readonly IManagementRepository _repository;
         private readonly ApplicationDbContext _context;
-        public ManagementLayerCategoryController(
-            ILogger<ManagementLayerCategoryController> logger,
-            IManagementRepository repository,
-            ApplicationDbContext context
-            )
+
+        public ManagementLayerCategoryController(ILogger<ManagementLayerCategoryController> logger, IManagementRepository repository, ApplicationDbContext context)
         {
             _logger = logger;
             _repository = repository;
             _context = context;
         }
 
-        // GET: Version
         public async Task<IActionResult> Index()
         {
-            var attributions = await _repository.GetLayerCategories();
-            return View(attributions);
+            var categories = await _context.Categories
+				.AsNoTracking()
+				.Include(o => o.ParentCategory)
+				.ToListAsync();
+
+			return View(categories);
         }
 
-        // GET: Version/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            var category = new Data.Models.Category();
-            var editModel = new CategoryEditViewModel() { Category = category };
-            RebuildViewModel(ref editModel, category);
+            var editModel = new CategoryEditViewModel() { Category = new() };
+			await RebuildViewModel(editModel, editModel.Category);
             return View(editModel);
         }
 
-        //POST: Version/Create
         [HttpPost, ActionName("Create")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreatePost(CategoryEditViewModel editModel, int[] selectedLayers)
@@ -69,43 +66,40 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 catch (DbUpdateException ex)
                 {
                     _logger.LogError(ex, "Layer Category creation failed");
-                    ModelState.AddModelError("", "Unable to save changes. " +
-                        "Try again, and if the problem persists, " +
-                        "contact your system administrator.");
+                    ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
                 }
             }
 
             editModel = new CategoryEditViewModel() { Category = editModel.Category };
-            RebuildViewModel(ref editModel, editModel.Category);
+            await RebuildViewModel(editModel, editModel.Category);
             return View(editModel);
         }
 
-        // GET: Version/Edit/1
         public async Task<IActionResult> Edit(int id)
         {
             var category = await _context.Categories
-                .Include(c => c.ParentCategory)
-                .Include(c => c.Layers)
-                .FirstOrDefaultAsync(v => v.Id == id);
+				.AsNoTracking()
+				.Include(o => o.ParentCategory)
+				.Include(o => o.Layers)
+                .FirstOrDefaultAsync(o => o.Id == id);
 
-            if (category == null)
+            if (category is null)
             {
                 return NotFound();
             }
+
             var editModel = new CategoryEditViewModel() { Category = category };
-            RebuildViewModel(ref editModel, category);
+            await RebuildViewModel(editModel, editModel.Category);
             return View(editModel);
         }
 
-        // POST: Version/Edit/1
         [HttpPost, ActionName("Edit")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditPost(int id, int[] selectedLayers)
         {
             var categoryToUpdate = await _context.Categories
-                .Include(c => c.ParentCategory)
-                .Include(c => c.Layers)
-                .FirstOrDefaultAsync(v => v.Id == id);
+				.Include(o => o.ParentCategory)
+                .FirstOrDefaultAsync(o => o.Id == id);
 
             var editModel = new CategoryEditViewModel() { Category = categoryToUpdate };
 
@@ -118,7 +112,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.ParentCategoryId
                 ))
             {
-
                 try
                 {
                     UpdateCategoryLayers(selectedLayers, categoryToUpdate);
@@ -130,22 +123,19 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 catch (DbUpdateException ex )
                 {
                     _logger.LogError(ex, "Layer Category edit failed");
-                    ModelState.AddModelError("", "Unable to save changes. " +
-                        "Try again, and if the problem persists, " +
-                        "contact your system administrator.");
+                    ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
                 }
             }
             
-            RebuildViewModel(ref editModel, categoryToUpdate);
+            await RebuildViewModel(editModel, categoryToUpdate);
             return View(editModel);
         }
 
-        // GET: Version/Delete/1
         public async Task<IActionResult> Delete(int id)
         {
-            var category = await _repository.GetLayerCategory(id);
+            var category = await _context.Categories.FindAsync(id);
 
-            if (category == null)
+			if (category == null)
             {
                 return NotFound();
             }
@@ -153,12 +143,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(category);
         }
 
-        // POST: Version/Delete/1
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var categoryToDelete = await _context.Categories.FirstOrDefaultAsync(a => a.Id == id);
+            var categoryToDelete = await _context.Categories.FindAsync(id);
             try
             {
                 _context.Categories.Remove(categoryToDelete);
@@ -170,23 +159,21 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Layer Category delete failed");
-                ModelState.AddModelError("", "Unable to save changes. " +
-                    "Try again, and if the problem persists, " +
-                    "contact your system administrator.");
+                ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
             }
             return View(categoryToDelete);
         }
 
-        private void UpdateCategoryLayers(int[] selectedLayers, Data.Models.Category categoryToUpdate)
+        private void UpdateCategoryLayers(int[] selectedLayers, Category categoryToUpdate)
         {
-            if (!selectedLayers.Any())
+            if (selectedLayers.Length == 0)
             {
                 return;
             }
 
             var selectedCategoriesHS = new HashSet<int>(selectedLayers);
             var versionCategories = new HashSet<int>();
-            if (categoryToUpdate.Layers.Any())
+            if (categoryToUpdate.Layers.Count != 0)
             {
                 versionCategories = new HashSet<int>(categoryToUpdate.Layers.Select(c => c.LayerId));
             }
@@ -216,21 +203,38 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
         }
 
-        private void RebuildViewModel(ref CategoryEditViewModel model, Data.Models.Category category)
-        {
-            
-            var categories = _context.Categories.Where(c => c.Id != category.Id).OrderBy(t => t.Name).ToList();
-            var layers = _context.Layers.OrderBy(l => l.Name).ToList();
+		private async Task RebuildViewModel(CategoryEditViewModel model, Category category)
+		{
+			// Note: only call ToList at the last possible moment, allowing Entity Framework to work out the best optimisations
 
-            model.AvailableParentCategories = new SelectList(categories, "Id", "Name", category.ParentCategoryId);
+			var parentCategories = _context.Categories
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.Where(o => o.Id != category.Id)
+				.Select(o => new { o.Id, o.Name })
+				.OrderBy(o => o.Name);
 
-            model.AvailableLayers = layers;
-            if (category.Layers.Any())
-            {
-                model.SelectedLayers = category.Layers.Select(c => c.LayerId).ToList();
-            }
-            ViewData["SelectedLayers"] = model.SelectedLayers;
-            ViewData["AllLayers"] = model.AvailableLayers;
-        }
+			var layers = _context.Layers
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.Select(o => new { o.Id, o.Name })
+				.OrderBy(o => o.Name);
+
+			var selectedLayerIds = category.Layers.Select(cl => cl.LayerId);
+
+			var availableLayers = await layers
+				.Select(o => new SelectListItem()
+				{
+					Text = o.Name,
+					Value = o.Id.ToString(),
+					Selected = selectedLayerIds.Contains(o.Id)
+				})
+				.ToListAsync();
+
+			model.AvailableParentCategories = new SelectList(parentCategories, "Id", "Name", category.ParentCategoryId);
+			model.AvailableLayers = availableLayers;
+			model.SelectedLayers = selectedLayerIds.ToList();
+			ViewData["SelectedLayers"] = model.SelectedLayers;
+		}
     }
 }

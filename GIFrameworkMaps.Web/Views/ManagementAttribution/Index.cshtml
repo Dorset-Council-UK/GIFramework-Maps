@@ -1,6 +1,9 @@
 ﻿@model List<GIFrameworkMaps.Data.Models.Attribution>
 @{
     ViewData["Title"] = "Attributions";
+
+    // Working out the base edit URL once is significantly faster than doing it for each row
+    var editUrl = Url.Action("Edit");
 }
 
 <partial name="ManagementPartials/BackToManagementHome" />
@@ -23,7 +26,7 @@
             {
                 <tr>
                     <td>@attribution.Id</td>
-                    <td>@Html.ActionLink(attribution.Name, "Edit", new { id = attribution.Id })</td>
+                    <td><a href="@editUrl/@attribution.Id">@attribution.Name</a></td>
                 </tr>
             }
         </tbody>

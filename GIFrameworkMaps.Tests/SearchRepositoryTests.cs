@@ -1,45 +1,33 @@
-﻿using NUnit.Framework;
-using Moq;
-using GIFrameworkMaps.Data;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
-using GIFrameworkMaps.Data.Models;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using Moq.Protected;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Net;
-using Microsoft.AspNetCore.Http;
+﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models.Search;
-using System.IO;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
-using MockQueryable.Moq;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Moq.Protected;
+using NUnit.Framework;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Tests
 {
-    public class SearchRepositoryTests
-    {
-        private ILogger<SearchRepository> _logger;
+	internal class SearchRepositoryTests : DbContextBaseTest
+	{
         private SearchRepository sut;
 
-        [OneTimeSetUp]
-        public void OneTimeSetup()
+        [SetUp]
+        public void Setup()
         {
-            //This OneTimeSetup creates a mock dataset. It is assumed this dataset will NOT be modified by test code.
-            //If this assumption changes, the data should be moved into a [SetUp] method to maintain consistency
-            var serviceProvider = new ServiceCollection()
-               .AddLogging()
-               .BuildServiceProvider();
+            var mockLogger = new Mock<ILogger<SearchRepository>>();
+			var mockIApplicationDbContext = SetupMockIApplicationDbContext();
 
-            //Mock ILogger
-            var factory = serviceProvider.GetService<ILoggerFactory>();
-            _logger = factory.CreateLogger<SearchRepository>();
-
-            //mock IHttpClientFactory
-            var mockFactory = new Mock<IHttpClientFactory>();
+			//mock IHttpClientFactory
+			var mockFactory = new Mock<IHttpClientFactory>();
             var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
             mockHttpMessageHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -57,67 +45,38 @@ namespace GIFrameworkMaps.Tests
             var client = new HttpClient(mockHttpMessageHandler.Object);
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(client);
 
-            var versions = new List<Data.Models.Version>
-            {
-				new() { Name = "General version",Slug= "general",Id=1 },
-				new() { Name = "Custom Search Defs",Slug= "custom/searchdefs",Id=2 },
-				new() { Name = "Default Search Defs",Slug= "default/searchdefs",Id=3 }
-            };
+            // TODO: Add some parameters to the mockMemoryCache?
+            var mockMemoryCache = new MemoryCache(new MemoryCacheOptions());
 
-            var searchDefs = new List<SearchDefinition>
-            {
-                new LocalSearchDefinition{Name = "Coordinates - BNG 12 Figure", Title="British National Grid Coordinates"},
-                new APISearchDefinition{Name = "OS Places API", Title ="Addresses"}
-            };
-
-            var versionSearchDefs = new List<VersionSearchDefinition>
-            {
-                new() {Version = versions[0], SearchDefinition = searchDefs[0],Enabled = true, VersionId = versions[0].Id},
-                new() {Version = versions[0], SearchDefinition = searchDefs[1],Enabled = true, VersionId = versions[0].Id},
-                new() {Version = versions[1], SearchDefinition = searchDefs[1],Enabled = true, VersionId = versions[1].Id}
-            };
-
-            var versionsMockSet = versions.AsQueryable().BuildMockDbSet();
-            var searchDefsMockSet = searchDefs.AsQueryable().BuildMockDbSet();
-            var versionSearchDefsMockSet = versionSearchDefs.AsQueryable().BuildMockDbSet();
-
-            var mockApplicationDbContext = new Mock<IApplicationDbContext>();
-            mockApplicationDbContext.Setup(m => m.Versions).Returns(versionsMockSet.Object);
-            mockApplicationDbContext.Setup(m => m.SearchDefinitions).Returns(searchDefsMockSet.Object);
-            mockApplicationDbContext.Setup(m => m.VersionSearchDefinitions).Returns(versionSearchDefsMockSet.Object);
-
-            var mockMemoryCache = new MemoryCache(new MemoryCacheOptions()); ;
-            /* TO DO: Add some parameters to the mockMemoryCache? */
-            sut = new SearchRepository(_logger, mockApplicationDbContext.Object, mockFactory.Object, mockHttpContextAccessor.Object, mockMemoryCache);
+            sut = new SearchRepository(mockLogger.Object, mockIApplicationDbContext.Object, mockFactory.Object, mockHttpContextAccessor.Object, mockMemoryCache);
         }
 
         [Test]
         [TestCase(1, ExpectedResult = 2)]
-        [TestCase(2, ExpectedResult = 1)]
-        [TestCase(3, ExpectedResult = 2)]
-        public int GetSearchDefinitionsByVersion_ValidVersion(int versionId)
+        [TestCase(8, ExpectedResult = 1)]
+        [TestCase(9, ExpectedResult = 2)]
+        public async Task<int> GetSearchDefinitionsByVersion_ValidVersion(int versionId)
         {
-            var searchDefs = sut.GetSearchDefinitionsByVersion(versionId);
+            var searchDefs = await sut.GetSearchDefinitionsByVersion(versionId);
 
             return searchDefs.Count;
         }
 
         [Test]
-        [TestCase(3, ExpectedResult = 2)]
-        public int GetSearchDefinitionsByVersion_ValidVersion_DefaultConfig(int versionId)
+        [TestCase(9, ExpectedResult = 2)]
+        public async Task<int> GetSearchDefinitionsByVersion_ValidVersion_DefaultConfig(int versionId)
         {
-            var searchDefs = sut.GetSearchDefinitionsByVersion(versionId);
+            var searchDefs = await sut.GetSearchDefinitionsByVersion(versionId);
 
             return searchDefs.Count;
         }
 
         [Test]
-        [TestCase(4)]
+        [TestCase(99)]
         [TestCase(0)]
         public void GetSearchDefinitionsByVersion_InvalidVersion(int versionId)
         {
-
-            Assert.Throws<KeyNotFoundException>(delegate { sut.GetSearchDefinitionsByVersion(versionId); });
+            Assert.ThrowsAsync<KeyNotFoundException>(async () => await sut.GetSearchDefinitionsByVersion(versionId) );
         }
 
         [Test(Description = "Gets a valid address-like JSON result and tests extracting the results, expecting a valid x and y and a properly formatted title")]
@@ -220,7 +179,7 @@ namespace GIFrameworkMaps.Tests
             APISearchDefinition searchDefinition = new() { Name = "Example Address API", Title = "Addresses", MaxResults = 100, ZoomLevel = 19, EPSG = 27700, SupressGeom = false, XFieldPath = "$.results[*].DPA.X_COORDINATE", YFieldPath = "$.results[*].DPA.Y_COORDINATE" };
             string testJSONResult = File.ReadAllText("Data/addresses.json");
 
-            Assert.Throws<InvalidOperationException>(delegate { SearchRepository.GetResultsFromJSONString(testJSONResult, searchDefinition); });
+            Assert.Throws<InvalidOperationException>(() => SearchRepository.GetResultsFromJSONString(testJSONResult, searchDefinition));
 
         }
 
@@ -277,7 +236,7 @@ namespace GIFrameworkMaps.Tests
         {
             LocalSearchDefinition searchDefinition = new() { LocalSearchName = "BNGAlphaNumeric" };
 
-            Assert.Throws<System.ArgumentOutOfRangeException>(delegate { SearchRepository.LocalSearch(searchTerm, searchDefinition); });
+            Assert.Throws<ArgumentOutOfRangeException>(() => SearchRepository.LocalSearch(searchTerm, searchDefinition));
         }
 
         [Test]

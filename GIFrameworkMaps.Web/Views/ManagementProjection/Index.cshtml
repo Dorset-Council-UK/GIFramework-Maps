@@ -1,6 +1,9 @@
 ﻿@model List<GIFrameworkMaps.Data.Models.Projection>
 @{
     ViewData["Title"] = "Projections";
+
+    // Working out the base edit URL once is significantly faster than doing it for each row
+    var editUrl = Url.Action("Edit");
 }
 
 <partial name="ManagementPartials/BackToManagementHome" />
@@ -23,7 +26,7 @@
             {
                 <tr>
                     <td>@projection.EPSGCode</td>
-                    <td>@Html.ActionLink(projection.Name, "Edit", new { id = projection.EPSGCode })</td>
+                    <td><a href="@editUrl/@projection.EPSGCode">@projection.Name</a></td>
                     <td>@projection.Description</td>
                 </tr>
             }

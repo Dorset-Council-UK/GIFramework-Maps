@@ -8,13 +8,14 @@ namespace GIFrameworkMaps.Web.Authorization
 	public class HasAccessToVersionAuthorizationHandler : AuthorizationHandler<HasAccessToVersionRequirement, Data.Models.Version>
     {
         private readonly ICommonRepository _repository;
-        public HasAccessToVersionAuthorizationHandler(
-            ICommonRepository repository)
+
+        public HasAccessToVersionAuthorizationHandler(ICommonRepository repository)
         {
             _repository = repository;
         }
+
         protected override Task HandleRequirementAsync(
-            AuthorizationHandlerContext context, 
+            AuthorizationHandlerContext context,
             HasAccessToVersionRequirement requirement,
             Data.Models.Version resource)
         {
@@ -28,10 +29,11 @@ namespace GIFrameworkMaps.Web.Authorization
                 if (context.User.Identity.IsAuthenticated)
                 {
                     var claimsIdentity = (ClaimsIdentity)context.User.Identity;
-                    var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                    var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
                     var userId = claim.Value;
                     
-                    if (_repository.CanUserAccessVersion(userId, resource.Id))
+					var canAccess = _repository.CanUserAccessVersion(userId, resource.Id).Result;
+					if (canAccess)
                     {
                         context.Succeed(requirement);
                     }

@@ -25,6 +25,7 @@ namespace GIFrameworkMaps.Data
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMemoryCache _memoryCache;
+
         public SearchRepository(ILogger<SearchRepository> logger, IApplicationDbContext context, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache)
         {
             _logger = logger;
@@ -40,102 +41,111 @@ namespace GIFrameworkMaps.Data
         /// <param name="versionId">The ID of the version to get search definitions for</param>
         /// <returns>List of VersionSearchDefinition</returns>
         /// <exception cref="KeyNotFoundException">Returned when the version can not be found</exception>
-        public List<VersionSearchDefinition> GetSearchDefinitionsByVersion(int versionId)
+        public async Task<List<VersionSearchDefinition>> GetSearchDefinitionsByVersion(int versionId)
         {
-            if (_context.Versions.Where(v => v.Id == versionId).AsNoTrackingWithIdentityResolution().Any())
-            {                
-                string cacheKey = "SearchDefinitions/" + versionId.ToString();
+			// Check if the version exists
+			bool versionExists = await _context.Versions
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.AnyAsync(o => o.Id == versionId);
 
-                if (_memoryCache.TryGetValue(cacheKey, out List<VersionSearchDefinition>? cacheValue))
-                {
-                    //using null forgiving operator as if a value is found in the cache it must not be null
-                    return cacheValue!;
-                }
-                else
-                {
-                    var searchDefs = _context.VersionSearchDefinitions
-                        .Where(v => v.VersionId == versionId)
-                        .AsNoTrackingWithIdentityResolution()
-                        .Include(v => v.SearchDefinition)
-                        .ToList();
+			if (!versionExists)
+			{
+				throw new KeyNotFoundException($"Version with ID {versionId} does not exist");
+			}
 
-                    //If null get default based on general version (which should always exist)
-                    if (searchDefs is null || searchDefs.Count == 0)
-                    {
-                        searchDefs = _context.VersionSearchDefinitions
-                            .Where(v => v.Version!.Slug == "general")
-                            .AsNoTrackingWithIdentityResolution()
-                            .Include(v => v.SearchDefinition)
-                            .ToList();
-                    }
+			string cacheKey = "SearchDefinitions/" + versionId.ToString();
 
-                    // Cache the results so they can be used next time we call this function.
-                    _memoryCache.Set(cacheKey, searchDefs, TimeSpan.FromMinutes(10));
-                    return searchDefs;
-                }
-            }
-            else
+            if (_memoryCache.TryGetValue(cacheKey, out List<VersionSearchDefinition>? cacheValue))
+			{
+				//using null forgiving operator as if a value is found in the cache it must not be null
+				return cacheValue!;
+			}
+
+			var searchDefs = await _context.VersionSearchDefinitions
+                .AsNoTracking()
+                .Where(o => o.VersionId == versionId)
+                .Include(o => o.SearchDefinition)
+                .ToListAsync();
+
+            //If null get default based on general version (which should always exist)
+            if (searchDefs is null || searchDefs.Count == 0)
             {
-                throw new KeyNotFoundException($"Version with ID {versionId} does not exist");
+                searchDefs = await _context.VersionSearchDefinitions
+                    .AsNoTracking()
+                    .Where(o => o.Version!.Slug == "general")
+                    .Include(o => o.SearchDefinition)
+                    .ToListAsync();
             }
+
+            // Cache the results so they can be used next time we call this function.
+            _memoryCache.Set(cacheKey, searchDefs, TimeSpan.FromMinutes(10));
+
+            return searchDefs;
         }
 
-        /// <summary>
-        ///     Performs a complex text search based on the search term provided made up of specified multiple searches 
-        ///     </summary>
-        ///     <param name="searchTerm">The search argument</param>
-        ///     <param name="requiredSearchesList">List of searches which can be performed</param>
-        ///     <returns>Returns results sets from each of the searches actually performed</returns>
-        ///     <remarks></remarks>
-        public SearchResults Search(string searchTerm, List<RequiredSearch> requiredSearchesList)
+		/// <summary>
+		///     Performs a complex text search based on the search term provided made up of specified multiple searches 
+		///     </summary>
+		///     <param name="searchTerm">The search argument</param>
+		///     <param name="requiredSearchesList">List of searches which can be performed</param>
+		///     <returns>Returns results sets from each of the searches actually performed</returns>
+		///     <remarks></remarks>
+		public async Task<SearchResults> Search(string searchTerm, List<RequiredSearch> requiredSearchesList)
         {
-            SearchResults searchResults = new();
+            var searchResults = new SearchResults();
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 searchTerm = searchTerm.Trim();
-                                
-                var orderedList = requiredSearchesList.OrderBy(x => x.Order);
-                    
-                /*TODO - Make this statement check the version and only get defs for that version*/
-                //Gets the full search definition details from the database
-                List<VersionSearchDefinition> searchDefs = _context.VersionSearchDefinitions
-                    .Include(v => v.SearchDefinition)
-                    .AsNoTrackingWithIdentityResolution()
-                    .ToList();
 
-                foreach (var reqSearch in orderedList)
+				// Extract IDs from the required searches list (delay getting the data, no ToList)
+				var requiredIds = requiredSearchesList
+					.Select(o => o.SearchDefinitionId)
+					.Distinct();
+
+				// Load all the relevant search definitions
+				var searchDefinitions = await _context.VersionSearchDefinitions
+					.AsNoTracking()
+					.Where(o => requiredIds.Contains(o.SearchDefinitionId))
+					.Include(o => o.SearchDefinition)
+					.Select(o => o.SearchDefinition)
+					.ToListAsync();
+
+				foreach (var reqSearch in requiredSearchesList.OrderBy(o => o.Order))
                 {
                     if (reqSearch.Enabled)
                     {
-                        IEnumerable<VersionSearchDefinition> defs = searchDefs.Where(d => d.SearchDefinitionId == reqSearch.SearchDefinitionId);
-                        if (defs.Any())
-                        {
-                            var selectedDefinition = defs.First().SearchDefinition;
-                                                       
-                            if(IsValidSearchTerm(selectedDefinition))
+						var selectedDefinition = searchDefinitions.FirstOrDefault(o => o?.Id == reqSearch.SearchDefinitionId, null);
+
+                        if (selectedDefinition is not null)
+						{
+							if (IsValidSearchTerm(searchTerm, selectedDefinition))
                             {
                                 var searchResultCategory = new SearchResultCategory()
                                 {
-									CategoryName = selectedDefinition!.Title,
+									CategoryName = selectedDefinition.Title,
 									Ordering = reqSearch.Order,
-									AttributionHtml = selectedDefinition!.AttributionHtml,
+									AttributionHtml = selectedDefinition.AttributionHtml,
 									SupressGeom = selectedDefinition.SupressGeom
                                 };
+
                                 try
                                 {
-                                    var results = SingleSearch(searchTerm, selectedDefinition);
+                                    var results = await SingleSearch(searchTerm, selectedDefinition);
                                     if (results.Count > 0)
                                     {
                                         searchResultCategory.Results = results;
                                         searchResults.ResultCategories.Add(searchResultCategory);
                                     }
-                                }catch(Exception ex)
+                                }
+								catch(Exception ex)
                                 {
                                     //set the error flag as something went wrong. We still want to carry on with other searches though
-                                    _logger.LogError(ex,"Exception thrown executing search \"{definition}\"",selectedDefinition.Name);
+                                    _logger.LogError(ex,"Exception thrown executing search \"{definition}\"", selectedDefinition.Name);
                                     searchResults.IsError = true;
                                 }
+
                                 // Stop search now if flag set on current search and something found since last time flag set
                                 if (searchResultCategory.Results.Count > 0 && reqSearch.StopIfFound)
                                     break;
@@ -146,20 +156,17 @@ namespace GIFrameworkMaps.Data
             }
             searchResults.TotalResults = searchResults.ResultCategories.Sum(r => r.Results.Count);
             return searchResults;
+        }
 
-            //A search term is valid if it's blank or it matches the Required Search's validation regular expression. 
-            bool IsValidSearchTerm(SearchDefinition? selectedDefinition)
-            {
-                if (selectedDefinition == null)
-                    return false;
+        // A search term is valid if it's blank or it matches the Required Search's validation regular expression. 
+        private static bool IsValidSearchTerm(string searchTerm, SearchDefinition? selectedDefinition)
+        {
+            if (selectedDefinition is null) return false;
 
-                if (!string.IsNullOrEmpty(selectedDefinition.ValidationRegex))
-                {
-                    var validationRegex = new Regex(selectedDefinition.ValidationRegex);
-                    return validationRegex.IsMatch(searchTerm);
-                }
-                return true;
-            }
+            if (string.IsNullOrEmpty(selectedDefinition.ValidationRegex)) return true;
+            
+			var validationRegex = new Regex(selectedDefinition.ValidationRegex);
+            return validationRegex.IsMatch(searchTerm);
         }
 
         /// <summary>
@@ -168,18 +175,19 @@ namespace GIFrameworkMaps.Data
         /// <param name="searchTerm">The search term to search for</param>
         /// <param name="searchDefinition">The search definition to search against</param>
         /// <returns>List of Search Results</returns>
-        private List<SearchResult> SingleSearch(string searchTerm, SearchDefinition searchDefinition)
+        private async Task<List<SearchResult>> SingleSearch(string searchTerm, SearchDefinition searchDefinition)
         {
+            var apiSearchDefs = await GetAPISearchDefinitions();
+            var dbSearchDefs = await GetDBSearchDefinitions();
+            var localSearchDefs = await GetLocalSearchDefinitions();
+
             var searchResults = new List<SearchResult>();
-            var apiSearchDefs = GetAPISearchDefinitions();
-            var dbSearchDefs = GetDBSearchDefinitions();
-            var localSearchDefs = GetLocalSearchDefinitions();
 
             if(apiSearchDefs.Any(d => d.Id == searchDefinition.Id))
             {
                 //API Search
                 var fullSearchDef = apiSearchDefs.Where(d => d.Id == searchDefinition.Id).First();
-                searchResults = APISearchAsync(searchTerm, fullSearchDef).Result;
+                searchResults = await APISearchAsync(searchTerm, fullSearchDef);
             }
             else if(dbSearchDefs.Any(d => d.Id == searchDefinition.Id))
             {
@@ -200,76 +208,73 @@ namespace GIFrameworkMaps.Data
         /// Gets the list of possible API Search Definitions
         /// </summary>
         /// <returns>List of APISearchDefinition</returns>
-        private List<APISearchDefinition> GetAPISearchDefinitions()
+        private async Task<List<APISearchDefinition>> GetAPISearchDefinitions()
         {
-            // Check to see if the results of this search have already been cached and, if so, return that.
-            if (_memoryCache.TryGetValue("APISearchDefinitions", out List<APISearchDefinition>? cacheValue))
-            {
-                return cacheValue!;
-            }
-            else
-            {
-                List<APISearchDefinition> defs = _context.APISearchDefinitions
-                    .AsNoTrackingWithIdentityResolution()
-                    .ToList();
+			// Check to see if the results of this search have already been cached and, if so, return that.
+			if (_memoryCache.TryGetValue("APISearchDefinitions", out List<APISearchDefinition>? cacheValue))
+			{
+				return cacheValue!;
+			}
 
-                // Cache the results so they can be used next time we call this function.
-                if (defs.Count > 0)
-                {
-                    _memoryCache.Set("APISearchDefinitions", defs, TimeSpan.FromHours(1));
-                }
-                return defs;
-            }           
+			var defs = await _context.APISearchDefinitions
+                .AsNoTracking()
+                .ToListAsync();
+
+            // Cache the results so they can be used next time we call this function.
+            if (defs.Count > 0)
+            {
+                _memoryCache.Set("APISearchDefinitions", defs, TimeSpan.FromHours(1));
+            }
+
+            return defs;
         }
         /// <summary>
         /// Gets the list of possible Database Search Definitions
         /// </summary>
         /// <returns>List of DatabaseSearchDefinition</returns>
-        private List<DatabaseSearchDefinition> GetDBSearchDefinitions()
+        private async Task<List<DatabaseSearchDefinition>> GetDBSearchDefinitions()
         {
             // Check to see if the results of this search have already been cached and, if so, return that.
             if (_memoryCache.TryGetValue("DBSearchDefinitions", out List<DatabaseSearchDefinition>? cacheValue))
-            {
-                return cacheValue!;
-            }
-            else
-            {
-                List<DatabaseSearchDefinition> defs = _context.DatabaseSearchDefinitions
-                    .AsNoTrackingWithIdentityResolution()
-                    .ToList();
+			{
+				return cacheValue!;
+			}
 
-                // Cache the results so they can be used next time we call this function.
-                if (defs.Count > 0)
-                {
-                    _memoryCache.Set("DBSearchDefinitions", defs, TimeSpan.FromHours(1));
-                }
-                return defs;
+			var defs = await _context.DatabaseSearchDefinitions
+                .AsNoTracking()
+                .ToListAsync();
+
+            // Cache the results so they can be used next time we call this function.
+            if (defs.Count > 0)
+            {
+                _memoryCache.Set("DBSearchDefinitions", defs, TimeSpan.FromHours(1));
             }
+
+            return defs;
         }
         /// <summary>
         /// Gets the list of possible Local Search Definitions
         /// </summary>
         /// <returns>List of LocalSearchDefinition</returns>
-        private List<LocalSearchDefinition> GetLocalSearchDefinitions()
+        private async Task<List<LocalSearchDefinition>> GetLocalSearchDefinitions()
         {
             // Check to see if the results of this search have already been cached and, if so, return that.
             if (_memoryCache.TryGetValue("LocalSearchDefinitions", out List<LocalSearchDefinition>? cacheValue))
-            {
-                return cacheValue!;
-            }
-            else
-            {
-                List<LocalSearchDefinition> defs = _context.LocalSearchDefinitions
-                    .AsNoTrackingWithIdentityResolution()
-                    .ToList();
+			{
+				return cacheValue!;
+			}
 
-                // Cache the results so they can be used next time we call this function.
-                if (defs.Count > 0)
-                {
-                    _memoryCache.Set("LocalSearchDefinitions", defs, TimeSpan.FromHours(1));
-                }
-                return defs;
+			var defs = await _context.LocalSearchDefinitions
+                .AsNoTracking()
+                .ToListAsync();
+
+            // Cache the results so they can be used next time we call this function.
+            if (defs.Count > 0)
+            {
+                _memoryCache.Set("LocalSearchDefinitions", defs, TimeSpan.FromHours(1));
             }
+
+            return defs;
         }
 
         /// <summary>
@@ -290,7 +295,7 @@ namespace GIFrameworkMaps.Data
             var referer = $"{_httpContextAccessor.HttpContext!.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}";
             request.Headers.Add("Referer", referer);
                       
-            var client = _httpClientFactory.CreateClient();
+            using var client = _httpClientFactory.CreateClient();
             var response = await client.SendAsync(request);
 
             if (response.IsSuccessStatusCode)

@@ -2,19 +2,18 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
-
 	[Authorize(Roles = "GIFWAdmin")]
     public class ManagementController : Controller
     {
         //dependancy injection
         private readonly ICommonRepository _repository;
         private readonly IApplicationDbContext _context;
-        public ManagementController(
-            ICommonRepository repository, IApplicationDbContext context
-            )
+
+        public ManagementController(ICommonRepository repository, IApplicationDbContext context)
         {
 
             _repository = repository;
@@ -37,9 +36,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             
         }
 
-        public IActionResult BroadcastMessage()
+        public async Task<IActionResult> BroadcastMessage()
         {
-            var versions = _repository.GetVersions();
+            var versions = await _repository.GetVersions();
             return View(versions);
         }
     }

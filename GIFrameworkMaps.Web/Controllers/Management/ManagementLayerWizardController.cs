@@ -35,11 +35,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         }
 
         [HttpPost]
-        public IActionResult CreateXYZSource(string xyzUrl)
+        public async Task<IActionResult> CreateXYZSource(string xyzUrl)
         {
             var layerSource = new LayerSource();
             var editModel = new LayerWizardCreateXYZSourceViewModel { LayerSource = layerSource, URLTemplate = xyzUrl };
-            RebuildLayerWizardCreateSourceViewModel(ref editModel, layerSource);
+            await RebuildLayerWizardCreateSourceViewModel(editModel, layerSource);
             return View(editModel);
         }
 
@@ -75,7 +75,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         "contact your system administrator.");
                 }
             }
-            RebuildLayerWizardCreateSourceViewModel(ref model, model.LayerSource);
+            await RebuildLayerWizardCreateSourceViewModel(model, model.LayerSource);
             return View("CreateXYZSource", model);
         }
 
@@ -162,17 +162,17 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private void RebuildLayerWizardCreateSourceViewModel(ref LayerWizardCreateSourceViewModel model, LayerSource layerSource)
         {
-            var attributions = _context.Attributions.OrderBy(t => t.Name).ToList();
-            var layerSourceTypes = _context.LayerSourceTypes.Where(l => l.Name.Contains("WMS")).OrderBy(t => t.Id).ToList();
+            var attributions = _context.Attributions.OrderBy(t => t.Name);
+            var layerSourceTypes = _context.LayerSourceTypes.Where(l => l.Name.Contains("WMS")).OrderBy(t => t.Id);
             model.AvailableAttributions = new SelectList(attributions, "Id", "Name", layerSource.AttributionId);
             model.AvailableLayerSourceTypes = new SelectList(layerSourceTypes, "Id", "Name", layerSource.LayerSourceTypeId);
         }
 
-        private void RebuildLayerWizardCreateSourceViewModel(ref LayerWizardCreateXYZSourceViewModel model, LayerSource layerSource)
+        private async Task RebuildLayerWizardCreateSourceViewModel(LayerWizardCreateXYZSourceViewModel model, LayerSource layerSource)
         {
-            var attributions = _context.Attributions.OrderBy(t => t.Name).ToList();
+            var attributions = _context.Attributions.OrderBy(t => t.Name);
             model.AvailableAttributions = new SelectList(attributions, "Id", "Name", layerSource.AttributionId);
-            var xyzLayerSourceType = _context.LayerSourceTypes.Where(l => l.Name == "XYZ").FirstOrDefault();
+            var xyzLayerSourceType = await _context.LayerSourceTypes.Where(l => l.Name == "XYZ").SingleOrDefaultAsync();
             model.LayerSource.LayerSourceTypeId = xyzLayerSourceType.Id;
         }
     }

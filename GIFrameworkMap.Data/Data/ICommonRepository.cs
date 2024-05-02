@@ -8,13 +8,13 @@ namespace GIFrameworkMaps.Data
 {
 	public interface ICommonRepository
     {
-        Version? GetVersionBySlug(string slug1, string slug2, string slug3);
-        bool CanUserAccessVersion(string userId, int id);
+        Task<Version?> GetVersionBySlug(string slug1, string slug2, string slug3);
+        Task<bool> CanUserAccessVersion(string userId, int id);
         Task<List<Version>> GetVersionsListForUser(string? userId);
-        Version? GetVersion(int id);
-        VersionViewModel GetVersionViewModel(Version version);
-        List<Version> GetVersions();
-        List<ApplicationUserRole> GetUserRoles(string userId);
+        Task<Version?> GetVersion(int id);
+		VersionViewModel GetVersionViewModel(Version version);
+        Task<List<Version>> GetVersions();
+		List<ApplicationUserRole> GetUserRoles(string userId);
         List<WebLayerServiceDefinition> GetWebLayerServiceDefinitions();
         List<ProxyAllowedHost> GetProxyAllowedHosts();
         Task<List<ProxyAllowedHost>> GetProxyAllowedHostsAsync();

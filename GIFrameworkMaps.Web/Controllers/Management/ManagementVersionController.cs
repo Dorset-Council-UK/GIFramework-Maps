@@ -20,7 +20,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 	  ICommonRepository commonRepository,
 	  ApplicationDbContext context,
 	  IConfiguration configuration
-			) : Controller
+	) : Controller
     {
         //dependancy injection
         /*NOTE: A repository pattern is used for much basic data access across the project
@@ -29,22 +29,21 @@ namespace GIFrameworkMaps.Web.Controllers.Management
          * */
         private readonly ILogger<ManagementVersionController> _logger = logger;
         private readonly IManagementRepository _repository = repository;
-        private readonly ICommonRepository _commonRepository = commonRepository;
+		private readonly ICommonRepository _commonRepository = commonRepository;
         private readonly ApplicationDbContext _context = context;
 
 		// GET: Version
 		public async Task<IActionResult> Index()
         {
-            var versions = await _repository.GetVersions();
+            var versions = await _commonRepository.GetVersions();
             return View(versions);
         }
 
         // GET: Version/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            var version = new Data.Models.Version();
-            var editModel = new VersionEditViewModel() { Version = version };
-            RebuildViewModel(ref editModel, version);
+            var editModel = new VersionEditViewModel() { Version = new() };
+			await RebuildViewModel(editModel, editModel.Version);
             return View(editModel);
         }
 
@@ -80,35 +79,28 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 catch (DbUpdateException ex)
                 {
                     _logger.LogError(ex, "Version creation failed");
-                    ModelState.AddModelError("", "Unable to save changes. " +
-                        "Try again, and if the problem persists, " +
-                        "contact your system administrator.");
+                    ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
                 }
             }
 
             editModel = new VersionEditViewModel() { Version = editModel.Version };
-            RebuildViewModel(ref editModel, editModel.Version);
+			await RebuildViewModel(editModel, editModel.Version);
             return View(editModel);
         }
 
         // GET: Version/Edit/1
         public async Task<IActionResult> Edit(int id)
         {
-            var version = await _context.Versions
-                .Include(v => v.VersionBasemaps)
-                    .ThenInclude(v => v.Basemap)
-                .Include(v => v.VersionCategories)
-                    .ThenInclude(v => v.Category)
-				.Include(v => v.VersionProjections)
-					.ThenInclude(v => v.Projection)
-                .FirstOrDefaultAsync(v => v.Id == id);
+			var version = await _commonRepository.GetVersion(id);
 
-            if (version == null)
+			if (version is null)
             {
                 return NotFound();
             }
+
             var editModel = new VersionEditViewModel() { Version = version };
-            RebuildViewModel(ref editModel, version);
+			await RebuildViewModel(editModel, editModel.Version);
+
             return View(editModel);
         }
 
@@ -124,16 +116,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 			int[] selectedCategories,
             bool purgeCache)
         {
-            var versionToUpdate = await _context.Versions
-                .Include(v => v.VersionBasemaps)
-                    .ThenInclude(v => v.Basemap)
-				.Include(v => v.VersionProjections)
-					.ThenInclude(v => v.Projection)
-				.Include(v => v.VersionCategories)
-                    .ThenInclude(v => v.Category)
-                .Include(v => v.VersionLayerCustomisations)
-                .FirstOrDefaultAsync(v => v.Id == id);
-
+			var versionToUpdate = await _commonRepository.GetVersion(id);
             var editModel = new VersionEditViewModel() { Version = versionToUpdate };
 
             if (await TryUpdateModelAsync(
@@ -157,7 +140,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.TourDetailsId
                 ))
             {
-
                 try
                 {
                     UpdateVersionBasemaps(selectedBasemaps, defaultBasemap, versionToUpdate);
@@ -177,14 +159,12 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 catch (DbUpdateException ex )
                 {
                     _logger.LogError(ex, "Version edit failed");
-                    ModelState.AddModelError("", "Unable to save changes. " +
-                        "Try again, and if the problem persists, " +
-                        "contact your system administrator.");
+                    ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
                 }
             }
-            
-            RebuildViewModel(ref editModel, versionToUpdate);
-            return View(editModel);
+
+			await RebuildViewModel(editModel, versionToUpdate);
+			return View(editModel);
         }
 
 		// GET: Version/EditContacts/1
@@ -193,15 +173,17 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             try
             {
                 var version = await _context.Versions
-                                .Include(v => v.VersionContacts)
-                                .FirstOrDefaultAsync(v => v.Id == id);
+					.AsNoTracking()
+					.IgnoreAutoIncludes()
+					.Include(v => v.VersionContacts)
+                    .FirstOrDefaultAsync(v => v.Id == id);
 
-                if (version == null)
+                if (version is null)
                 {
                     return NotFound();
                 }
                 var editModel = new VersionEditViewModel() { Version = version };
-                RebuildViewModel(ref editModel, version);
+				await RebuildViewModel(editModel, editModel.Version);
                 editModel.UserDetails = [];
                 foreach (var v in editModel.Version.VersionContacts)
                 {
@@ -211,9 +193,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             } catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "We were unable to load the contacts for this version");
-                ModelState.AddModelError("", "We were unable to load the contacts for this version. " +
-                "Try again, and if the problem persists, " +
-                "contact your system administrator.");
+                ModelState.AddModelError("", "We were unable to load the contacts for this version. Try again, and if the problem persists, contact your system administrator.");
                 return RedirectToAction("Edit", new { Id = id });
             }
         }
@@ -252,8 +232,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     }
                     else
                     {
-                        VersionContact existingRecord = _context.VersionContacts.FirstOrDefault(u => u.VersionContactId == model.ContactEntry.VersionContactId);
-                        if (existingRecord != null)
+                        var existingRecord = await _context.VersionContacts
+							.AsNoTracking()
+							.FirstOrDefaultAsync(o => o.VersionContactId == model.ContactEntry.VersionContactId);
+                        if (existingRecord is not null)
                         {
                             existingRecord.DisplayName = model.ContactEntry.DisplayName;
                             existingRecord.Enabled = model.ContactEntry.Enabled;
@@ -261,12 +243,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         }
                     }
                     await _context.SaveChangesAsync();
-                } catch(DbUpdateException ex)
+                }
+				catch(DbUpdateException ex)
                 {
                     _logger.LogError(ex, "Version contact edit failed");
-                    ModelState.AddModelError("", "Unable to save changes. " +
-                    "Try again, and if the problem persists, " +
-                    "contact your system administrator.");
+                    ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
                     //Refresh the available users list
                     model.ListOfUsers = await _repository.GetUsers();
                     return View(model);
@@ -283,7 +264,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/EditContact/1?VersionContactId=1
         public async Task<IActionResult> EditContact(int id, int VersionContactId)
         {
-            VersionAddContactViewModel ViewModel = new()
+			var versionContact = await _context.VersionContacts.FindAsync([VersionContactId, id]);
+
+			VersionAddContactViewModel ViewModel = new()
             {
                 ContactEntry = _context.VersionContacts.FirstOrDefault(u => u.VersionId == id && u.VersionContactId == VersionContactId),
                 ListOfUsers = await _repository.GetUsers()
@@ -294,10 +277,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/DeleteContact/1?VersionContactId=1
         public async Task<IActionResult> DeleteContact(int id, int VersionContactId)
         {
-            var recordToDeleete = _context.VersionContacts.FirstOrDefault(u => u.VersionId == id && u.VersionContactId == VersionContactId);
-            try
+            var recordToDelete = await _context.VersionContacts.FindAsync([VersionContactId, id]);
+			try
             {
-                _context.VersionContacts.Remove(recordToDeleete);
+                _context.VersionContacts.Remove(recordToDelete);
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Version contact deleted";
                 TempData["MessageType"] = "success";
@@ -316,30 +299,30 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         public async Task<IActionResult> LayerCustomisation(int id)
         {
             //get list of all layers and customisations
-            var version = _commonRepository.GetVersion(id);
-            //TODO - fetch this as part of the above?
-            version.VersionLayerCustomisations = await _context.VersionLayers.
-                Include(r => r.Layer)
+            var version = await _commonRepository.GetVersion(id);
+
+			if (version is null)
+			{
+				TempData["Message"] = "Version not found";
+				TempData["MessageType"] = "danger";
+				return RedirectToAction("Edit", new { Id = id });
+			}
+
+			version.VersionLayerCustomisations = await _context.VersionLayers
+				.Include(r => r.Layer)
                 .Include(r => r.Category)
                 .Where(r => r.VersionId == version.Id)
                 .AsNoTrackingWithIdentityResolution()
                 .ToListAsync();
-            if (version != null)
-            {
-                return View(version);
-            } else
-            {
-                TempData["Message"] = "Version not found";
-                TempData["MessageType"] = "danger";
-                return RedirectToAction("Edit", new { Id = id });
-            }
+
+            return View(version);
         }
 
         // GET Version/EditLayerCustomisation/123?layerId=234&categoryId=345
         public async Task<IActionResult> EditLayerCustomisation(int id, int layerId, int categoryId)
         {
             //get the layer details and any existing customisations
-            var version = _commonRepository.GetVersion(id);
+            var version = await _commonRepository.GetVersion(id);
             var layer = await _repository.GetLayer(layerId);
             var category = await _repository.GetLayerCategory(categoryId);
             //TODO - fetch this as part of the above?
@@ -348,7 +331,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 				.Where(r => r.VersionId == version.Id && r.LayerId == layerId && r.CategoryId == categoryId)
 				.FirstOrDefaultAsync();
 
-            var viewModel = new CustomiseLayerEditViewModel() {
+            var viewModel = new CustomiseLayerEditViewModel()
+			{
 				Layer = layer,
 				Version = version,
 				Category = category,
@@ -386,18 +370,16 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     catch (DbUpdateException ex)
                     {
                         _logger.LogError(ex, "Layer customisation failed");
-                        ModelState.AddModelError("", "Unable to save changes. " +
-                            "Try again, and if the problem persists, " +
-                            "contact your system administrator.");
+                        ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
                     }
                 }
             }
             else
             {
                 //edit
-                var customisationToUpdate = await _context.VersionLayers.Where(c => c.Id == model.LayerCustomisation.Id).FirstOrDefaultAsync();
+				var customisationToUpdate = await _context.VersionLayers.FindAsync(model.LayerCustomisation.Id);
 
-                if (await TryUpdateModelAsync(
+				if (await TryUpdateModelAsync(
                     customisationToUpdate,
                     "LayerCustomisation",
                     a => a.IsDefault,
@@ -418,17 +400,21 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     catch (DbUpdateException ex)
                     {
                         _logger.LogError(ex, "Layer customisation failed");
-                        ModelState.AddModelError("", "Unable to save changes. " +
-                            "Try again, and if the problem persists, " +
-                            "contact your system administrator.");
+                        ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
                     }
                 }
             }
 
-            var version = _commonRepository.GetVersion(model.Version.Id);
+            var version = await _commonRepository.GetVersion(model.Version.Id);
             var layer = await _repository.GetLayer(model.Layer.Id);
             var category = await _repository.GetLayerCategory(model.Category.Id);
-            var viewModel = new CustomiseLayerEditViewModel() { Layer = layer, Version = version, Category = category, LayerCustomisation = model.LayerCustomisation };
+            var viewModel = new CustomiseLayerEditViewModel()
+			{
+				Layer = layer,
+				Version = version,
+				Category = category,
+				LayerCustomisation = model.LayerCustomisation
+			};
 
             return View(viewModel);
 
@@ -437,7 +423,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/DeleteLayerCustomisation/123
         public async Task<IActionResult> DeleteLayerCustomisation(int id)
         {
-            var customisation = await _context.VersionLayers.Include(r => r.Layer).Include(r => r.Category).Where(r => r.Id == id).FirstOrDefaultAsync();
+            var customisation = await _context.VersionLayers
+				.Include(r => r.Layer)
+				.Include(r => r.Category)
+				.Where(r => r.Id == id)
+				.FirstOrDefaultAsync();
             return View(customisation);
         }
 
@@ -445,8 +435,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [HttpPost, ActionName("DeleteLayerCustomisation")]
         public async Task<IActionResult> DeleteLayerCustomisationPost(int id)
         {
-            var customisation = await _context.VersionLayers.Where(r => r.Id == id).FirstOrDefaultAsync();
-            try
+			var customisation = await _context.VersionLayers.FindAsync(id);
+			try
             {
                 
                 _context.Remove(customisation);
@@ -458,27 +448,23 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Layer customisation removal failed");
-                ModelState.AddModelError("", "Unable to save changes. " +
-                    "Try again, and if the problem persists, " +
-                    "contact your system administrator.");
+                ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
             }
             return View(customisation);
         }
 
         // GET Version/RemoveAllCustomisations/1
-        public IActionResult RemoveAllCustomisations(int id)
+        public async Task<IActionResult> RemoveAllCustomisations(int id)
         {
-            var version = _commonRepository.GetVersion(id);
-            if (version != null)
-            {
-                return View(version);
-            }
-            else
-            {
-                TempData["Message"] = "Version could not be found";
-                TempData["MessageType"] = "danger";
-                return RedirectToAction("Index");
-            }
+            var version = await _commonRepository.GetVersion(id);
+			if (version is null)
+			{
+				TempData["Message"] = "Version could not be found";
+				TempData["MessageType"] = "danger";
+				return RedirectToAction("Index");
+			}
+
+            return View(version);
         }
         // POST Version/RemoveAllCustomisations/1
         [HttpPost, ActionName("RemoveAllCustomisations")]
@@ -495,20 +481,18 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Layer customisation removal failed");
-                ModelState.AddModelError("", "Unable to save changes. " +
-                    "Try again, and if the problem persists, " +
-                    "contact your system administrator.");
+                ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
             }
-            var version = _commonRepository.GetVersion(id);
+            var version = await _commonRepository.GetVersion(id);
             return View(version);
         }
 
         // GET: Version/Delete/1
         public async Task<IActionResult> Delete(int id)
         {
-            var version = await _repository.GetVersion(id);
+            var version = await _commonRepository.GetVersion(id);
 
-            if (version == null)
+            if (version is null)
             {
                 return NotFound();
             }
@@ -521,22 +505,24 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirm(int id)
         {
-            var versionToDelete = await _context.Versions.FirstOrDefaultAsync(a => a.Id == id);
-            try
+			var versionToDelete = await _context.Versions.FindAsync(id);
+
+			try
             {
                 _context.Versions.Remove(versionToDelete);
                 await _context.SaveChangesAsync();
+
                 TempData["Message"] = "Version deleted";
                 TempData["MessageType"] = "success";
+
                 return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Version delete failed");
-                ModelState.AddModelError("", "Unable to save changes. " +
-                    "Try again, and if the problem persists, " +
-                    "contact your system administrator.");
+                ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
             }
+
             return View(versionToDelete);
         }
 
@@ -565,10 +551,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         {
                             versionToUpdate.VersionBasemaps = [];
                         }
-                        versionToUpdate.VersionBasemaps.Add(new VersionBasemap { 
+                        versionToUpdate.VersionBasemaps.Add(new VersionBasemap
+						{ 
                             VersionId = versionToUpdate.Id, 
                             BasemapId = basemap.Id, 
-                            IsDefault = (basemap.Id == defaultBasemap),
+                            IsDefault = basemap.Id == defaultBasemap,
                             DefaultOpacity = 100, 
                             DefaultSaturation = 100 
                         });
@@ -579,7 +566,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                         versionToUpdate.VersionBasemaps
                             .Where(b => b.BasemapId == basemap.Id)
                             .FirstOrDefault()
-                            .IsDefault = (basemap.Id == defaultBasemap);
+                            .IsDefault = basemap.Id == defaultBasemap;
 
                     }
                 }
@@ -589,7 +576,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     if (versionBasemaps.Contains(basemap.Id))
                     {
                         VersionBasemap versionBasemapToRemove = versionToUpdate.VersionBasemaps.FirstOrDefault(i => i.BasemapId == basemap.Id);
-                        _context.Remove(versionBasemapToRemove);
+						_context.Remove(versionBasemapToRemove);
                     }
                 }
             }
@@ -624,8 +611,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 						{
 							VersionId = versionToUpdate.Id,
 							ProjectionId = projection.EPSGCode,
-							IsDefaultViewProjection = (viewProjection == projection.EPSGCode),
-							IsDefaultMapProjection = (mapProjection == projection.EPSGCode)
+							IsDefaultViewProjection = viewProjection == projection.EPSGCode,
+							IsDefaultMapProjection = mapProjection == projection.EPSGCode
 						});
 					}
 					else
@@ -634,8 +621,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 						var versionProjectionValue = versionToUpdate.VersionProjections
 							.Where(p => p.ProjectionId == projection.EPSGCode)
 							.FirstOrDefault();
-						versionProjectionValue.IsDefaultMapProjection = (projection.EPSGCode == mapProjection);
-						versionProjectionValue.IsDefaultViewProjection = (projection.EPSGCode == viewProjection);
+						versionProjectionValue.IsDefaultMapProjection = projection.EPSGCode == mapProjection;
+						versionProjectionValue.IsDefaultViewProjection = projection.EPSGCode == viewProjection;
 
 					}
 				}
@@ -689,51 +676,80 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
         }
 
-        private void RebuildViewModel(ref VersionEditViewModel model, GIFrameworkMaps.Data.Models.Version version)
-        {
-            var themes = _context.Themes.OrderBy(t => t.Name).ToList();
-            var bounds = _context.Bounds.OrderBy(t => t.Name).ToList();
-            var welcomeMessages = _context.WelcomeMessages.OrderBy(t => t.Name).ToList();
-            var tours = _context.TourDetails.OrderBy(t => t.Name).ToList();
-            var basemaps = _context.Basemaps.OrderBy(b => b.Name).ToList();
-			var projections = _context.Projections.OrderBy(b => b.Name).ToList();
-			var categories = _context.Categories.OrderBy(b => b.Name).ToList();
-			var preferredDefaultProjectionString = configuration["GIFrameworkMaps:PreferredProjections"].Split(',').FirstOrDefault();
-			var preferredDefaultProjection = string.IsNullOrEmpty(preferredDefaultProjectionString) ? projections.First() : projections.Where(p => p.EPSGCode == int.Parse(preferredDefaultProjectionString.Replace("EPSG:", ""))).FirstOrDefault();
+		private async Task RebuildViewModel(VersionEditViewModel model, Data.Models.Version version)
+		{
+			var themes = await _context.Themes
+				.AsNoTracking()
+				.Select(o => new { o.Id, o.Name })
+				.OrderBy(o => o.Name)
+				.ToListAsync();
 
-            model.AvailableThemes = new SelectList(themes, "Id", "Name", version.ThemeId);
-            model.AvailableBounds = new SelectList(bounds, "Id", "Name", version.BoundId);
-            model.AvailableWelcomeMessages = new SelectList(welcomeMessages, "Id", "Name", version.WelcomeMessageId);
-            model.AvailableTours = new SelectList(tours, "Id", "Name", version.TourDetailsId);
+			var bounds = await _context.Bounds
+				.AsNoTracking()
+				.Select(o => new { o.Id, o.Name })
+				.OrderBy(o => o.Name)
+				.ToListAsync();
 
-            model.AvailableBasemaps = basemaps;
-            if (version.VersionBasemaps != null) {
-                model.SelectedBasemaps = version.VersionBasemaps.Select(v => v.BasemapId).ToList();
+			var welcomeMessages = await _context.WelcomeMessages
+				.AsNoTracking()
+				.Select(o => new { o.Id, o.Name })
+				.OrderBy(o => o.Name)
+				.ToListAsync();
 
-                model.DefaultBasemap = version.VersionBasemaps.Where(v => v.IsDefault == true).Select(v => v.BasemapId).FirstOrDefault();
-            }
-			model.AvailableProjections = projections;
-			if (version.VersionProjections != null)
+			var tours = await _context.TourDetails
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.Select(o => new { o.Id, o.Name })
+				.OrderBy(o => o.Name)
+				.ToListAsync();
+
+			model.AvailableThemes = new SelectList(themes, "Id", "Name", version.ThemeId);
+			model.AvailableBounds = new SelectList(bounds, "Id", "Name", version.BoundId);
+			model.AvailableWelcomeMessages = new SelectList(welcomeMessages, "Id", "Name", version.WelcomeMessageId);
+			model.AvailableTours = new SelectList(tours, "Id", "Name", version.TourDetailsId);
+
+			// Basemaps
+			model.AvailableBasemaps = await _context.Basemaps
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.OrderBy(b => b.Name)
+				.ToListAsync();
+			model.SelectedBasemaps = version.VersionBasemaps.Select(v => v.BasemapId).ToList();
+			model.DefaultBasemap = version.VersionBasemaps.Where(v => v.IsDefault == true).Select(v => v.BasemapId).FirstOrDefault();
+
+			// Projections
+			model.AvailableProjections = await _context.Projections
+				.AsNoTracking()
+				.OrderBy(b => b.Name)
+				.ToListAsync();
+			var preferredDefaultProjectionString = configuration["GIFrameworkMaps:PreferredProjections"].Split(',').FirstOrDefault()?.Replace("EPSG:", "");
+			var preferredDefaultProjection = string.IsNullOrEmpty(preferredDefaultProjectionString)
+				? model.AvailableProjections.First()
+				: model.AvailableProjections.Where(p => p.EPSGCode == int.Parse(preferredDefaultProjectionString)).FirstOrDefault();
+
+			// Version Projections
+			var versionProjections = version.VersionProjections.ToList();
+			model.SelectedProjections = versionProjections.Select(v => v.ProjectionId).ToList();
+			model.MapProjection = versionProjections.FirstOrDefault(v => v.IsDefaultMapProjection)?.ProjectionId ?? preferredDefaultProjection.EPSGCode;
+			model.ViewProjection = versionProjections.FirstOrDefault(v => v.IsDefaultViewProjection)?.ProjectionId ?? preferredDefaultProjection.EPSGCode;
+
+			//switch on the defaults
+			model.SelectedProjections.Add(preferredDefaultProjection.EPSGCode);
+			model.SelectedProjections.Add(3857);
+			model.SelectedProjections.Add(4326);
+
+			// Categories
+			model.AvailableCategories = await _context.Categories
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.OrderBy(b => b.Name)
+				.ToListAsync();
+			if (version.VersionCategories.Count != 0)
 			{
-				model.SelectedProjections = version.VersionProjections.Select(v => v.ProjectionId).ToList();
-				var mapProj = version.VersionProjections.Where(v => v.IsDefaultMapProjection).FirstOrDefault();
-				var viewProj = version.VersionProjections.Where(v => v.IsDefaultViewProjection).FirstOrDefault();
-
-				model.MapProjection = mapProj == null ? preferredDefaultProjection.EPSGCode : mapProj.ProjectionId;
-				model.ViewProjection = viewProj == null ? preferredDefaultProjection.EPSGCode : viewProj.ProjectionId;
-				//switch on the defaults
-				model.SelectedProjections.Add(preferredDefaultProjection.EPSGCode);
-				model.SelectedProjections.Add(3857);
-				model.SelectedProjections.Add(4326);
-
+				model.SelectedCategories = version.VersionCategories.Select(c => c.CategoryId).ToList();
 			}
-			model.AvailableCategories = categories;
-            if (version.VersionCategories.Count != 0)
-            {
-                model.SelectedCategories = version.VersionCategories.Select(c => c.CategoryId).ToList();
-            }
-            ViewData["SelectedCategories"] = model.SelectedCategories;
-            ViewData["AllCategories"] = model.AvailableCategories;
-        }
+			ViewData["SelectedCategories"] = model.SelectedCategories;
+			ViewData["AllCategories"] = model.AvailableCategories;
+		}
     }
 }

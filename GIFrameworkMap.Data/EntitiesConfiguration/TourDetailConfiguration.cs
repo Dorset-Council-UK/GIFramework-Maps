@@ -11,6 +11,10 @@ namespace GIFrameworkMaps.Data.EntitiesConfiguration
 			builder
 				.Property(o => o.Frequency)
 				.HasDefaultValue(-1);
+
+			builder
+				.Navigation(o => o.Steps)
+				.AutoInclude();
 		}
 	}
 }

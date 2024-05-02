@@ -1,6 +1,9 @@
 ﻿@model List<GIFrameworkMaps.Data.Models.WelcomeMessage>
 @{
     ViewData["Title"] = "Welcome Messages";
+
+    // Working out the base edit URL once is significantly faster than doing it for each row
+    var editUrl = Url.Action("Edit");
 }
 
 <partial name="ManagementPartials/BackToManagementHome" />
@@ -23,7 +26,7 @@
             {
                 <tr>
                     <td>@welcomeMessage.Id</td>
-                    <td>@Html.ActionLink(welcomeMessage.Name, "Edit", new { id = welcomeMessage.Id })</td>
+                    <td><a href="@editUrl/@welcomeMessage.Id">@welcomeMessage.Name</a></td>
                 </tr>
             }
         </tbody>

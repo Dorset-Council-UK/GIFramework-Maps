@@ -1,6 +1,9 @@
 ﻿@model List<GIFrameworkMaps.Data.Models.Version>
 @{
     ViewData["Title"] = "Versions";
+
+    // Working out the base edit URL once is significantly faster than doing it for each row
+    var editUrl = Url.Action("Edit");
 }
 
 <partial name="ManagementPartials/BackToManagementHome" />
@@ -23,7 +26,7 @@
             {
                 <tr>
                     <td>@version.Id</td>
-                    <td>@Html.ActionLink(version.Name, "Edit", new { id = version.Id })</td>
+                    <td><a href="@editUrl/@version.Id">@version.Name</a></td>
                     <td>@version.Slug</td>
                     <td>
                         @if (version.RequireLogin)

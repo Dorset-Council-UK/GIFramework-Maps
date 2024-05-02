@@ -51,11 +51,12 @@ namespace GIFrameworkMaps.Web.Controllers
                 slug1.Replace(Environment.NewLine, ""),
                 slug2?.Replace(Environment.NewLine, ""),
                 slug3?.Replace(Environment.NewLine, ""));
-            var version = _repository.GetVersionBySlug(slug1,slug2,slug3);
-            if (version != null)
+
+            var version = await _repository.GetVersionBySlug(slug1, slug2, slug3);
+            if (version is not null)
             {
                 
-                _logger.LogInformation("Found version {versionName}",version.Name);
+                _logger.LogInformation("Found version {versionName}", version.Name);
 
                 if (!version.Enabled)
                 {
@@ -70,10 +71,10 @@ namespace GIFrameworkMaps.Web.Controllers
 
                 if (authResult.Succeeded)
                 {
-                    //now we get the full details
-                    var fullVersionDetails = _repository.GetVersion(version.Id);
-                    var viewModel = _repository.GetVersionViewModel(fullVersionDetails);
-                    ViewData["AnalyticsModel"] = _adminRepository.GetAnalyticsModel();
+					//now we get the full details
+					var fullVersionDetails = await _repository.GetVersion(version.Id);
+					var viewModel = _repository.GetVersionViewModel(fullVersionDetails);
+                    ViewData["AnalyticsModel"] = await _adminRepository.GetAnalyticsModel();
 
                     var host = Request.Host.ToUriComponent();
                     var pathBase = Request.PathBase.ToUriComponent();
@@ -104,10 +105,8 @@ namespace GIFrameworkMaps.Web.Controllers
                     }
                 }  
             }
-            else
-            {
-                return View("VersionNotFound");
-            }
+
+            return View("VersionNotFound");
         }
 
         public async Task<IActionResult> UserShortLink(string id)

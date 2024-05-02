@@ -33,124 +33,80 @@ namespace GIFrameworkMaps.Data
             _httpContextAccessor = httpContextAccessor;
         }
 
-        /// <summary>
-        /// Gets the basic, top-level version information by slug. This should NOT be used to get all linked entities
-        /// </summary>
-        /// <param name="slug1">First part of the URL slug</param>
-        /// <param name="slug2">Second part of the URL slug</param>
-        /// <param name="slug3">Third part of the URL slug</param>
-        /// <returns>Version object containing basic information only, or null</returns>
-        public Models.Version? GetVersionBySlug(string slug1, string slug2, string slug3)
+		/// <summary>
+		/// Gets the basic, top-level version information by slug. This should NOT be used to get all linked entities
+		/// </summary>
+		/// <param name="slug1">First part of the URL slug</param>
+		/// <param name="slug2">Second part of the URL slug</param>
+		/// <param name="slug3">Third part of the URL slug</param>
+		/// <returns>Version object containing basic information only, or null</returns>
+		public async Task<Models.Version?> GetVersionBySlug(string slug1, string slug2, string slug3)
         {            
             string slug = CreateSlug(slug1, slug2, slug3);
 
             string cacheKey = "VersionBySlug/" + slug;
 
-            // Check to see if the version for this slug has already been cached and, if so, return that.
-            if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
-            {
-                return cacheValue;
-            }
-            else
-            {
-                Models.Version? version = _context.Versions
-                    .AsNoTrackingWithIdentityResolution()
-                    .FirstOrDefault(v => v.Slug == slug);
+			// Check to see if the version for this slug has already been cached and, if so, return that.
+			if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
+			{
+				return cacheValue;
+			}
 
-                // Cache the results so they can be used next time we call this function.
-                if (version is not null)
-                {
-                    _memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));
-                }
-                return version;
+			var version = await _context.Versions
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+                .FirstOrDefaultAsync(v => v.Slug == slug);
+
+            // Cache the results so they can be used next time we call this function.
+            if (version is not null)
+            {
+                _memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));
             }
+            return version;
         }
 
-        /// <summary>
-        /// Join all the parts of a slug, separated by a "/" (until we reach a blank slug).
-        /// </summary>
-        /// <param name="slugParts">A list of the slug parts (which must contain at least one).</param>
-        /// <returns></returns>
-        /// <remarks>Have created this as a generic method so it could be reused.</remarks>
-        private static string CreateSlug(params string[] slugParts)
-        {
-            return slugParts[0].ToLower() + 
-                //Append more slug parts if there are any left and the next is non-blank.
-                (slugParts.Length > 1 && !string.IsNullOrEmpty(slugParts[1]) 
-                    ? "/" + CreateSlug(slugParts.Skip(1).ToArray()) : "");
-        }
+		/// <summary>
+		/// Join all the parts of a slug, separated by a "/". Null or empty parts are ignored.
+		/// </summary>
+		/// <param name="slugParts">A list of the slug parts</param>
+		/// <returns>A list of combined slugs, in lowercase, separated by forward slash</returns>
+		private static string CreateSlug(params string[] slugParts)
+		{
+			return string.Join("/", slugParts
+				.Where(part => !string.IsNullOrEmpty(part))
+				.Select(part => part.ToLower())
+			);
+		}
 
-        public Models.Version? GetVersion(int versionId)
-        {
-            string cacheKey = "Version/" + versionId.ToString();
+		public async Task<Models.Version?> GetVersion(int versionId)
+		{
+			string cacheKey = "Version/" + versionId.ToString();
 
-            // Check to see if the version has already been cached and, if so, return that.
-            if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
-            {
-                return cacheValue;
-            }
-            else
-            {
-                //TODO - This mass of then includes seems pretty nasty, maybe find another way?
-                var version = _context.Versions
-                                    .Include(v => v.Bound)
-                                    .Include(v => v.Theme)
-                                    .Include(v => v.WelcomeMessage)
-                                    .Include(v => v.TourDetails)
-                                        .ThenInclude(t => t!.Steps)
-                                    .Include(v => v.VersionBasemaps)
-                                        .ThenInclude(v => v.Basemap)
-                                        .ThenInclude(l => l!.LayerSource)
-                                        .ThenInclude(l => l!.LayerSourceOptions)
-                                    .Include(v => v.VersionBasemaps)
-                                        .ThenInclude(l => l.Basemap)
-                                        .ThenInclude(l => l!.LayerSource)
-                                        .ThenInclude(l => l!.LayerSourceType)
-                                    .Include(v => v.VersionBasemaps)
-                                        .ThenInclude(l => l.Basemap)
-                                        .ThenInclude(l => l!.LayerSource)
-                                        .ThenInclude(l => l!.Attribution)
-                                    .Include(v => v.VersionBasemaps)
-                                        .ThenInclude(l => l.Basemap)
-                                        .ThenInclude(l => l!.Bound)
-                                    .Include(v => v.VersionCategories)
-                                        .ThenInclude(v => v.Category)
-                                        .ThenInclude(c => c!.Layers)
-                                        .ThenInclude(cl => cl.Layer)
-                                        .ThenInclude(l => l!.LayerSource)
-                                        .ThenInclude(ls => ls!.LayerSourceOptions)
-                                    .Include(v => v.VersionCategories)
-                                        .ThenInclude(v => v.Category)
-                                        .ThenInclude(c => c!.Layers)
-                                        .ThenInclude(cl => cl.Layer)
-                                        .ThenInclude(l => l!.LayerSource)
-                                        .ThenInclude(l => l!.LayerSourceType)
-                                    .Include(v => v.VersionCategories)
-                                        .ThenInclude(v => v.Category)
-                                        .ThenInclude(c => c!.Layers)
-                                        .ThenInclude(cl => cl.Layer)
-                                        .ThenInclude(l => l!.LayerSource)
-                                        .ThenInclude(l => l!.Attribution)
-                                    .Include(v => v.VersionLayerCustomisations)
-									.Include(v => v.VersionProjections)
-										.ThenInclude(p => p.Projection)
-                                    .AsSplitQuery()
-                                    .AsNoTrackingWithIdentityResolution()
-                                    .FirstOrDefault(v => v.Id == versionId);
+			// Check to see if the version has already been cached and, if so, return that.
+			if (_memoryCache.TryGetValue(cacheKey, out Models.Version? cacheValue))
+			{
+				return cacheValue;
+			}
 
-                if (version is not null && String.IsNullOrEmpty(version.HelpURL))
-                {
-                    var generalVersion = GetVersionBySlug("general", "", "");
-                    version.HelpURL = generalVersion!.HelpURL;
-                }
+			var version = await _context.Versions
+				.AsNoTrackingWithIdentityResolution()
+				.AsSplitQuery()
+				.Where(o => o.Id == versionId)
+				.FirstOrDefaultAsync();
 
-                // Cache the results so they can be used next time we call this function.                
-                _memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));                
-                return version;
-            }
-        }
+			if (version is not null && string.IsNullOrEmpty(version.HelpURL))
+			{
+				var generalVersion = await GetVersionBySlug("general", "", "");
+				version.HelpURL = generalVersion!.HelpURL;
+			}
 
-        public VersionViewModel GetVersionViewModel(Models.Version version)
+			// Cache the results so they can be used next time we call this function.
+			_memoryCache.Set(cacheKey, version, TimeSpan.FromMinutes(10));
+
+			return version;
+		}
+
+		public VersionViewModel GetVersionViewModel(Models.Version version)
         {
 
             List<BasemapViewModel> basemaps = _mapper.Map<List<VersionBasemap>, List<BasemapViewModel>>(version.VersionBasemaps);
@@ -207,34 +163,46 @@ namespace GIFrameworkMaps.Data
             return viewModel;
         }
 
-        public List<Models.Version> GetVersions()
+		public async Task<List<Models.Version>> GetVersions()
         {
-            var versions = _context.Versions
-                .AsNoTrackingWithIdentityResolution()
-                .ToList();
-            return versions;
+            return await _context.Versions
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.ToListAsync();
         }
 
-        public bool CanUserAccessVersion(string userId, int versionId)
+		public async Task<bool> CanUserAccessVersion(string userId, int versionId)
         {
-            var version = GetVersion(versionId);
-            if (version != null && !version.RequireLogin)
+            var version = await GetVersion(versionId);
+            if (version is not null && !version.RequireLogin)
             {
                 return true;
             }
-            var versionuser = _context.VersionUsers
-                .AsNoTrackingWithIdentityResolution()
-                .Any(vu => vu.UserId == userId && vu.VersionId == versionId);
+
+            var versionuser = await _context.VersionUsers
+                .AsNoTracking()
+                .AnyAsync(vu => vu.UserId == userId && vu.VersionId == versionId);
             
             return versionuser;
         }
 
 		public async Task<List<Models.Version>> GetVersionsListForUser(string? userId)
 		{
-			var users_versions_list = await _context.VersionUsers.Where(b => b.UserId == userId).Include(a => a.Version).ToListAsync();
-			var users_versions = users_versions_list.Select(a => a.Version).Where(a => (a != null) && a.RequireLogin == true && a.Hidden == false && a.Enabled == true);
-			var public_versions = await _context.Versions.Where(a => a.Enabled == true && a.RequireLogin == false && a.Hidden == false).ToListAsync();
-			
+			// Get user-specific versions
+			var users_versions = await _context.VersionUsers
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.Where(vu => vu.UserId == userId && vu.Version != null && vu.Version.Enabled == true && vu.Version.Hidden == false && vu.Version.RequireLogin == true)
+				.Select(vu => vu.Version)
+				.ToListAsync();
+
+			// Get public versions
+			var public_versions = await _context.Versions
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.Where(v => v.Enabled == true && v.RequireLogin == false && v.Hidden == false)
+				.ToListAsync();
+
 			return [..users_versions, ..public_versions];
 		}
 
@@ -358,8 +326,8 @@ namespace GIFrameworkMaps.Data
 
         public async Task<string> GetFullUrlFromShortId(string shortId)
         {
-            var shortLink = await _context.ShortLinks.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
-            if(shortLink == null || shortLink.FullUrl == null)
+			var shortLink = await _context.ShortLinks.FindAsync(shortId);
+            if(shortLink is null || shortLink.FullUrl is null)
             {
                 return "";
             }

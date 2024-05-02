@@ -112,16 +112,16 @@ namespace GIFrameworkMaps.Web.Controllers
             return File(ms.ToArray(), "image/svg+xml");
         }
 
-        public IActionResult WebManifest(int id)
+        public async Task<IActionResult> WebManifest(int id)
         {
             Data.Models.Version version;
             if(id == 0)
             {
-                version = _repository.GetVersionBySlug("general","","");
+                version = await _repository.GetVersionBySlug("general", "", "");
             }
             else
             {
-                version = _repository.GetVersion(id);
+                version = await _repository.GetVersion(id);
             }
             
             string appName = _configuration.GetValue<string>("GIFrameworkMaps:appName");
@@ -168,8 +168,8 @@ namespace GIFrameworkMaps.Web.Controllers
 
         public async Task<IActionResult> VersionConfiguration(int id)
         {
-            var version = _repository.GetVersion(id);
-            if (version != null)
+            var version = await _repository.GetVersion(id);
+			if (version != null)
             {
                 if (!version.Enabled)
                 {
