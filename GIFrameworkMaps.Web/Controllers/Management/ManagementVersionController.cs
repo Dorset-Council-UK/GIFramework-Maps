@@ -91,7 +91,14 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         // GET: Version/Edit/1
         public async Task<IActionResult> Edit(int id)
         {
-			var version = await _commonRepository.GetVersion(id);
+			var version = await _context.Versions
+				.Include(v => v.VersionBasemaps)
+					.ThenInclude(v => v.Basemap)
+				.Include(v => v.VersionCategories)
+					.ThenInclude(v => v.Category)
+				.Include(v => v.VersionProjections)
+					.ThenInclude(v => v.Projection)
+				.FirstOrDefaultAsync(v => v.Id == id);
 
 			if (version is null)
             {
@@ -116,7 +123,14 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 			int[] selectedCategories,
             bool purgeCache)
         {
-			var versionToUpdate = await _commonRepository.GetVersion(id);
+			var versionToUpdate = await _context.Versions
+                .Include(v => v.VersionBasemaps)
+                    .ThenInclude(v => v.Basemap)
+				.Include(v => v.VersionProjections)
+					.ThenInclude(v => v.Projection)
+				.Include(v => v.VersionCategories)
+                    .ThenInclude(v => v.Category)
+                .FirstOrDefaultAsync(v => v.Id == id);
             var editModel = new VersionEditViewModel() { Version = versionToUpdate };
 
             if (await TryUpdateModelAsync(
