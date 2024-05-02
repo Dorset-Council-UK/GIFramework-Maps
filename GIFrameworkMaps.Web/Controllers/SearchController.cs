@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers
@@ -38,21 +39,16 @@ namespace GIFrameworkMaps.Web.Controllers
             var searchOpts = await _repository.GetSearchDefinitionsByVersion(id);
 
             //convert to smaller payload required for map
-            //This might be better converted with something like AutoMapper
-            //but for now this works
             List<RequiredSearch> searches = [];
-            
-            foreach(var opt in searchOpts)
-            {
-                searches.Add(new RequiredSearch
-                {
-                    Enabled = opt.Enabled,
-                    Name = opt.SearchDefinition.Name,
-                    Order = opt.Order,
-                    SearchDefinitionId = opt.SearchDefinition.Id,
-                    StopIfFound = opt.StopIfFound
-                });
-            }
+
+			searches = searchOpts.Select(s => new RequiredSearch 
+			{ 
+				Enabled = s.Enabled, 
+				Name = s.SearchDefinition.Name,
+				Order = s.Order,
+				SearchDefinitionId = s.SearchDefinition.Id,
+				StopIfFound = s.StopIfFound
+			}).ToList();
 
             return Json(searches);
         }
