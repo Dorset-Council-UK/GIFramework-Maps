@@ -19,7 +19,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="8.0.2" />
-    <PackageReference Include="Npgsql.NodaTime" Version="8.0.2" />
+    <PackageReference Include="Npgsql.NodaTime" Version="8.0.3" />
     <PackageReference Include="OpenLocationCode" Version="2.1.1" />
     <PackageReference Include="shortid" Version="4.0.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />

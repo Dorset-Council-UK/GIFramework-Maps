@@ -104,12 +104,12 @@
       },
       "Npgsql.NodaTime": {
         "type": "Direct",
-        "requested": "[8.0.2, )",
-        "resolved": "8.0.2",
-        "contentHash": "F4fnGaf/zRuckORksd4oDsEcb8JCS41egk1rQE4opCHbA5b0QJhAxrq8zvf+RWLLUNye66mf4PdGTJtFc6G4fQ==",
+        "requested": "[8.0.3, )",
+        "resolved": "8.0.3",
+        "contentHash": "C0TzQcc4+/6jpRGb/YxphmCwRwSuWde9Yz9GWap1xfX2m6/QkYBhluv/EjsPCTWq3/UZaP9UgiUZKscTLNZt4g==",
         "dependencies": {
           "NodaTime": "3.1.9",
-          "Npgsql": "8.0.2"
+          "Npgsql": "8.0.3"
         }
       },
       "OpenLocationCode": {
@@ -548,8 +548,8 @@
       },
       "Npgsql": {
         "type": "Transitive",
-        "resolved": "8.0.2",
-        "contentHash": "MuJzLoWCaQhQAR3oh66YR0Ir6mxuezncGX3f8wxvAc21g0+9HICktJQlqMoODhxztZKXE5k9GxRxqUAN+vPb4g==",
+        "resolved": "8.0.3",
+        "contentHash": "6WEmzsQJCZAlUG1pThKg/RmeF6V+I0DmBBBE/8YzpRtEzhyZzKcK7ulMANDm5CkxrALBEC8H+5plxHWtIL7xnA==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "8.0.0"
         }
