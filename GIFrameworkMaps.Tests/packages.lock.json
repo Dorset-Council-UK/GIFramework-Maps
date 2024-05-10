@@ -495,8 +495,8 @@
       },
       "Npgsql": {
         "type": "Transitive",
-        "resolved": "8.0.2",
-        "contentHash": "MuJzLoWCaQhQAR3oh66YR0Ir6mxuezncGX3f8wxvAc21g0+9HICktJQlqMoODhxztZKXE5k9GxRxqUAN+vPb4g==",
+        "resolved": "8.0.3",
+        "contentHash": "6WEmzsQJCZAlUG1pThKg/RmeF6V+I0DmBBBE/8YzpRtEzhyZzKcK7ulMANDm5CkxrALBEC8H+5plxHWtIL7xnA==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "8.0.0"
         }
@@ -523,11 +523,11 @@
       },
       "Npgsql.NodaTime": {
         "type": "Transitive",
-        "resolved": "8.0.2",
-        "contentHash": "F4fnGaf/zRuckORksd4oDsEcb8JCS41egk1rQE4opCHbA5b0QJhAxrq8zvf+RWLLUNye66mf4PdGTJtFc6G4fQ==",
+        "resolved": "8.0.3",
+        "contentHash": "C0TzQcc4+/6jpRGb/YxphmCwRwSuWde9Yz9GWap1xfX2m6/QkYBhluv/EjsPCTWq3/UZaP9UgiUZKscTLNZt4g==",
         "dependencies": {
           "NodaTime": "3.1.9",
-          "Npgsql": "8.0.2"
+          "Npgsql": "8.0.3"
         }
       },
       "OpenLocationCode": {
@@ -816,7 +816,7 @@
           "Newtonsoft.Json": "[13.0.3, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[8.0.2, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime": "[8.0.2, )",
-          "Npgsql.NodaTime": "[8.0.2, )",
+          "Npgsql.NodaTime": "[8.0.3, )",
           "OpenLocationCode": "[2.1.1, )",
           "System.Data.SqlClient": "[4.8.6, )",
           "shortid": "[4.0.0, )"
