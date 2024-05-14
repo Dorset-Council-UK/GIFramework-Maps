@@ -5,6 +5,7 @@
   position: absolute;
   top: 0;
   overflow-y: hidden;
+  --embed-vertical-shift: 2em;
 }
 
 .giframeworkMap header {
@@ -15,18 +16,31 @@
   background-color: var(--primary-color-transparent-90);
   padding: 0.25rem 0.5rem;
 }
+.giframeworkMap.embed .navbar {
+  display: none;
+}
 .giframeworkMap .ol-zoom {
   top: 6em;
+}
+.giframeworkMap.embed .ol-zoom {
+  top: calc(6em - var(--embed-vertical-shift));
 }
 .giframeworkMap .ol-rotate {
   right: unset;
   left: 0.5rem;
   top: 10.5em;
 }
+.giframeworkMap.embed .ol-rotate {
+  top: calc(10.5em - var(--embed-vertical-shift));
+}
 .giframeworkMap .gifw-measure-control {
   right: unset;
   left: 0.5rem;
   top: 13em;
+}
+.giframeworkMap.embed .gifw-measure-control {
+  /*top: calc(13em - var(--embed-vertical-shift));*/
+  display:none;
 }
 .giframeworkMap .gifw-measure-control.ol-hidden {
   opacity: 0;
@@ -45,12 +59,16 @@
   left: 7.25rem;
 }
 .giframeworkMap .gifw-measure-control.gifw-configure-measure-control {
-    left: 9.5rem;
+  left: 9.5rem;
 }
 .giframeworkMap .gifw-annotation-control {
   right: unset;
   left: 0.5rem;
   top: 15.5em;
+}
+.giframeworkMap.embed .gifw-annotation-control {
+  /*top: calc(15.5em - var(--embed-vertical-shift));*/
+  display:none;
 }
 .giframeworkMap .gifw-annotation-control.ol-hidden {
   opacity: 0;
@@ -91,7 +109,10 @@
   left: 0.5rem;
   top: 18em;
 }
-
+.giframeworkMap.embed .gifw-info-control {
+  /*top: calc(18em - var(--embed-vertical-shift));*/
+  display:none;
+}
 .giframeworkMap .gifw-info-control.ol-hidden {
   opacity: 0;
   visibility: hidden;
@@ -116,6 +137,10 @@
   right: unset;
   left: 0.5rem;
   top: 20.5em;
+}
+.giframeworkMap.embed .gifw-geolocation-control {
+  /*top: calc(20.5em - var(--embed-vertical-shift));*/
+  display:none;
 }
 .giframeworkMap .gifw-geolocation-control.gifw-geolocation-recentre-control {
   left: 2.75rem;
@@ -165,14 +190,20 @@
   backdrop-filter: blur(2px);
 }
 .giframeworkMap .ol-attribution {
-  max-width: calc(100% - 10em);
+  max-width: 70%;
   backdrop-filter: blur(2px);
   font-size: 0.8rem;
   background: rgba(var(--bs-body-bg-rgb), 0.8);
+  bottom:0;
+  right:0;
 }
 .giframeworkMap .ol-attribution ul {
   text-shadow: none;
   color: var(--bs-body-color);
+}
+.giframeworkMap .ol-attribution button{
+  width:1.7rem;
+  height:1.7rem;
 }
 [data-bs-theme="dark"] .giframeworkMap .ol-attribution a {
   color: var(--bs-body-color);
@@ -203,6 +234,9 @@
   padding: 0;
   right: 0;
   top: 4rem;
+}
+.giframeworkMap.embed .sidebar-button {
+  top: calc(4rem - var(--embed-vertical-shift));
 }
 .giframeworkMap .sidebar-button.active {
   background-color: var(--primary-color-transparent-90);
@@ -244,6 +278,34 @@
   top: calc(4rem + 360px);
 }
 
+.giframeworkMap.embed .sidebar-button.sidebar-order-2 {
+  top: calc(4rem - var(--embed-vertical-shift) + 40px);
+}
+.giframeworkMap.embed .sidebar-button.sidebar-order-3 {
+  top: calc(4rem - var(--embed-vertical-shift) + 80px);
+}
+.giframeworkMap.embed .sidebar-button.sidebar-order-4 {
+  top: calc(4rem - var(--embed-vertical-shift) + 120px);
+}
+.giframeworkMap.embed .sidebar-button.sidebar-order-5 {
+  top: calc(4rem - var(--embed-vertical-shift) + 160px);
+}
+.giframeworkMap.embed .sidebar-button.sidebar-order-6 {
+  top: calc(4rem - var(--embed-vertical-shift) + 200px);
+}
+.giframeworkMap.embed .sidebar-button.sidebar-order-7 {
+  top: calc(4rem - var(--embed-vertical-shift) + 240px);
+}
+.giframeworkMap.embed .sidebar-button.sidebar-order-8 {
+  top: calc(4rem - var(--embed-vertical-shift) + 280px);
+}
+.giframeworkMap.embed .sidebar-button.sidebar-order-9 {
+  top: calc(4rem - var(--embed-vertical-shift) + 320px);
+}
+.giframeworkMap.embed .sidebar-button.sidebar-order-10 {
+  top: calc(4rem - var(--embed-vertical-shift) + 360px);
+}
+
 /*SIDEBAR*/
 .giframeworkMap aside#sidebar-container .sidebar-panels {
   position: absolute;
@@ -275,13 +337,20 @@
   height: calc(100dvh - 46px);
 }
 
+.giframeworkMap aside#sidebar-container .sidebar-panels {
+  top: 48px;
+  max-height: calc(100% - 48px);
+}
+.giframeworkMap.embed aside#sidebar-container .sidebar-panels {
+  top: 0px;
+  max-height: 100%;
+}
 /*Medium devices (tablets, 768px and up)*/
 @media (min-width: 768px) {
   .giframeworkMap aside#sidebar-container .sidebar-panels {
     width: 45%;
-    top: 48px;
-    max-height: calc(100% - 48px);
   }
+
   .giframeworkMap .sidebar-button.sidebar-open {
     display: block;
     right: 45%;
@@ -292,6 +361,7 @@
   .giframeworkMap aside#sidebar-container .sidebar-panels {
     width: 35%;
   }
+
   .giframeworkMap .sidebar-button.sidebar-open {
     right: 35%;
   }
@@ -415,7 +485,9 @@
   z-index: 101;
   top: 3.5rem;
 }
-
+.giframeworkMap.embed .gifw-search-control{
+  top: .5rem;
+}
 /*Medium devices (tablets, 768px and up)*/
 @media (min-width: 768px) {
   .giframeworkMap .search-control {
