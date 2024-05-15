@@ -173,10 +173,12 @@ export class BookmarkMenu {
 
     const mapCenter = this.gifwMapInstance.olMap.getView().getCenter();
     const mapZoom = this.gifwMapInstance.olMap.getView().getZoom();
+    const mapProj = this.gifwMapInstance.olMap.getView().getProjection();
+    const transformedCenter = new Point(mapCenter).transform(mapProj, 'EPSG:3857').getCoordinates();
 
     nameInput.value = "";
-    xInput.value = mapCenter[0].toString();
-    yInput.value = mapCenter[1].toString();
+    xInput.value = transformedCenter[0].toString();
+    yInput.value = transformedCenter[1].toString();
     zoomInput.value = mapZoom.toString();
     validationText.innerHTML = "";
     this.hideBookmarkMenu();
@@ -225,6 +227,7 @@ export class BookmarkMenu {
   private zoomToBookmark(bookmark: Bookmark) {
     const coord = [bookmark.x, bookmark.y];
     const point = new Point(coord);
+    point.transform('EPSG:3857', this.gifwMapInstance.olMap.getView().getProjection());
     const curZoom = this.gifwMapInstance.olMap.getView().getZoom();
     const zoomDiff =
       Math.max(bookmark.zoom, curZoom) - Math.min(bookmark.zoom, curZoom);
