@@ -92,6 +92,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         public async Task<IActionResult> Edit(int id)
         {
 			var version = await _context.Versions
+				.AsSplitQuery()
 				.Include(v => v.VersionBasemaps)
 					.ThenInclude(v => v.Basemap)
 				.Include(v => v.VersionCategories)
