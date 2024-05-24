@@ -43,6 +43,7 @@ import {
 import LayerRenderer from "ol/renderer/Layer";
 import { Projection } from "./Interfaces/Projection";
 import { VersionToggler } from "./VersionToggler";
+import { UserSettings } from "./UserSettings";
 
 export class GIFWMap {
   id: string;
@@ -112,9 +113,8 @@ export class GIFWMap {
       collapsible: true,
       collapsed: this.mode === 'embed',
     });
-    const scaleline = new olControl.ScaleLine({
-      units: "metric",
-    });
+    const scalelineType = UserSettings.getItem("prefersScaleBar") === "true" ? 'bar' : 'line';
+    const scaleline = this.createScaleLineControl(scalelineType)
     const rotateControl = new olControl.Rotate({
       autoHide: false,
       tipLabel: "Reset rotation (Alt-Shift and Drag to rotate)",
@@ -460,6 +460,9 @@ export class GIFWMap {
     annotationStylePanel.setListeners(annotationStyleSidebar);
 
     annotateControl.init();
+
+    //add scale bar changer
+    this.attachScaleBarSwitcherListener(scalelineType);
 
     //add permalink updater
     map.on("moveend", () => {
@@ -816,6 +819,38 @@ export class GIFWMap {
       });
     });
     return layer;
+  }
+
+  private createScaleLineControl(type: 'line' | 'bar') {
+    return new olControl.ScaleLine({
+      units: "metric",
+      bar: type === 'bar',
+      text: true,
+      minWidth: 100
+    });
+  }
+
+  private toggleScaleBarType(currentType: 'bar' | 'line') {
+    const newType = currentType === 'line' ? 'bar' : 'line';
+    this.olMap.getControls().forEach(ctrl => {
+      if (ctrl instanceof olControl.ScaleLine) {
+        this.olMap.removeControl(ctrl);
+        const scaleLineControl = this.createScaleLineControl(newType);
+        this.olMap.addControl(scaleLineControl);
+        UserSettings.setItem("prefersScaleBar", (newType === 'bar').toString());
+        //attach new event listener
+        this.attachScaleBarSwitcherListener(newType);
+      }
+    });
+  }
+
+  private attachScaleBarSwitcherListener(scaleLineType: 'bar' | 'line') {
+    const scalelineEle = document.querySelector(`.ol-scale-${scaleLineType}`);
+    if (!scalelineEle) { return; }
+    (scalelineEle as HTMLElement).title = `Change to scale ${scaleLineType === 'bar' ? 'line' : 'bar'}`;
+    scalelineEle.addEventListener('click', () => {
+      this.toggleScaleBarType(scaleLineType);
+    })
   }
 
   /**
