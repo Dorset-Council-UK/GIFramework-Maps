@@ -23,8 +23,19 @@
         <div class="col">
             <div class="card link-card h-100">
                 <div class="card-body">
+                    <a asp-action="Index" asp-controller="ManagementBasemap" class="stretched-link">
+                        <h4 class="card-title"><img src="@Url.Content("~/img/panel-icons/basemaps-icon.svg")" class="card-title-icon" alt=""/> Basemaps</h4>
+                        <p class="card-text">Manage the basemaps available in @appName</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card link-card h-100">
+                <div class="card-body">
                     <a asp-action="Index" asp-controller="ManagementLayer" class="stretched-link">
-                        <h4 class="card-title"><i class="bi bi-geo"></i> Layers</h4>
+                        <h4 class="card-title"><img src="@Url.Content("~/img/panel-icons/layers-icon.svg")" class="card-title-icon" alt="" /> Layers</h4>
                         <p class="card-text">Manage layers consumed by @appName</p>
                     </a>
                 </div>
