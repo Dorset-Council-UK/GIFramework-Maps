@@ -1,0 +1,29 @@
+﻿@using GIFrameworkMaps.Data.ViewModels.Management
+@model BasemapEditViewModel
+@{
+    ViewData["Title"] = $"Edit basemap '{Model.Basemap.Name}'";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div>
+    <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/gui/basemaps/" class="btn btn-outline-primary" target="_blank"
+       role="button">Stuck? Read the help documentation</a>
+</div>
+
+<form asp-action="Edit">
+    <div class="row mt-2 mb-2">
+        <div class="col-md-8 col-lg-6">
+
+            <partial name="ManagementPartials/EditBasemapPartial" model="Model"/>
+
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+            </div>
+            <div>
+                <a asp-action="Delete" asp-route-id="@Model.Basemap.Id" class="btn btn-danger">Delete</a>
+            </div>
+        </div>
+    </div>
+</form>

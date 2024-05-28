@@ -1,0 +1,47 @@
+﻿@using GIFrameworkMaps.Data.ViewModels.Management
+@model BasemapEditViewModel
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+<input type="hidden" asp-for="Basemap.Id" />
+<div class="mb-3">
+    <label asp-for="Basemap.Name" class="control-label"></label>
+    <input asp-for="Basemap.Name" class="form-control" />
+    <span asp-validation-for="Basemap.Name" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Basemap.MinZoom" class="control-label"></label>
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-6">
+            <input asp-for="Basemap.MinZoom" class="form-control" />
+        </div>
+    </div>
+    <div class="form-text">This is the furthest zoomed <strong>out</strong> this basemap can be rendered at. This will restrict the map from being zoomed out any further than this</div>
+    <span asp-validation-for="Basemap.MinZoom" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Basemap.MaxZoom" class="control-label"></label>
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-6">
+            <input asp-for="Basemap.MaxZoom" class="form-control" />
+        </div>
+    </div>
+    <div class="form-text">This is the furthest zoomed <strong>in</strong> this basemap can be rendered at. This will restrict the map from being zoomed in any further than this</div>
+    <span asp-validation-for="Basemap.MaxZoom" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Basemap.PreviewImageURL" class="control-label"></label>
+    <input asp-for="Basemap.PreviewImageURL" class="form-control" />
+    <span asp-validation-for="Basemap.PreviewImageURL" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Basemap.BoundId" class="control-label"></label>
+    <select asp-for="Basemap.BoundId" asp-items="Model.AvailableBounds" class="form-select">
+        <option value="">Not bounded</option>
+    </select>
+    <span class="form-text">Restricts map rendering and querying outside of these bounds. </span>
+    <span asp-validation-for="Basemap.BoundId" class="text-danger"></span>
+</div>

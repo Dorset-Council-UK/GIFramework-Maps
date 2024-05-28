@@ -1,0 +1,63 @@
+﻿@model List<GIFrameworkMaps.Data.Models.Basemap>
+@{
+    ViewData["Title"] = "Basemaps";
+
+    // Working out the base edit URL once is significantly faster than doing it for each row
+    var editUrl = Url.Action("Edit");
+}
+
+<partial name="ManagementPartials/BackToManagementHome" />
+
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Create, edit and delete basemaps</p>
+
+<a href="@Url.Action("Create")" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add new basemap</a>
+
+@if (Model != null)
+{
+    <table id="basemapTable" class="table table-bordered table-striped mt-2">
+        <thead>
+            <tr>
+                <th>ID</th><th>Name</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (GIFrameworkMaps.Data.Models.Basemap basemap in Model.OrderBy(a => a.Name))
+        {
+            <tr>
+                    <td>@basemap.Id</td>
+                    <td><a href="@editUrl/@basemap.Id">@basemap.Name</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No basemaps have been created yet</div>
+}
+
+@section Scripts {
+    <script>
+        const opts = {
+            perPage: 0,
+            perPageSelect: [10, 25, 50, 100, ["All", 0]],
+            classes:
+            {
+                input: "form-control",
+                top: "datatable-top px-0",
+                selector: "form-select",
+                paginationList: "pagination",
+                paginationListItem: "page-item",
+                paginationListItemLink: "page-link",
+                active: 'active',
+                disabled: 'disabled'
+            }
+        };
+        const dataTable = new simpleDatatables.DataTable("#basemapTable", opts);
+    </script>
+}
+
+
+
+

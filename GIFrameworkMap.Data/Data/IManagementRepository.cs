@@ -43,5 +43,7 @@ namespace GIFrameworkMaps.Data
 		Task<Projection?> GetProjection(int id);
 		Task<List<Projection>> GetProjections();
 		Task<AnalyticsViewModel> GetAnalyticsModel();
-    }
+		Task<List<Basemap>> GetBasemaps();
+		Task<Basemap?> GetBasemap(int id);
+	}
 }
