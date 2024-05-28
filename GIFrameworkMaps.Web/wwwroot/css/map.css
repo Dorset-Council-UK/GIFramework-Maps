@@ -171,9 +171,14 @@
 .giframeworkMap .ol-touch .ol-control button {
   font-size: 1rem;
 }
+.giframeworkMap .ol-scale-line, .giframeworkMap .ol-scale-bar {
+  bottom: 2rem;
+  pointer-events: auto !important;
+  cursor: pointer;
+}
 .giframeworkMap .ol-scale-line {
   background-color: var(--primary-color-transparent-50);
-  bottom: 2rem;
+
 }
 .giframeworkMap .ol-scale-line-inner {
   color: white;
