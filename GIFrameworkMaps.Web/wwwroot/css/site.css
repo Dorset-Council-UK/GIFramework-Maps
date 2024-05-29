@@ -223,10 +223,14 @@ footer img.brand {
   color: inherit;
   text-decoration: none;
 }
-.card-title-icon{
-  height:32px;
-  width:32px;
-  vertical-align:-.4em;
+.card-title-icon {
+  height: 32px;
+  width: 32px;
+  vertical-align: -.4em;
+  filter: brightness(0.1);
+}
+[data-bs-theme="dark"] .card-title-icon{
+  filter: none;
 }
 .validation-summary-errors li {
   list-style: none;
