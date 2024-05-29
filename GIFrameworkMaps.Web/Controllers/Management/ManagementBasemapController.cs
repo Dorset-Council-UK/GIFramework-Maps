@@ -40,65 +40,61 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(basemaps);
         }
 
-        public async Task<IActionResult> Create()
+		// GET: Basemap/Create
+		public async Task<IActionResult> Create()
         {
             var layerSources = await _repository.GetLayerSources();
             return View(layerSources);
         }
 
-		// GET: Layer/Create/{layerSourceId}
-		//      public async Task<IActionResult> CreateFromSource(int id, bool useProxy = false)
-		//      {
-		//          //get the layer source
-		//          var layerSource = await _repository.GetLayerSource(id);
+		// GET: Basemap/Create/{layerSourceId}
+		public async Task<IActionResult> CreateFromSource(int id)
+		{
+			//get the layer source
+			var layerSource = await _repository.GetLayerSource(id);
 
-		//          if(layerSource == null)
-		//          {
-		//              return NotFound();
-		//          }
-		//          var basemap = new Layer { 
-		//              LayerSourceId = id, 
-		//              LayerSource = layerSource,
-		//              ProxyMapRequests = useProxy,
-		//              ProxyMetaRequests = useProxy
-		//          };
-		//          var editModel = new LayerEditViewModel() { Layer = layer };
-		//          await RebuildViewModel(editModel, layer);
-		//          return View(editModel);
-		//      }
+			if (layerSource == null)
+			{
+				return NotFound();
+			}
+			var basemap = new Basemap
+			{
+				LayerSourceId = id,
+				LayerSource = layerSource,
+				MaxZoom = 20
+			};
+			var editModel = new BasemapEditViewModel() { Basemap = basemap };
+			RebuildViewModel(editModel, basemap);
+			return View(editModel);
+		}
 
-		//      //POST: Layer/Create
-		//      [HttpPost, ActionName("CreateFromSource")]
-		//      [ValidateAntiForgeryToken]
-		//      public async Task<IActionResult> CreatePost(LayerEditViewModel editModel, int[] selectedCategories)
-		//      {
-		//          if (ModelState.IsValid)
-		//          {
-		//              try
-		//              {
-		//                  _context.Add(editModel.Layer);
+		//POST: Basemap/Create
+		[HttpPost, ActionName("CreateFromSource")]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> CreatePost(BasemapEditViewModel editModel, int[] selectedCategories)
+		{
+			if (ModelState.IsValid)
+			{
+				try
+				{
+					_context.Add(editModel.Basemap);
 
-		//                  foreach(int category in selectedCategories)
-		//                  {
-		//                      _context.CategoryLayers.Add(new CategoryLayer { CategoryId = category, Layer = editModel.Layer });
-		//                  }
-
-		//                  await _context.SaveChangesAsync();
-		//                  TempData["Message"] = $"New layer created: {editModel.Layer.Name}";
-		//                  TempData["MessageType"] = "success";
-		//                  return RedirectToAction(nameof(List));
-		//              }
-		//              catch (DbUpdateException ex)
-		//              {
-		//                  _logger.LogError(ex, "Layer creation failed");
-		//                  ModelState.AddModelError("", "Unable to save changes. " +
-		//                      "Try again, and if the problem persists, " +
-		//                      "contact your system administrator.");
-		//              }
-		//          }
-		//          await RebuildViewModel(editModel, editModel.Layer);
-		//          return View(editModel);
-		//      }
+					await _context.SaveChangesAsync();
+					TempData["Message"] = $"New basemap created: {editModel.Basemap.Name}";
+					TempData["MessageType"] = "success";
+					return RedirectToAction(nameof(Index));
+				}
+				catch (DbUpdateException ex)
+				{
+					_logger.LogError(ex, "Layer creation failed");
+					ModelState.AddModelError("", "Unable to save changes. " +
+						"Try again, and if the problem persists, " +
+						"contact your system administrator.");
+				}
+			}
+			RebuildViewModel(editModel, editModel.Basemap);
+			return View(editModel);
+		}
 
 		// GET: Basemap/Edit/1
 		public async Task<IActionResult> Edit(int id)
@@ -153,67 +149,44 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 			return View(editModel);
 		}
 
-		//// GET: Basemap/Delete/1
-		//public async Task<IActionResult> Delete(int id)
-		//      {
-		//          var layer = await _repository.GetLayer(id);
+		// GET: Basemap/Delete/1
+		public async Task<IActionResult> Delete(int id)
+		{
+			var basemap = await _repository.GetBasemap(id);
 
-		//          if (layer == null)
-		//          {
-		//              return NotFound();
-		//          }
+			if (basemap == null)
+			{
+				return NotFound();
+			}
 
-		//          return View(layer);
-		//      }
+			return View(basemap);
+		}
 
-		//// POST: Basemap/Delete/1
-		//[HttpPost, ActionName("Delete")]
-		//      [ValidateAntiForgeryToken]
-		//      public async Task<IActionResult> DeleteConfirm(int id)
-		//      {
-		//          var layerToDelete = await _context.Layers.FindAsync(id);
+		// POST: Basemap/Delete/1
+		[HttpPost, ActionName("Delete")]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> DeleteConfirm(int id)
+		{
+			var basemapToDelete = await _context.Basemaps.FindAsync(id);
 
-		//          try
-		//          {
-		//              _context.Layers.Remove(layerToDelete);
-		//              await _context.SaveChangesAsync();
-		//              TempData["Message"] = "Layer deleted";
-		//              TempData["MessageType"] = "success";
-		//              return RedirectToAction(nameof(List));
-		//          }
-		//          catch (DbUpdateException ex)
-		//          {
-		//              _logger.LogError(ex, "Layer delete failed");
-		//              ModelState.AddModelError("", "Unable to save changes. " +
-		//                  "Try again, and if the problem persists, " +
-		//                  "contact your system administrator.");
-		//          }
+			try
+			{
+				_context.Basemaps.Remove(basemapToDelete);
+				await _context.SaveChangesAsync();
+				TempData["Message"] = "Basemap deleted";
+				TempData["MessageType"] = "success";
+				return RedirectToAction(nameof(Index));
+			}
+			catch (DbUpdateException ex)
+			{
+				_logger.LogError(ex, "Basemap delete failed");
+				ModelState.AddModelError("", "Unable to save changes. " +
+					"Try again, and if the problem persists, " +
+					"contact your system administrator.");
+			}
 
-		//          return View(layerToDelete);
-		//      }
-
-		//     private async Task UpdateCategoryLayers(int[] selectedCategories, Layer layerToUpdate)
-		//     {
-		//         if (selectedCategories == null)
-		//         {
-		//             await _context.CategoryLayers.Where(c => c.LayerId == layerToUpdate.Id).ExecuteDeleteAsync();    
-		//             return;
-		//         }
-
-		//         //delete category layers not needed anymore
-		//         await _context.CategoryLayers.Where(c => c.LayerId == layerToUpdate.Id && !selectedCategories.Contains(c.CategoryId)).ExecuteDeleteAsync();
-
-		//         //add new category layers
-		//         foreach (int category in selectedCategories)
-		//         {
-		//             if (!_context.CategoryLayers.Where(c => c.LayerId == layerToUpdate.Id && c.CategoryId == category).Any())
-		//             {
-		//                 await _context.CategoryLayers.AddAsync(new CategoryLayer { CategoryId = category, Layer = layerToUpdate });
-		//             }
-		//         }
-		//         return;
-
-		//     }
+			return View(basemapToDelete);
+		}
 
 		private void RebuildViewModel(BasemapEditViewModel model, Basemap basemap)
 		{
