@@ -23,5 +23,7 @@ namespace GIFrameworkMaps.Data.ViewModels.Management
 		public bool AttributionMatched { get; set; }
 		[Display(Name = "Require use of proxy?")]
 		public bool UseProxy { get; set; }
+		[Display(Name ="Create as basemap?")]
+		public bool CreateBasemap { get; set; }
 	}
 }

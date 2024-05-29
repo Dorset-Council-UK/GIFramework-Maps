@@ -63,7 +63,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     }
                     _context.Add(model.LayerSource);
                     await _context.SaveChangesAsync();
-
+					if (model.CreateBasemap)
+					{
+						return RedirectToAction("CreateFromSource", "ManagementBasemap", new { id = model.LayerSource.Id });
+					}
                     return RedirectToAction("CreateFromSource", "ManagementLayer", new { id = model.LayerSource.Id });
 
                 }
@@ -144,7 +147,10 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     }
                     _context.Add(model.LayerSource);
                     await _context.SaveChangesAsync();
-
+					if (model.CreateBasemap)
+					{
+						return RedirectToAction("CreateFromSource", "ManagementBasemap", new { id = model.LayerSource.Id });
+					}
                     return RedirectToAction("CreateFromSource", "ManagementLayer", new {id=model.LayerSource.Id, useProxy = model.UseProxy});
 
                 }
