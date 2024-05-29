@@ -42,6 +42,6 @@
     <select asp-for="Basemap.BoundId" asp-items="Model.AvailableBounds" class="form-select">
         <option value="">Not bounded</option>
     </select>
-    <span class="form-text">Restricts map rendering and querying outside of these bounds. </span>
+    <span class="form-text">Restricts map rendering outside of these bounds. </span>
     <span asp-validation-for="Basemap.BoundId" class="text-danger"></span>
 </div>
