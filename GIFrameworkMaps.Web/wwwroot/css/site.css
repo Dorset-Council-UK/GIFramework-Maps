@@ -223,6 +223,15 @@ footer img.brand {
   color: inherit;
   text-decoration: none;
 }
+.card-title-icon {
+  height: 32px;
+  width: 32px;
+  vertical-align: -.4em;
+  filter: brightness(0.1);
+}
+[data-bs-theme="dark"] .card-title-icon{
+  filter: none;
+}
 .validation-summary-errors li {
   list-style: none;
 }
@@ -230,11 +239,6 @@ footer img.brand {
 .validation-summary-errors ul {
   padding: 0;
   margin: 0;
-}
-/*temporary bootstrap icons alignment*/
-[class^="bi-"]::before,
-[class*=" bi-"]::before {
-  vertical-align: -0.125em;
 }
 
 /*simple-datatables overrides*/

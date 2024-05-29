@@ -29,6 +29,12 @@
                 <span asp-validation-for="LayerSource.AttributionId" class="text-danger"></span>
             </div>
 
+            <div class="mb-3">
+                <input asp-for="CreateBasemap" class="form-check-input" />
+                <label asp-for="CreateBasemap" class="form-check-label"></label>
+                <span asp-validation-for="CreateBasemap" class="text-danger"></span>
+            </div>
+
             <a href="#advancedSettings" class="btn btn-link my-3 ps-0" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="advancedSettings"><i class="bi bi-caret-right"></i> Advanced settings</a>
 
             <div class="collapse border-start border-bottom border-5 ps-3 mb-3" id="advancedSettings">

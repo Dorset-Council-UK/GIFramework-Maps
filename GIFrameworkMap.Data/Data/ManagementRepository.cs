@@ -39,7 +39,20 @@ namespace GIFrameworkMaps.Data
             return await _context.Attributions.FindAsync(id);
         }
 
-        public async Task<List<Bound>> GetBounds()
+		public async Task<List<Basemap>> GetBasemaps()
+		{
+			return await _context.Basemaps
+				.AsNoTracking()
+				.ToListAsync();
+		}
+
+		public async Task<Basemap?> GetBasemap(int id)
+		{
+			return await _context.Basemaps.FindAsync(id);
+
+		}
+
+		public async Task<List<Bound>> GetBounds()
         {
             return await _context.Bounds
 				.AsNoTracking()

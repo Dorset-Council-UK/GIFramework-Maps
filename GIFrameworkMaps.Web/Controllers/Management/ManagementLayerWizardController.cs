@@ -63,8 +63,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     }
                     _context.Add(model.LayerSource);
                     await _context.SaveChangesAsync();
-
-                    return RedirectToAction("CreateFromSource", "ManagementLayer", new { id = model.LayerSource.Id });
+					if (model.CreateBasemap)
+					{
+						return RedirectToAction("CreateFromSource", "ManagementBasemap", new { id = model.LayerSource.Id });
+					}
+					return RedirectToAction("CreateFromSource", "ManagementLayer", new { id = model.LayerSource.Id });
 
                 }
                 catch (DbUpdateException ex)
@@ -122,19 +125,15 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         public async Task<IActionResult> CreateSourcePost(LayerWizardCreateSourceViewModel model) {
             if (ModelState.IsValid)
             {
-                try
-                {
-                    var urlOpt = new LayerSourceOption { Name = "url", Value = model.BaseURL };
+				try
+				{
+					var urlOpt = new LayerSourceOption { Name = "url", Value = model.BaseURL };
+					var paramsValue = new { LAYERS = model.LayerName, FORMAT = model.Format, VERSION = model.Version, CRS = model.Projection };
+					var valueStr = JsonSerializer.Serialize(paramsValue, wmsParamsObjectWriterOpts);
                     var paramsOpt = new LayerSourceOption
                     {
                         Name = "params",
-                        Value =
-                        @$"{{
-                                ""LAYERS"":""{model.LayerName}"", 
-                                ""FORMAT"":""{model.Format}"",
-                                {(!string.IsNullOrEmpty(model.Projection) ? @$"""CRS"": ""{model.Projection}""," : "")}
-								""VERSION"": ""{model.Version}""
-                            }}"
+                        Value = valueStr
                     };
                     model.LayerSource.LayerSourceOptions.Add(urlOpt);
                     model.LayerSource.LayerSourceOptions.Add(paramsOpt);
@@ -144,8 +143,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     }
                     _context.Add(model.LayerSource);
                     await _context.SaveChangesAsync();
-
-                    return RedirectToAction("CreateFromSource", "ManagementLayer", new {id=model.LayerSource.Id, useProxy = model.UseProxy});
+					if (model.CreateBasemap)
+					{
+						return RedirectToAction("CreateFromSource", "ManagementBasemap", new { id = model.LayerSource.Id });
+					}
+					return RedirectToAction("CreateFromSource", "ManagementLayer", new {id=model.LayerSource.Id, useProxy = model.UseProxy});
 
                 }
                 catch (DbUpdateException ex)
@@ -175,5 +177,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             var xyzLayerSourceType = await _context.LayerSourceTypes.Where(l => l.Name == "XYZ").SingleOrDefaultAsync();
             model.LayerSource.LayerSourceTypeId = xyzLayerSourceType.Id;
         }
-    }
+
+		private static readonly JsonSerializerOptions wmsParamsObjectWriterOpts = new()
+		{
+			WriteIndented = true,
+			DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+		};
+	}
 }

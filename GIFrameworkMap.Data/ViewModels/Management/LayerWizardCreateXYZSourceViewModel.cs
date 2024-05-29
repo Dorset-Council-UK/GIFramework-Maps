@@ -15,5 +15,7 @@ namespace GIFrameworkMaps.Data.ViewModels.Management
 		public string? Projection { get; set; }
 		[Display(Name = "Custom tile grid")]
 		public string? TileGrid { get; set; }
+		[Display(Name = "Create as basemap?")]
+		public bool CreateBasemap { get; set; }
 	}
 }

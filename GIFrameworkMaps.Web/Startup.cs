@@ -166,7 +166,12 @@ namespace GIFrameworkMaps.Web
                    pattern: "Management/LayerCategory/{action=Index}/{id?}",
                    defaults: new { controller = "ManagementLayerCategory", action = "Index" });
 
-                endpoints.MapControllerRoute(
+				endpoints.MapControllerRoute(
+				   name: "ManagementInterface-Basemap",
+				   pattern: "Management/Basemap/{action=Index}/{id?}",
+				   defaults: new { controller = "ManagementBasemap", action = "Index" });
+
+				endpoints.MapControllerRoute(
                     name: "ManagementInterface-User",
                     pattern: "Management/User/{action=Index}/{id?}",
                     defaults: new { controller = "ManagementUser", action = "Index" });

@@ -1,13 +1,12 @@
 ﻿@model List<GIFrameworkMaps.Data.Models.LayerSource>
 @{
-    ViewData["Title"] = "Create layer";
+    ViewData["Title"] = "Create basemap";
 }
 
 <h1>@ViewData["Title"]</h1>
-<p class="lead">Choose a layer source to create a layer from</p>
+<p class="lead">Choose a layer source to create a basemap from</p>
 
 <div class="alert alert-info">No layer source yet? Use the <a asp-controller="ManagementLayerWizard" asp-action="Index">Layer Wizard</a> instead.</div>
-
 
 @if (Model != null)
 {
@@ -53,5 +52,7 @@ else
         const dataTable = new simpleDatatables.DataTable("#sources-table", opts);
     </script>
 }
+
+
 
 
