@@ -125,7 +125,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             bool purgeCache)
         {
 			var versionToUpdate = await _context.Versions
-                .Include(v => v.VersionBasemaps)
+				.AsSplitQuery()
+				.Include(v => v.VersionBasemaps)
                     .ThenInclude(v => v.Basemap)
 				.Include(v => v.VersionProjections)
 					.ThenInclude(v => v.Projection)
