@@ -355,17 +355,21 @@ export class CreateLayerFromSource {
   ) {
     if (template) {
       //get an example value from the service if possible.
-
-      const props = (await this.getExampleFeature()) as object;
-      if (props !== null) {
-        const renderedTemplate = FeatureQueryTemplateHelper.renderTemplate(
-          template,
-          props,
-        );
-        previewContainer.innerHTML = renderedTemplate;
-      } else {
+      try {
+        const props = (await this.getExampleFeature()) as object;
+        if (props !== null) {
+          const renderedTemplate = FeatureQueryTemplateHelper.renderTemplate(
+            template,
+            props,
+          );
+          previewContainer.innerHTML = renderedTemplate;
+        } else {
+          previewContainer.innerHTML =
+            '<div class="alert alert-warning p-2 my-1">We couldn\'t get an example feature from the feature server</div>';
+        }
+      } catch (e) {
         previewContainer.innerHTML =
-          '<div class="alert alert-warning p-2 my-1">We couldn\'t get an example feature from the feature server</div>';
+          '<div class="alert alert-warning p-2 my-1">Something went wrong! Check your template</div>';
       }
     } else {
       previewContainer.innerHTML =
@@ -421,13 +425,13 @@ export class CreateLayerFromSource {
         searchUrl: getFeatureCapability.url,
         searchMethod: getFeatureCapability.method,
       };
-      const resp = await this.getFeatureInfoForLayer(request);
+        const resp = await this.getFeatureInfoForLayer(request);
 
-      const props = resp.features[0].getProperties();
-      if (props) {
-        this._cachedExampleFeature = props;
-      }
-      return props;
+        const props = resp.features[0].getProperties();
+        if (props) {
+          this._cachedExampleFeature = props;
+        }
+        return props;
     }
     return null;
   }
