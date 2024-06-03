@@ -19,7 +19,7 @@ namespace GIFrameworkMaps.Data
 {
 	public partial class SearchRepository(ILogger<SearchRepository> logger, IApplicationDbContext context, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache) : ISearchRepository
     {
-        //dependancy injection
+        //dependency injection
         private readonly ILogger<SearchRepository> _logger = logger;
         private readonly IApplicationDbContext _context = context;
         private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
@@ -609,11 +609,11 @@ namespace GIFrameworkMaps.Data
         }
 
         /// <summary>
-        /// Converts a SQL clause into a paramaterised clause with and {{search}} terms appropriately replaced
+        /// Converts a SQL clause into a parameterised clause with and {{search}} terms appropriately replaced
         /// </summary>
         /// <param name="clause">The clause that has the search tokens</param>
         /// <param name="searchTerm">The search term</param>
-        /// <param name="searchParams">An existing list of DB paramaters</param>
+        /// <param name="searchParams">An existing list of DB parameters</param>
         private static void ParameterizeClause(ref string clause, string searchTerm, ref List<Npgsql.NpgsqlParameter> searchParams)
         {
             //finds all the {{search}} tokens
@@ -621,7 +621,7 @@ namespace GIFrameworkMaps.Data
             int i = searchParams.Count;
             var parameterizedClause = clause;
             int shift = 0;
-            //loop through the search tokens and replace them with paramterised versions
+            //loop through the search tokens and replace them with parametrised versions
             foreach(Match p in searchPlaceholders.Cast<Match>())
             {                
                 int replaceStart = p.Index + shift;

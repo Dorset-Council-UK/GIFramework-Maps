@@ -52,7 +52,7 @@ namespace GIFrameworkMaps.Data
 		}
 
         /// <summary>
-        /// Attempts to convert a WGS84 coordinate represented in degrees minutes and seconds to its Decimal equivilant
+        /// Attempts to convert a WGS84 coordinate represented in degrees minutes and seconds to its Decimal equivalent
         /// </summary>
         /// <param name="dmsCoord">The DMS coordinate as a string</param>
         /// <returns>A decimal coordinate</returns>
@@ -111,7 +111,7 @@ namespace GIFrameworkMaps.Data
         }
 
 		/// <summary>
-		/// Attempts to convert an OSGB alphanumeric grid reference to its 12 figure equivilant
+		/// Attempts to convert an OSGB alphanumeric grid reference to its 12 figure equivalent
 		/// </summary>
 		/// <param name="gridRef">The full grid reference (e.g ST6664601667)</param>
 		/// <returns>An array of 2 integers representing the X and Y portions of the converted grid reference</returns>
