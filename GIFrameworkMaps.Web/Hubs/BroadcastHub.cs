@@ -7,19 +7,12 @@ using System.Security.Claims;
 
 namespace GIFrameworkMaps.Web.Hubs
 {
-	public class BroadcastHub : Hub
+	public class BroadcastHub(TelemetryClient telemetry, IHttpContextAccessor httpContextAccessor) : Hub
     {
-        private readonly TelemetryClient _telemetry;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly TelemetryClient _telemetry = telemetry;
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
-        // Use constructor injection to get a TelemetryClient instance.
-        public BroadcastHub(TelemetryClient telemetry, IHttpContextAccessor httpContextAccessor)
-        {
-            _telemetry = telemetry;
-            _httpContextAccessor = httpContextAccessor;
-
-        }
-        [Authorize(Roles ="GIFWAdmin")]
+		[Authorize(Roles ="GIFWAdmin")]
         public async Task SendBroadcast(string messageType, string messageSeverity, string message, string version)
         {
             var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);

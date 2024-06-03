@@ -12,23 +12,17 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
-	public class ManagementLayerWizardController : Controller
+	public class ManagementLayerWizardController(
+			ILogger<ManagementLayerWizardController> logger,
+			ICommonRepository commonRepository,
+			ApplicationDbContext context
+			) : Controller
     {
-        private readonly ILogger<ManagementLayerWizardController> _logger;
-        private readonly ICommonRepository _commonRepository;
-        private readonly ApplicationDbContext _context;
-        public ManagementLayerWizardController(
-            ILogger<ManagementLayerWizardController> logger,
-            ICommonRepository commonRepository,
-            ApplicationDbContext context
-            )
-        {
-            _logger = logger;
-            _commonRepository = commonRepository;
-            _context = context;
-        }
+        private readonly ILogger<ManagementLayerWizardController> _logger = logger;
+        private readonly ICommonRepository _commonRepository = commonRepository;
+        private readonly ApplicationDbContext _context = context;
 
-        public IActionResult Index() {
+		public IActionResult Index() {
             //get list of services
             var definitions = _commonRepository.GetWebLayerServiceDefinitions();
             return View(definitions);

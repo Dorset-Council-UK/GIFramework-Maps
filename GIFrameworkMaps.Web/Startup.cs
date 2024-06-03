@@ -22,17 +22,12 @@ using System.Threading;
 
 namespace GIFrameworkMaps.Web
 {
-	public class Startup
-    {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+	public class Startup(IConfiguration configuration)
+	{
+		public IConfiguration Configuration { get; } = configuration;
 
-        public IConfiguration Configuration { get; }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(
+		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+		public void Configure(
             IApplicationBuilder app, 
             IWebHostEnvironment env, 
             IHttpForwarder forwarder)
@@ -384,14 +379,11 @@ namespace GIFrameworkMaps.Web
                 order += 10;
             }
         }
-        private class CustomTransformer : HttpTransformer
+        private class CustomTransformer(IApplicationBuilder app) : HttpTransformer
         {
-            readonly IApplicationBuilder _app;
-            public CustomTransformer(IApplicationBuilder app)
-            {
-                _app = app;
-            }
-            public override async ValueTask TransformRequestAsync(
+            readonly IApplicationBuilder _app = app;
+
+			public override async ValueTask TransformRequestAsync(
                 HttpContext httpContext,
                 HttpRequestMessage proxyRequest, 
                 string destinationPrefix,
