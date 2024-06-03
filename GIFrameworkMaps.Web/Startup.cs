@@ -283,11 +283,11 @@ namespace GIFrameworkMaps.Web
                         Description = "OpenStreetMap is a free map of the world created and run by volunteers. Note this layer should NOT be used for high usage workloads as it uses the free OpenStreetMap tile server.",
                         Attribution = new Data.Models.Attribution { Name = "OpenStreetMap", AttributionHTML = "© <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors, CC-BY-SA" },
                         LayerSourceType = new Data.Models.LayerSourceType { Name = "XYZ", Description = "Layer sources using the XYZ tile scheme. Similar to TMS." },
-                        LayerSourceOptions = new List<Data.Models.LayerSourceOption> { new() { Name = "url", Value = "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png" } }
+                        LayerSourceOptions = [new() { Name = "url", Value = "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png" }]
                     };
 
                     var osmLayer = new Data.Models.Basemap { LayerSource = osmLayerSource, Name = "OpenStreetMap", Bound = globalBound, MinZoom = 2, MaxZoom = 18 };
-                    version.VersionBasemaps = new List<Data.Models.VersionBasemap>() { new() { Basemap = osmLayer, IsDefault = true, DefaultOpacity = 100, DefaultSaturation = 100 } };
+                    version.VersionBasemaps = [new() { Basemap = osmLayer, IsDefault = true, DefaultOpacity = 100, DefaultSaturation = 100 }];
 
                 }
                 context.SaveChanges();

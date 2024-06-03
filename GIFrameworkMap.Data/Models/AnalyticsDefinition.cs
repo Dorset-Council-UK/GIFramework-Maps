@@ -17,7 +17,7 @@ namespace GIFrameworkMaps.Data.Models
         public Instant DateModified { get; set; }
         [Display(Name = "Is analytic enabled?")]
         public bool Enabled { get; set; }
-        public List<VersionAnalytic> VersionAnalytics { get; set; } = new();
+        public List<VersionAnalytic> VersionAnalytics { get; set; } = [];
 
     }
 }

@@ -22,7 +22,7 @@ namespace GIFrameworkMaps.Data.Models.Tour
         [DisplayName("Update date")]
         public LocalDateTime UpdateDate { get; set; }
 
-        public List<TourStep> Steps { get; set; } = new();
+        public List<TourStep> Steps { get; set; } = [];
 
     }
 }
