@@ -4,24 +4,19 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace GIFrameworkMaps.Web.TagHelpers
 {
-  public class LabelledSliderTagHelper : TagHelper
+  public class LabelledSliderTagHelper(IHtmlHelper htmlHelper) : TagHelper
     {
         public ModelExpression AspFor { get; set; }
         public int MaxValue { get; set; }
         public int MinValue { get; set; }
         public int Step { get; set; }
         public int DefaultIfNull {  get; set; }
-        private readonly IHtmlHelper _htmlHelper;
+        private readonly IHtmlHelper _htmlHelper = htmlHelper;
         [ViewContext]
         [HtmlAttributeNotBound]
         public ViewContext ViewContext { get; set; }
 
-        public LabelledSliderTagHelper(IHtmlHelper htmlHelper)
-        {
-            _htmlHelper = htmlHelper;
-        }
-
-        public override void Process(TagHelperContext context, TagHelperOutput output)
+		public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             (_htmlHelper as IViewContextAware).Contextualize(ViewContext);
             var id = _htmlHelper.GenerateIdFromName(AspFor.Name);

@@ -14,22 +14,17 @@ using System.Threading.Tasks;
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
 	[Authorize(Roles = "GIFWAdmin")]
-    public class ManagementAnalyticsController : Controller
+    public class ManagementAnalyticsController(
+			ILogger<ManagementVersionController> logger,
+			IManagementRepository repository,
+			ApplicationDbContext context
+			) : Controller
     {
-        private readonly ILogger<ManagementVersionController> _logger;
-        private readonly IManagementRepository _repository;
-        private readonly ApplicationDbContext _context;
-        public ManagementAnalyticsController(
-            ILogger<ManagementVersionController> logger,
-            IManagementRepository repository,
-            ApplicationDbContext context
-            )
-        {
-            _logger = logger;
-            _repository = repository;
-            _context = context;
-        }
-        public async Task<IActionResult> Index()
+        private readonly ILogger<ManagementVersionController> _logger = logger;
+        private readonly IManagementRepository _repository = repository;
+        private readonly ApplicationDbContext _context = context;
+
+		public async Task<IActionResult> Index()
         {
             var viewModel = await _repository.GetAnalyticsModel();
 

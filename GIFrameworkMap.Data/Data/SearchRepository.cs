@@ -17,31 +17,22 @@ using System.Threading.Tasks;
 [assembly: InternalsVisibleTo("GIFrameworkMaps.Tests")]
 namespace GIFrameworkMaps.Data
 {
-	public partial class SearchRepository : ISearchRepository
+	public partial class SearchRepository(ILogger<SearchRepository> logger, IApplicationDbContext context, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache) : ISearchRepository
     {
         //dependancy injection
-        private readonly ILogger<SearchRepository> _logger;
-        private readonly IApplicationDbContext _context;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IMemoryCache _memoryCache;
+        private readonly ILogger<SearchRepository> _logger = logger;
+        private readonly IApplicationDbContext _context = context;
+        private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+        private readonly IMemoryCache _memoryCache = memoryCache;
 
-        public SearchRepository(ILogger<SearchRepository> logger, IApplicationDbContext context, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache)
-        {
-            _logger = logger;
-            _context = context;
-            _httpClientFactory = httpClientFactory;
-            _httpContextAccessor = httpContextAccessor;
-            _memoryCache = memoryCache;
-        }
-
-        /// <summary>
-        /// Gets the search definitions for a particular version
-        /// </summary>
-        /// <param name="versionId">The ID of the version to get search definitions for</param>
-        /// <returns>List of VersionSearchDefinition</returns>
-        /// <exception cref="KeyNotFoundException">Returned when the version can not be found</exception>
-        public async Task<List<VersionSearchDefinition>> GetSearchDefinitionsByVersion(int versionId)
+		/// <summary>
+		/// Gets the search definitions for a particular version
+		/// </summary>
+		/// <param name="versionId">The ID of the version to get search definitions for</param>
+		/// <returns>List of VersionSearchDefinition</returns>
+		/// <exception cref="KeyNotFoundException">Returned when the version can not be found</exception>
+		public async Task<List<VersionSearchDefinition>> GetSearchDefinitionsByVersion(int versionId)
         {
 			// Check if the version exists
 			bool versionExists = await _context.Versions
@@ -339,7 +330,7 @@ namespace GIFrameworkMaps.Data
                 titlePaths = rx.Matches(searchDefinition.TitleFieldPath).Select(m => m.Value.Replace("{{","").Replace("}}","")).ToList();
             }
             
-            List<IList<JToken>> titleParts = new();
+            List<IList<JToken>> titleParts = [];
             foreach (var titlePath in titlePaths)
             {
                 IList<JToken>? titlePart = null;
