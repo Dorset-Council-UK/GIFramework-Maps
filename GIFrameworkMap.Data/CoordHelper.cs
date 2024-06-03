@@ -70,7 +70,7 @@ namespace GIFrameworkMaps.Data
             var degrees = dmsCoord[..firstBreak];
 
             var startPointOfSecondSection = dmsCoord.IndexOfAny("0123456789".ToCharArray(),firstBreak);
-            var secondBreak = dmsCoord.IndexOfAny(new char[] { ' ', '\'', '′' },startPointOfSecondSection);
+            var secondBreak = dmsCoord.IndexOfAny([' ', '\'', '′'],startPointOfSecondSection);
             var minutes = dmsCoord[startPointOfSecondSection..secondBreak];
 
             var startPointOfThirdSection = dmsCoord.IndexOfAny("0123456789".ToCharArray(), secondBreak);

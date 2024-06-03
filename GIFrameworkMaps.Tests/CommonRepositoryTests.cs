@@ -72,7 +72,6 @@ namespace GIFrameworkMaps.Tests
 			return version?.Slug;
 		}
 
-
 		[Test]
 		[TestCase(null, null, "general", ExpectedResult = "general")]
 		[TestCase("valid", null, "version", ExpectedResult = "valid/version")]

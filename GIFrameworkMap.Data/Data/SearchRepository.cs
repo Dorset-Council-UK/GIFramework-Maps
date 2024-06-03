@@ -386,12 +386,12 @@ namespace GIFrameworkMaps.Data
                 //check whether we've received an MBR
                 if (JTokensExist(mbrXMinCoords, mbrYMinCoords, mbrXMaxCoords, mbrYMaxCoords))
                 {
-                    result.Bbox = new decimal[4] {
+                    result.Bbox = [
                             decimal.Parse(mbrXMinCoords![i].ToString()),
                             decimal.Parse(mbrYMinCoords![i].ToString()),
                             decimal.Parse(mbrXMaxCoords![i].ToString()),
                             decimal.Parse(mbrYMaxCoords![i].ToString())
-                        };
+                        ];
                 }
                 //check whether we've received a geom
                 if (JTokensExist(geom))
@@ -493,7 +493,7 @@ namespace GIFrameworkMaps.Data
                 sql += $" ORDER BY {parameterizedOrderByClause}";
             }
            
-            return _context.DatabaseSearchResults.FromSqlRaw(sql, searchParams.ToArray()).ToList();
+            return [.. _context.DatabaseSearchResults.FromSqlRaw(sql, searchParams.ToArray())];
 
             static string NameOrNullIfBlank(string? name)
             {

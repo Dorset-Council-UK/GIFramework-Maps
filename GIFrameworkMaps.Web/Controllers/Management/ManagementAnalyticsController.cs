@@ -184,8 +184,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 				.IgnoreAutoIncludes()
 				.OrderBy(o => o.Name);
 
-			string[] supportedProducts = { "Cloudflare", "Google Analytics (GA4)", "Microsoft Application Insights", "Microsoft Clarity" };
-            string[] supportedCookieControls = { "Civic Cookie Control" };
+			string[] supportedProducts = ["Cloudflare", "Google Analytics (GA4)", "Microsoft Application Insights", "Microsoft Clarity"];
+            string[] supportedCookieControls = ["Civic Cookie Control"];
 
             model.AvailableProducts = new SelectList(supportedProducts);
             model.AvailableCookieControl = new SelectList(supportedCookieControls);
@@ -221,7 +221,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 				.OrderBy(o => o.Name)
 				.Select(c => c.Id)
 				.ToList();
-			List<int> AvailableVersions = _context.Versions.OrderBy(b => b.Name).Select(c => c.Id).ToList();
+			List<int> AvailableVersions = [.. _context.Versions.OrderBy(b => b.Name).Select(c => c.Id)];
             if (AvailableVersions != null)
             {
                 //Loop through each version and check if it is selected
