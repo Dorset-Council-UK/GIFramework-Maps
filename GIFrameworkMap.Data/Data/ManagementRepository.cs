@@ -13,21 +13,14 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data
 {
-	public class ManagementRepository : IManagementRepository
+	public class ManagementRepository(IApplicationDbContext context, IMemoryCache memoryCache, IConfiguration configuration) : IManagementRepository
     {
-        //dependancy injection
-        private readonly IApplicationDbContext _context;
-        private readonly IMemoryCache _memoryCache;
-        private readonly IConfiguration _configuration;
+        //dependency injection
+        private readonly IApplicationDbContext _context = context;
+        private readonly IMemoryCache _memoryCache = memoryCache;
+        private readonly IConfiguration _configuration = configuration;
 
-        public ManagementRepository(IApplicationDbContext context, IMemoryCache memoryCache, IConfiguration configuration)
-        {
-            _context = context;
-            _memoryCache = memoryCache;
-            _configuration = configuration;
-        }
-
-        public async Task<List<Attribution>> GetAttributions()
+		public async Task<List<Attribution>> GetAttributions()
         {
             return await _context.Attributions
 				.AsNoTracking()
