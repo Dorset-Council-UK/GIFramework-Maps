@@ -11,7 +11,7 @@ namespace GIFrameworkMaps.Web.Controllers
 {
 	public class SearchController(ISearchRepository repository, ILogger<SearchController> logger) : Controller
     {
-        //dependancy injection
+        //dependency injection
         private readonly ISearchRepository _repository = repository;
         private readonly ILogger<SearchController> _logger = logger;
 

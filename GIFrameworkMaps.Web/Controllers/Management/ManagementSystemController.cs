@@ -11,7 +11,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 		IManagementRepository repository
 			) : Controller
     {
-        //dependancy injection
+        //dependency injection
         private readonly ILogger<ManagementSystemController> _logger = logger;
         private readonly IManagementRepository _repository = repository;
 
@@ -29,7 +29,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 success = true;
                 _logger.LogInformation("Memory Cache purged by {user}", User.Identity.Name);
             }
-            TempData["Message"] = $"Cache was {(success ? "sucessfully" : "not")} purged";
+            TempData["Message"] = $"Cache was {(success ? "successfully" : "not")} purged";
             TempData["MessageType"] = success ? "success" : "error";
             return RedirectToAction("Index");
         }

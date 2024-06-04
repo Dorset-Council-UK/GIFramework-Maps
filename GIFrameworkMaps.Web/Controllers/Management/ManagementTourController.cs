@@ -13,7 +13,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 	[Authorize(Roles = "GIFWAdmin")]
     public class ManagementTourController(ILogger<ManagementTourController> logger, ApplicationDbContext context) : Controller
     {
-        //dependancy injection
+        //dependency injection
         /*NOTE: A repository pattern is used for much basic data access across the project
          * however, write and update are done directly on the context based on the advice here
          * https://learn.microsoft.com/en-us/aspnet/mvc/overview/getting-started/getting-started-with-ef-using-mvc/advanced-entity-framework-scenarios-for-an-mvc-web-application#create-an-abstraction-layer

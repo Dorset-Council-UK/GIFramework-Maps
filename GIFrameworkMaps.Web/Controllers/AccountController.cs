@@ -10,16 +10,10 @@ using System.Web;
 namespace GIFrameworkMaps.Web.Controllers
 {
 	[Authorize]
-	public class AccountController : Controller
+	public class AccountController(ICommonRepository repository, ApplicationDbContext context) : Controller
 	{
-		private readonly ICommonRepository _repository;
-		private readonly ApplicationDbContext _context;
-
-		public AccountController(ICommonRepository repository, ApplicationDbContext context)
-		{
-			_repository = repository;
-			_context = context;
-		}
+		private readonly ICommonRepository _repository = repository;
+		private readonly ApplicationDbContext _context = context;
 
 		public IActionResult Index()
 		{

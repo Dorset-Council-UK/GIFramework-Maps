@@ -9,7 +9,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 	[Authorize(Roles = "GIFWAdmin")]
     public class ManagementController(ICommonRepository repository, IApplicationDbContext context) : Controller
     {
-        //dependancy injection
+        //dependency injection
         private readonly ICommonRepository _repository = repository;
         private readonly IApplicationDbContext _context = context;
 

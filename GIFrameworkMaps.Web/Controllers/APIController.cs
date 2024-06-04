@@ -17,32 +17,23 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers
 {
-	public class APIController : Controller
+	public class APIController(
+			ILogger<APIController> logger,
+			ICommonRepository repository,
+			IWebHostEnvironment webHostEnvironment,
+			IAuthorizationService authorization,
+			IConfiguration configuration,
+			ApplicationDbContext context) : Controller
     {
-        //dependancy injection
-        private readonly ILogger<APIController> _logger;
-        private readonly ICommonRepository _repository;
-        private readonly IWebHostEnvironment _webHostEnvironment;
-        private readonly IConfiguration _configuration;
-        private readonly IAuthorizationService _authorization;
-        private readonly ApplicationDbContext _context;
+        //dependency injection
+        private readonly ILogger<APIController> _logger = logger;
+        private readonly ICommonRepository _repository = repository;
+        private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
+        private readonly IConfiguration _configuration = configuration;
+        private readonly IAuthorizationService _authorization = authorization;
+        private readonly ApplicationDbContext _context = context;
 
-        public APIController(
-            ILogger<APIController> logger,
-            ICommonRepository repository,
-            IWebHostEnvironment webHostEnvironment,
-            IAuthorizationService authorization,
-            IConfiguration configuration,
-            ApplicationDbContext context)
-        {
-            _logger = logger;
-            _repository = repository;
-            _webHostEnvironment = webHostEnvironment;
-            _authorization = authorization;
-            _configuration = configuration;
-            _context = context;
-        }
-        public IActionResult SVGIcon(string shape, string colour, string border_colour = "", string label = "", int height = 50, int width = 50)
+		public IActionResult SVGIcon(string shape, string colour, string border_colour = "", string label = "", int height = 50, int width = 50)
         {
             string icon_path = Path.Combine(_webHostEnvironment.WebRootPath, "img/svg-icons");
             string source_svg_path = Path.Combine(icon_path, "map-marker-alt.svg");
@@ -141,11 +132,11 @@ namespace GIFrameworkMaps.Web.Controllers
                     Type = "image/png"
                 };
 
-                List<ManifestIcon> iconsList = new()
-                {
-                    largeIcon,
+                List<ManifestIcon> iconsList =
+				[
+					largeIcon,
                     regularIcon
-                };
+                ];
 
                 var host = Request.Host.ToUriComponent();
                 var pathBase = Request.PathBase.ToUriComponent();

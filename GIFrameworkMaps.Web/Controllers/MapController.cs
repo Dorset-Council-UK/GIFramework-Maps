@@ -18,7 +18,7 @@ namespace GIFrameworkMaps.Web.Controllers
 			IConfiguration configuration,
 			ApplicationDbContext context) : Controller
     {
-        //dependancy injection
+        //dependency injection
         private readonly ILogger<MapController> _logger = logger;
         private readonly IAuthorizationService _authorization = authorization;
         private readonly ICommonRepository _repository = repository;
