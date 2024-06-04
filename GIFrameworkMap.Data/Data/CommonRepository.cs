@@ -15,23 +15,14 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data
 {
-	public class CommonRepository : ICommonRepository
+	public class CommonRepository(ILogger<CommonRepository> logger, IApplicationDbContext context, IMemoryCache memoryCache, IMapper mapper, IHttpContextAccessor httpContextAccessor) : ICommonRepository
     {
-        //dependancy injection
-        private readonly ILogger<CommonRepository> _logger;
-        private readonly IApplicationDbContext _context;
-        private readonly IMemoryCache _memoryCache;
-        private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public CommonRepository(ILogger<CommonRepository> logger, IApplicationDbContext context, IMemoryCache memoryCache, IMapper mapper, IHttpContextAccessor httpContextAccessor)
-        {
-            _logger = logger;
-            _context = context;
-            _memoryCache = memoryCache;
-            _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
-        }
+        //dependency injection
+        private readonly ILogger<CommonRepository> _logger = logger;
+        private readonly IApplicationDbContext _context = context;
+        private readonly IMemoryCache _memoryCache = memoryCache;
+        private readonly IMapper _mapper = mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
 		/// <summary>
 		/// Gets the basic, top-level version information by slug. This should NOT be used to get all linked entities

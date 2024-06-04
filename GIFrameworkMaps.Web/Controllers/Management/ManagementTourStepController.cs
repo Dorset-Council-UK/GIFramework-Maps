@@ -10,24 +10,18 @@ using System.Threading.Tasks;
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
 	[Authorize(Roles = "GIFWAdmin")]
-    public class ManagementTourStepController : Controller
+    public class ManagementTourStepController(ILogger<ManagementTourStepController> logger, ApplicationDbContext context) : Controller
     {
-        //dependancy injection
+        //dependency injection
         /*NOTE: A repository pattern is used for much basic data access across the project
          * however, write and update are done directly on the context based on the advice here
          * https://learn.microsoft.com/en-us/aspnet/mvc/overview/getting-started/getting-started-with-ef-using-mvc/advanced-entity-framework-scenarios-for-an-mvc-web-application#create-an-abstraction-layer
          * */
-        private readonly ILogger<ManagementTourStepController> _logger;
-        private readonly ApplicationDbContext _context;
+        private readonly ILogger<ManagementTourStepController> _logger = logger;
+        private readonly ApplicationDbContext _context = context;
 
-		public ManagementTourStepController(ILogger<ManagementTourStepController> logger, ApplicationDbContext context)
-        {
-            _logger = logger;
-            _context = context;
-        }
-
-        // GET: TourStep/Create?tourId=1
-        public async Task<IActionResult> Create(int tourId)
+		// GET: TourStep/Create?tourId=1
+		public async Task<IActionResult> Create(int tourId)
         {
 			var tourDetail = await _context.TourDetails.FindAsync(tourId);
             if(tourDetail is null)

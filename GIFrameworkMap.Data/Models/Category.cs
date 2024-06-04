@@ -12,7 +12,7 @@ namespace GIFrameworkMaps.Data.Models
         public int Order { get; set; }
         [Display(Name="Parent Category (optional)")]
         public int? ParentCategoryId { get; set; }
-        public List<CategoryLayer> Layers { get; set; } = new();
+        public List<CategoryLayer> Layers { get; set; } = [];
         public Category? ParentCategory { get; set; }
     }
 }

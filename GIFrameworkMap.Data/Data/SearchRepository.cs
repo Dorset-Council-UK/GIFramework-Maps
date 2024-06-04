@@ -17,31 +17,22 @@ using System.Threading.Tasks;
 [assembly: InternalsVisibleTo("GIFrameworkMaps.Tests")]
 namespace GIFrameworkMaps.Data
 {
-	public partial class SearchRepository : ISearchRepository
+	public partial class SearchRepository(ILogger<SearchRepository> logger, IApplicationDbContext context, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache) : ISearchRepository
     {
-        //dependancy injection
-        private readonly ILogger<SearchRepository> _logger;
-        private readonly IApplicationDbContext _context;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IMemoryCache _memoryCache;
+        //dependency injection
+        private readonly ILogger<SearchRepository> _logger = logger;
+        private readonly IApplicationDbContext _context = context;
+        private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+        private readonly IMemoryCache _memoryCache = memoryCache;
 
-        public SearchRepository(ILogger<SearchRepository> logger, IApplicationDbContext context, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache)
-        {
-            _logger = logger;
-            _context = context;
-            _httpClientFactory = httpClientFactory;
-            _httpContextAccessor = httpContextAccessor;
-            _memoryCache = memoryCache;
-        }
-
-        /// <summary>
-        /// Gets the search definitions for a particular version
-        /// </summary>
-        /// <param name="versionId">The ID of the version to get search definitions for</param>
-        /// <returns>List of VersionSearchDefinition</returns>
-        /// <exception cref="KeyNotFoundException">Returned when the version can not be found</exception>
-        public async Task<List<VersionSearchDefinition>> GetSearchDefinitionsByVersion(int versionId)
+		/// <summary>
+		/// Gets the search definitions for a particular version
+		/// </summary>
+		/// <param name="versionId">The ID of the version to get search definitions for</param>
+		/// <returns>List of VersionSearchDefinition</returns>
+		/// <exception cref="KeyNotFoundException">Returned when the version can not be found</exception>
+		public async Task<List<VersionSearchDefinition>> GetSearchDefinitionsByVersion(int versionId)
         {
 			// Check if the version exists
 			bool versionExists = await _context.Versions
@@ -339,7 +330,7 @@ namespace GIFrameworkMaps.Data
                 titlePaths = rx.Matches(searchDefinition.TitleFieldPath).Select(m => m.Value.Replace("{{","").Replace("}}","")).ToList();
             }
             
-            List<IList<JToken>> titleParts = new();
+            List<IList<JToken>> titleParts = [];
             foreach (var titlePath in titlePaths)
             {
                 IList<JToken>? titlePart = null;
@@ -386,12 +377,12 @@ namespace GIFrameworkMaps.Data
                 //check whether we've received an MBR
                 if (JTokensExist(mbrXMinCoords, mbrYMinCoords, mbrXMaxCoords, mbrYMaxCoords))
                 {
-                    result.Bbox = new decimal[4] {
+                    result.Bbox = [
                             decimal.Parse(mbrXMinCoords![i].ToString()),
                             decimal.Parse(mbrYMinCoords![i].ToString()),
                             decimal.Parse(mbrXMaxCoords![i].ToString()),
                             decimal.Parse(mbrYMaxCoords![i].ToString())
-                        };
+                        ];
                 }
                 //check whether we've received a geom
                 if (JTokensExist(geom))
@@ -493,7 +484,7 @@ namespace GIFrameworkMaps.Data
                 sql += $" ORDER BY {parameterizedOrderByClause}";
             }
            
-            return _context.DatabaseSearchResults.FromSqlRaw(sql, searchParams.ToArray()).ToList();
+            return [.. _context.DatabaseSearchResults.FromSqlRaw(sql, searchParams.ToArray())];
 
             static string NameOrNullIfBlank(string? name)
             {
@@ -618,11 +609,11 @@ namespace GIFrameworkMaps.Data
         }
 
         /// <summary>
-        /// Converts a SQL clause into a paramaterised clause with and {{search}} terms appropriately replaced
+        /// Converts a SQL clause into a parameterised clause with and {{search}} terms appropriately replaced
         /// </summary>
         /// <param name="clause">The clause that has the search tokens</param>
         /// <param name="searchTerm">The search term</param>
-        /// <param name="searchParams">An existing list of DB paramaters</param>
+        /// <param name="searchParams">An existing list of DB parameters</param>
         private static void ParameterizeClause(ref string clause, string searchTerm, ref List<Npgsql.NpgsqlParameter> searchParams)
         {
             //finds all the {{search}} tokens
@@ -630,7 +621,7 @@ namespace GIFrameworkMaps.Data
             int i = searchParams.Count;
             var parameterizedClause = clause;
             int shift = 0;
-            //loop through the search tokens and replace them with paramterised versions
+            //loop through the search tokens and replace them with parametrised versions
             foreach(Match p in searchPlaceholders.Cast<Match>())
             {                
                 int replaceStart = p.Index + shift;

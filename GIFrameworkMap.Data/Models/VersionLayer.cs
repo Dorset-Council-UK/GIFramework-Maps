@@ -23,7 +23,7 @@ namespace GIFrameworkMaps.Data.Models
         public int? MaxZoom { get; set; }
         [DisplayName("Sort order within category")]
         public int? SortOrder { get; set; }
-        //Foriegn references 
+        //Foreign references 
         public virtual Layer? Layer { get; set; }
         public virtual Category? Category { get; set; }
     }

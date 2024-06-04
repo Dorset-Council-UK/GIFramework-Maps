@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 [assembly: InternalsVisibleTo("GIFrameworkMaps.Tests")]
@@ -53,7 +52,7 @@ namespace GIFrameworkMaps.Data
 		}
 
         /// <summary>
-        /// Attempts to convert a WGS84 coordinate represented in degrees minutes and seconds to its Decimal equivilant
+        /// Attempts to convert a WGS84 coordinate represented in degrees minutes and seconds to its Decimal equivalent
         /// </summary>
         /// <param name="dmsCoord">The DMS coordinate as a string</param>
         /// <returns>A decimal coordinate</returns>
@@ -70,12 +69,14 @@ namespace GIFrameworkMaps.Data
             var degrees = dmsCoord[..firstBreak];
 
             var startPointOfSecondSection = dmsCoord.IndexOfAny("0123456789".ToCharArray(),firstBreak);
-            var secondBreak = dmsCoord.IndexOfAny(new char[] { ' ', '\'', '′' },startPointOfSecondSection);
+            var secondBreak = dmsCoord.IndexOfAny([' ', '\'', '′'],startPointOfSecondSection);
             var minutes = dmsCoord[startPointOfSecondSection..secondBreak];
 
             var startPointOfThirdSection = dmsCoord.IndexOfAny("0123456789".ToCharArray(), secondBreak);
-            var thirdBreak = dmsCoord.LastIndexOfAny("0123456789".ToCharArray())+1;
-            var seconds = dmsCoord[startPointOfThirdSection..thirdBreak];
+			#pragma warning disable CA1870
+			var thirdBreak = dmsCoord.LastIndexOfAny("0123456789".ToCharArray())+1;
+			#pragma warning restore CA1870
+			var seconds = dmsCoord[startPointOfThirdSection..thirdBreak];
 
             Regex pattern = NSEWRegex();
             var hemisphereIndicator = pattern.Match(dmsCoord.ToUpper());
@@ -112,7 +113,7 @@ namespace GIFrameworkMaps.Data
         }
 
 		/// <summary>
-		/// Attempts to convert an OSGB alphanumeric grid reference to its 12 figure equivilant
+		/// Attempts to convert an OSGB alphanumeric grid reference to its 12 figure equivalent
 		/// </summary>
 		/// <param name="gridRef">The full grid reference (e.g ST6664601667)</param>
 		/// <returns>An array of 2 integers representing the X and Y portions of the converted grid reference</returns>

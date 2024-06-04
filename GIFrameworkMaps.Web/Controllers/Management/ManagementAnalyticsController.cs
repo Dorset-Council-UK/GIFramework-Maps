@@ -14,22 +14,17 @@ using System.Threading.Tasks;
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
 	[Authorize(Roles = "GIFWAdmin")]
-    public class ManagementAnalyticsController : Controller
+    public class ManagementAnalyticsController(
+			ILogger<ManagementVersionController> logger,
+			IManagementRepository repository,
+			ApplicationDbContext context
+			) : Controller
     {
-        private readonly ILogger<ManagementVersionController> _logger;
-        private readonly IManagementRepository _repository;
-        private readonly ApplicationDbContext _context;
-        public ManagementAnalyticsController(
-            ILogger<ManagementVersionController> logger,
-            IManagementRepository repository,
-            ApplicationDbContext context
-            )
-        {
-            _logger = logger;
-            _repository = repository;
-            _context = context;
-        }
-        public async Task<IActionResult> Index()
+        private readonly ILogger<ManagementVersionController> _logger = logger;
+        private readonly IManagementRepository _repository = repository;
+        private readonly ApplicationDbContext _context = context;
+
+		public async Task<IActionResult> Index()
         {
             var viewModel = await _repository.GetAnalyticsModel();
 
@@ -184,13 +179,13 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 				.IgnoreAutoIncludes()
 				.OrderBy(o => o.Name);
 
-			string[] supportedProducts = { "Cloudflare", "Google Analytics (GA4)", "Microsoft Application Insights", "Microsoft Clarity" };
-            string[] supportedCookieControls = { "Civic Cookie Control" };
+			string[] supportedProducts = ["Cloudflare", "Google Analytics (GA4)", "Microsoft Application Insights", "Microsoft Clarity"];
+            string[] supportedCookieControls = ["Civic Cookie Control"];
 
             model.AvailableProducts = new SelectList(supportedProducts);
             model.AvailableCookieControl = new SelectList(supportedCookieControls);
             model.AvailableVersions = await versions.ToListAsync();
-            if (model.AnalyticDefinition.VersionAnalytics.Any())
+            if (model.AnalyticDefinition.VersionAnalytics.Count != 0)
             {
                 model.SelectedVersions = model.AnalyticDefinition.VersionAnalytics.Select(c => c.VersionId).ToList();
             }
@@ -210,7 +205,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             //Create a HashSet of the existing list from the database
             var analyticVersions = new HashSet<int>();
             var currentDefinition = _context.AnalyticsDefinitions.Include(ad => ad.VersionAnalytics).FirstOrDefault(a => a.Id == editModel.AnalyticDefinition.Id);
-            if (currentDefinition.VersionAnalytics.Any())
+            if (currentDefinition.VersionAnalytics.Count != 0)
             {
                 analyticVersions = new HashSet<int>(currentDefinition.VersionAnalytics.Select(c => c.VersionId));
             }
@@ -221,7 +216,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 				.OrderBy(o => o.Name)
 				.Select(c => c.Id)
 				.ToList();
-			List<int> AvailableVersions = _context.Versions.OrderBy(b => b.Name).Select(c => c.Id).ToList();
+			List<int> AvailableVersions = [.. _context.Versions.OrderBy(b => b.Name).Select(c => c.Id)];
             if (AvailableVersions != null)
             {
                 //Loop through each version and check if it is selected
