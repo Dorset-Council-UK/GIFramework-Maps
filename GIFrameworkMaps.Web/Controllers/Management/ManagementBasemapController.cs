@@ -65,7 +65,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 		//POST: Basemap/Create
 		[HttpPost, ActionName("CreateFromSource")]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> CreatePost(BasemapEditViewModel editModel, int[] selectedCategories)
+		public async Task<IActionResult> CreatePost(BasemapEditViewModel editModel)
 		{
 			if (ModelState.IsValid)
 			{

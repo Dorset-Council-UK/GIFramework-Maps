@@ -408,7 +408,7 @@ namespace GIFrameworkMaps.Web
                     string decodedUrl = System.Uri.UnescapeDataString(url);
                     Uri requestUri = new(decodedUrl);
 
-                    if(allowedHosts.FirstOrDefault(h => h.Host.ToLower() == requestUri.Host.ToLower()) == null){
+                    if(allowedHosts.FirstOrDefault(h => h.Host.Equals(requestUri.Host, StringComparison.CurrentCultureIgnoreCase)) == null){
                         return;
                     }
 

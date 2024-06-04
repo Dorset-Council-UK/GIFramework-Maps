@@ -185,7 +185,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             model.AvailableProducts = new SelectList(supportedProducts);
             model.AvailableCookieControl = new SelectList(supportedCookieControls);
             model.AvailableVersions = await versions.ToListAsync();
-            if (model.AnalyticDefinition.VersionAnalytics.Any())
+            if (model.AnalyticDefinition.VersionAnalytics.Count != 0)
             {
                 model.SelectedVersions = model.AnalyticDefinition.VersionAnalytics.Select(c => c.VersionId).ToList();
             }
@@ -205,7 +205,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             //Create a HashSet of the existing list from the database
             var analyticVersions = new HashSet<int>();
             var currentDefinition = _context.AnalyticsDefinitions.Include(ad => ad.VersionAnalytics).FirstOrDefault(a => a.Id == editModel.AnalyticDefinition.Id);
-            if (currentDefinition.VersionAnalytics.Any())
+            if (currentDefinition.VersionAnalytics.Count != 0)
             {
                 analyticVersions = new HashSet<int>(currentDefinition.VersionAnalytics.Select(c => c.VersionId));
             }

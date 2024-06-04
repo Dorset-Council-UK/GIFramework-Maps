@@ -73,8 +73,10 @@ namespace GIFrameworkMaps.Data
             var minutes = dmsCoord[startPointOfSecondSection..secondBreak];
 
             var startPointOfThirdSection = dmsCoord.IndexOfAny("0123456789".ToCharArray(), secondBreak);
-            var thirdBreak = dmsCoord.LastIndexOfAny("0123456789".ToCharArray())+1;
-            var seconds = dmsCoord[startPointOfThirdSection..thirdBreak];
+			#pragma warning disable CA1870
+			var thirdBreak = dmsCoord.LastIndexOfAny("0123456789".ToCharArray())+1;
+			#pragma warning restore CA1870
+			var seconds = dmsCoord[startPointOfThirdSection..thirdBreak];
 
             Regex pattern = NSEWRegex();
             var hemisphereIndicator = pattern.Match(dmsCoord.ToUpper());
