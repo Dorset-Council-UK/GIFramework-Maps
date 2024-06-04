@@ -1184,6 +1184,44 @@ export class GIFWMap {
   }
 
   /**
+   * Returns a boolean indicating if the layer has a filter applied to it
+   * A 'user editable' filter is one they have either applied themselves, or a default one
+   * (applied by admins) that the user is allowed to modify
+   * @param layer The layer configuration information
+   * @param olLayer The OpenLayers layer
+   * @param userEditableOnly If true, will return true if a CQL filter is applied AND the user is able to edit it
+   * @return Boolean indicating if it does have a filter applied
+   */
+  public getLayerFilteredStatus(
+    layer: Layer,
+    olLayer: olLayer.Layer,
+    userEditableOnly: boolean = true,
+  ): boolean {
+    if (olLayer.get("gifw-filter-applied")) {
+      return true;
+    }
+    const source = olLayer.getSource();
+    if (source instanceof TileWMS || source instanceof ImageWMS) {
+      const params = (source as TileWMS | ImageWMS).getParams();
+      let cqlFilter: string;
+      for (const property in params) {
+        if (property.toLowerCase() === "cql_filter") {
+          cqlFilter = params[property];
+        }
+      }
+
+      if (cqlFilter) {
+        if (userEditableOnly) {
+          return layer.defaultFilterEditable;
+        } else {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
    * Gets all Legend URLs for layers that are legendable, and a list of layer names that are not legendable
    * @param additionalLegendOptions Optional string of additoinal options to add to the LEGEND_OPTIONS parameter of the GetLegendGraphic request
    * @returns LegendURLs

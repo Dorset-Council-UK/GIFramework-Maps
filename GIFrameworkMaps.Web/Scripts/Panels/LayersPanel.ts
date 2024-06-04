@@ -859,8 +859,7 @@ export class LayersPanel implements SidebarPanel {
     if (layerCheckboxLabelContainer) {
       layerCheckboxLabelContainer.setAttribute(
         "title",
-        `This layer is out of range. Zoom ${
-          newZoom > layer.getMaxZoom() ? "out" : "in"
+        `This layer is out of range. Zoom ${newZoom > layer.getMaxZoom() ? "out" : "in"
         } to view.`,
       );
 
@@ -1316,15 +1315,13 @@ export class LayersPanel implements SidebarPanel {
     isActive: boolean = false,
   ): HTMLElement {
     const styleLinkContainer = document.createElement("a");
-    styleLinkContainer.className = `list-group-item list-group-item-action ${
-      isActive ? "active" : ""
-    }`;
+    styleLinkContainer.className = `list-group-item list-group-item-action ${isActive ? "active" : ""
+      }`;
     styleLinkContainer.href = "#";
     styleLinkContainer.dataset.gifwLayerStyleName = style.name;
     styleLinkContainer.innerHTML = `<h5 class="mb-2">${style.title}</h5>`;
-    styleLinkContainer.innerHTML += `<p class="mb-1">${
-      style.abstract ? style.abstract : "No description provided"
-    }</p>`;
+    styleLinkContainer.innerHTML += `<p class="mb-1">${style.abstract ? style.abstract : "No description provided"
+      }</p>`;
 
     styleLinkContainer.addEventListener("click", (e) => {
       const selectedStyleName = (e.currentTarget as HTMLElement).dataset
@@ -1382,9 +1379,8 @@ export class LayersPanel implements SidebarPanel {
       LayerGroupType.Overlay,
     ]);
     if (olLayer && layer) {
-      const icon = `bi-funnel${
-        this.getLayerFilteredStatus(layer, olLayer as olLayer) ? "-fill" : ""
-      }`;
+      const icon = `bi-funnel${this.gifwMapInstance.getLayerFilteredStatus(layer, olLayer as olLayer) ? "-fill" : ""
+        }`;
       if (layersListFilterButton) {
         layersListFilterButton.querySelector(".bi").className = `bi ${icon}`;
       }
@@ -1396,42 +1392,5 @@ export class LayersPanel implements SidebarPanel {
 
   private updateSortOrderPreference() {
     UserSettings.setItem("LayerControlSortOrderPreference", this.listSortOrder);
-  }
-
-  /**
-   * Returns a boolean indicating if the layer has a user editable filter applied to it
-   * A 'user editable' filter is one they have either applied themselves, or a default one
-   * (applied by admins) that the user is allowed to modify
-   * @param layer The layer configuration information
-   * @param olLayer The OpenLayers layer
-   * @return Boolean indicating if it does have a user editable filter applied
-   */
-  public getLayerFilteredStatus(
-    layer: Layer,
-    olLayer: olLayer,
-    userEditableOnly: boolean = true,
-  ): boolean {
-    if (olLayer.get("gifw-filter-applied")) {
-      return true;
-    }
-    const source = olLayer.getSource();
-    if (source instanceof TileWMS || source instanceof ImageWMS) {
-      const params = (source as TileWMS | ImageWMS).getParams();
-      let cqlFilter: string;
-      for (const property in params) {
-        if (property.toLowerCase() === "cql_filter") {
-          cqlFilter = params[property];
-        }
-      }
-
-      if (cqlFilter) {
-        if (userEditableOnly) {
-          return layer.defaultFilterEditable;
-        } else {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 }

@@ -17,6 +17,7 @@ import { FeaturePropertiesHelper } from "./FeaturePropertiesHelper";
 import { FeatureQueryTemplateHelper } from "./FeatureQueryTemplateHelper";
 import { Source } from "ol/source";
 import LayerRenderer from "ol/renderer/Layer";
+import { MetadataViewer } from "../Metadata/MetadataViewer";
 
 export class FeatureQueryResultRenderer {
   _gifwMapInstance: GIFWMap;
@@ -176,6 +177,10 @@ export class FeatureQueryResultRenderer {
             ),
           );
         }
+
+        popupActions.push(new GIFWPopupAction("About this layer", () => {
+          MetadataViewer.showMetadataModal(gifwLayer, layer, this._gifwMapInstance)
+        },false,false))
 
         if (parentResponses) {
           popupActions.push(

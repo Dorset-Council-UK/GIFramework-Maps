@@ -190,20 +190,10 @@ export class LayerList {
           (l) => l.id == eTarget.dataset.gifwAboutLayer,
         );
         if (layerConfig && layerConfig.length === 1) {
-          const isFiltered = this.layersPanelInstance.getLayerFilteredStatus(
-            layer,
-            olLayer as olLayer,
-            false,
-          );
-          let proxyEndpoint = "";
-          if (layerConfig[0].proxyMetaRequests) {
-            proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
-          }
           MetadataViewer.showMetadataModal(
             layerConfig[0],
             olLayer as olLayer,
-            isFiltered,
-            proxyEndpoint,
+            this.gifwMapInstance
           );
         }
         e.preventDefault();
@@ -221,7 +211,7 @@ export class LayerList {
       //Determine if the layer has a user editable filter applied,
       //and display the button as filled if so
       const icon = `bi-funnel${
-        this.layersPanelInstance.getLayerFilteredStatus(
+        this.gifwMapInstance.getLayerFilteredStatus(
           layer,
           olLayer as olLayer,
         )

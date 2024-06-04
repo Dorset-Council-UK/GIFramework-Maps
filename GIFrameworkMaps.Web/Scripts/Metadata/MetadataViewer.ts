@@ -9,6 +9,7 @@ import { Layer as olLayer } from "ol/layer";
 import { ImageWMS, TileWMS } from "ol/source";
 import { Metadata } from "./Metadata";
 import { Helper, Mapping as MappingUtil } from "../Util";
+import { GIFWMap } from "../Map";
 
 export class MetadataViewer {
   static async getCSWMetadataForLayer(
@@ -372,8 +373,7 @@ export class MetadataViewer {
   static async showMetadataModal(
     layerConfig: Layer,
     olLayer: olLayer,
-    isFiltered: boolean = false,
-    proxyEndpoint: string = "",
+    gifwMapInstance: GIFWMap
   ) {
     const metaModal = new Modal(document.getElementById("meta-modal"), {});
     const metaModalContent = document.querySelector("#meta-modal .modal-body");
@@ -391,7 +391,11 @@ export class MetadataViewer {
 
       metaModalContent.innerHTML = descriptionHTML;
       metaModal.show();
-
+      let proxyEndpoint = ""
+      if (layerConfig.proxyMetaRequests) {
+        proxyEndpoint = `${document.location.protocol}//${gifwMapInstance.config.appRoot}proxy`;
+      }
+      const isFiltered = gifwMapInstance.getLayerFilteredStatus(layerConfig, olLayer, false);
       const metadata = await MetadataViewer.getCSWMetadataForLayer(
         layerConfig,
         olLayer,
