@@ -2,8 +2,7 @@
 import { Coordinate } from "ol/coordinate";
 import { Geometry } from "ol/geom";
 import { Layer } from "ol/layer";
-import VectorLayer from "ol/layer/Vector";
-import RenderFeature from "ol/render/Feature";
+import { Vector as VectorLayer } from "ol/layer";
 import VectorSource from "ol/source/Vector";
 import { Stroke, Style } from "ol/style";
 import CircleStyle from "ol/style/Circle";
@@ -20,7 +19,7 @@ import LayerRenderer from "ol/renderer/Layer";
 
 export class FeatureQueryResultRenderer {
   _gifwMapInstance: GIFWMap;
-  _highlighterLayer: VectorLayer<VectorSource>;
+  _highlighterLayer: VectorLayer<Feature>;
   _vectorSource: VectorSource<Feature>;
   _highlightStyle: Style;
 
@@ -54,11 +53,7 @@ export class FeatureQueryResultRenderer {
       false,
     );
     this._highlighterLayer.on("change", () => {
-      if (
-        (
-          this._highlighterLayer.getSource() as VectorSource<Feature>
-        ).getFeatures().length === 0
-      ) {
+      if (this._highlighterLayer.getSource().getFeatures().length === 0) {
         this._highlighterLayer.setVisible(false);
       } else {
         this._highlighterLayer.setVisible(true);
@@ -68,8 +63,8 @@ export class FeatureQueryResultRenderer {
 
   public showFeaturePopup(
     coords: number[],
-    layer: Layer<Source, LayerRenderer<VectorLayer<VectorSource>>>,
-    feature: Feature<Geometry> | RenderFeature,
+    layer: Layer<Source, LayerRenderer<VectorLayer<Feature<Geometry>>>>,
+    feature: Feature,
     parentResponses?: FeatureQueryResponse[],
   ) {
     let popupOptions: GIFWPopupOptions;
@@ -268,7 +263,7 @@ export class FeatureQueryResultRenderer {
 
     const popupOptions = new GIFWPopupOptions(popupContent, [], [0, 0]);
     this.renderPopupFromOptions(popupOptions, coords);
-    this.highlightFeatures(responsesWithData.map((r) => r.features).flat());
+    this.highlightFeatures(responsesWithData.map((r) => r.features).flat() as Feature[]);
 
     this._gifwMapInstance.popupOverlay.overlay.once("change:position", () =>
       this.unhighlightFeatures(),
@@ -326,9 +321,9 @@ export class FeatureQueryResultRenderer {
   }
 
   private getPopupContentFromFeature(
-    feature: Feature<Geometry> | RenderFeature,
+    feature: Feature,
     featureOpts: GIFWPopupOptions,
-    layer: Layer<Source, LayerRenderer<VectorLayer<VectorSource>>>,
+    layer: Layer<Source, LayerRenderer<VectorLayer<Feature>>>,
   ): string {
     //default to name or layerName if available
     let featureContent = feature?.get("name") || layer?.get("name");
@@ -352,7 +347,7 @@ export class FeatureQueryResultRenderer {
       } else {
         //try and get content from keys
         let keysList = "";
-        (feature as Feature<Geometry>).getKeys().forEach((k) => {
+        feature.getKeys().forEach((k) => {
           if (typeof feature.get(k) !== "object") {
             keysList += `<tr><th>${k}</th><td>${feature.get(k)}</td>`;
           }
@@ -371,14 +366,14 @@ export class FeatureQueryResultRenderer {
     return featureContent;
   }
 
-  public highlightFeature(feature: Feature<Geometry> | RenderFeature) {
+  public highlightFeature(feature: Feature) {
     this.unhighlightFeatures();
-    this._highlighterLayer.getSource().addFeature(feature as Feature);
+    this._highlighterLayer.getSource().addFeature(feature);
   }
 
-  public highlightFeatures(features: (Feature<Geometry> | RenderFeature)[]) {
+  public highlightFeatures(features: Feature[]) {
     this.unhighlightFeatures();
-    this._highlighterLayer.getSource().addFeatures(features as Feature[]);
+    this._highlighterLayer.getSource().addFeatures(features);
   }
 
   public unhighlightFeatures() {

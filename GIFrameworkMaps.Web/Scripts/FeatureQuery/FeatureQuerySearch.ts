@@ -54,7 +54,7 @@ export class FeatureQuerySearch {
   _basicStyle: Style;
   _tipStyle: Style;
   _tipPoint: Geometry;
-  _queryLayer: VectorLayer<VectorSource>;
+  _queryLayer: VectorLayer<Feature<Geometry>>;
   _vectorSource: VectorSource<Feature>;
   _keyboardEventAbortController: AbortController;
 
@@ -122,7 +122,7 @@ export class FeatureQuerySearch {
 
           const promise = new Promise<FeatureQueryResponse>((resolve) => {
             const infoClickResponse: FeatureQueryResponse = {
-              features: Array.from(features),
+              features: Array.from(features) as Feature[],
               layer: layer,
             };
             resolve(infoClickResponse);
@@ -405,7 +405,7 @@ export class FeatureQuerySearch {
   }
 
   private async getSearchPromisesForLayers(
-    searchableLayers: Layer<Source, LayerRenderer<VectorLayer<VectorSource>>>[],
+    searchableLayers: Layer<Source, LayerRenderer<VectorLayer<Feature<Geometry>>>>[],
     searchPolygon: olPolygon,
   ): Promise<Promise<FeatureQueryResponse>[]> {
     const searchPromises: Promise<FeatureQueryResponse>[] = [];
@@ -611,7 +611,7 @@ export class FeatureQuerySearch {
 
         const promise = new Promise<FeatureQueryResponse>((resolve) => {
           const infoClickResponse: FeatureQueryResponse = {
-            features: Array.from(features),
+            features: Array.from(features) as Feature[],
             layer: layer,
           };
           resolve(infoClickResponse);
@@ -749,7 +749,7 @@ export class FeatureQuerySearch {
       LayerGroupType.SystemNative,
     ]);
 
-    let layers: Layer<Source, LayerRenderer<VectorLayer<VectorSource>>>[] = [];
+    let layers: Layer<Source, LayerRenderer<VectorLayer<Feature<Geometry>>>>[] = [];
     layerGroups.forEach((lg) => {
       layers = layers.concat(lg.olLayerGroup.getLayersArray());
     });
@@ -760,10 +760,7 @@ export class FeatureQuerySearch {
         !(l.getMaxZoom() < roundedZoom || l.getMinZoom() >= roundedZoom),
     );
 
-    const searchableLayers: Layer<
-      Source,
-      LayerRenderer<VectorLayer<VectorSource>>
-    >[] = [];
+    const searchableLayers: Layer<Source, LayerRenderer<VectorLayer<Feature<Geometry>>>>[] = [];
 
     visibleLayers.forEach((l) => {
       //check layer is actually visible and can be clicked

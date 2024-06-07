@@ -2,8 +2,7 @@
 import * as olLayer from "ol/layer";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { Layer } from "../Interfaces/Layer";
-import VectorLayer from "ol/layer/Vector";
-import VectorSource from "ol/source/Vector";
+import { Vector as VectorLayer } from "ol/layer";
 import { Source } from "ol/source";
 import LayerRenderer from "ol/renderer/Layer";
 import { Feature } from "ol";
@@ -13,11 +12,11 @@ export interface LayerGroup {
   gifwMapInstance: GIFWMap;
   olLayerGroup: olLayer.Group;
   layerGroupType: LayerGroupType;
-  layers: Layer[] | VectorLayer<VectorSource<Feature<Geometry>>>[];
+  layers: Layer[] | VectorLayer<Feature<Geometry>>[];
   createLayersGroup: () => olLayer.Group;
   addChangeEvents: () => void;
   addLayerToGroup: (
-    layer: Layer | VectorLayer<VectorSource>,
+    layer: Layer | VectorLayer<Feature<Geometry>>,
     olLayer?: olLayer.Layer<Source, LayerRenderer<olLayer.Layer>>,
   ) => void;
 }
