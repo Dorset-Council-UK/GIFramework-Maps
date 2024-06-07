@@ -20,8 +20,6 @@ import {
 } from "./AnnotationTool";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { GIFWMap } from "../Map";
-import VectorSource from "ol/source/Vector";
-import Feature from "ol/Feature";
 
 export default class Annotate extends olControl {
   gifwMapInstance: GIFWMap;
@@ -151,8 +149,7 @@ export default class Annotate extends olControl {
     this._modifyAnnotationControlElement = modifyContainer;
     this._clearAnnotationControlElement = clearAnnotationsContainer;
     if (
-      (this.annotationLayer.getSource() as VectorSource<Feature>).getFeatures()
-        .length === 0
+      this.annotationLayer.getSource().getFeatures().length === 0
     ) {
       this._exportAnnotationControlElement
         .querySelector("button")
@@ -264,11 +261,7 @@ export default class Annotate extends olControl {
       );
 
     this.annotationLayer.on("change", () => {
-      if (
-        (
-          this.annotationLayer.getSource() as VectorSource<Feature>
-        ).getFeatures().length === 0
-      ) {
+      if (this.annotationLayer.getSource().getFeatures().length === 0) {
         this._exportAnnotationControlElement
           .querySelector("button")
           .setAttribute("disabled", "");
