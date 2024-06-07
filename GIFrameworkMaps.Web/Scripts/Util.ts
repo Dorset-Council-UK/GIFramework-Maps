@@ -7,11 +7,12 @@ import { Layer as olLayer } from "ol/layer";
 import { LayerGroupType } from "./Interfaces/LayerGroupType";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
-import { Point, SimpleGeometry } from "ol/geom";
+import { Geometry, Point, SimpleGeometry } from "ol/geom";
 import { GIFWPopupOptions } from "./Popups/PopupOptions";
 import { ImageWMS, Source, TileWMS } from "ol/source";
 import { LayerSource } from "./Interfaces/Layer";
 import LayerRenderer from "ol/renderer/Layer";
+import { Feature } from "ol";
 
 export class Projection {
   /**
@@ -701,7 +702,7 @@ export class Mapping {
       const searchResultsLayer = map.getLayerById("__searchresults__");
 
       const source: VectorSource = (
-        searchResultsLayer as VectorLayer<VectorSource>
+        searchResultsLayer as VectorLayer<Feature<Geometry>>
       ).getSource();
       const features = source.getFeatures();
       if (features.length === 1) {
