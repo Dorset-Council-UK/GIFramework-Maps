@@ -9,18 +9,13 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers
 {
-	public class SearchController : Controller
+	public class SearchController(ISearchRepository repository, ILogger<SearchController> logger) : Controller
     {
-        //dependancy injection
-        private readonly ISearchRepository _repository;
-        private readonly ILogger<SearchController> _logger;
-        public SearchController(ISearchRepository repository, ILogger<SearchController> logger)
-        {
-            _repository = repository;
-            _logger = logger;
-        }
+        //dependency injection
+        private readonly ISearchRepository _repository = repository;
+        private readonly ILogger<SearchController> _logger = logger;
 
-        public async Task<JsonResult> Index([FromBody]SearchQuery searchQuery)
+		public async Task<JsonResult> Index([FromBody]SearchQuery searchQuery)
         {
             //Sanitise user input to prevent log forging
             _logger.LogInformation("User searched for {searchQuery}", searchQuery.Query.Replace(Environment.NewLine, ""));

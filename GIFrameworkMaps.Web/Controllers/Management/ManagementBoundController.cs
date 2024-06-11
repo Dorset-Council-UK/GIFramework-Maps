@@ -9,29 +9,23 @@ using System.Threading.Tasks;
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
     [Authorize(Roles = "GIFWAdmin")]
-    public class ManagementBoundController : Controller
+    public class ManagementBoundController(
+		ILogger<ManagementBoundController> logger,
+		IManagementRepository repository,
+		ApplicationDbContext context
+			) : Controller
     {
-        //dependancy injection
+        //dependency injection
         /*NOTE: A repository pattern is used for much basic data access across the project
          * however, write and update are done directly on the context based on the advice here
          * https://learn.microsoft.com/en-us/aspnet/mvc/overview/getting-started/getting-started-with-ef-using-mvc/advanced-entity-framework-scenarios-for-an-mvc-web-application#create-an-abstraction-layer
          * */
-        private readonly ILogger<ManagementBoundController> _logger;
-        private readonly IManagementRepository _repository;
-        private readonly ApplicationDbContext _context;
-        public ManagementBoundController(
-            ILogger<ManagementBoundController> logger,
-            IManagementRepository repository,
-            ApplicationDbContext context
-            )
-        {
-            _logger = logger;
-            _repository = repository;
-            _context = context;
-        }
+        private readonly ILogger<ManagementBoundController> _logger = logger;
+        private readonly IManagementRepository _repository = repository;
+        private readonly ApplicationDbContext _context = context;
 
-        // GET: Bound
-        public async Task<IActionResult> Index()
+		// GET: Bound
+		public async Task<IActionResult> Index()
         {
             var bounds = await _repository.GetBounds();
             return View(bounds);

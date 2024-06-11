@@ -14,25 +14,18 @@ using System.Threading.Tasks;
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
 	[Authorize(Roles = "GIFWAdmin")]
-    public class ManagementUserController : Controller
+    public class ManagementUserController(ILogger<ManagementUserController> logger, IManagementRepository repository, ApplicationDbContext context) : Controller
     {
-        //dependancy injection
+        //dependency injection
         /* NOTE: A repository pattern is used for much basic data access across the project
          * however, write and update are done directly on the context based on the advice here
          * https://learn.microsoft.com/en-us/aspnet/mvc/overview/getting-started/getting-started-with-ef-using-mvc/advanced-entity-framework-scenarios-for-an-mvc-web-application#create-an-abstraction-layer
          **/
-        private readonly ILogger<ManagementUserController> _logger;
-        private readonly IManagementRepository _repository;
-        private readonly ApplicationDbContext _context;
+        private readonly ILogger<ManagementUserController> _logger = logger;
+        private readonly IManagementRepository _repository = repository;
+        private readonly ApplicationDbContext _context = context;
 
-        public ManagementUserController(ILogger<ManagementUserController> logger, IManagementRepository repository, ApplicationDbContext context)
-        {
-            _logger = logger;
-            _repository = repository;
-            _context = context;
-        }
-
-        public async Task<IActionResult> Index()
+		public async Task<IActionResult> Index()
         {
             var users = await _repository.GetUsers();
 
@@ -173,21 +166,21 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private async Task RebuildViewModel(UserEditViewModel model, Microsoft.Graph.Beta.Models.User user)
         {
-			// Select only the Id from the application user roles (dont get the data yet)
+			// Select only the Id from the application user roles (do not get the data yet)
 			var selectedApplicationRoleIds = _context.ApplicationUserRoles
 				.AsNoTracking()
 				.IgnoreAutoIncludes()
 				.Where(o => o.UserId == user.Id)
 				.Select(o => o.ApplicationRoleId);
 
-			// Select only the Id from the version users (dont get the data yet)
+			// Select only the Id from the version users (do not get the data yet)
 			var selectedVersionUsersIds = _context.VersionUsers
 				.AsNoTracking()
 				.IgnoreAutoIncludes()
 				.Where(o => o.UserId == user.Id)
 				.Select(o => o.VersionId);
 
-			// Select only the Id, Name, and Slug from the versions (dont get the data yet)
+			// Select only the Id, Name, and Slug from the versions (do not get the data yet)
 			var availableVersions = _context.Versions
 				.AsNoTracking()
 				.IgnoreAutoIncludes()
@@ -195,7 +188,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 				.Select(o => new { o.Id, o.Name, o.Slug })
 				.OrderBy(o => o.Name);
 
-			// Create a select list item for each available version. Meaning we dont need to do any database calls in the view
+			// Create a select list item for each available version. Meaning we do not need to do any database calls in the view
 			// As this select list shows more data, combine the name and slug into the text
 			model.AvailableVersions = await availableVersions
 				.Select(o => new SelectListItem()
@@ -206,7 +199,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 				})
 				.ToListAsync();
 
-			// Create a select list item for each available role. Meaning we dont need to do any database calls in the view
+			// Create a select list item for each available role. Meaning we do not need to do any database calls in the view
 			model.AvailableRoles = await _context.ApplicationRoles
 				.AsNoTracking()
 				.IgnoreAutoIncludes()

@@ -7,20 +7,13 @@ using System.Threading.Tasks;
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
 	[Authorize(Roles = "GIFWAdmin")]
-    public class ManagementController : Controller
+    public class ManagementController(ICommonRepository repository, IApplicationDbContext context) : Controller
     {
-        //dependancy injection
-        private readonly ICommonRepository _repository;
-        private readonly IApplicationDbContext _context;
+        //dependency injection
+        private readonly ICommonRepository _repository = repository;
+        private readonly IApplicationDbContext _context = context;
 
-        public ManagementController(ICommonRepository repository, IApplicationDbContext context)
-        {
-
-            _repository = repository;
-            _context = context;
-        }
-
-        public IActionResult Index()
+		public IActionResult Index()
         {
             return View();
         }

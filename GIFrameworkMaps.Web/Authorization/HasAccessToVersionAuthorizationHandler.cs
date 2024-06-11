@@ -5,16 +5,11 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Authorization
 {
-	public class HasAccessToVersionAuthorizationHandler : AuthorizationHandler<HasAccessToVersionRequirement, Data.Models.Version>
+	public class HasAccessToVersionAuthorizationHandler(ICommonRepository repository) : AuthorizationHandler<HasAccessToVersionRequirement, Data.Models.Version>
     {
-        private readonly ICommonRepository _repository;
+        private readonly ICommonRepository _repository = repository;
 
-        public HasAccessToVersionAuthorizationHandler(ICommonRepository repository)
-        {
-            _repository = repository;
-        }
-
-        protected override Task HandleRequirementAsync(
+		protected override Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
             HasAccessToVersionRequirement requirement,
             Data.Models.Version resource)

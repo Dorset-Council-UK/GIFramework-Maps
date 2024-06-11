@@ -6,21 +6,16 @@ using Microsoft.Extensions.Logging;
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
     [Authorize(Roles = "GIFWAdmin")]
-    public class ManagementSystemController : Controller
+    public class ManagementSystemController(
+		ILogger<ManagementSystemController> logger,
+		IManagementRepository repository
+			) : Controller
     {
-        //dependancy injection
-        private readonly ILogger<ManagementSystemController> _logger;
-        private readonly IManagementRepository _repository;
-        public ManagementSystemController(
-            ILogger<ManagementSystemController> logger,
-            IManagementRepository repository
-            )
-        {
-            _logger = logger;
-            _repository = repository;
-        }
+        //dependency injection
+        private readonly ILogger<ManagementSystemController> _logger = logger;
+        private readonly IManagementRepository _repository = repository;
 
-        public IActionResult Index()
+		public IActionResult Index()
         {
             return View();
         }
@@ -34,7 +29,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 success = true;
                 _logger.LogInformation("Memory Cache purged by {user}", User.Identity.Name);
             }
-            TempData["Message"] = $"Cache was {(success ? "sucessfully" : "not")} purged";
+            TempData["Message"] = $"Cache was {(success ? "successfully" : "not")} purged";
             TempData["MessageType"] = success ? "success" : "error";
             return RedirectToAction("Index");
         }

@@ -355,17 +355,21 @@ export class CreateLayerFromSource {
   ) {
     if (template) {
       //get an example value from the service if possible.
-
-      const props = (await this.getExampleFeature()) as object;
-      if (props !== null) {
-        const renderedTemplate = FeatureQueryTemplateHelper.renderTemplate(
-          template,
-          props,
-        );
-        previewContainer.innerHTML = renderedTemplate;
-      } else {
+      try {
+        const props = (await this.getExampleFeature()) as object;
+        if (props !== null) {
+          const renderedTemplate = FeatureQueryTemplateHelper.renderTemplate(
+            template,
+            props,
+          );
+          previewContainer.innerHTML = renderedTemplate;
+        } else {
+          previewContainer.innerHTML =
+            '<div class="alert alert-warning p-2 my-1">We couldn\'t get an example feature from the feature server</div>';
+        }
+      } catch (e) {
         previewContainer.innerHTML =
-          '<div class="alert alert-warning p-2 my-1">We couldn\'t get an example feature from the feature server</div>';
+          '<div class="alert alert-warning p-2 my-1">Something went wrong! Check your template</div>';
       }
     } else {
       previewContainer.innerHTML =
@@ -374,62 +378,65 @@ export class CreateLayerFromSource {
   }
 
   private async getExampleFeature() {
-    if (this._cachedExampleFeature) {
-      return this._cachedExampleFeature;
-    }
-    const serverCapabilities = await Metadata.getBasicCapabilities(
-      this.layerSourceURL,
-      {},
-      this.getProxyEndpoint(),
-    );
-
-    if (
-      serverCapabilities &&
-      serverCapabilities.capabilities.filter(
-        (c) => c.type === CapabilityType.DescribeFeatureType && c.url !== "",
-      ).length !== 0 &&
-      serverCapabilities.capabilities.filter(
-        (c) => c.type === CapabilityType.WFS_GetFeature && c.url !== "",
-      ).length !== 0
-    ) {
-      //has all relevant capabilities
-      const describeFeatureCapability = serverCapabilities.capabilities.filter(
-        (c) => c.type === CapabilityType.DescribeFeatureType,
-      )[0];
-      const featureDescription = await Metadata.getDescribeFeatureType(
-        describeFeatureCapability.url,
-        this.layerSourceName,
-        describeFeatureCapability.method,
-        undefined,
-        "",
-      );
-      /*TODO - Make this work with other projections*/
-      const wfsFeatureInfoRequest = new WFS().writeGetFeature({
-        srsName: "EPSG:3857",
-        featureTypes: [this.layerSourceName],
-        featureNS: featureDescription.targetNamespace,
-        featurePrefix: featureDescription.targetPrefix,
-        count: 1,
-        maxFeatures: 1,
-      });
-      const getFeatureCapability = serverCapabilities.capabilities.filter(
-        (c) => c.type === CapabilityType.WFS_GetFeature,
-      )[0];
-      const request: FeatureQueryRequest = {
-        layer: undefined,
-        wfsRequest: wfsFeatureInfoRequest,
-        searchUrl: getFeatureCapability.url,
-        searchMethod: getFeatureCapability.method,
-      };
-      const resp = await this.getFeatureInfoForLayer(request);
-
-      const props = resp.features[0].getProperties();
-      if (props) {
-        this._cachedExampleFeature = props;
+    try {
+      if (this._cachedExampleFeature) {
+        return this._cachedExampleFeature;
       }
-      return props;
+      const serverCapabilities = await Metadata.getBasicCapabilities(
+        this.layerSourceURL,
+        {},
+        this.getProxyEndpoint(),
+      );
+
+      if (
+        serverCapabilities &&
+        serverCapabilities.capabilities.filter(
+          (c) => c.type === CapabilityType.DescribeFeatureType && c.url !== "",
+        ).length !== 0 &&
+        serverCapabilities.capabilities.filter(
+          (c) => c.type === CapabilityType.WFS_GetFeature && c.url !== "",
+        ).length !== 0
+      ) {
+        //has all relevant capabilities
+        const describeFeatureCapability = serverCapabilities.capabilities.filter(
+          (c) => c.type === CapabilityType.DescribeFeatureType,
+        )[0];
+        const featureDescription = await Metadata.getDescribeFeatureType(
+          describeFeatureCapability.url,
+          this.layerSourceName,
+          describeFeatureCapability.method,
+          undefined,
+          "",
+        );
+        /*TODO - Make this work with other projections*/
+        const wfsFeatureInfoRequest = new WFS().writeGetFeature({
+          srsName: "EPSG:3857",
+          featureTypes: [this.layerSourceName],
+          featureNS: featureDescription.targetNamespace,
+          featurePrefix: featureDescription.targetPrefix,
+          count: 1,
+          maxFeatures: 1,
+        });
+        const getFeatureCapability = serverCapabilities.capabilities.filter(
+          (c) => c.type === CapabilityType.WFS_GetFeature,
+        )[0];
+        const request: FeatureQueryRequest = {
+          layer: undefined,
+          wfsRequest: wfsFeatureInfoRequest,
+          searchUrl: getFeatureCapability.url,
+          searchMethod: getFeatureCapability.method,
+        };
+        const resp = await this.getFeatureInfoForLayer(request);
+
+        const props = resp.features[0].getProperties();
+        if (props) {
+          this._cachedExampleFeature = props;
+        }
+        return props;
+      }
+    } catch (e) {
+      return null;
     }
-    return null;
   }
 
   private getFeatureInfoForLayer(

@@ -5,15 +5,11 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Authorization
 {
-	public class ClaimsTransformer : IClaimsTransformation
+	public class ClaimsTransformer(ICommonRepository commonRepository) : IClaimsTransformation
     {
-        private readonly ICommonRepository _commonRepository;
+        private readonly ICommonRepository _commonRepository = commonRepository;
 
-        public ClaimsTransformer(ICommonRepository commonRepository)
-        {
-            _commonRepository = commonRepository;
-        }
-        public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
+		public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
         {
             var claimsIdentity = (ClaimsIdentity)principal.Identity;
             var userIdClaim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);

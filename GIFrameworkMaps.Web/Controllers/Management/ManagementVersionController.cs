@@ -22,7 +22,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 	  IConfiguration configuration
 	) : Controller
     {
-        //dependancy injection
+        //dependency injection
         /*NOTE: A repository pattern is used for much basic data access across the project
          * however, write and update are done directly on the context based on the advice here
          * https://learn.microsoft.com/en-us/aspnet/mvc/overview/getting-started/getting-started-with-ef-using-mvc/advanced-entity-framework-scenarios-for-an-mvc-web-application#create-an-abstraction-layer
@@ -125,7 +125,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             bool purgeCache)
         {
 			var versionToUpdate = await _context.Versions
-                .Include(v => v.VersionBasemaps)
+				.AsSplitQuery()
+				.Include(v => v.VersionBasemaps)
                     .ThenInclude(v => v.Basemap)
 				.Include(v => v.VersionProjections)
 					.ThenInclude(v => v.Projection)

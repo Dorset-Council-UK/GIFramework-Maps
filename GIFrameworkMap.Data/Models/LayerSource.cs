@@ -18,6 +18,6 @@ namespace GIFrameworkMaps.Data.Models
         [Display(Name = "Layer Type")]
         public int LayerSourceTypeId { get; set; }
         public LayerSourceType? LayerSourceType { get; set; }
-        public List<LayerSourceOption> LayerSourceOptions { get; set; } = new();
+        public List<LayerSourceOption> LayerSourceOptions { get; set; } = [];
     }
 }

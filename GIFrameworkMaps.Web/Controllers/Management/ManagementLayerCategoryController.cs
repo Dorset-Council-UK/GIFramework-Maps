@@ -13,25 +13,18 @@ using System.Threading.Tasks;
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
 	[Authorize(Roles = "GIFWAdmin")]
-    public class ManagementLayerCategoryController : Controller
+    public class ManagementLayerCategoryController(ILogger<ManagementLayerCategoryController> logger, IManagementRepository repository, ApplicationDbContext context) : Controller
     {
-        //dependancy injection
+        //dependency injection
         /*NOTE: A repository pattern is used for much basic data access across the project
          * however, write and update are done directly on the context based on the advice here
          * https://learn.microsoft.com/en-us/aspnet/mvc/overview/getting-started/getting-started-with-ef-using-mvc/advanced-entity-framework-scenarios-for-an-mvc-web-application#create-an-abstraction-layer
          * */
-        private readonly ILogger<ManagementLayerCategoryController> _logger;
-        private readonly IManagementRepository _repository;
-        private readonly ApplicationDbContext _context;
+        private readonly ILogger<ManagementLayerCategoryController> _logger = logger;
+        private readonly IManagementRepository _repository = repository;
+        private readonly ApplicationDbContext _context = context;
 
-        public ManagementLayerCategoryController(ILogger<ManagementLayerCategoryController> logger, IManagementRepository repository, ApplicationDbContext context)
-        {
-            _logger = logger;
-            _repository = repository;
-            _context = context;
-        }
-
-        public async Task<IActionResult> Index()
+		public async Task<IActionResult> Index()
         {
             var categories = await _context.Categories
 				.AsNoTracking()

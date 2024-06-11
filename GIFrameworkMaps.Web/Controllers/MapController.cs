@@ -10,36 +10,27 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GIFrameworkMaps.Web.Controllers
 {
-	public class MapController : Controller
+	public class MapController(
+			ILogger<MapController> logger,
+			IAuthorizationService authorization,
+			ICommonRepository repository,
+			IManagementRepository adminRepository,
+			IConfiguration configuration,
+			ApplicationDbContext context) : Controller
     {
-        //dependancy injection
-        private readonly ILogger<MapController> _logger;
-        private readonly IAuthorizationService _authorization;
-        private readonly ICommonRepository _repository;
-        private readonly IManagementRepository _adminRepository;
-        private readonly IConfiguration _configuration;
-        private readonly ApplicationDbContext _context;
+        //dependency injection
+        private readonly ILogger<MapController> _logger = logger;
+        private readonly IAuthorizationService _authorization = authorization;
+        private readonly ICommonRepository _repository = repository;
+        private readonly IManagementRepository _adminRepository = adminRepository;
+        private readonly IConfiguration _configuration = configuration;
+        private readonly ApplicationDbContext _context = context;
 
-        public MapController(
-            ILogger<MapController> logger, 
-            IAuthorizationService authorization,
-            ICommonRepository repository,
-            IManagementRepository adminRepository,
-            IConfiguration configuration,
-            ApplicationDbContext context)
-        {
-            _logger = logger;
-            _authorization = authorization;
-            _repository = repository;
-            _adminRepository = adminRepository;
-            _configuration = configuration;
-            _context = context;
-        }
-        /// <summary>
-        /// This route forces calls to the general /Map endpoint to redirect to the default slug route. Not pretty but does the job
-        /// </summary>
-        /// <returns></returns>
-        public IActionResult RedirectToGeneral()
+		/// <summary>
+		/// This route forces calls to the general /Map endpoint to redirect to the default slug route. Not pretty but does the job
+		/// </summary>
+		/// <returns></returns>
+		public IActionResult RedirectToGeneral()
         {
             return RedirectToRoute("Default_Slug");
         }
