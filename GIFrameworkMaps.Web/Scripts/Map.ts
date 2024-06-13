@@ -83,7 +83,7 @@ export class GIFWMap {
    * Initializes the map
    * @returns OpenLayers map reference to the created map
    * */
-  public initMap(): olMap {
+  public async initMap(): Promise<olMap> {
     /*TODO - THIS IS A NASTY MEGA FUNCTION OF ALMOST 300 LINES OF CODE. SIMPLIFY!!!*/
 
     //register projections
@@ -193,8 +193,12 @@ export class GIFWMap {
       }
     }
     this.layerGroups = [];
+    const basemapGroup = await new GIFWLayerGroup(this.config.basemaps, this, LayerGroupType.Basemap);
+    basemapGroup.olLayerGroup = await basemapGroup.createLayersGroup();
+    basemapGroup.addChangeEvents();
+
     this.layerGroups.push(
-      new GIFWLayerGroup(this.config.basemaps, this, LayerGroupType.Basemap),
+      basemapGroup
     );
 
     let permalinkEnabledLayerSettings: string[] = [];
@@ -231,8 +235,13 @@ export class GIFWMap {
         allLayers.push(l);
       });
     });
+
+    const overlayGroup = await new GIFWLayerGroup(allLayers, this, LayerGroupType.Overlay);
+    overlayGroup.olLayerGroup = await overlayGroup.createLayersGroup();
+    overlayGroup.addChangeEvents();
+
     this.layerGroups.push(
-      new GIFWLayerGroup(allLayers, this, LayerGroupType.Overlay),
+      overlayGroup
     );
 
     const flattenedLayerGroups = this.layerGroups.flat();
@@ -623,10 +632,14 @@ export class GIFWMap {
       proxyMapRequests: false,
     };
 
-    let layerGroup = this.getLayerGroupOfType(type);
+    const layerGroup = this.getLayerGroupOfType(type);
     if (layerGroup == null) {
-      layerGroup = new NativeLayerGroup([ol_layer], this, type);
-      this.layerGroups.push(layerGroup);
+
+      const nativeLayerGroup = new NativeLayerGroup([ol_layer], this, type);
+      nativeLayerGroup.olLayerGroup = nativeLayerGroup.createLayersGroup();
+      nativeLayerGroup.addChangeEvents();
+
+      this.layerGroups.push(nativeLayerGroup);
     } else {
       layerGroup.addLayerToGroup(ol_layer);
     }

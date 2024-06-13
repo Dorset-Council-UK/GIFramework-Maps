@@ -13,7 +13,7 @@ export interface LayerGroup {
   olLayerGroup: olLayer.Group;
   layerGroupType: LayerGroupType;
   layers: Layer[] | VectorLayer<Feature<Geometry>>[];
-  createLayersGroup: () => olLayer.Group;
+  createLayersGroup: () => Promise<olLayer.Group> | olLayer.Group;
   addChangeEvents: () => void;
   addLayerToGroup: (
     layer: Layer | VectorLayer<Feature<Geometry>>,

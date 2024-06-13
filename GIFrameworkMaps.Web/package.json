@@ -39,6 +39,7 @@
     "nunjucks": "3.2.4",
     "ol": "9.2.4",
     "ol-contextmenu": "5.4.0",
+    "ol-mapbox-style": "12.3.3",
     "proj4": "2.11.0",
     "shepherd.js": "11.2.0",
     "sortablejs": "1.15.2",
