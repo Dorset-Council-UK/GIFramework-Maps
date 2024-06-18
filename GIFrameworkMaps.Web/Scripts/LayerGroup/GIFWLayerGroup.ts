@@ -500,7 +500,8 @@ export class GIFWLayerGroup implements LayerGroup {
             return o.value;
           })[0],
         format: formatMvt,
-        projection: projection
+        projection: projection,
+        attributions: layer.layerSource.attribution.renderedAttributionHTML,
       }),
       declutter: true,
       visible: visible,
@@ -548,6 +549,7 @@ export class GIFWLayerGroup implements LayerGroup {
     const vectorTileSourceOpts:VectorTileOptions<FeatureLike>  = {
       format: new MVT(),
       projection: projection,
+      attributions: layer.layerSource.attribution.renderedAttributionHTML
     }
 
     const serviceUrl = layer.layerSource.layerSourceOptions.filter((o) => {

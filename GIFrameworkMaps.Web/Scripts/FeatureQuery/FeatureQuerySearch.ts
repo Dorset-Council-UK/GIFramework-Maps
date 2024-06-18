@@ -3,7 +3,7 @@ import { point as turfPoint, Units as turfUnits } from "@turf/helpers";
 import intersect from "@turf/intersect";
 import lineIntersect from "@turf/line-intersect";
 import pointsWithinPolygon from "@turf/points-within-polygon";
-import { Feature } from "ol";
+import { Feature, VectorTile } from "ol";
 import { Coordinate } from "ol/coordinate";
 import { never as olConditionNever } from "ol/events/condition";
 import { GeoJSON, WFS, WMSGetFeatureInfo } from "ol/format";
@@ -21,7 +21,7 @@ import { Layer } from "ol/layer";
 import VectorLayer from "ol/layer/Vector";
 import RenderFeature from "ol/render/Feature";
 import LayerRenderer from "ol/renderer/Layer";
-import { ImageWMS, Source, TileWMS, Vector } from "ol/source";
+import { ImageWMS, OGCVectorTile, Source, TileWMS, Vector } from "ol/source";
 import VectorSource from "ol/source/Vector";
 import { Fill, Stroke, Style, Text } from "ol/style";
 import CircleStyle from "ol/style/Circle";
@@ -102,7 +102,7 @@ export class FeatureQuerySearch {
           };
           searchPromises.push(this.getFeatureInfoForLayer(request));
           layerNames.push(layer.get("name"));
-        } else if (source instanceof Vector) {
+        } else if (source instanceof Vector || source instanceof OGCVectorTile || source instanceof VectorTile) {
           const features = new Set<Feature<Geometry> | RenderFeature>();
           this._gifwMapInstance.olMap
             .getFeaturesAtPixel(searchPixel, {
@@ -113,10 +113,12 @@ export class FeatureQuerySearch {
             .forEach((f) => {
               features.add(f);
             });
-          // Add features at the search coordinates that may not be visible at the search pixel, e.g. features with a fill opacity of zero
-          source.getFeaturesAtCoordinate(searchCoord).forEach((f) => {
-            features.add(f);
-          });
+          if (source instanceof Vector) {
+            // Add features at the search coordinates that may not be visible at the search pixel, e.g. features with a fill opacity of zero
+            source.getFeaturesAtCoordinate(searchCoord).forEach((f) => {
+              features.add(f);
+            });
+          }
 
           layerNames.push(layer.get("name"));
 
