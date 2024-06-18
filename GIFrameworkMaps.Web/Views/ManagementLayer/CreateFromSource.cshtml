@@ -64,7 +64,7 @@
     //TODO - move this to a more generic area and return as part of viewmodel
     var name = "";
     var baseUrl = "";
-    if(Model.Layer.LayerSource.LayerSourceType.Name != "XYZ"){
+    if(Model.Layer.LayerSource.LayerSourceType.Name.Contains("WMS")){
         var paramsOpt = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "params").FirstOrDefault().Value;
         var values = JsonSerializer.Deserialize<Dictionary<string, string>>(paramsOpt);
         name = values.Where(v => v.Key.ToLower() == "layers").FirstOrDefault().Value;
