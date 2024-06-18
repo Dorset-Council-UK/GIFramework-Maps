@@ -7,6 +7,7 @@ import { Layer } from "../Interfaces/Layer";
 import { Options as ImageWMSOptions } from "ol/source/ImageWMS";
 import { Options as TileWMSOptions } from "ol/source/TileWMS";
 import { Options as XYZOptions } from "ol/source/XYZ";
+import { Options as VectorTileOptions } from "ol/source/VectorTile";
 import { Extent, applyTransform, containsExtent } from "ol/extent";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { LayerGroup } from "./LayerGroup";
@@ -107,10 +108,10 @@ export class GIFWLayerGroup implements LayerGroup {
           ol_layer = this.createXYZLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
         } else if (layer.layerSource.layerSourceType.name === 'TileWMS') {
           ol_layer = this.createTileWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection)
-
         } else if (layer.layerSource.layerSourceType.name === 'ImageWMS') {
           ol_layer = this.createImageWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
-
+        } else if (layer.layerSource.layerSourceType.name === "VectorTile") {
+          ol_layer = await this.createVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
         } else if (layer.layerSource.layerSourceType.name === 'OGCVectorTile') {
           ol_layer = await this.createOGCVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
         }
@@ -531,10 +532,100 @@ export class GIFWLayerGroup implements LayerGroup {
     
     return vectorTileLayer;
   }
+
+  private async createVectorTileLayer(
+    layer: Layer,
+    visible: boolean,
+    className: string,
+    maxZoom: number,
+    minZoom: number,
+    opacity: number,
+    extent: Extent,
+    layerHeaders: Headers,
+    hasCustomHeaders: boolean,
+    projection: string) {
+
+    const vectorTileSourceOpts:VectorTileOptions<FeatureLike>  = {
+      format: new MVT(),
+      projection: projection,
+    }
+
+    const serviceUrl = layer.layerSource.layerSourceOptions.filter((o) => {
+      return o.name == "url";
+    })
+      .map((o) => {
+        return o.value;
+      })[0];
+
+    if (serviceUrl.indexOf('{z}/{x}/{y}') !== -1) {
+      //we have a tile URL
+      vectorTileSourceOpts.url = serviceUrl;
+    } else {
+      //we have a service metadata URL
+      // Get the service metadata.
+      const service = await fetch(serviceUrl).then(response => response.json());
+
+      // Read the tile grid dimensions from the service metadata.
+      const serviceExtent = [service.fullExtent.xmin, service.fullExtent.ymin, service.fullExtent.xmax, service.fullExtent.ymax];
+      const origin = [service.tileInfo.origin.x, service.tileInfo.origin.y];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resolutions = service.tileInfo.lods.map((l: { resolution: any; }) => l.resolution).slice(0, 16);
+      const tileSize = service.tileInfo.rows;
+      const tiles = service.tiles[0];
+
+      // Set the grid pattern options for the vector tile service.
+      const tileGrid = new TileGrid({
+        extent: serviceExtent,
+        origin: origin,
+        resolutions: resolutions,
+        tileSize: tileSize
+      });
+      vectorTileSourceOpts.tileGrid = tileGrid;
+      vectorTileSourceOpts.url = tiles;
+    }
+    
+
+    // Define the vector tile layer.
+
+    const vectorTileLayer = new olLayer.VectorTile({
+      declutter: true,
+      visible: visible,
+      className: className,
+      maxZoom: maxZoom,
+      minZoom: minZoom,
+      opacity: opacity,
+      extent: extent,
+      zIndex:
+        this.layerGroupType === LayerGroupType.Basemap
+          ? -1000
+          : layer.zIndex <= -1000
+            ? -999
+            : layer.zIndex,
+    });
+    //get style from options
+    const styleOpts = layer.layerSource.layerSourceOptions.filter((o) => {
+      return o.name == "style";
+    });
+    if (styleOpts.length !== 0) {
+      olMapboxApplyStyle(vectorTileLayer, styleOpts[0].value, '', '', vectorTileSourceOpts.tileGrid?.getResolutions()).then(() => {
+        vectorTileLayer.setSource(
+          new olSource.VectorTile(vectorTileSourceOpts)
+        )
+      })
+    } else {
+      vectorTileLayer.setSource(
+        new olSource.VectorTile(vectorTileSourceOpts)
+      )
+    }
+
+    return vectorTileLayer;
+  }
+
 }
 
 
-export interface TileMatrixSet {
+
+interface TileMatrixSet {
   title: string
   id: string
   uri: string
@@ -543,7 +634,7 @@ export interface TileMatrixSet {
   tileMatrices: TileMatrice[]
 }
 
-export interface TileMatrice {
+interface TileMatrice {
   id: string
   scaleDenominator: number
   cellSize: number
