@@ -144,15 +144,15 @@ export class GIFWMap {
       geolocationControl,
     );
     const controls: olControl.Control[] = [
-      attribution,
-      scaleline,
-      mousePosition.control,
-      contextMenu.control,
-      measureControl,
       rotateControl,
+      measureControl,
       annotateControl,
       infoControl,
       geolocationControl,
+      scaleline,
+      mousePosition.control,
+      contextMenu.control,
+      attribution,
     ];
 
     //TODO - MESSY!
