@@ -188,12 +188,12 @@ export class Measure extends olControl {
     measureConfiguratorElement.appendChild(measureConfiguratorButton);
 
     this.element.appendChild(rulerElement);
-    this.element.appendChild(lineMeasureElement);
     this.element.appendChild(areaMeasureElement);
+    this.element.appendChild(lineMeasureElement);
     this.element.appendChild(clearMeasuresElement);
     this.element.appendChild(measureConfiguratorElement);
-    this._lineMeasurementControlElement = lineMeasureElement;
     this._areaMeasurementControlElement = areaMeasureElement;
+    this._lineMeasurementControlElement = lineMeasureElement;
     this._clearMeasurementControlElement = clearMeasuresElement;
     this._measureConfiguratorControlElement = measureConfiguratorElement;
     this._measureToggleControlElement = rulerElement;
