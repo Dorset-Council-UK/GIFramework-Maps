@@ -834,9 +834,14 @@ export class GIFWMap {
     const newType = currentType === 'line' ? 'bar' : 'line';
     this.olMap.getControls().forEach(ctrl => {
       if (ctrl instanceof olControl.ScaleLine) {
+        //grab its current location in the document, so we can move it back into the right position
+        const currentSiblingElement = document.querySelector(`.ol-scale-${currentType}`).previousElementSibling;
         this.olMap.removeControl(ctrl);
         const scaleLineControl = this.createScaleLineControl(newType);
         this.olMap.addControl(scaleLineControl);
+        //move the element back into position so the tab order isn't messed up
+        const newScaleBarEle = document.querySelector(`.ol-scale-${newType}`);
+        currentSiblingElement.insertAdjacentElement('afterend', newScaleBarEle);
         UserSettings.setItem("prefersScaleBar", (newType === 'bar').toString());
         //attach new event listener
         this.attachScaleBarSwitcherListener(newType);
@@ -848,8 +853,14 @@ export class GIFWMap {
     const scalelineEle = document.querySelector(`.ol-scale-${scaleLineType}`);
     if (!scalelineEle) { return; }
     (scalelineEle as HTMLElement).title = `Change to scale ${scaleLineType === 'bar' ? 'line' : 'bar'}`;
+    (scalelineEle as HTMLElement).tabIndex = 0;
     scalelineEle.addEventListener('click', () => {
       this.toggleScaleBarType(scaleLineType);
+    });
+    scalelineEle.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        this.toggleScaleBarType(scaleLineType);
+      }
     })
   }
 
