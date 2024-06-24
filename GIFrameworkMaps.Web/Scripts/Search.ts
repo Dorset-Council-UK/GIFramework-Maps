@@ -43,7 +43,7 @@ export class Search {
                 <div class="input-group">
                     <input type="search" class="form-control" placeholder="Enter a search" aria-label="Search" aria-describedby="gifw-search-button" required>
                     <button class="btn btn-outline-primary" type="submit" id="gifw-search-button">Search</button>
-                    <button class="btn btn-outline-secondary" type="button" id="gifw-search-configure-button"><i class="bi-gear-fill"></i></button>
+                    <button class="btn btn-outline-secondary" type="button" id="gifw-search-configure-button" aria-label="Configure search options" title="Configure search options"><i class="bi-gear-fill"></i></button>
                 </div>
             </form>
         </div>`;
