@@ -821,6 +821,11 @@ export class GIFWMap {
     return layer;
   }
 
+  /**
+   * Creates the scale line control as either a line or bar
+   * @param type The type of scale control to create. One of 'bar' or 'line'
+   * @returns
+   */
   private createScaleLineControl(type: 'line' | 'bar') {
     return new olControl.ScaleLine({
       units: "metric",
@@ -830,25 +835,33 @@ export class GIFWMap {
     });
   }
 
+  /**
+   * Toggles the existing scale line control between line and bar. 
+   * This only works for 1 scale control on the map. If multiple scale controls are added, only the first will be toggled
+   * @param currentType The current type of scale control. One of 'bar' or 'line'
+   */
   private toggleScaleBarType(currentType: 'bar' | 'line') {
     const newType = currentType === 'line' ? 'bar' : 'line';
-    this.olMap.getControls().forEach(ctrl => {
-      if (ctrl instanceof olControl.ScaleLine) {
-        //grab its current location in the document, so we can move it back into the right position
-        const currentSiblingElement = document.querySelector(`.ol-scale-${currentType}`).previousElementSibling;
-        this.olMap.removeControl(ctrl);
-        const scaleLineControl = this.createScaleLineControl(newType);
-        this.olMap.addControl(scaleLineControl);
-        //move the element back into position so the tab order isn't messed up
-        const newScaleBarEle = document.querySelector(`.ol-scale-${newType}`);
-        currentSiblingElement.insertAdjacentElement('afterend', newScaleBarEle);
-        UserSettings.setItem("prefersScaleBar", (newType === 'bar').toString());
-        //attach new event listener
-        this.attachScaleBarSwitcherListener(newType);
-      }
-    });
+    const scaleLineCtrl = this.olMap.getControls().getArray().filter(c => c instanceof olControl.ScaleLine);
+    if (scaleLineCtrl.length !== 0) {
+      //grab its current location in the document, so we can move it back into the right position
+      const currentSiblingElement = document.querySelector(`.ol-scale-${currentType}`).previousElementSibling;
+      this.olMap.removeControl(scaleLineCtrl[0]);
+      const scaleLineControl = this.createScaleLineControl(newType);
+      this.olMap.addControl(scaleLineControl);
+      //move the element back into position so the tab order isn't messed up
+      const newScaleBarEle = document.querySelector(`.ol-scale-${newType}`);
+      currentSiblingElement.insertAdjacentElement('afterend', newScaleBarEle);
+      UserSettings.setItem("prefersScaleBar", (newType === 'bar').toString());
+      //attach new event listener
+      this.attachScaleBarSwitcherListener(newType);
+    }
   }
 
+  /**
+   * Attaches the various listeners required for the scale line functionality
+   * @param scaleLineType The type of scale control to create. One of 'bar' or 'line'
+   */
   private attachScaleBarSwitcherListener(scaleLineType: 'bar' | 'line') {
     const scalelineEle = document.querySelector(`.ol-scale-${scaleLineType}`);
     if (!scalelineEle) { return; }
