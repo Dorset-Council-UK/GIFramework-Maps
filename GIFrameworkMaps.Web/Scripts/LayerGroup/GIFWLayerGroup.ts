@@ -1,24 +1,26 @@
-﻿import { GIFWMap } from "../Map";
-import { ImageTile, View as olView } from "ol";
+﻿import { ImageTile, View as olView } from "ol";
+import { applyStyle as olMapboxApplyStyle } from 'ol-mapbox-style';
+import { FeatureLike } from "ol/Feature";
+import { Extent, applyTransform, containsExtent } from "ol/extent";
+import { GeoJSON, MVT } from "ol/format";
 import * as olLayer from "ol/layer";
-import * as olSource from "ol/source";
+import BaseLayer from "ol/layer/Base";
+import { bbox as bboxStrategy } from 'ol/loadingstrategy';
 import * as olProj from "ol/proj";
-import { Layer } from "../Interfaces/Layer";
+import { getTransform, transformExtent } from "ol/proj";
+import LayerRenderer from "ol/renderer/Layer";
+import * as olSource from "ol/source";
 import { Options as ImageWMSOptions } from "ol/source/ImageWMS";
 import { Options as TileWMSOptions } from "ol/source/TileWMS";
-import { Options as XYZOptions } from "ol/source/XYZ";
 import { Options as VectorTileOptions } from "ol/source/VectorTile";
-import { Extent, applyTransform, containsExtent } from "ol/extent";
-import { LayerGroupType } from "../Interfaces/LayerGroupType";
-import { LayerGroup } from "./LayerGroup";
+import { Options as XYZOptions } from "ol/source/XYZ";
 import TileGrid from "ol/tilegrid/TileGrid";
-import BaseLayer from "ol/layer/Base";
+import { Layer } from "../Interfaces/Layer";
+import { LayerGroupType } from "../Interfaces/LayerGroupType";
+import { GIFWMap } from "../Map";
 import { Mapping as MappingUtil } from "../Util";
-import LayerRenderer from "ol/renderer/Layer";
-import { getTransform, transformExtent } from "ol/proj";
-import { MVT } from "ol/format";
-import {applyStyle as olMapboxApplyStyle} from 'ol-mapbox-style';
-import { FeatureLike } from "ol/Feature";
+import { LayerGroup } from "./LayerGroup";
+
 
 export class GIFWLayerGroup implements LayerGroup {
   layers: Layer[];
@@ -48,6 +50,7 @@ export class GIFWLayerGroup implements LayerGroup {
       | olLayer.Tile<olSource.TileWMS>
       | olLayer.Image<olSource.ImageWMS>
       | olLayer.VectorTile<FeatureLike>
+      | olLayer.Vector<FeatureLike>
       > = [];
     const defaultMapProjection = this.gifwMapInstance.config.availableProjections.filter(p => p.isDefaultMapProjection === true)[0];
     const viewProj = `EPSG:${defaultMapProjection.epsgCode ?? "3857"}`;
@@ -110,6 +113,8 @@ export class GIFWLayerGroup implements LayerGroup {
           ol_layer = this.createTileWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection)
         } else if (layer.layerSource.layerSourceType.name === 'ImageWMS') {
           ol_layer = this.createImageWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
+        } else if (layer.layerSource.layerSourceType.name === "Vector") {
+          ol_layer = this.createVectorLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
         } else if (layer.layerSource.layerSourceType.name === "VectorTile") {
           ol_layer = await this.createVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
         } else if (layer.layerSource.layerSourceType.name === 'OGCVectorTile') {
@@ -621,6 +626,71 @@ export class GIFWLayerGroup implements LayerGroup {
     }
 
     return vectorTileLayer;
+  }
+
+  private createVectorLayer(
+    layer: Layer,
+    visible: boolean,
+    className: string,
+    maxZoom: number,
+    minZoom: number,
+    opacity: number,
+    extent: Extent,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    layerHeaders: Headers,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    hasCustomHeaders: boolean,
+    projection: string) {
+    const sourceUrl = layer.layerSource.layerSourceOptions.filter((o) => {
+      return o.name == "url";
+    })
+      .map((o) => {
+        return o.value;
+      })[0];
+    const vectorSource = new olSource.Vector({
+      format: new GeoJSON(),
+      url: (extent) => {
+        if (projection !== `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`){
+          transformExtent(extent, this.gifwMapInstance.olMap.getView().getProjection(), projection);
+        }
+        return (
+          `${sourceUrl}&srsname=${projection}&` +
+          `bbox=${extent.join(',')},${projection}`
+        );
+      },
+      strategy: bboxStrategy,
+    });
+
+    const vector = new olLayer.Vector({
+      source: vectorSource,
+      visible: visible,
+      className: className,
+      maxZoom: maxZoom,
+      minZoom: minZoom,
+      opacity: opacity,
+      extent: extent,
+      zIndex:
+        this.layerGroupType === LayerGroupType.Basemap
+          ? -1000
+          : layer.zIndex <= -1000
+            ? -999
+            : layer.zIndex,
+    });
+    const style = layer.layerSource.layerSourceOptions.filter((o) => {
+      return o.name == "style";
+    })
+      .map((o) => {
+        return o.value;
+      })[0];
+      
+    try {
+      const jsonStyle = JSON.parse(style);
+      vector.setStyle(jsonStyle);
+    } catch (ex) {
+      vector.setStyle();
+    }
+
+    return vector;
   }
 
 }
