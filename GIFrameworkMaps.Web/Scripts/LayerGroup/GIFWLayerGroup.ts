@@ -1,8 +1,11 @@
 ﻿import { ImageTile, View as olView } from "ol";
 import { applyStyle as olMapboxApplyStyle } from 'ol-mapbox-style';
-import { FeatureLike } from "ol/Feature";
+import Feature, { FeatureLike } from "ol/Feature";
 import { Extent, applyTransform, containsExtent } from "ol/extent";
-import { GeoJSON, MVT } from "ol/format";
+import { GeoJSON, KML, MVT } from "ol/format";
+import GML2 from "ol/format/GML2";
+import GML3 from "ol/format/GML3";
+import GML32 from "ol/format/GML32";
 import * as olLayer from "ol/layer";
 import BaseLayer from "ol/layer/Base";
 import { bbox as bboxStrategy } from 'ol/loadingstrategy';
@@ -51,6 +54,7 @@ export class GIFWLayerGroup implements LayerGroup {
       | olLayer.Image<olSource.ImageWMS>
       | olLayer.VectorTile<FeatureLike>
       | olLayer.Vector<FeatureLike>
+      | olLayer.VectorImage<Feature>
       > = [];
     const defaultMapProjection = this.gifwMapInstance.config.availableProjections.filter(p => p.isDefaultMapProjection === true)[0];
     const viewProj = `EPSG:${defaultMapProjection.epsgCode ?? "3857"}`;
@@ -113,7 +117,7 @@ export class GIFWLayerGroup implements LayerGroup {
           ol_layer = this.createTileWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection)
         } else if (layer.layerSource.layerSourceType.name === 'ImageWMS') {
           ol_layer = this.createImageWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
-        } else if (layer.layerSource.layerSourceType.name === "Vector") {
+        } else if (layer.layerSource.layerSourceType.name === "Vector" || layer.layerSource.layerSourceType.name === "VectorImage") {
           ol_layer = this.createVectorLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
         } else if (layer.layerSource.layerSourceType.name === "VectorTile") {
           ol_layer = await this.createVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
@@ -641,27 +645,60 @@ export class GIFWLayerGroup implements LayerGroup {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     hasCustomHeaders: boolean,
     projection: string) {
-    const sourceUrl = layer.layerSource.layerSourceOptions.filter((o) => {
+    const sourceUrlOpt = layer.layerSource.layerSourceOptions.filter((o) => {
       return o.name == "url";
-    })
-      .map((o) => {
+    }).map((o) => {
         return o.value;
       })[0];
+    const styleOpt = layer.layerSource.layerSourceOptions.filter((o) => {
+      return o.name == "style";
+    }).map((o) => {
+        return o.value;
+      })[0];
+    const formatOpt = layer.layerSource.layerSourceOptions.filter((o) => {
+      return o.name == "format";
+    });
+    let format: GeoJSON | GML32 | GML3 | GML2 | KML = new GeoJSON();
+    if (formatOpt.length !== 0) {
+      switch (formatOpt[0].value) {
+        case "GML32":
+          format = new GML32();
+          break;
+        case "GML3":
+          format = new GML3();
+          break;
+        case "GML2":
+          format = new GML2();
+          break;
+        case "KML":
+          //if a style has been passed, don't extract the styles from the KML document
+          format = new KML({ extractStyles: (styleOpt === undefined) });
+          break;
+      }
+    }
+    let vector: olLayer.Vector<FeatureLike> | olLayer.VectorImage<Feature>;
+
+    if (layer.layerSource.layerSourceType.name === 'Vector') {
+      vector = new olLayer.Vector();
+    } else {
+      vector = new olLayer.VectorImage();
+    }
+
     const vectorSource = new olSource.Vector({
-      format: new GeoJSON(),
+      format: format,
       url: (extent) => {
-        if (projection !== `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`){
-          transformExtent(extent, this.gifwMapInstance.olMap.getView().getProjection(), projection);
+        if (projection !== `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`) {
+          extent = transformExtent(extent, this.gifwMapInstance.olMap.getView().getProjection(), projection);
         }
         return (
-          `${sourceUrl}&srsname=${projection}&` +
+          `${sourceUrlOpt}&srsname=${projection}&` +
           `bbox=${extent.join(',')},${projection}`
         );
       },
       strategy: bboxStrategy,
     });
 
-    const vector = new olLayer.Vector({
+    vector.setProperties({
       source: vectorSource,
       visible: visible,
       className: className,
@@ -669,22 +706,17 @@ export class GIFWLayerGroup implements LayerGroup {
       minZoom: minZoom,
       opacity: opacity,
       extent: extent,
+      projection: projection,
       zIndex:
         this.layerGroupType === LayerGroupType.Basemap
           ? -1000
           : layer.zIndex <= -1000
             ? -999
             : layer.zIndex,
-    });
-    const style = layer.layerSource.layerSourceOptions.filter((o) => {
-      return o.name == "style";
     })
-      .map((o) => {
-        return o.value;
-      })[0];
       
     try {
-      const jsonStyle = JSON.parse(style);
+      const jsonStyle = JSON.parse(styleOpt);
       vector.setStyle(jsonStyle);
     } catch (ex) {
       vector.setStyle();
