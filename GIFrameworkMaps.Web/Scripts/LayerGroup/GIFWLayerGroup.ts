@@ -23,7 +23,8 @@ import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { GIFWMap } from "../Map";
 import { Mapping as MappingUtil } from "../Util";
 import { LayerGroup } from "./LayerGroup";
-
+import OpenLayersParser from "geostyler-openlayers-parser";
+import { TileMatrixSet } from "../Interfaces/OGCMetadata/TileMatrixSet"
 
 export class GIFWLayerGroup implements LayerGroup {
   layers: Layer[];
@@ -716,36 +717,16 @@ export class GIFWLayerGroup implements LayerGroup {
     })
       
     try {
+      const parser = new OpenLayersParser();
       const jsonStyle = JSON.parse(styleOpt);
-      vector.setStyle(jsonStyle);
+      parser
+        .writeStyle(jsonStyle)
+        .then(({ output: olStyle }) => vector.setStyle(olStyle));
+      
     } catch (ex) {
       vector.setStyle();
     }
 
     return vector;
   }
-
-}
-
-
-
-interface TileMatrixSet {
-  title: string
-  id: string
-  uri: string
-  orderedAxes: string[]
-  crs: string
-  tileMatrices: TileMatrice[]
-}
-
-interface TileMatrice {
-  id: string
-  scaleDenominator: number
-  cellSize: number
-  cornerOfOrigin: string
-  pointOfOrigin: number[]
-  tileWidth: number
-  tileHeight: number
-  matrixHeight: number
-  matrixWidth: number
 }
