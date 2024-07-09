@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GIFrameworkMap.Data\GIFrameworkMaps.Data.csproj" />
+    <ProjectReference Include="..\GIFrameworkMaps.Data\GIFrameworkMaps.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>
