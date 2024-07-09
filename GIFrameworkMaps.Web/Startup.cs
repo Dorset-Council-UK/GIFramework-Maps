@@ -1,6 +1,4 @@
 ﻿using GIFrameworkMaps.Data;
-//using GIFrameworkMaps.Web.Authorization;
-//using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -209,16 +207,12 @@ namespace GIFrameworkMaps.Web
         private static void SeedDatabase(IApplicationBuilder app)
         {
             using var scope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
-            //scope.ServiceProvider.GetRequiredService<IdentityServer4.EntityFramework.DbContexts.PersistedGrantDbContext>().Database.Migrate();
-            //scope.ServiceProvider.GetRequiredService<IdentityServer4.EntityFramework.DbContexts.ConfigurationDbContext>().Database.Migrate();
-            //scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
 
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
             if (!context.Versions.Any())
             {
-
-                var ukBound = new Data.Models.Bound
+                var ukBound = new Bound
                 {
                     Name = "UK",
                     Description = "The extent of the United Kingdom plus a little extra to the east and a little less from the northern isles",
@@ -227,7 +221,7 @@ namespace GIFrameworkMaps.Web
                     TopRightX = 265865,
                     TopRightY = 8405431
                 };
-                var globalBound = new Data.Models.Bound
+                var globalBound = new Bound
                 {
                     Name = "Global",
                     Description = "The extent of the whole world",
@@ -236,32 +230,49 @@ namespace GIFrameworkMaps.Web
                     TopRightX = 20037508,
                     TopRightY = 20037508
                 };
-                var theme = new Data.Models.Theme
+                var theme = new Theme
                 {
                     Name = "Default",
                     Description = "The default style",
                     PrimaryColour = "05476d",
                     LogoURL = "https://gistaticprod.blob.core.windows.net/giframeworkmaps/giframework-maps-icon.svg"
                 };
-
-                var version = new Data.Models.Version
-                {
-                    Name = "General",
-                    Description = "The general version",
-                    RequireLogin = false,
-                    ShowLogin = true,
-                    Enabled = true,
-                    Slug = "general",
-                    Bound = ukBound,
-                    Theme = theme
-                };
-
-                context.Versions.Add(version);
+				var ukProjection = new Projection
+				{
+					EPSGCode = 27700,
+					Name = "British National Grid",
+					Description = "Ordnance Survey National Grid reference system (OSGB), also known as British National Grid (BNG). Standard grid for mapping in England, Wales and Scotland",
+					Proj4Definition = "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs",
+					MinBoundX = (decimal)-9.00,
+					MinBoundY = (decimal)49.75,
+					MaxBoundX = (decimal)2.01,
+					MaxBoundY = (decimal)61.01,
+					DefaultRenderedDecimalPlaces = 0,
+				};
+				var versionProjections = new VersionProjection
+				{
+					ProjectionId = ukProjection.EPSGCode,
+					IsDefaultMapProjection = true,
+					IsDefaultViewProjection = true,
+					Projection = ukProjection
+				};
+				var version = new Data.Models.Version
+				{
+					Name = "General",
+					Description = "The general version",
+					RequireLogin = false,
+					ShowLogin = true,
+					Enabled = true,
+					Slug = "general",
+					Bound = ukBound,
+					Theme = theme,
+				};
+				version.VersionProjections.Add(versionProjections);
+				context.Versions.Add(version);
 
                 if (!context.SearchDefinitions.Any())
                 {
                     SeedDatabaseWithSearchDefinitions(ref context, ref version);
-
                 }
 
                 var printConfig = new Data.Models.Print.PrintConfiguration
@@ -277,18 +288,27 @@ namespace GIFrameworkMaps.Web
 
                 if (!context.Basemaps.Any())
                 {
-                    var osmLayerSource = new Data.Models.LayerSource
+					var osmUrlOption = new LayerSourceOption()
+					{
+						Name = "url",
+						Value = "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+					};
+					var osmProjectionOption = new LayerSourceOption()
+					{
+						Name = "projection",
+						Value = "EPSG:3857"
+					};
+					var osmLayerSource = new LayerSource
                     {
                         Name = "OpenStreetMap",
                         Description = "OpenStreetMap is a free map of the world created and run by volunteers. Note this layer should NOT be used for high usage workloads as it uses the free OpenStreetMap tile server.",
-                        Attribution = new Data.Models.Attribution { Name = "OpenStreetMap", AttributionHTML = "© <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors, CC-BY-SA" },
-                        LayerSourceType = new Data.Models.LayerSourceType { Name = "XYZ", Description = "Layer sources using the XYZ tile scheme. Similar to TMS." },
-                        LayerSourceOptions = [new() { Name = "url", Value = "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png" }]
+                        Attribution = new Attribution { Name = "OpenStreetMap", AttributionHTML = "© <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors, CC-BY-SA" },
+                        LayerSourceType = new LayerSourceType { Name = "XYZ", Description = "Layer sources using the XYZ tile scheme. Similar to TMS." },
+                        LayerSourceOptions = [ osmUrlOption, osmProjectionOption ]
                     };
 
-                    var osmLayer = new Data.Models.Basemap { LayerSource = osmLayerSource, Name = "OpenStreetMap", Bound = globalBound, MinZoom = 2, MaxZoom = 18 };
+                    var osmLayer = new Basemap { LayerSource = osmLayerSource, Name = "OpenStreetMap", Bound = globalBound, MinZoom = 2, MaxZoom = 18 };
                     version.VersionBasemaps = [new() { Basemap = osmLayer, IsDefault = true, DefaultOpacity = 100, DefaultSaturation = 100 }];
-
                 }
                 context.SaveChanges();
             }
