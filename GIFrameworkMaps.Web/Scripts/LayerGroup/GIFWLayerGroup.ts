@@ -8,7 +8,7 @@ import GML3 from "ol/format/GML3";
 import GML32 from "ol/format/GML32";
 import * as olLayer from "ol/layer";
 import BaseLayer from "ol/layer/Base";
-import { bbox as bboxStrategy } from 'ol/loadingstrategy';
+import { bbox as bboxStrategy, all as allStrategy } from 'ol/loadingstrategy';
 import * as olProj from "ol/proj";
 import { getTransform, transformExtent } from "ol/proj";
 import LayerRenderer from "ol/renderer/Layer";
@@ -25,6 +25,7 @@ import { Mapping as MappingUtil } from "../Util";
 import { LayerGroup } from "./LayerGroup";
 import OpenLayersParser from "geostyler-openlayers-parser";
 import { TileMatrixSet } from "../Interfaces/OGCMetadata/TileMatrixSet"
+import { FeatureUrlFunction } from "ol/featureloader";
 
 export class GIFWLayerGroup implements LayerGroup {
   layers: Layer[];
@@ -88,11 +89,7 @@ export class GIFWLayerGroup implements LayerGroup {
             (l) => l.name.toLowerCase() === "projection",
           )
         ) {
-          projection = layer.layerSource.layerSourceOptions
-            .filter((l) => l.name.toLowerCase() === "projection")
-            .map((p) => {
-              return p.value;
-            })[0];
+          projection = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "projection");
         }
         let extent: Extent;
         if (layer.bound) {
@@ -297,20 +294,15 @@ export class GIFWLayerGroup implements LayerGroup {
     hasCustomHeaders: boolean,
     projection: string) {
     const xyzOpts: XYZOptions = {
-      url: layer.layerSource.layerSourceOptions.filter(
-        (o) => o.name.toLowerCase() === "url",
-      )[0].value,
-      attributions:
-        layer.layerSource.attribution.renderedAttributionHTML,
+      url: MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url"),
+      attributions: layer.layerSource.attribution.renderedAttributionHTML,
       crossOrigin: "anonymous",
       projection: projection,
     };
 
-    const tileGrid = layer.layerSource.layerSourceOptions.filter(
-      (o) => o.name.toLowerCase() === "tilegrid",
-    );
-    if (tileGrid.length !== 0) {
-      xyzOpts.tileGrid = new TileGrid(JSON.parse(tileGrid[0].value));
+    const tileGrid = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "tilegrid");
+    if (tileGrid !== null) {
+      xyzOpts.tileGrid = new TileGrid(JSON.parse(tileGrid));
     }
 
     if (layer.proxyMapRequests || hasCustomHeaders) {
@@ -354,13 +346,7 @@ export class GIFWLayerGroup implements LayerGroup {
     hasCustomHeaders: boolean,
     projection: string) {
     const tileWMSOpts: TileWMSOptions = {
-      url: layer.layerSource.layerSourceOptions
-        .filter((o) => {
-          return o.name.toLowerCase() == "url";
-        })
-        .map((o) => {
-          return o.value;
-        })[0],
+      url: MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url"),
       attributions:
         layer.layerSource.attribution.renderedAttributionHTML,
       params: layer.layerSource.layerSourceOptions
@@ -417,15 +403,8 @@ export class GIFWLayerGroup implements LayerGroup {
     projection: string) {
 
     const imageWMSOpts: ImageWMSOptions = {
-      url: layer.layerSource.layerSourceOptions
-        .filter((o) => {
-          return o.name == "url";
-        })
-        .map((o) => {
-          return o.value;
-        })[0],
-      attributions:
-        layer.layerSource.attribution.renderedAttributionHTML,
+      url: MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url"),
+      attributions: layer.layerSource.attribution.renderedAttributionHTML,
       params: layer.layerSource.layerSourceOptions
         .filter((o) => {
           return o.name == "params";
@@ -481,19 +460,17 @@ export class GIFWLayerGroup implements LayerGroup {
 
 
     let tileGrid;
-    const tileGridOpt = layer.layerSource.layerSourceOptions.filter(
-      (o) => o.name.toLowerCase() === "tilegrid",
-    );
-    if (tileGridOpt.length !== 0) {
-      if (tileGridOpt[0].value.indexOf('http') === 0) {
-        const externalTileMatrix = await fetch(tileGridOpt[0].value).then(resp => resp.json());
+    const tileGridOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "tilegrid");
+    if (tileGridOpt !== null) {
+      if (tileGridOpt.indexOf('http') === 0) {
+        const externalTileMatrix = await fetch(tileGridOpt).then(resp => resp.json());
         tileGrid = new TileGrid({
           resolutions: (externalTileMatrix as TileMatrixSet).tileMatrices.map(({ cellSize }) => cellSize),
           origin: externalTileMatrix.tileMatrices[0].pointOfOrigin,
           tileSize: [externalTileMatrix.tileMatrices[0].tileHeight, externalTileMatrix.tileMatrices[0].tileWidth]
         });
       } else {
-        tileGrid = new TileGrid(JSON.parse(tileGridOpt[0].value));
+        tileGrid = new TileGrid(JSON.parse(tileGridOpt));
       }
     }
 
@@ -503,12 +480,7 @@ export class GIFWLayerGroup implements LayerGroup {
 
     const vectorTileLayer = new olLayer.VectorTile({
       source: new olSource.OGCVectorTile({
-        url: layer.layerSource.layerSourceOptions.filter((o) => {
-          return o.name == "url";
-        })
-          .map((o) => {
-            return o.value;
-          })[0],
+        url: MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url"),
         format: formatMvt,
         projection: projection,
         attributions: layer.layerSource.attribution.renderedAttributionHTML,
@@ -528,13 +500,11 @@ export class GIFWLayerGroup implements LayerGroup {
             : layer.zIndex,
     });
     //get style from options
-    const styleOpts = layer.layerSource.layerSourceOptions.filter((o) => {
-      return o.name == "style";
-    });
-    if (styleOpts.length !== 0) {
+    const styleOpts = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "style");
+    if (styleOpts !== null) {
       olMapboxApplyStyle(
         vectorTileLayer,
-        styleOpts[0].value,
+        styleOpts,
         { updateSource: false },
         { styleUrl: null },
         tileGrid?.getResolutions()
@@ -562,12 +532,8 @@ export class GIFWLayerGroup implements LayerGroup {
       attributions: layer.layerSource.attribution.renderedAttributionHTML
     }
 
-    const serviceUrl = layer.layerSource.layerSourceOptions.filter((o) => {
-      return o.name == "url";
-    })
-      .map((o) => {
-        return o.value;
-      })[0];
+
+    const serviceUrl = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
 
     if (serviceUrl.indexOf('{z}/{x}/{y}') !== -1) {
       //we have a tile URL
@@ -615,11 +581,9 @@ export class GIFWLayerGroup implements LayerGroup {
             : layer.zIndex,
     });
     //get style from options
-    const styleOpts = layer.layerSource.layerSourceOptions.filter((o) => {
-      return o.name == "style";
-    });
-    if (styleOpts.length !== 0) {
-      olMapboxApplyStyle(vectorTileLayer, styleOpts[0].value, '', '', vectorTileSourceOpts.tileGrid?.getResolutions()).then(() => {
+    const styleOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "style");
+    if (styleOpt !== null) {
+      olMapboxApplyStyle(vectorTileLayer, styleOpt, '', '', vectorTileSourceOpts.tileGrid?.getResolutions()).then(() => {
         vectorTileLayer.setSource(
           new olSource.VectorTile(vectorTileSourceOpts)
         )
@@ -646,37 +610,34 @@ export class GIFWLayerGroup implements LayerGroup {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     hasCustomHeaders: boolean,
     projection: string) {
-    const sourceUrlOpt = layer.layerSource.layerSourceOptions.filter((o) => {
-      return o.name == "url";
-    }).map((o) => {
-        return o.value;
-      })[0];
-    const styleOpt = layer.layerSource.layerSourceOptions.filter((o) => {
-      return o.name == "style";
-    }).map((o) => {
-        return o.value;
-      })[0];
-    const formatOpt = layer.layerSource.layerSourceOptions.filter((o) => {
-      return o.name == "format";
-    });
+    const sourceUrlOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
+    const styleOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "style");
+    const formatOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "format");
+    const loadingStrategyOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "loadingStrategy");
+    const urlType = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "type") || 'wfs'; //default to WFS unless overriden
+
     let format: GeoJSON | GML32 | GML3 | GML2 | KML = new GeoJSON();
-    if (formatOpt.length !== 0) {
-      switch (formatOpt[0].value) {
-        case "GML32":
-          format = new GML32();
-          break;
-        case "GML3":
-          format = new GML3();
-          break;
-        case "GML2":
-          format = new GML2();
-          break;
-        case "KML":
-          //if a style has been passed, don't extract the styles from the KML document
-          format = new KML({ extractStyles: (styleOpt === undefined) });
-          break;
-      }
+    switch (formatOpt) {
+      case "GML32":
+        format = new GML32();
+        break;
+      case "GML3":
+        format = new GML3();
+        break;
+      case "GML2":
+        format = new GML2();
+        break;
+      case "KML":
+        //if a style has been passed, don't extract the styles from the KML document
+        format = new KML({ extractStyles: (styleOpt === null) });
+        break;
     }
+
+    let loadingStrategy = bboxStrategy;
+    if (loadingStrategyOpt === "all" || urlType !== 'wfs') {
+      loadingStrategy = allStrategy;
+    }
+
     let vector: olLayer.Vector<FeatureLike> | olLayer.VectorImage<Feature>;
 
     if (layer.layerSource.layerSourceType.name === 'Vector') {
@@ -685,9 +646,9 @@ export class GIFWLayerGroup implements LayerGroup {
       vector = new olLayer.VectorImage();
     }
 
-    const vectorSource = new olSource.Vector({
-      format: format,
-      url: (extent) => {
+    let url: string | FeatureUrlFunction = sourceUrlOpt;
+    if (loadingStrategy === bboxStrategy) {
+      url = (extent) => {
         if (projection !== `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`) {
           extent = transformExtent(extent, this.gifwMapInstance.olMap.getView().getProjection(), projection);
         }
@@ -695,8 +656,12 @@ export class GIFWLayerGroup implements LayerGroup {
           `${sourceUrlOpt}&srsname=${projection}&` +
           `bbox=${extent.join(',')},${projection}`
         );
-      },
-      strategy: bboxStrategy,
+      }
+    }
+    const vectorSource = new olSource.Vector({
+      format: format,
+      url: url,
+      strategy: loadingStrategy,
     });
 
     vector.setProperties({
@@ -719,11 +684,15 @@ export class GIFWLayerGroup implements LayerGroup {
     try {
       const parser = new OpenLayersParser();
       const jsonStyle = JSON.parse(styleOpt);
-      parser
-        .writeStyle(jsonStyle)
-        .then(({ output: olStyle }) => vector.setStyle(olStyle));
-      
+      if (jsonStyle !== null) {
+        parser
+          .writeStyle(jsonStyle)
+          .then(({ output: olStyle }) => vector.setStyle(olStyle));
+      } else {
+        vector.setStyle();
+      }
     } catch (ex) {
+      console.warn('Style could not be set on layer', ex);
       vector.setStyle();
     }
 

@@ -10,7 +10,7 @@ import VectorSource from "ol/source/Vector";
 import { Geometry, Point, SimpleGeometry } from "ol/geom";
 import { GIFWPopupOptions } from "./Popups/PopupOptions";
 import { ImageWMS, Source, TileWMS } from "ol/source";
-import { LayerSource } from "./Interfaces/Layer";
+import { LayerSource, LayerSourceOption } from "./Interfaces/Layer";
 import LayerRenderer from "ol/renderer/Layer";
 import { Feature } from "ol";
 
@@ -760,7 +760,24 @@ export class Mapping {
     }
     return speed;
   }
+
+  /**
+   * Gets the first matching option from a list of LayerSourceOption by key name and returns the value
+   * @param sourceOpts The list of LayerSourceOption
+   * @param keyName The key name to find
+   * @returns The Value of the first LayerSourceOption from the list that matches the key, or null
+   */
+  static getLayerSourceOptionValueByName(sourceOpts: LayerSourceOption[], keyName: string): string {
+    const selectedOpt = sourceOpts.filter((o) => {
+      return o.name == keyName;
+    });
+    if (selectedOpt.length !== 0) {
+      return selectedOpt[0].value;
+    }
+    return null;
+  }
 }
+
 
 export const enum AlertType {
   Popup,
