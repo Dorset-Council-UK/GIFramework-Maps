@@ -59,10 +59,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GIFrameworkMap.Data\GIFrameworkMaps.Data.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="Views\Shared\ManagementPartials\ListTemplateHelperPartial.cshtml" />
     <None Include="wwwroot\img\svg-icons\circle-label.svg" />
     <None Include="wwwroot\img\svg-icons\circle.svg" />
@@ -85,6 +81,10 @@
 
   <ItemGroup>
     <_ContentIncludedByDefault Remove="Views\ManagementLayer\ListTemplateHelperPartial.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GIFrameworkMaps.Data\GIFrameworkMaps.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>
