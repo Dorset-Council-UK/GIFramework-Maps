@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using Yarp.ReverseProxy.Transforms;
 using GIFrameworkMaps.Data.Models;
 using System.Threading;
+using Microsoft.Graph.Beta.DeviceManagement.DeviceConfigurations.Item.GetOmaSettingPlainTextValueWithSecretReferenceValueId;
 
 namespace GIFrameworkMaps.Web
 {
@@ -275,6 +276,11 @@ namespace GIFrameworkMaps.Web
                     SeedDatabaseWithSearchDefinitions(ref context, ref version);
                 }
 
+				if (!context.Layers.Any())
+				{
+					SeedDatabaseWithDefaultLayers(ref context, ref version);
+				}
+
                 var printConfig = new Data.Models.Print.PrintConfiguration
                 {
                     Name = "Default",
@@ -313,6 +319,59 @@ namespace GIFrameworkMaps.Web
                 context.SaveChanges();
             }
         }
+
+		private static void SeedDatabaseWithDefaultLayers (ref ApplicationDbContext context, ref Data.Models.Version version) 
+		{
+			var defaultLayerUrlOption = new LayerSourceOption()
+			{
+				Name = "url",
+				Value = "https://gi.dorsetcouncil.gov.uk/geoserver/boundaryline/wms?SERVICE=WMS&",
+			};
+			var defalutLayerParamOption = new LayerSourceOption()
+			{
+				Name = "params",
+				Value = "{\r\n\"LAYERS\":\"uk_county\",\r\n\"FORMAT\":\"image/png\",\r\n\r\n\"VERSION\": \"1.1.0\"\r\n}",
+			};
+			var defaultLayerSource = new LayerSource
+			{
+				Name = "UK Counties",
+				Description = "UK wide county boundaries from OS Boundary-Line.",
+				Attribution = new Attribution { Name = "OS Open Data", AttributionHTML = "Contains OS data © Crown copyright and database rights {{CURRENT_YEAR}}" },
+				LayerSourceType = new LayerSourceType { Name = "TileWMS", Description = "Layer sources using the TileWMS layer type" },
+				LayerSourceOptions = [ defaultLayerUrlOption, defalutLayerParamOption],
+			};
+			var defaultLayer = new Layer 
+			{ 
+				LayerSource = defaultLayerSource, 
+				Name = "UK Counties", 
+				ZIndex = -10,
+				Queryable = true,
+				InfoListTitleTemplate = "{{name}}",
+				InfoTemplate = "<h1>{{name}}</h1>\r\n<p><strong>Area description:</strong> {{area_description}}</p>\r\n<p><strong>Hectares:</strong> {{hectares}}</p>\r\n<p><strong>Non inland area:</strong> {{non_inland_area}}m2</p>\r\n",
+				Filterable = true,
+			};
+			
+			context.Layers.Add(defaultLayer);
+			context.SaveChanges();
+			
+			var defaultLayerCategory = new Category
+			{
+				Name = "Default Layers",
+				Description = "Default layers for examples of use",
+				Order = 1,
+				Layers = [new CategoryLayer { LayerId = defaultLayer.Id }],
+			};
+			var defaultVersionCategory = new VersionCategory
+			{
+				VersionId = version.Id,
+				CategoryId = defaultLayerCategory.Id,
+				Category = defaultLayerCategory,
+			};
+
+			version.VersionCategories.Add(defaultVersionCategory);
+			context.SaveChanges();
+
+		}
 
         private static void SeedDatabaseWithSearchDefinitions(ref ApplicationDbContext context, ref Data.Models.Version version)
         {
