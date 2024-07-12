@@ -14,6 +14,7 @@ import { Style } from "../Interfaces/OGCMetadata/Style";
 import { LayerResource } from "../Interfaces/OGCMetadata/LayerResource";
 import { Browser as BrowserUtil } from "../Util";
 import * as olExtent from "ol/extent";
+import { WfsEndpoint, WmsEndpoint, setFetchOptions as ogcClientSetFetchOptions } from "@camptocamp/ogc-client";
 export class Metadata {
   /*TODO - Make all the metadata fetchers use this generic function*/
   static async getCapabilities(
@@ -271,6 +272,65 @@ export class Metadata {
       return availableStyles;
     } catch (error) {
       console.error(`Could not get capabilities doc: ${error}`);
+    }
+  }
+
+  static async getLayerMetadataFromCapabilities(
+    baseUrl: string,
+    layerName: string,
+    type: 'wms' | 'wfs',
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    version: string = "1.1.0",
+    proxyEndpoint: string = "",
+    httpHeaders: Headers = new Headers(),
+  ) {
+    ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
+    if (type === 'wms') {
+      
+      const endpoint = await new WmsEndpoint(baseUrl).isReady();
+      const layer = endpoint.getLayerByName(layerName);
+      const serviceInfo = endpoint.getServiceInfo();
+
+      console.warn((Object.keys(layer.boundingBoxes) as Array<string>).find(key => layer.boundingBoxes[key]));
+
+      const layerResource: LayerResource = {
+        name: layer.name,
+        title: layer.title,
+        abstract: layer.abstract,
+        attribution: layer.attribution.title,
+        formats: serviceInfo.outputFormats,
+        baseUrl: baseUrl,
+        projections: layer.availableCrs,
+        extent: [], //TODO
+        queryable: true, //TODO
+        version: endpoint.getVersion(),
+        proxyMetaRequests: proxyEndpoint !== "" ? true : false,
+        proxyMapRequests: proxyEndpoint !== "" ? true : false,
+        keywords: null,//TODO
+      };
+      return layerResource;
+    } else {
+      const endpoint = await new WfsEndpoint(baseUrl).isReady();
+      const layer = await endpoint.getFeatureTypeFull(layerName);
+      const serviceInfo = endpoint.getServiceInfo();
+      const layerResource: LayerResource = {
+        name: layer.name,
+        title: layer.title,
+        abstract: layer.abstract,
+        attribution: "", //TODO
+        formats: serviceInfo.outputFormats,
+        baseUrl: baseUrl,
+        projections: layer.otherCrs,
+        extent: layer.boundingBox,
+        queryable: true,//TODO
+        version: endpoint.getVersion(),
+        proxyMetaRequests: proxyEndpoint !== "" ? true : false,
+        proxyMapRequests: proxyEndpoint !== "" ? true : false,
+        keywords: null,//TODO
+      };
+      return layerResource;
+      
+      
     }
   }
 

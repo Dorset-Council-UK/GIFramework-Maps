@@ -302,9 +302,11 @@ export class Helper {
   }
 
   static getValueFromObjectByKey(obj: object, keyName: string) {
-    for (const [key, value] of Object.entries(obj)) {
-      if (key.toLowerCase() === keyName.toLowerCase()) {
-        return value;
+    if (obj) {
+      for (const [key, value] of Object.entries(obj)) {
+        if (key.toLowerCase() === keyName.toLowerCase()) {
+          return value;
+        }
       }
     }
     return null;

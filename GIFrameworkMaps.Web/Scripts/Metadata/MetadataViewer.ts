@@ -1,18 +1,18 @@
 ﻿import { Modal } from "bootstrap";
+import { VectorImage, Layer as olLayer } from "ol/layer";
+import { ImageWMS, TileWMS, Vector } from "ol/source";
 import Badge from "../Badge";
 import { Layer } from "../Interfaces/Layer";
 import {
-  CSWMetadata,
-  CSWMetadataLinks,
-} from "../Interfaces/OGCMetadata/CSWMetadata";
-import { Layer as olLayer } from "ol/layer";
-import { ImageWMS, TileWMS } from "ol/source";
-import { Metadata } from "./Metadata";
-import { Helper, Mapping as MappingUtil } from "../Util";
+    SimpleMetadata,
+    MetadataLinks,
+} from "../Interfaces/OGCMetadata/SimpleMetadata";
 import { GIFWMap } from "../Map";
+import { Helper, Mapping as MappingUtil } from "../Util";
+import { Metadata } from "./Metadata";
 
 export class MetadataViewer {
-  static async getCSWMetadataForLayer(
+  static async getMetadataForLayer(
     layer: Layer,
     olLayer: olLayer,
     proxyEndpoint: string = "",
@@ -53,16 +53,12 @@ export class MetadataViewer {
     proxyEndpoint?: string,
   ) {
     try {
-      const cswMetadataEndpoint = layer.layerSource.layerSourceOptions.filter(
-        (l) => l.name == "cswendpoint",
-      );
-      if (cswMetadataEndpoint && cswMetadataEndpoint.length !== 0) {
-        const cswMetadataURL = new URL(cswMetadataEndpoint[0].value);
-        const descriptionParams = layer.layerSource.layerSourceOptions.filter(
-          (l) => l.name == "cswparams",
-        );
-        if (descriptionParams.length == 1) {
-          const cswParams = JSON.parse(descriptionParams[0].value);
+      const cswMetadataEndpoint = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "cswendpoint");
+      if (cswMetadataEndpoint.length !== null) {
+        const cswMetadataURL = new URL(cswMetadataEndpoint);
+        const descriptionParams = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "cswparams");
+        if (descriptionParams !== null) {
+          const cswParams = JSON.parse(descriptionParams);
           if (cswParams) {
             let combinedParams = new URLSearchParams(cswParams);
             if (cswMetadataURL.searchParams) {
@@ -96,7 +92,7 @@ export class MetadataViewer {
         const keywordTags = doc.getElementsByTagName("dc:subject");
         const refTags = doc.getElementsByTagName("dct:references");
         const keywords = [];
-        const refs: CSWMetadataLinks[] = [];
+        const refs: MetadataLinks[] = [];
         for (const keyword of keywordTags) {
           keywords.push(keyword.innerHTML);
         }
@@ -122,7 +118,7 @@ export class MetadataViewer {
 
               const type = ref.getAttribute("scheme");
               if (type.toUpperCase() == "OGC:WMS") {
-                const metaLink: CSWMetadataLinks = {
+                const metaLink: MetadataLinks = {
                   url: Metadata.constructGetCapabilitiesURL(
                     baseUrl,
                     "WMS",
@@ -134,7 +130,7 @@ export class MetadataViewer {
                 refs.push(metaLink);
               }
               if (type.toUpperCase() == "OGC:WFS") {
-                const metaLink: CSWMetadataLinks = {
+                const metaLink: MetadataLinks = {
                   url: Metadata.constructGetCapabilitiesURL(
                     baseUrl,
                     "WFS",
@@ -148,7 +144,7 @@ export class MetadataViewer {
             }
           }
         }
-        const CSWMetadata: CSWMetadata = {
+        const CSWMetadata: SimpleMetadata = {
           title:
             doc.getElementsByTagName("dc:title")[0]?.innerHTML || layer.name,
           abstract:
@@ -175,19 +171,35 @@ export class MetadataViewer {
     proxyEndpoint?: string,
   ) {
     try {
+      const source = olLayer.getSource();
       if (
-        olLayer.getSource() instanceof TileWMS ||
-        olLayer.getSource() instanceof ImageWMS
+        source instanceof TileWMS ||
+        source instanceof ImageWMS ||
+        source instanceof Vector ||
+        source instanceof VectorImage
       ) {
-        const source = olLayer.getSource();
         let baseUrl: string;
         let params;
+        let type: "wms"|"wfs" = "wms";
+        let layerName = "";
         if (source instanceof TileWMS) {
           baseUrl = source.getUrls()[0];
           params = source.getParams();
-        } else {
+          layerName = params.LAYERS;
+
+        } else if (source instanceof ImageWMS) {
           baseUrl = (source as ImageWMS).getUrl();
           params = (source as ImageWMS).getParams();
+          layerName = params.LAYERS;
+        } else {
+          baseUrl = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
+          layerName = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "typename");
+          const paramsOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "params");
+          if (paramsOpt !== null) {
+            params = JSON.parse(paramsOpt);
+          }
+          type = "wfs";
+          
         }
         const version =
           (Helper.getValueFromObjectByKey(params, "version") as string) ||
@@ -195,41 +207,72 @@ export class MetadataViewer {
         const httpHeaders = MappingUtil.extractCustomHeadersFromLayerSource(
           layer.layerSource,
         );
-        const layers = await Metadata.getLayersFromCapabilities(
-          baseUrl,
-          version,
-          proxyEndpoint,
-          httpHeaders,
-        );
-        const featureTypeName = params.LAYERS;
-        if (layers) {
-          const matchedLayer = layers.filter((l) => l.name === featureTypeName);
-          if (matchedLayer.length !== 0) {
-            const CSWMetadata: CSWMetadata = {
-              title: matchedLayer[0].title || layer.name,
-              abstract: matchedLayer[0].abstract || "No description provided",
-              attribution: matchedLayer[0].attribution,
-              accessRights: "",
-              keywords: matchedLayer[0].keywords,
-              dataLinks: [
-                {
-                  url: Metadata.constructGetCapabilitiesURL(
-                    baseUrl,
-                    "WMS",
-                    version,
-                  ),
-                  type: "WMS GetCapabilities",
-                },
-              ],
-              documentURL: Metadata.constructGetCapabilitiesURL(
-                baseUrl,
-                "WMS",
-                version,
-              ),
-            };
-            return CSWMetadata;
-          }
+
+        const layerMetadataNew = await Metadata.getLayerMetadataFromCapabilities(baseUrl, layerName, type, version, proxyEndpoint, httpHeaders);
+        console.warn(layerMetadataNew);
+
+        if (layerMetadataNew) {
+          const CSWMetadata: SimpleMetadata = {
+            title: layerMetadataNew.title || layer.name,
+            abstract: layerMetadataNew.abstract || "No description provided",
+            attribution: layerMetadataNew.attribution,
+            accessRights: "",
+            keywords: layerMetadataNew.keywords,
+            dataLinks: [
+              {
+                url: Metadata.constructGetCapabilitiesURL(
+                  baseUrl,
+                  type,
+                  version,
+                ),
+                type: `${type.toUpperCase()} GetCapabilities`,
+              },
+            ],
+            documentURL: Metadata.constructGetCapabilitiesURL(
+              baseUrl,
+              type,
+              version,
+            ),
+          };
+          return CSWMetadata;
         }
+
+
+        //const layers = await Metadata.getLayersFromCapabilities(
+        //  baseUrl,
+        //  version,
+        //  proxyEndpoint,
+        //  httpHeaders,
+        //);
+        //const featureTypeName = params.LAYERS;
+        //if (layers) {
+        //  const matchedLayer = layers.filter((l) => l.name === featureTypeName);
+        //  if (matchedLayer.length !== 0) {
+        //    const CSWMetadata: SimpleMetadata = {
+        //      title: matchedLayer[0].title || layer.name,
+        //      abstract: matchedLayer[0].abstract || "No description provided",
+        //      attribution: matchedLayer[0].attribution,
+        //      accessRights: "",
+        //      keywords: matchedLayer[0].keywords,
+        //      dataLinks: [
+        //        {
+        //          url: Metadata.constructGetCapabilitiesURL(
+        //            baseUrl,
+        //            "WMS",
+        //            version,
+        //          ),
+        //          type: "WMS GetCapabilities",
+        //        },
+        //      ],
+        //      documentURL: Metadata.constructGetCapabilitiesURL(
+        //        baseUrl,
+        //        "WMS",
+        //        version,
+        //      ),
+        //    };
+        //    return CSWMetadata;
+        //  }
+        //}
       }
     } catch (e) {
       console.error(
@@ -242,7 +285,7 @@ export class MetadataViewer {
 
   static getMetadataFromLayerSource(layer: Layer) {
     if (layer.layerSource.description !== "") {
-      const CSWMetadata: CSWMetadata = {
+      const CSWMetadata: SimpleMetadata = {
         title: layer.name,
         abstract: layer.layerSource.description || "No description provided",
         attribution: layer.layerSource.attribution.renderedAttributionHTML,
@@ -259,13 +302,13 @@ export class MetadataViewer {
   /**
    * Returns the HTML for the CSWMetadata modal
    *
-   * @param {CSWMetadata} CSWMetadata - CSWMetadata object
+   * @param {SimpleMetadata} CSWMetadata - CSWMetadata object
    * @returns HTML for the CSWMetadata
    *
    */
 
   static createCSWMetadataHTML(
-    CSWMetadata: CSWMetadata,
+    CSWMetadata: SimpleMetadata,
     isFiltered: boolean = false,
   ): string {
     if (CSWMetadata.abstract !== undefined) {
@@ -317,7 +360,7 @@ export class MetadataViewer {
   }
 
   private static renderMetadataDataLinks(
-    dataLinks: CSWMetadataLinks[],
+    dataLinks: MetadataLinks[],
     documentURL: string,
   ): string {
     if (!(dataLinks === null && documentURL === null)) {
@@ -396,7 +439,7 @@ export class MetadataViewer {
         proxyEndpoint = `${document.location.protocol}//${gifwMapInstance.config.appRoot}proxy`;
       }
       const isFiltered = gifwMapInstance.getLayerFilteredStatus(layerConfig, olLayer, false);
-      const metadata = await MetadataViewer.getCSWMetadataForLayer(
+      const metadata = await MetadataViewer.getMetadataForLayer(
         layerConfig,
         olLayer,
         proxyEndpoint,

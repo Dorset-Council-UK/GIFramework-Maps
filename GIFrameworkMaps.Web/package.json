@@ -19,6 +19,7 @@
     "watch:prettier": "npx onchange \"Scripts/*.ts\" \"wwwroot/css/*.css\" -- prettier --write --ignore-unknown {{changed}}"
   },
   "dependencies": {
+    "@camptocamp/ogc-client": "1.1.0",
     "@microsoft/applicationinsights-web": "3.2.1",
     "@microsoft/signalr": "8.0.0",
     "@popperjs/core": "2.11.8",
