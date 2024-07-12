@@ -18,6 +18,7 @@ using Yarp.ReverseProxy.Transforms;
 using GIFrameworkMaps.Data.Models;
 using System.Threading;
 using Microsoft.Graph.Beta.DeviceManagement.DeviceConfigurations.Item.GetOmaSettingPlainTextValueWithSecretReferenceValueId;
+using Newtonsoft.Json.Linq;
 
 namespace GIFrameworkMaps.Web
 {
@@ -322,55 +323,163 @@ namespace GIFrameworkMaps.Web
 
 		private static void SeedDatabaseWithDefaultLayers (ref ApplicationDbContext context, ref Data.Models.Version version) 
 		{
-			var defaultLayerUrlOption = new LayerSourceOption()
+			//UK Counties
+			var countiesUrlOption = new List<LayerSourceOption>
 			{
-				Name = "url",
-				Value = "https://gi.dorsetcouncil.gov.uk/geoserver/boundaryline/wms?SERVICE=WMS&",
+				new LayerSourceOption
+				{
+					Name = "url",
+					Value = "https://gi.dorsetcouncil.gov.uk/geoserver/boundaryline/wms?SERVICE=WMS&",
+				},
+				new LayerSourceOption
+				{
+					Name = "params",
+					Value = "{\r\n\"LAYERS\":\"uk_county\",\r\n\"FORMAT\":\"image/png\",\r\n\r\n\"VERSION\": \"1.1.0\"\r\n}",
+				},
 			};
-			var defalutLayerParamOption = new LayerSourceOption()
+			//UK Educational Establishments
+			var educationUrlOption = new List<LayerSourceOption>
 			{
-				Name = "params",
-				Value = "{\r\n\"LAYERS\":\"uk_county\",\r\n\"FORMAT\":\"image/png\",\r\n\r\n\"VERSION\": \"1.1.0\"\r\n}",
+				new LayerSourceOption
+				{
+					Name = "url",
+					Value = "https://gi.dorsetcouncil.gov.uk/geoserver/schools/wms",
+				},
+				new LayerSourceOption
+				{
+					Name = "params",
+					Value = "{\r\n\"LAYERS\":\"gov_uk_schools\",\r\n\"FORMAT\":\"image/png\",\r\n\r\n\"VERSION\": \"1.1.0\"\r\n}",
+				},
 			};
-			var defaultLayerSource = new LayerSource
+			//World Heritage Sites
+			var worldHeritageUrlOption = new List<LayerSourceOption>
+			{
+				new LayerSourceOption
+				{
+					Name = "url",
+					Value = "https://gi.dorsetcouncil.gov.uk/geoserver/ORA_historic_england/wms",
+				},
+				new LayerSourceOption
+				{
+					Name = "params",
+					Value = "{\"LAYERS\": \"HIST_ENG_WORLD_HERITAGE_SITE\",\r\n\"FORMAT\": \"image/png\",\r\n\"TILED\":\"true\"\r\n}",
+				},
+			};
+			//National Nature Reserves
+			var natureReservesUrlOption = new List<LayerSourceOption>
+			{
+				new LayerSourceOption
+				{
+					Name = "url",
+					Value = "https://gi.dorsetcouncil.gov.uk/geoserver/ORA_natural_england/wms",
+				},
+				new LayerSourceOption
+				{
+					Name = "params",
+					Value = "\t{\"LAYERS\": \"NATENG_NNR\",\r\n\"FORMAT\": \"image/png\",\r\n\"TILED\":\"true\"\r\n}",
+				},
+			};
+
+			var countiesLayerSource = new LayerSource
 			{
 				Name = "UK Counties",
 				Description = "UK wide county boundaries from OS Boundary-Line.",
 				Attribution = new Attribution { Name = "OS Open Data", AttributionHTML = "Contains OS data © Crown copyright and database rights {{CURRENT_YEAR}}" },
 				LayerSourceType = new LayerSourceType { Name = "TileWMS", Description = "Layer sources using the TileWMS layer type" },
-				LayerSourceOptions = [ defaultLayerUrlOption, defalutLayerParamOption],
+				LayerSourceOptions = countiesUrlOption,
 			};
-			var defaultLayer = new Layer 
-			{ 
-				LayerSource = defaultLayerSource, 
-				Name = "UK Counties", 
-				ZIndex = -10,
-				Queryable = true,
-				InfoListTitleTemplate = "{{name}}",
-				InfoTemplate = "<h1>{{name}}</h1>\r\n<p><strong>Area description:</strong> {{area_description}}</p>\r\n<p><strong>Hectares:</strong> {{hectares}}</p>\r\n<p><strong>Non inland area:</strong> {{non_inland_area}}m2</p>\r\n",
-				Filterable = true,
-			};
-			
-			context.Layers.Add(defaultLayer);
-			context.SaveChanges();
-			
-			var defaultLayerCategory = new Category
+			var educationLayerSource = new LayerSource
 			{
-				Name = "Default Layers",
-				Description = "Default layers for examples of use",
-				Order = 1,
-				Layers = [new CategoryLayer { LayerId = defaultLayer.Id }],
+				Name = "UK Educational Establishments",
+				Description = "UK Schools dataset as downloaded from https://data.gov.uk",
+				Attribution = new Attribution { Name = "Open Government Licence OGL", AttributionHTML = "Use of this data is subject to the <a href=\"https://www.nationalarchives.gov.uk/doc/open-government-licence\" target=\"_blank\">Open Government Licence</a>" },
+				LayerSourceType = new LayerSourceType { Name = "TileWMS", Description = "Layer sources using the TileWMS layer type" },
+				LayerSourceOptions = educationUrlOption,
 			};
-			var defaultVersionCategory = new VersionCategory
+			var worldHeritageLayerSource = new LayerSource
 			{
-				VersionId = version.Id,
-				CategoryId = defaultLayerCategory.Id,
-				Category = defaultLayerCategory,
+				Name = "World Heritage Site",
+				Description = "World Heritage Sites are sites, places, monuments of buildings of Outstanding Universal Value to all humanity - today and in future generations. The World Heritage List includes a wide variety of exceptional cultural and natural sites, such as landscapes, cities, monuments, technological sites and modern buildings",
+				Attribution = new Attribution { Name = "Historic England", AttributionHTML = "© <a href=\"http://www.historicengland.org.uk\" target=\"blank\">Historic England</a> {{CURRENT_YEAR}}. Contains Ordnance Survey data © Crown copyright and database right {{CURRENT_YEAR}}. The most publicly available up to date Historic England GIS Data can be obtained from <a href=\"http://www.historicengland.org.uk\" target=\"blank\">http://www.historicengland.org.uk</a>." },
+				LayerSourceType = new LayerSourceType { Name = "TileWMS", Description = "Layer sources using the TileWMS layer type" },
+				LayerSourceOptions = worldHeritageUrlOption,
+			};
+			var natureReservesLayerSource = new LayerSource
+			{
+				Name = "National Nature Reserves",
+				Description = "National Nature Reserves",
+				Attribution = new Attribution { Name = "Open Government Licence OGL", AttributionHTML = "Use of this data is subject to the <a href=\"https://www.nationalarchives.gov.uk/doc/open-government-licence\" target=\"_blank\">Open Government Licence</a>" },
+				LayerSourceType = new LayerSourceType { Name = "TileWMS", Description = "Layer sources using the TileWMS layer type" },
+				LayerSourceOptions = natureReservesUrlOption,
 			};
 
-			version.VersionCategories.Add(defaultVersionCategory);
-			context.SaveChanges();
+			var defaultLayers = new List<Layer>
+			{
+				new Layer
+				{
+					LayerSource = countiesLayerSource,
+					Name = "UK Counties",
+					ZIndex = -10,
+					Queryable = true,
+					InfoListTitleTemplate = "{{name}}",
+					InfoTemplate = "<h1>{{name}}</h1>\r\n<p><strong>Area description:</strong> {{area_description}}</p>\r\n<p><strong>Hectares:</strong> {{hectares}}</p>\r\n<p><strong>Non inland area:</strong> {{non_inland_area}}m2</p>\r\n",
+					Filterable = true,
+				},
+				new Layer
+				{
+					LayerSource = educationLayerSource,
+					Name = "UK Educational Establishments",
+					Queryable = true,
+					InfoListTitleTemplate = "{{establishment_name}} ({{type_of_establishment}})",
+					InfoTemplate = "<h1>{{establishment_name}}</h1>\r\n<p><strong>Type: </strong>{{type_of_establishment}}</p>\r\n<p><strong>Phase of Education: </strong>{{phase_of_education}}</p>\r\n{% if school_capacity %}\r\n<p><strong>Capacity: </strong>{{school_capacity}}</p>\r\n{% endif %}\r\n{% if number_of_pupils %}\r\n<p><strong>No. Pupils: </strong>{{number_of_pupils}} ({{number_of_boys}} boys, {{number_of_girls}} girls)</p>\r\n{% endif %}\r\n<p><strong>{{head_preferred_job_title if head_preferred_job_title else \"Head/Principal/Manager\"}}: </strong>{{head_title}} {{head_first_name}} {{head_last_name}}</p>\r\n{% if trusts %}\r\n<p><strong>Trusts: </strong>{{trusts}}</p>\r\n{% endif %}\r\n{% if ofsted_last_insp %}\r\n<p><strong>Last Ofsted Inspection: </strong>{{ofsted_last_insp | date}} - {{ofsted_rating}}</p>\r\n{% endif %}\r\n{% if school_website %}\r\n<p><a href=\"{{school_website}}\" target=\"_blank\">{{school_website}}</a></p>\r\n{% endif %}\r\n{% if telephone_num %}\r\n<p><strong>Tel: </strong>{{telephone_num}}</p>\r\n{% endif %}",
+					Filterable = true,
+				},
+				new Layer
+				{
+					LayerSource = worldHeritageLayerSource,
+					Name = "World Heritage Site",
+					MaxZoom = 25,
+					Queryable = true,
+					InfoListTitleTemplate = "{{NAME}}",
+					InfoTemplate = "<h1>World Heritage Site</h1>\r\n<p><strong>Name: </strong>{{NAME}}</p>\r\n<p><strong>Inscription Date: </strong>{{INSCRDATE | date}}</p>\r\n<p><strong>List Entry ID: </strong>{{LISTENTRY}}</p>\r\n<p><a href=\"https://historicengland.org.uk/listing/the-list/list-entry/{{LISTENTRY}}\" target=\"_blank\">Learn more about this site on the Historic England website</a></p>",
+					Filterable = true,
+				},
+				new Layer
+				{
+					LayerSource = natureReservesLayerSource,
+					Name = "National Nature Reserves",
+					MaxZoom = 50,
+					Queryable = true,
+					InfoListTitleTemplate = "{{NNR_NAME}}",
+					InfoTemplate = "<h1>{{NNR_NAME}}</h1>\r\n<p><strong>Status:</strong> {{STATUS}}</p>\r\n<p><strong>Details:</strong> {{DETAILS}}</p>\r\n<a href=\"{{URL}}\" target=\"_blank\" title=\"\">Click here for more details on this layer</a>",
+					Filterable = true,
+				}
+			};
+			
+			foreach (Layer layer in defaultLayers)
+			{
+				context.Layers.Add(layer);
+				context.SaveChanges();
 
+				var defaultLayerCategory = new Category
+				{
+					Name = "Default Layers",
+					Description = "Default layers for examples of use",
+					Order = 1,
+					Layers = [new CategoryLayer { LayerId = layer.Id }],
+				};
+				context.Categories.Add(defaultLayerCategory);
+
+				var defaultVersionCategory = new VersionCategory
+				{
+					VersionId = version.Id,
+					CategoryId = defaultLayerCategory.Id,
+					Category = defaultLayerCategory,
+				};
+				version.VersionCategories.Add(defaultVersionCategory);
+			};
+
+			context.SaveChanges();
 		}
 
         private static void SeedDatabaseWithSearchDefinitions(ref ApplicationDbContext context, ref Data.Models.Version version)
