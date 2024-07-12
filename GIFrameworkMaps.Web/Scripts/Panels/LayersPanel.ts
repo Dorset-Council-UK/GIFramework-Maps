@@ -435,6 +435,8 @@ export class LayersPanel implements SidebarPanel {
     // When the map has fully rendered, check for active layer errors
     this.gifwMapInstance.olMap.on("rendercomplete", () => {
       this.raiseAlertForErrors();
+      //remove all spinners?
+      document.querySelectorAll('.layer-switcher-tree .spinner').forEach(s => {s.remove() })
     });
 
     const layerGroups = this.gifwMapInstance.getLayerGroupsOfType([
@@ -511,7 +513,6 @@ export class LayersPanel implements SidebarPanel {
   }
 
   private loadStartEvent(source: Source, l: olLayer, layerName: string) {
-    if (!(source instanceof VectorSource)) {
       const checkbox = this.getLayerCheckbox(l);
       if (checkbox !== null) {
         let spinner =
@@ -550,7 +551,7 @@ export class LayersPanel implements SidebarPanel {
           }
         }, 30000);
       }
-    }
+    
   }
   private loadEndEvent(l: olLayer, layerName: string) {
     setTimeout(() => {

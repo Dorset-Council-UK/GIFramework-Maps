@@ -615,21 +615,27 @@ export class GIFWLayerGroup implements LayerGroup {
     const formatOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "format");
     const loadingStrategyOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "loadingStrategy");
     const urlType = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "type") || 'wfs'; //default to WFS unless overriden
+    const typeName = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "typename");
 
     let format: GeoJSON | GML32 | GML3 | GML2 | KML = new GeoJSON();
+    let defaultOutputFormatString = "application/json";
     switch (formatOpt) {
       case "GML32":
         format = new GML32();
+        defaultOutputFormatString = "gml32"
         break;
       case "GML3":
         format = new GML3();
+        defaultOutputFormatString = "gml3"
         break;
       case "GML2":
         format = new GML2();
+        defaultOutputFormatString = "gml2"
         break;
       case "KML":
         //if a style has been passed, don't extract the styles from the KML document
         format = new KML({ extractStyles: (styleOpt === null) });
+        defaultOutputFormatString = "KML"
         break;
     }
 
@@ -647,13 +653,32 @@ export class GIFWLayerGroup implements LayerGroup {
     }
 
     let url: string | FeatureUrlFunction = sourceUrlOpt;
+    let baseUrl = sourceUrlOpt;
+    if (urlType === 'wfs') {
+      const wfsURL = new URL(sourceUrlOpt);
+      //add the WFS request bits on
+      wfsURL.searchParams.set('request', 'GetFeature');
+      wfsURL.searchParams.set('version', '1.1.0');
+      wfsURL.searchParams.set('typename', typeName);
+      wfsURL.searchParams.set('outputFormat', defaultOutputFormatString);
+      const paramsOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "params");
+      if (paramsOpt !== null) {
+        const params: { [x: string]: string } = JSON.parse(paramsOpt);
+        const additionalWFSRequestParams = new URLSearchParams(params);
+        for (const p of additionalWFSRequestParams) {
+          wfsURL.searchParams.set(p[0],p[1])
+        }
+      }
+      baseUrl = wfsURL.toString();
+    }
+    url = baseUrl;
     if (loadingStrategy === bboxStrategy) {
       url = (extent) => {
         if (projection !== `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`) {
           extent = transformExtent(extent, this.gifwMapInstance.olMap.getView().getProjection(), projection);
         }
         return (
-          `${sourceUrlOpt}&srsname=${projection}&` +
+          `${baseUrl}&srsname=${projection}&` +
           `bbox=${extent.join(',')},${projection}`
         );
       }
