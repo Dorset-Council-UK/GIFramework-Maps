@@ -380,6 +380,7 @@ namespace GIFrameworkMaps.Web
 				},
 			};
 
+			//Layer sources for each of the default layers
 			var countiesLayerSource = new LayerSource
 			{
 				Name = "UK Counties",
@@ -455,29 +456,34 @@ namespace GIFrameworkMaps.Web
 					Filterable = true,
 				}
 			};
-			
+
+			var defaultLayerCategory = new Category
+			{
+				Name = "Default Layers",
+				Description = "Default layers for examples of use",
+				Order = 1,
+			};
+			context.Categories.Add(defaultLayerCategory);
+			context.SaveChanges();
+
 			foreach (Layer layer in defaultLayers)
 			{
+				// Create and save each default layer
 				context.Layers.Add(layer);
 				context.SaveChanges();
-
-				var defaultLayerCategory = new Category
-				{
-					Name = "Default Layers",
-					Description = "Default layers for examples of use",
-					Order = 1,
-					Layers = [new CategoryLayer { LayerId = layer.Id }],
-				};
-				context.Categories.Add(defaultLayerCategory);
-
-				var defaultVersionCategory = new VersionCategory
-				{
-					VersionId = version.Id,
-					CategoryId = defaultLayerCategory.Id,
-					Category = defaultLayerCategory,
-				};
-				version.VersionCategories.Add(defaultVersionCategory);
+				//Add these layers to a CategoryLayer for each layer (tells the category which layers to include)
+				var categoryLayer = new CategoryLayer { LayerId = layer.Id, CategoryId = defaultLayerCategory.Id };
+				context.CategoryLayers.Add(categoryLayer);
+				context.SaveChanges();
 			};
+
+			var defaultVersionCategory = new VersionCategory
+			{
+				VersionId = version.Id,
+				CategoryId = defaultLayerCategory.Id,
+				Category = defaultLayerCategory,
+			};
+			version.VersionCategories.Add(defaultVersionCategory);
 
 			context.SaveChanges();
 		}
