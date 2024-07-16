@@ -17,8 +17,6 @@ using System.Threading.Tasks;
 using Yarp.ReverseProxy.Transforms;
 using GIFrameworkMaps.Data.Models;
 using System.Threading;
-using Microsoft.Graph.Beta.DeviceManagement.DeviceConfigurations.Item.GetOmaSettingPlainTextValueWithSecretReferenceValueId;
-using Newtonsoft.Json.Linq;
 
 namespace GIFrameworkMaps.Web
 {
@@ -78,8 +76,6 @@ namespace GIFrameworkMaps.Web
             });
 
             // Setup our own request transform class
-            
-
             var transformer = new CustomTransformer(app); // or HttpTransformer.Default;
             var requestOptions = new ForwarderRequestConfig { ActivityTimeout = TimeSpan.FromSeconds(100) };
 
@@ -272,15 +268,15 @@ namespace GIFrameworkMaps.Web
 				version.VersionProjections.Add(versionProjections);
 				context.Versions.Add(version);
 
-                if (!context.SearchDefinitions.Any())
-                {
-                    SeedDatabaseWithSearchDefinitions(ref context, ref version);
-                }
-
 				if (!context.Layers.Any())
 				{
 					SeedDatabaseWithDefaultLayers(ref context, ref version);
 				}
+
+				if (!context.SearchDefinitions.Any())
+                {
+                    SeedDatabaseWithSearchDefinitions(ref context, ref version);
+                }
 
                 var printConfig = new Data.Models.Print.PrintConfiguration
                 {
@@ -323,64 +319,57 @@ namespace GIFrameworkMaps.Web
 
 		private static void SeedDatabaseWithDefaultLayers (ref ApplicationDbContext context, ref Data.Models.Version version) 
 		{
-			//UK Counties
+			// Layer source options for each of the default layers
+			// UK Counties
 			var countiesUrlOption = new List<LayerSourceOption>
 			{
-				new LayerSourceOption
-				{
+				new() {
 					Name = "url",
 					Value = "https://gi.dorsetcouncil.gov.uk/geoserver/boundaryline/wms?SERVICE=WMS&",
 				},
-				new LayerSourceOption
-				{
+				new() {
 					Name = "params",
 					Value = "{\r\n\"LAYERS\":\"uk_county\",\r\n\"FORMAT\":\"image/png\",\r\n\r\n\"VERSION\": \"1.1.0\"\r\n}",
 				},
 			};
-			//UK Educational Establishments
+			// UK Educational Establishments
 			var educationUrlOption = new List<LayerSourceOption>
 			{
-				new LayerSourceOption
-				{
+				new() {
 					Name = "url",
 					Value = "https://gi.dorsetcouncil.gov.uk/geoserver/schools/wms",
 				},
-				new LayerSourceOption
-				{
+				new() {
 					Name = "params",
 					Value = "{\r\n\"LAYERS\":\"gov_uk_schools\",\r\n\"FORMAT\":\"image/png\",\r\n\r\n\"VERSION\": \"1.1.0\"\r\n}",
 				},
 			};
-			//World Heritage Sites
+			// World Heritage Sites
 			var worldHeritageUrlOption = new List<LayerSourceOption>
 			{
-				new LayerSourceOption
-				{
+				new() {
 					Name = "url",
 					Value = "https://gi.dorsetcouncil.gov.uk/geoserver/ORA_historic_england/wms",
 				},
-				new LayerSourceOption
-				{
+				new() {
 					Name = "params",
 					Value = "{\"LAYERS\": \"HIST_ENG_WORLD_HERITAGE_SITE\",\r\n\"FORMAT\": \"image/png\",\r\n\"TILED\":\"true\"\r\n}",
 				},
 			};
-			//National Nature Reserves
+			// National Nature Reserves
 			var natureReservesUrlOption = new List<LayerSourceOption>
 			{
-				new LayerSourceOption
-				{
+				new() {
 					Name = "url",
 					Value = "https://gi.dorsetcouncil.gov.uk/geoserver/ORA_natural_england/wms",
 				},
-				new LayerSourceOption
-				{
+				new() {
 					Name = "params",
 					Value = "\t{\"LAYERS\": \"NATENG_NNR\",\r\n\"FORMAT\": \"image/png\",\r\n\"TILED\":\"true\"\r\n}",
 				},
 			};
 
-			//Layer sources for each of the default layers
+			// Layer sources for each of the default layers
 			var countiesLayerSource = new LayerSource
 			{
 				Name = "UK Counties",
@@ -416,8 +405,7 @@ namespace GIFrameworkMaps.Web
 
 			var defaultLayers = new List<Layer>
 			{
-				new Layer
-				{
+				new() {
 					LayerSource = countiesLayerSource,
 					Name = "UK Counties",
 					ZIndex = -10,
@@ -426,8 +414,7 @@ namespace GIFrameworkMaps.Web
 					InfoTemplate = "<h1>{{name}}</h1>\r\n<p><strong>Area description:</strong> {{area_description}}</p>\r\n<p><strong>Hectares:</strong> {{hectares}}</p>\r\n<p><strong>Non inland area:</strong> {{non_inland_area}}m2</p>\r\n",
 					Filterable = true,
 				},
-				new Layer
-				{
+				new() {
 					LayerSource = educationLayerSource,
 					Name = "UK Educational Establishments",
 					Queryable = true,
@@ -435,8 +422,7 @@ namespace GIFrameworkMaps.Web
 					InfoTemplate = "<h1>{{establishment_name}}</h1>\r\n<p><strong>Type: </strong>{{type_of_establishment}}</p>\r\n<p><strong>Phase of Education: </strong>{{phase_of_education}}</p>\r\n{% if school_capacity %}\r\n<p><strong>Capacity: </strong>{{school_capacity}}</p>\r\n{% endif %}\r\n{% if number_of_pupils %}\r\n<p><strong>No. Pupils: </strong>{{number_of_pupils}} ({{number_of_boys}} boys, {{number_of_girls}} girls)</p>\r\n{% endif %}\r\n<p><strong>{{head_preferred_job_title if head_preferred_job_title else \"Head/Principal/Manager\"}}: </strong>{{head_title}} {{head_first_name}} {{head_last_name}}</p>\r\n{% if trusts %}\r\n<p><strong>Trusts: </strong>{{trusts}}</p>\r\n{% endif %}\r\n{% if ofsted_last_insp %}\r\n<p><strong>Last Ofsted Inspection: </strong>{{ofsted_last_insp | date}} - {{ofsted_rating}}</p>\r\n{% endif %}\r\n{% if school_website %}\r\n<p><a href=\"{{school_website}}\" target=\"_blank\">{{school_website}}</a></p>\r\n{% endif %}\r\n{% if telephone_num %}\r\n<p><strong>Tel: </strong>{{telephone_num}}</p>\r\n{% endif %}",
 					Filterable = true,
 				},
-				new Layer
-				{
+				new() {
 					LayerSource = worldHeritageLayerSource,
 					Name = "World Heritage Site",
 					MaxZoom = 25,
@@ -445,8 +431,7 @@ namespace GIFrameworkMaps.Web
 					InfoTemplate = "<h1>World Heritage Site</h1>\r\n<p><strong>Name: </strong>{{NAME}}</p>\r\n<p><strong>Inscription Date: </strong>{{INSCRDATE | date}}</p>\r\n<p><strong>List Entry ID: </strong>{{LISTENTRY}}</p>\r\n<p><a href=\"https://historicengland.org.uk/listing/the-list/list-entry/{{LISTENTRY}}\" target=\"_blank\">Learn more about this site on the Historic England website</a></p>",
 					Filterable = true,
 				},
-				new Layer
-				{
+				new() {
 					LayerSource = natureReservesLayerSource,
 					Name = "National Nature Reserves",
 					MaxZoom = 50,
@@ -471,7 +456,7 @@ namespace GIFrameworkMaps.Web
 				// Create and save each default layer
 				context.Layers.Add(layer);
 				context.SaveChanges();
-				//Add these layers to a CategoryLayer for each layer (tells the category which layers to include)
+				// Add these layers to a CategoryLayer for each layer (tells the category which layers to include)
 				var categoryLayer = new CategoryLayer { LayerId = layer.Id, CategoryId = defaultLayerCategory.Id };
 				context.CategoryLayers.Add(categoryLayer);
 				context.SaveChanges();
@@ -484,7 +469,6 @@ namespace GIFrameworkMaps.Web
 				Category = defaultLayerCategory,
 			};
 			version.VersionCategories.Add(defaultVersionCategory);
-
 			context.SaveChanges();
 		}
 
