@@ -1,6 +1,7 @@
 import Fuse from "fuse.js";
 import { LayerResource } from "../Interfaces/OGCMetadata/LayerResource";
 import { Metadata } from "../Metadata/Metadata";
+import { ServiceType } from "../Interfaces/WebLayerServiceDefinition";
 
 export class SelectWebService {
   preferredProjections: string[] = [];
@@ -27,7 +28,7 @@ export class SelectWebService {
           .wmsVersion || "1.1.0";
       const proxyEndpoint = (webServiceList as HTMLSelectElement)
         .selectedOptions[0].dataset.proxyVia;
-      this.renderLayersListFromService(url, version, proxyEndpoint);
+      this.renderLayersListFromService(url, ServiceType.WMS, version, proxyEndpoint);
     });
 
     urlConnectBtn.addEventListener("click", () => {
@@ -58,6 +59,7 @@ export class SelectWebService {
 
   private async renderLayersListFromService(
     url: string,
+    type: ServiceType,
     version?: string,
     proxyEndpoint?: string,
   ) {
@@ -65,6 +67,7 @@ export class SelectWebService {
     loadingSpinner.style.display = "block";
     const availableLayers = await Metadata.getLayersFromCapabilities(
       url,
+      type,
       version,
       proxyEndpoint,
     );

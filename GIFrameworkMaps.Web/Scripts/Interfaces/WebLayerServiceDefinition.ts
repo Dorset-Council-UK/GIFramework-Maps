@@ -16,4 +16,5 @@ export enum ServiceType {
   WFS,
   OWS,
   WMTS,
+  WPS
 }

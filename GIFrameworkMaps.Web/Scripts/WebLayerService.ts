@@ -88,6 +88,7 @@ export class WebLayerService {
       }
       const availableLayers = await Metadata.getLayersFromCapabilities(
         serviceDefinition.url,
+        serviceDefinition.type,
         version,
         proxyEndpoint,
       );

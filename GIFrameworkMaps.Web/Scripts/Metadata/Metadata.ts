@@ -8,23 +8,21 @@ import { DescribeFeatureType } from "../Interfaces/OGCMetadata/DescribeFeatureTy
 import {
   evaluateXPath,
   evaluateXPathToFirstNode,
-  evaluateXPathToNodes,
 } from "fontoxpath";
-import { Style } from "../Interfaces/OGCMetadata/Style";
 import { LayerResource } from "../Interfaces/OGCMetadata/LayerResource";
 import { Browser as BrowserUtil } from "../Util";
-import * as olExtent from "ol/extent";
 import { WfsEndpoint, WmsEndpoint, setFetchOptions as ogcClientSetFetchOptions } from "@camptocamp/ogc-client";
+import { ServiceType } from "../Interfaces/WebLayerServiceDefinition";
 export class Metadata {
   /*TODO - Make all the metadata fetchers use this generic function*/
   static async getCapabilities(
     baseUrl: string,
-    service: string = "WMS",
+    serviceType: ServiceType = ServiceType.WMS,
     version: string = "1.1.0",
     proxyEndpoint: string = "",
     httpHeaders: Headers = new Headers(),
   ) {
-    let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, service, version);
+    let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, serviceType, version);
     if (proxyEndpoint !== "") {
       fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
     }
@@ -91,7 +89,7 @@ export class Metadata {
   ): Promise<BasicServerCapabilities> {
     let fetchUrl = this.constructGetCapabilitiesURL(
       baseUrl,
-      "WFS",
+      ServiceType.WFS,
       "1.1.0",
       additionalUrlParams,
     );
@@ -214,85 +212,39 @@ export class Metadata {
   static async getStylesForLayer(
     baseUrl: string,
     layerName: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     proxyEndpoint: string = "",
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     additionalUrlParams: object = {},
     httpHeaders: Headers = new Headers(),
-  ): Promise<Style[]> {
-    let fetchUrl = this.constructGetCapabilitiesURL(
-      baseUrl,
-      "WMS",
-      "1.1.0",
-      additionalUrlParams,
-    );
-    if (proxyEndpoint !== "") {
-      fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
-    }
+  ) {
 
-    try {
-      const response = await fetch(fetchUrl, { headers: httpHeaders });
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
-      }
+    ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
 
-      /*TODO - Make this use jsonix and the ogc-schemas libraries to more effectively and robustly parse the response*/
-      const capabilitiesDoc = await response.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(capabilitiesDoc, "application/xml");
-
-      const styles = evaluateXPathToNodes(
-        `//Layer[Name='${layerName}']/Style`,
-        doc,
-        null,
-        null,
-        { language: evaluateXPath.XQUERY_3_1_LANGUAGE },
-      ) as Node[];
-
-      //parse styles into list of styles
-      const availableStyles: Style[] = [];
-      styles.forEach((s) => {
-        let title, name, abstract: string;
-        s.childNodes.forEach((n) => {
-          if (n.nodeName === "Title") {
-            title = n.textContent;
-          }
-          if (n.nodeName === "Name") {
-            name = n.textContent;
-          }
-          if (n.nodeName === "Abstract") {
-            abstract = n.textContent;
-          }
-        });
-        const style: Style = {
-          name: name,
-          title: title,
-          abstract: abstract,
-        };
-        availableStyles.push(style);
-      });
-      return availableStyles;
-    } catch (error) {
-      console.error(`Could not get capabilities doc: ${error}`);
-    }
+    const endpoint = await new WmsEndpoint(baseUrl).isReady();
+    const layer = endpoint.getLayerByName(layerName);
+    return layer.styles;
+    
   }
 
   static async getLayerMetadataFromCapabilities(
     baseUrl: string,
     layerName: string,
-    type: 'wms' | 'wfs',
+    type: ServiceType,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     version: string = "1.1.0",
     proxyEndpoint: string = "",
-    httpHeaders: Headers = new Headers(),
+    httpHeaders: Headers = new Headers()
   ) {
     ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
-    if (type === 'wms') {
+    if (type === ServiceType.WMS) {
       
       const endpoint = await new WmsEndpoint(baseUrl).isReady();
       const layer = endpoint.getLayerByName(layerName);
       const serviceInfo = endpoint.getServiceInfo();
 
-      console.warn((Object.keys(layer.boundingBoxes) as Array<string>).find(key => layer.boundingBoxes[key]));
-
+      const bboxKey = Object.keys(layer.boundingBoxes).find(k => k === "EPSG:4326") || Object.keys(layer.boundingBoxes)[0];
+      
       const layerResource: LayerResource = {
         name: layer.name,
         title: layer.title,
@@ -301,15 +253,15 @@ export class Metadata {
         formats: serviceInfo.outputFormats,
         baseUrl: baseUrl,
         projections: layer.availableCrs,
-        extent: [], //TODO
-        queryable: true, //TODO
+        extent: layer.boundingBoxes[bboxKey], //TODO
+        queryable: true, //TODO - available in v1.1.1
         version: endpoint.getVersion(),
         proxyMetaRequests: proxyEndpoint !== "" ? true : false,
         proxyMapRequests: proxyEndpoint !== "" ? true : false,
-        keywords: null,//TODO
+        keywords: [],//TODO - Available in v1.1.1
       };
       return layerResource;
-    } else {
+    } else if(type === ServiceType.WFS) {
       const endpoint = await new WfsEndpoint(baseUrl).isReady();
       const layer = await endpoint.getFeatureTypeFull(layerName);
       const serviceInfo = endpoint.getServiceInfo();
@@ -317,195 +269,83 @@ export class Metadata {
         name: layer.name,
         title: layer.title,
         abstract: layer.abstract,
-        attribution: "", //TODO
+        attribution: "", //TODO?
         formats: serviceInfo.outputFormats,
         baseUrl: baseUrl,
         projections: layer.otherCrs,
         extent: layer.boundingBox,
-        queryable: true,//TODO
+        queryable: true, //vectors are by definition queryable
         version: endpoint.getVersion(),
         proxyMetaRequests: proxyEndpoint !== "" ? true : false,
         proxyMapRequests: proxyEndpoint !== "" ? true : false,
-        keywords: null,//TODO
+        keywords: [],//TODO
       };
-      return layerResource;
-      
-      
+      return layerResource; 
     }
   }
 
   static async getLayersFromCapabilities(
     baseUrl: string,
+    serviceType: ServiceType,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     version: string = "1.1.0",
     proxyEndpoint: string = "",
     httpHeaders: Headers = new Headers(),
   ) {
     try {
-      //does the baseurl already contain a version? If so, use that.
-      const response = await this.getCapabilities(
-        baseUrl,
-        "WMS",
-        version,
-        proxyEndpoint,
-        httpHeaders,
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
-      }
-      /*TODO - Make this use jsonix and the ogc-schemas libraries to more effectively and robustly parse the response*/
-      const capabilitiesDoc = await response.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(capabilitiesDoc, "application/xml");
-
-      //get the GetMap endpoint (TODO - this is gross)
-      const getMapEndpointNode = evaluateXPathToFirstNode(
-        `//GetMap/DCPType/HTTP/Get/OnlineResource`,
-        doc,
-        null,
-        null,
-        {
-          language: evaluateXPath.XQUERY_3_1_LANGUAGE,
-        },
-      ) as Node;
-      const getMapEndpoint = (
-        getMapEndpointNode as any
-      ).attributes.getNamedItem("xlink:href").value;
-
-      const formatNodes = evaluateXPathToNodes(
-        `//GetMap/Format`,
-        doc,
-        null,
-        null,
-        { language: evaluateXPath.XQUERY_3_1_LANGUAGE },
-      ) as Node[];
-      const formats = formatNodes.map((f) => f.textContent);
-      const preferredFormats = ["image/png", "image/png8", "image/jpeg"];
-      const acceptableFormats = preferredFormats.filter((f) =>
-        formats.includes(f),
-      );
-
-      let projectionXPath = "//Capability/Layer/SRS";
-      if (version === "1.3.0") {
-        projectionXPath = "//Capability/Layer/CRS";
-      }
-      const projectionNodes = evaluateXPathToNodes(
-        projectionXPath,
-        doc,
-        null,
-        null,
-        { language: evaluateXPath.XQUERY_3_1_LANGUAGE },
-      ) as Node[];
-      const projections = projectionNodes
-        .map((f) => f.textContent.split(" "))
-        .flat();
-      const layers = evaluateXPathToNodes(`//Layer/Layer`, doc, null, null, {
-        language: evaluateXPath.XQUERY_3_1_LANGUAGE,
-      }) as Node[];
-      //parse styles into list of styles
       const availableLayers: LayerResource[] = [];
-      layers.forEach((s) => {
-        let title: string,
-          name: string,
-          abstract: string,
-          attribution: string,
-          attributionUrl: string,
-          queryable: boolean = false;
-        const keywords: string[] = [];
-        let extent: olExtent.Extent;
-        if ((s as any).attributes.getNamedItem("queryable")?.value === "1") {
-          queryable = true;
-        }
-        /*TODO - This is gross and inefficient. Make it better*/
-        s.childNodes.forEach((n) => {
-          if (n.nodeName === "Name") {
-            name = n.textContent;
-          }
-          if (n.nodeName === "Title") {
-            title = n.textContent;
-          }
-          if (n.nodeName === "Abstract") {
-            abstract = n.textContent;
-          }
-          if (n.nodeName === "Attribution") {
-            n.childNodes.forEach((c) => {
-              if (c.nodeName === "Title") {
-                attribution = c.textContent.replaceAll(
-                  "{{CURRENT_YEAR}}",
-                  new Date().getFullYear().toString(),
-                );
-              }
-              if (c.nodeName === "OnlineResource") {
-                attributionUrl = (c as any).attributes.getNamedItem(
-                  "xlink:href",
-                )?.value;
-              }
-            });
-            if (attribution && attributionUrl) {
-              attribution = `<a href="${attributionUrl}" target="_blank">${attribution}</a>`;
-            }
-          }
-          if (
-            n.nodeName ===
-            `${
-              version === "1.3.0"
-                ? "EX_GeographicBoundingBox"
-                : "LatLonBoundingBox"
-            }`
-          ) {
-            if (version === "1.3.0") {
-              extent = [
-                parseFloat(
-                  (n as any).getElementsByTagName("westBoundLongitude")[0]
-                    .textContent,
-                ),
-                parseFloat(
-                  (n as any).getElementsByTagName("southBoundLatitude")[0]
-                    .textContent,
-                ),
-                parseFloat(
-                  (n as any).getElementsByTagName("eastBoundLongitude")[0]
-                    .textContent,
-                ),
-                parseFloat(
-                  (n as any).getElementsByTagName("northBoundLatitude")[0]
-                    .textContent,
-                ),
-              ];
-            } else {
-              extent = [
-                parseFloat((n as any).attributes.getNamedItem("minx").value),
-                parseFloat((n as any).attributes.getNamedItem("miny").value),
-                parseFloat((n as any).attributes.getNamedItem("maxx").value),
-                parseFloat((n as any).attributes.getNamedItem("maxy").value),
-              ];
-            }
-          }
-          if (n.nodeName === "KeywordList") {
-            n.childNodes.forEach((c) => {
-              if (c.nodeName === "Keyword") {
-                keywords.push(c.textContent);
-              }
-            });
-          }
-        });
 
-        const layer: LayerResource = {
-          name: name,
-          title: title,
-          abstract: abstract,
-          attribution: attribution,
-          formats: acceptableFormats,
-          baseUrl: getMapEndpoint,
-          projections: projections,
-          extent: extent,
-          queryable: queryable,
-          version: version,
-          proxyMetaRequests: proxyEndpoint !== "" ? true : false,
-          proxyMapRequests: proxyEndpoint !== "" ? true : false,
-          keywords: keywords,
-        };
-        availableLayers.push(layer);
-      });
+      ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
+      if (serviceType === ServiceType.WMS) {
+        const endpoint = await new WmsEndpoint(baseUrl).isReady();
+        const serviceInfo = endpoint.getServiceInfo();
+        const layers = endpoint.getLayers();
+        layers.forEach(layer => {
+          const layerDetails = endpoint.getLayerByName(layer.name);
+          const bboxKey = Object.keys(layerDetails.boundingBoxes).find(k => k === "EPSG:4326") || Object.keys(layerDetails.boundingBoxes)[0];
+          const layerResource: LayerResource = {
+            name: layer.name,
+            title: layer.title,
+            abstract: layer.abstract,
+            attribution: layerDetails.attribution.title,
+            formats: serviceInfo.outputFormats,
+            baseUrl: baseUrl,
+            projections: layerDetails.availableCrs,
+            extent: layerDetails.boundingBoxes[bboxKey], //TODO
+            queryable: true,
+            version: endpoint.getVersion(),
+            proxyMetaRequests: proxyEndpoint !== "" ? true : false,
+            proxyMapRequests: proxyEndpoint !== "" ? true : false,
+            keywords: [],
+          };
+          availableLayers.push(layerResource);
+        })
+      } else {
+        const endpoint = await new WfsEndpoint(baseUrl).isReady();
+        const layers = endpoint.getFeatureTypes();
+        const serviceInfo = endpoint.getServiceInfo();
+        layers.forEach(async layer => {
+          const layerDetails = await endpoint.getFeatureTypeFull(layer.name);
+          const layerResource: LayerResource = {
+            name: layer.name,
+            title: layer.title,
+            abstract: layer.abstract,
+            attribution: "",
+            formats: serviceInfo.outputFormats,
+            baseUrl: baseUrl,
+            projections: [layerDetails.defaultCrs, ...layerDetails.otherCrs],
+            extent: layerDetails.boundingBox,
+            queryable: true,
+            version: endpoint.getVersion(),
+            proxyMetaRequests: proxyEndpoint !== "" ? true : false,
+            proxyMapRequests: proxyEndpoint !== "" ? true : false,
+            keywords: [],
+          };
+          availableLayers.push(layerResource);
+
+        });
+      }
+      
       return availableLayers;
     } catch (error) {
       console.error(`Could not get capabilities doc: ${error}`);
@@ -524,7 +364,7 @@ export class Metadata {
   ): Promise<BasicServerCapabilities> {
     let fetchUrl = this.constructGetCapabilitiesURL(
       baseUrl,
-      "wps",
+      ServiceType.WPS,
       "1.1.0",
       additionalUrlParams,
     );
@@ -685,12 +525,12 @@ export class Metadata {
 
   static constructGetCapabilitiesURL(
     baseUrl: string,
-    service: string = "WMS",
+    serviceType: ServiceType = ServiceType.WMS,
     version: string = "1.1.0",
     additionalUrlParams: object = {},
   ) {
     const getCapabilitiesURLParams = new URLSearchParams({
-      service: service,
+      service: ServiceType[serviceType],
       version: version,
       request: "GetCapabilities",
       ...additionalUrlParams,
