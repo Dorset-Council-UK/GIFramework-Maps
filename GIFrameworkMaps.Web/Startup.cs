@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using Yarp.ReverseProxy.Transforms;
 using GIFrameworkMaps.Data.Models;
 using System.Threading;
+using NodaTime;
 
 namespace GIFrameworkMaps.Web
 {
@@ -277,6 +278,19 @@ namespace GIFrameworkMaps.Web
                 {
                     SeedDatabaseWithSearchDefinitions(ref context, ref version);
                 }
+
+				if (!context.WelcomeMessages.Any())
+				{
+					var defaultWelcomeMessage = new WelcomeMessage
+					{
+						Name = "Default Welcome Message",
+						Title = "Welcome to GIFrameworkMaps",
+						Content = "<p>GIFrameworkMaps is an open source .NET based web map built with OpenLayers and Bootstrap.</p><p>In this default version, we've added a few things to help you get started. Check out the buttons on the right to adjust your basemap, turn on one of our example layers or create a PDF map ready to print.</p><h5>We need you!</h5><p><a href=\"https://github.com/Dorset-Council-UK/GIFramework-Maps\" target=\"blank\">Find us on GitHub</a> for the latest updates and find out how you can contribute.</p>",
+						UpdateDate = LocalDateTime.FromDateTime(DateTime.Now),
+						DismissOnButtonOnly = false,
+					};
+					version.WelcomeMessage = defaultWelcomeMessage;
+				}
 
                 var printConfig = new Data.Models.Print.PrintConfiguration
                 {
