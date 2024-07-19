@@ -11,7 +11,7 @@ import {
 } from "fontoxpath";
 import { LayerResource } from "../Interfaces/OGCMetadata/LayerResource";
 import { Browser as BrowserUtil } from "../Util";
-import { WfsEndpoint, WmsEndpoint, setFetchOptions as ogcClientSetFetchOptions } from "@camptocamp/ogc-client";
+import { GenericEndpointInfo, WfsEndpoint, WmsEndpoint, WmsLayerSummary, setFetchOptions as ogcClientSetFetchOptions } from "@camptocamp/ogc-client";
 import { ServiceType } from "../Interfaces/WebLayerServiceDefinition";
 export class Metadata {
   /*TODO - Make all the metadata fetchers use this generic function*/
@@ -73,7 +73,7 @@ export class Metadata {
       return json;
     } catch (error) {
       console.error(`Could not get feature description: ${error}`);
-    }
+  }
   }
 
   /**
@@ -204,7 +204,7 @@ export class Metadata {
   }
 
   /**
-   * Sends a WFS 1.1.0 GetCapabilities request to the baseUrl and returns
+   * Sends a GetCapabilities request to the baseUrl and returns
    * a list of styles allowed for that layer.
    * @param baseUrl - The base URL of the OGC server you want to query
    * @param layerName - The name of the layer to find in the list
@@ -244,12 +244,20 @@ export class Metadata {
       const serviceInfo = endpoint.getServiceInfo();
 
       const bboxKey = Object.keys(layer.boundingBoxes).find(k => k === "EPSG:4326") || Object.keys(layer.boundingBoxes)[0];
-      
+
+      let attributionHTML = ""
+      if (layer.attribution) {
+        attributionHTML = layer.attribution.title.replaceAll('{{CURRENT_YEAR}}',new Date().getFullYear().toString());
+        if (layer.attribution.url) {
+          attributionHTML = `<a href="${layer.attribution.url}" target="_blank" rel="noopener">${attributionHTML}</a>`;
+        }
+      }
+
       const layerResource: LayerResource = {
         name: layer.name,
         title: layer.title,
         abstract: layer.abstract,
-        attribution: layer.attribution.title,
+        attribution: attributionHTML,
         formats: serviceInfo.outputFormats,
         baseUrl: baseUrl,
         projections: layer.availableCrs,
@@ -301,24 +309,7 @@ export class Metadata {
         const serviceInfo = endpoint.getServiceInfo();
         const layers = endpoint.getLayers();
         layers.forEach(layer => {
-          const layerDetails = endpoint.getLayerByName(layer.name);
-          const bboxKey = Object.keys(layerDetails.boundingBoxes).find(k => k === "EPSG:4326") || Object.keys(layerDetails.boundingBoxes)[0];
-          const layerResource: LayerResource = {
-            name: layer.name,
-            title: layer.title,
-            abstract: layer.abstract,
-            attribution: layerDetails.attribution.title,
-            formats: serviceInfo.outputFormats,
-            baseUrl: baseUrl,
-            projections: layerDetails.availableCrs,
-            extent: layerDetails.boundingBoxes[bboxKey], //TODO
-            queryable: true,
-            version: endpoint.getVersion(),
-            proxyMetaRequests: proxyEndpoint !== "" ? true : false,
-            proxyMapRequests: proxyEndpoint !== "" ? true : false,
-            keywords: [],
-          };
-          availableLayers.push(layerResource);
+          availableLayers.push(...this.createLayerResourcesFromWMSLayer(endpoint, layer, serviceInfo, baseUrl, proxyEndpoint))
         })
       } else {
         const endpoint = await new WfsEndpoint(baseUrl).isReady();
@@ -351,6 +342,49 @@ export class Metadata {
       console.error(`Could not get capabilities doc: ${error}`);
     }
   }
+
+  static createLayerResourcesFromWMSLayer(endpoint: WmsEndpoint, layer: WmsLayerSummary, serviceInfo: GenericEndpointInfo, baseUrl: string, proxyEndpoint?: string) {
+    const layers: LayerResource[] = [];
+    if (layer.children && layer.children.length !== 0) {
+      layer.children.forEach(child => layers.push(...this.createLayerResourcesFromWMSLayer(endpoint, child, serviceInfo, baseUrl, proxyEndpoint)));
+    } else {
+      const layerResource = this.createLayerResourceFromWMSLayer(endpoint, layer, serviceInfo, baseUrl, proxyEndpoint);
+      layers.push(layerResource);
+    }
+    return layers;
+  }
+
+  static createLayerResourceFromWMSLayer(endpoint: WmsEndpoint, layer: WmsLayerSummary, serviceInfo: GenericEndpointInfo, baseUrl: string, proxyEndpoint?: string) {
+    const layerDetails = endpoint.getLayerByName(layer.name);
+    const bboxKey = Object.keys(layerDetails.boundingBoxes).find(k => k === "EPSG:4326") || Object.keys(layerDetails.boundingBoxes)[0];
+    let attributionHTML = ""
+    if (layerDetails.attribution) {
+      attributionHTML = layerDetails.attribution.title.replaceAll('{{CURRENT_YEAR}}', new Date().getFullYear().toString());
+      if (layerDetails.attribution.url) {
+        attributionHTML = `<a href="${layerDetails.attribution.url}" target="_blank" rel="noopener">${attributionHTML}</a>`;
+      }
+    }
+    if (!serviceInfo.outputFormats) {
+      serviceInfo.outputFormats = ['image/png']; //default to most common output format
+    }
+    const layerResource: LayerResource = {
+      name: layer.name,
+      title: layer.title,
+      abstract: layer.abstract,
+      attribution: attributionHTML,
+      formats: serviceInfo.outputFormats,
+      baseUrl: baseUrl,
+      projections: layerDetails.availableCrs,
+      extent: layerDetails.boundingBoxes[bboxKey], //TODO
+      queryable: true,
+      version: endpoint.getVersion(),
+      proxyMetaRequests: proxyEndpoint !== "" ? true : false,
+      proxyMapRequests: proxyEndpoint !== "" ? true : false,
+      keywords: [],
+    };
+    return layerResource;
+  }
+
   /**
    * Sends a WPS 1.1.0 GetCapabilities request to the baseUrl and returns
    * a stripped down set of basic capabilities.

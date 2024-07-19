@@ -1318,7 +1318,7 @@ export class LayersPanel implements SidebarPanel {
     styleLinkContainer.href = "#";
     styleLinkContainer.dataset.gifwLayerStyleName = style.name;
     styleLinkContainer.innerHTML = `<h5 class="mb-2">${style.title}</h5>`;
-    //abstract not currently available in ogc-client
+    //TODO - abstract not currently available in ogc-client
     //styleLinkContainer.innerHTML += `<p class="mb-1">${style.abstract ? style.abstract : "No description provided"
     //  }</p>`;
 

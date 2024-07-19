@@ -12,9 +12,9 @@
 }
 
 export enum ServiceType {
-  WMS,
-  WFS,
-  OWS,
-  WMTS,
-  WPS
+  WMS = "WMS",
+  WFS = "WFS",
+  OWS = "OWS",
+  WMTS = "WMTS",
+  WPS = "WPS"
 }
