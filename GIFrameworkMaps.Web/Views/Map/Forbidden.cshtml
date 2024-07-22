@@ -24,3 +24,12 @@
         </dd>
     </dl>
 </div>
+
+@{
+    string appEmailContact = configuration.GetValue<string>("GIFrameworkMaps:appEmailContact");
+    string emailRequestAccessToVersionLink = "mailto:" + appEmailContact + "?subject=" + Model.Name + " access request for " + User.Identity.Name;
+}
+
+<a class="btn btn-primary" href="@emailRequestAccessToVersionLink" role="button">
+    Request access to this version
+</a>
