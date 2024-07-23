@@ -7,7 +7,7 @@ GIFrameworkMaps
 
 GIFrameworkMaps is a [.NET](https://dot.net) based web mapping application designed and developed by the Dorset Council GIS team.
 
-It is used by Dorset Council as their primary web mapping application for staff and the public. You can see it running live [here](https://gi.dorsetcouncil.gov.uk/dorsetexplorer).
+It is used by Dorset Council as their primary web mapping application for staff and the public. [You can see it running live here](https://gi.dorsetcouncil.gov.uk/dorsetexplorer).
 
 GIFrameworkMaps is Free and Open Source software, it uses [OpenLayers](https://openlayers.org/) and [Bootstrap](https://getbootstrap.com/), as well as many other libraries, and is licensed under the MIT licence.
 
@@ -18,8 +18,8 @@ Please use the [GitHub issue tracker](https://github.com/Dorset-Council-UK/GIFra
 Dorset Council staff should submit issues via the internal help desk.
 
 ## Dependencies
-To run GIFrameworkMaps with minimal modification, you will need.
-- A web server capable of running .NET applications, such as IIS, Kestral or Azure
+To run GIFrameworkMaps with minimal modification, you will need:
+- A web server capable of running .NET applications, such as IIS, Kestrel or Azure
 - PostgreSQL 13+ with PostGIS extension
 
 GIFrameworkMaps uses [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/). Postgres has been set up for this project, but with some modifications, any Entity Framework Core compatible provider should work. For a full list of providers, check the [Entity Framework docs](https://docs.microsoft.com/en-us/ef/core/providers/?tabs=dotnet-core-cli).
@@ -49,7 +49,7 @@ Check out the [OSGeo website](https://www.osgeo.org/choose-a-project/) for other
 
 ## Acknowledgements
 
-GIFrameworkMaps would not be possible without the open source community. This is just a small list of our favourite open source projects and organisations that have helped us.
+GIFrameworkMaps would not be possible without the open source community. This is just a small list of our favourite open source projects and organisations that have helped us:
 
 - [OpenLayers](https://openlayers.org)
 - [GeoServer](https://geoserver.org)
