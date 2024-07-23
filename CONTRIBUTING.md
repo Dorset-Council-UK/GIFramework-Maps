@@ -15,7 +15,7 @@ that your pull request follows our pull request guidelines below before submitti
 
 Before starting work on a feature or issue, make sure you let us know by adding a comment to the relevant issue in the issue tracker.
 
-If you are looking to build new functionality or change something quite signficantly, please check with the core developers before starting work to make sure 
+If you are looking to build new functionality or change something quite significantly, please check with the core developers before starting work to make sure 
 it is something we are happy for you to do.
 
 This page describes what you need to know to contribute code to GIFrameworkMaps as a developer.
@@ -32,25 +32,24 @@ Before working on a pull request, create an issue explaining what you want to co
 
 Your pull request must:
 
- * Pass the tests run automatically by the Continuous Integration system.
+ * Pass the tests run automatically by the Continuous Integration system
 
- * Address a single issue or add a single item of functionality.
+ * Address a single issue or add a single item of functionality
 
- * Contain a clean history of small, incremental, logically separate commits.
+ * Contain a clean history of small, incremental, logically separate commits
 
- * Use clear commit messages.
+ * Use clear commit messages
 
- * Be possible to merge automatically.
+ * Be possible to merge automatically
 
-Pull requests should merge into the `develop` branch. The core developers will then create Pull requests from `develop` into `main` when ready.
+Pull requests should merge into the `main` branch.
 
 ### Address a single issue or add a single item of functionality
 
-Please submit separate pull requests for separate issues.  This allows each to
+Please submit separate pull requests for separate issues. This allows each to
 be reviewed on its own merits.
 
-
-### Contain a clean history commits
+### Contain a clean commit history
 
 The commit history explains to the reviewer the series of modifications to the
 code that you have made and breaks the overall contribution into a series of
@@ -66,7 +65,7 @@ Please keep the header line short where possible.
 
 ### Be possible to merge automatically
 
-Occasionally other changes to `main` or `develop` might mean that your pull request cannot
-be merged automatically.  In this case you may need to rebase your branch on a
-more recent `main` or `develop`, resolve any conflicts, and `git push --force` to update
+Occasionally other changes to `main` might mean that your pull request cannot
+be merged automatically. In this case you may need to rebase your branch on a
+more recent `main`, resolve any conflicts, and `git push --force` to update
 your branch so that it can be merged automatically.
