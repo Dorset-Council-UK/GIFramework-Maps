@@ -20,15 +20,12 @@ export class SelectWebService {
 
     listConnectBtn.addEventListener("click", () => {
       //get selected value
-      const webServiceList = document.getElementById("service-select");
-      const url = (webServiceList as HTMLSelectElement).selectedOptions[0]
-        .value;
-      const version =
-        (webServiceList as HTMLSelectElement).selectedOptions[0].dataset
-          .wmsVersion || "1.1.0";
-      const proxyEndpoint = (webServiceList as HTMLSelectElement)
-        .selectedOptions[0].dataset.proxyVia;
-      this.renderLayersListFromService(url, ServiceType.WMS, version, proxyEndpoint);
+      const webServiceList = document.getElementById("service-select") as HTMLSelectElement;
+      const url = webServiceList.selectedOptions[0].value;
+      const version = webServiceList.selectedOptions[0].dataset.ogcVersion || "1.1.0";
+      const type = webServiceList.selectedOptions[0].dataset.type;
+      const proxyEndpoint = webServiceList.selectedOptions[0].dataset.proxyVia;
+      this.renderLayersListFromService(url, type as ServiceType, version, proxyEndpoint);
     });
 
     urlConnectBtn.addEventListener("click", () => {
@@ -91,6 +88,8 @@ export class SelectWebService {
       searchInput.style.display = "";
       searchInput.value = "";
       this.createOrUpdateFuseInstance(availableLayers);
+      const form = document.getElementById("create-source-form") as HTMLFormElement;
+      (form.querySelector('input[name="type"]') as HTMLInputElement).value = type;
     } else {
       layersListContainer.innerHTML =
         '<div class="alert alert-warning">No layers could be retrieved from the service. You may need to be logged in to the service to see layers, or the service is not advertising any layers at the moment.</div>';
@@ -156,6 +155,7 @@ export class SelectWebService {
       ).value = epsgSelectInput.selectedOptions[0].value;
       (form.querySelector('input[name="format"]') as HTMLInputElement).value =
         formatSelectInput.selectedOptions[0].value;
+
       form.submit();
     });
 

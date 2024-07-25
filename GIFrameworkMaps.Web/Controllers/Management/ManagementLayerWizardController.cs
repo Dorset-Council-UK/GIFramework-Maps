@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -77,7 +78,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         }
 
         [HttpPost]
-        public IActionResult CreateSource(string layerDetails, string projection, string format) {
+        public IActionResult CreateSource(string layerDetails, string type, string projection, string format) {
 
             var layerResource = JsonSerializer.Deserialize<LayerResource>(layerDetails);
 
@@ -100,7 +101,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     attributionMatched = true;
                 }
             }
-            var editModel = new LayerWizardCreateSourceViewModel
+			
+			var editModel = new LayerWizardCreateSourceViewModel
 			{
                 BaseURL = layerResource.BaseUrl,
                 Format = format,
@@ -110,8 +112,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 UseProxy = layerResource.ProxyMetaRequests,
                 LayerSource = layerSource,
                 ServiceAttribution = new Microsoft.AspNetCore.Html.HtmlString(layerResource.Attribution),
-                AttributionMatched = attributionMatched
-            };
+                AttributionMatched = attributionMatched,
+				ServiceType = Enum.TryParse(type, out ServiceType serviceType) ? serviceType : ServiceType.WMS
+			};
             RebuildLayerWizardCreateSourceViewModel(ref editModel, layerSource);
             return View(editModel);
         }
@@ -122,15 +125,26 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 				try
 				{
 					var urlOpt = new LayerSourceOption { Name = "url", Value = model.BaseURL };
-					var paramsValue = new { LAYERS = model.LayerName, FORMAT = model.Format, VERSION = model.Version, CRS = model.Projection };
-					var valueStr = JsonSerializer.Serialize(paramsValue, wmsParamsObjectWriterOpts);
-                    var paramsOpt = new LayerSourceOption
-                    {
-                        Name = "params",
-                        Value = valueStr
-                    };
-                    model.LayerSource.LayerSourceOptions.Add(urlOpt);
-                    model.LayerSource.LayerSourceOptions.Add(paramsOpt);
+					model.LayerSource.LayerSourceOptions.Add(urlOpt);
+					if (model.ServiceType == ServiceType.WMS)
+					{
+						var paramsValue = new { LAYERS = model.LayerName, FORMAT = model.Format, VERSION = model.Version, CRS = model.Projection };
+						var valueStr = JsonSerializer.Serialize(paramsValue, wmsParamsObjectWriterOpts);
+						var paramsOpt = new LayerSourceOption
+						{
+							Name = "params",
+							Value = valueStr
+						};
+						model.LayerSource.LayerSourceOptions.Add(paramsOpt);
+
+					}
+					else
+					{
+						var typeNameOpt = new LayerSourceOption { Name = "typename", Value = model.LayerName };
+						var formatOpt = new LayerSourceOption { Name= "format", Value = model.Format };
+						model.LayerSource.LayerSourceOptions.AddRange(new[] { typeNameOpt, formatOpt });
+					}
+					
                     if(!string.IsNullOrEmpty(model.Projection))
                     {
                         model.LayerSource.LayerSourceOptions.Add(new LayerSourceOption { Name = "projection", Value = model.Projection });
@@ -159,7 +173,13 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         private void RebuildLayerWizardCreateSourceViewModel(ref LayerWizardCreateSourceViewModel model, LayerSource layerSource)
         {
             var attributions = _context.Attributions.OrderBy(t => t.Name);
-            var layerSourceTypes = _context.LayerSourceTypes.Where(l => l.Name.Contains("WMS")).OrderBy(t => t.Id);
+			var layerSourceTypes = _context.LayerSourceTypes.ToList();
+			if (model.ServiceType == ServiceType.WMS) {
+				layerSourceTypes = [.. layerSourceTypes.Where(t => t.Name.Contains("WMS")).OrderBy(t => t.Id)];
+			}else if(model.ServiceType == ServiceType.WFS || model.ServiceType == ServiceType.OWS)
+			{
+				layerSourceTypes = [.. layerSourceTypes.Where(t => t.Name == "Vector" || t.Name == "VectorImage").OrderBy(t => t.Id)];
+			}
             model.AvailableAttributions = new SelectList(attributions, "Id", "Name", layerSource.AttributionId);
             model.AvailableLayerSourceTypes = new SelectList(layerSourceTypes, "Id", "Name", layerSource.LayerSourceTypeId);
         }

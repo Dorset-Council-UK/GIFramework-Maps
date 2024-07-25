@@ -315,7 +315,8 @@ export class Metadata {
         const endpoint = await new WfsEndpoint(baseUrl).isReady();
         const layers = endpoint.getFeatureTypes();
         const serviceInfo = endpoint.getServiceInfo();
-        layers.forEach(async layer => {
+
+        for (const layer of layers) {
           const layerDetails = await endpoint.getFeatureTypeFull(layer.name);
           const layerResource: LayerResource = {
             name: layer.name,
@@ -333,8 +334,7 @@ export class Metadata {
             keywords: [],
           };
           availableLayers.push(layerResource);
-
-        });
+        }
       }
       
       return availableLayers;

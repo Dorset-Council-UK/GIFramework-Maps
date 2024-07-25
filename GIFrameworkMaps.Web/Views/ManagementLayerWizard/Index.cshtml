@@ -51,7 +51,7 @@
 
                                                 <option value="@definition.Url"
                                                         data-proxy-via="@(definition.ProxyMetaRequests ? proxyEndpoint : "")"
-                                                        data-wms-version="@definition.Version">
+                                                        data-ogc-version="@definition.Version" data-type="@definition.Type">
                                                     @definition.Name
                                                 </option>
                                             }
@@ -118,6 +118,7 @@
 
 <form asp-action="CreateSource" method="post" id="create-source-form">
     <input name="layerDetails" type="hidden" />
+    <input name="type" type="hidden" />
     <input name="projection" type="hidden" />
     <input name="format" type="hidden" />
 </form>
