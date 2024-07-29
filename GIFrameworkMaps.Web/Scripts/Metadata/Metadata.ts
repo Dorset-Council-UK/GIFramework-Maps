@@ -262,11 +262,11 @@ export class Metadata {
         baseUrl: baseUrl,
         projections: layer.availableCrs,
         extent: layer.boundingBoxes[bboxKey], //TODO
-        queryable: true, //TODO - available in v1.1.1
+        queryable: layer.queryable,
         version: endpoint.getVersion(),
         proxyMetaRequests: proxyEndpoint !== "" ? true : false,
         proxyMapRequests: proxyEndpoint !== "" ? true : false,
-        keywords: [],//TODO - Available in v1.1.1
+        keywords: layer.keywords,
       };
       return layerResource;
     } else if(type === ServiceType.WFS) {
@@ -286,7 +286,7 @@ export class Metadata {
         version: endpoint.getVersion(),
         proxyMetaRequests: proxyEndpoint !== "" ? true : false,
         proxyMapRequests: proxyEndpoint !== "" ? true : false,
-        keywords: [],//TODO
+        keywords: layer.keywords,
       };
       return layerResource; 
     }
@@ -365,7 +365,7 @@ export class Metadata {
       }
     }
     if (!serviceInfo.outputFormats) {
-      serviceInfo.outputFormats = ['image/png']; //default to most common output format
+      serviceInfo.outputFormats = ['image/png']; //default to most common output format TODO
     }
     const layerResource: LayerResource = {
       name: layer.name,
@@ -375,12 +375,12 @@ export class Metadata {
       formats: serviceInfo.outputFormats,
       baseUrl: baseUrl,
       projections: layerDetails.availableCrs,
-      extent: layerDetails.boundingBoxes[bboxKey], //TODO
+      extent: layerDetails.boundingBoxes[bboxKey],
       queryable: true,
       version: endpoint.getVersion(),
       proxyMetaRequests: proxyEndpoint !== "" ? true : false,
       proxyMapRequests: proxyEndpoint !== "" ? true : false,
-      keywords: [],
+      keywords: layerDetails.keywords,
     };
     return layerResource;
   }
