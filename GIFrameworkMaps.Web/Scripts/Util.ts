@@ -13,6 +13,11 @@ import { ImageWMS, Source, TileWMS } from "ol/source";
 import { LayerSource, LayerSourceOption } from "./Interfaces/Layer";
 import LayerRenderer from "ol/renderer/Layer";
 import { Feature } from "ol";
+import GML32 from "ol/format/GML32";
+import GML3 from "ol/format/GML3";
+import GML2 from "ol/format/GML2";
+import GeoJSON from "ol/format/GeoJSON";
+import KML from "ol/format/KML";
 
 export class Projection {
   /**
@@ -777,6 +782,28 @@ export class Mapping {
       return selectedOpt[0].value;
     }
     return null;
+  }
+
+  static getOpenLayersFormatFromOGCFormat(format: string) {
+    const formatStringToOpenLayersFormatMap = new Map();
+    formatStringToOpenLayersFormatMap.set("application/gml+xml; version=3.2", new GML32());
+    formatStringToOpenLayersFormatMap.set("text/xml; subtype=gml/3.2", new GML32());
+    formatStringToOpenLayersFormatMap.set("gml32", new GML32());
+    formatStringToOpenLayersFormatMap.set("text/xml; subtype=gml/3.1.1", new GML3());
+    formatStringToOpenLayersFormatMap.set("gml3", new GML3());
+    formatStringToOpenLayersFormatMap.set("text/xml; subtype=gml/2.1.2", new GML2());
+    formatStringToOpenLayersFormatMap.set("gml2", new GML2());
+    formatStringToOpenLayersFormatMap.set("application/json", new GeoJSON());
+    formatStringToOpenLayersFormatMap.set("text/json", new GeoJSON());
+    formatStringToOpenLayersFormatMap.set("geojson", new GeoJSON());
+    formatStringToOpenLayersFormatMap.set("json", new GeoJSON());
+    formatStringToOpenLayersFormatMap.set("application/vnd.google-earth.kml xml", new KML());
+    formatStringToOpenLayersFormatMap.set("application/vnd.google-earth.kml+xml", new KML());
+    formatStringToOpenLayersFormatMap.set("kml", new KML());
+    if (formatStringToOpenLayersFormatMap.has(format.toLowerCase())) {
+      return formatStringToOpenLayersFormatMap.get(format.toLowerCase());
+    }
+    return new GeoJSON();
   }
 }
 

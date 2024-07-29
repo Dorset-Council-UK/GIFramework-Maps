@@ -123,30 +123,6 @@ export class GIFWLayerGroup implements LayerGroup {
           ol_layer = await this.createOGCVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
         }
 
-        //switch (layer.layerSource.layerSourceType.name) {
-        //  case "XYZ": {
-        //    ol_layer = this.createXYZLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
-
-        //    break;
-        //  }
-        //  case "TileWMS": {
-        //    /*TODO THIS ISN'T NICE AT ALL*/
-        //    ol_layer = this.createTileWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection)
-        //    break;
-        //  }
-        //  case "ImageWMS": {
-        //    ol_layer = this.createImageWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
-
-        //    break;
-        //  }
-        //  case "OGCVectorTile": {
-
-        //    ol_layer = await this.createOGCVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
-
-        //    break;
-        //  }
-        //}
-
         if (layer.isDefault) {
           ol_layer.setProperties({ hasBeenOpened: true });
         }
@@ -612,33 +588,13 @@ export class GIFWLayerGroup implements LayerGroup {
     projection: string) {
     const sourceUrlOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
     const styleOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "style");
-    const formatOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "format");
+    const formatOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "format") || 'application/json';
     const loadingStrategyOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "loadingStrategy");
     const urlType = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "type") || 'wfs'; //default to WFS unless overriden
     const typeName = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "typename");
 
-    let format: GeoJSON | GML32 | GML3 | GML2 | KML = new GeoJSON();
-    let defaultOutputFormatString = "application/json";
-    switch (formatOpt) {
-      case "GML32":
-        format = new GML32();
-        defaultOutputFormatString = "gml32"
-        break;
-      case "GML3":
-        format = new GML3();
-        defaultOutputFormatString = "gml3"
-        break;
-      case "GML2":
-        format = new GML2();
-        defaultOutputFormatString = "gml2"
-        break;
-      case "KML":
-        //if a style has been passed, don't extract the styles from the KML document
-        format = new KML({ extractStyles: (styleOpt === null) });
-        defaultOutputFormatString = "KML"
-        break;
-    }
-
+    const format: GeoJSON | GML32 | GML3 | GML2 | KML = MappingUtil.getOpenLayersFormatFromOGCFormat(formatOpt);
+    
     let loadingStrategy = bboxStrategy;
     if (loadingStrategyOpt === "all" || urlType !== 'wfs') {
       loadingStrategy = allStrategy;
@@ -660,7 +616,7 @@ export class GIFWLayerGroup implements LayerGroup {
       wfsURL.searchParams.set('request', 'GetFeature');
       wfsURL.searchParams.set('version', '1.1.0');
       wfsURL.searchParams.set('typename', typeName);
-      wfsURL.searchParams.set('outputFormat', defaultOutputFormatString);
+      wfsURL.searchParams.set('outputFormat', formatOpt);
       const paramsOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "params");
       if (paramsOpt !== null) {
         const params: { [x: string]: string } = JSON.parse(paramsOpt);
