@@ -845,3 +845,9 @@
   font-size: 1.25rem;
   font-weight: 500;
 }
+
+.space-center {
+  justify-content: space-between;
+  align-items: center;
+  font-size: .875rem;
+}
