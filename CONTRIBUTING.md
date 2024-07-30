@@ -1,6 +1,6 @@
-# Contributing to GIFrameworkMaps
+# Contributing to GIFramework Maps
 
-Thanks for your interest in contributing to GIFrameworkMaps.  Please see the project's [Code of Conduct](https://github.com/Dorset-Council-UK/GIFramework-Maps/blob/main/CODE_OF_CONDUCT.md) before proceeding.
+Thanks for your interest in contributing to GIFramework Maps.  Please see the project's [Code of Conduct](https://github.com/Dorset-Council-UK/GIFramework-Maps/blob/main/CODE_OF_CONDUCT.md) before proceeding.
 
 ## Submitting Bug Reports
 
@@ -18,7 +18,7 @@ Before starting work on a feature or issue, make sure you let us know by adding 
 If you are looking to build new functionality or change something quite significantly, please check with the core developers before starting work to make sure 
 it is something we are happy for you to do.
 
-This page describes what you need to know to contribute code to GIFrameworkMaps as a developer.
+This page describes what you need to know to contribute code to GIFramework Maps as a developer.
 
 
 ## Contributor License Agreement
