@@ -263,6 +263,7 @@ export class Metadata {
         projections: layer.availableCrs,
         extent: layer.boundingBoxes[bboxKey], //TODO
         queryable: layer.queryable,
+        opaque: layer.opaque,
         version: endpoint.getVersion(),
         proxyMetaRequests: proxyEndpoint !== "" ? true : false,
         proxyMapRequests: proxyEndpoint !== "" ? true : false,
@@ -283,6 +284,7 @@ export class Metadata {
         projections: layer.otherCrs,
         extent: layer.boundingBox,
         queryable: true, //vectors are by definition queryable
+        opaque: false, //vectors are by definition, not opaque
         version: endpoint.getVersion(),
         proxyMetaRequests: proxyEndpoint !== "" ? true : false,
         proxyMapRequests: proxyEndpoint !== "" ? true : false,
@@ -328,6 +330,7 @@ export class Metadata {
             projections: [layerDetails.defaultCrs, ...layerDetails.otherCrs],
             extent: layerDetails.boundingBox,
             queryable: true,
+            opaque: false,
             version: endpoint.getVersion(),
             proxyMetaRequests: proxyEndpoint !== "" ? true : false,
             proxyMapRequests: proxyEndpoint !== "" ? true : false,
@@ -364,9 +367,6 @@ export class Metadata {
         attributionHTML = `<a href="${layerDetails.attribution.url}" target="_blank" rel="noopener">${attributionHTML}</a>`;
       }
     }
-    if (!serviceInfo.outputFormats) {
-      serviceInfo.outputFormats = ['image/png']; //default to most common output format TODO
-    }
     const layerResource: LayerResource = {
       name: layer.name,
       title: layer.title,
@@ -376,7 +376,8 @@ export class Metadata {
       baseUrl: baseUrl,
       projections: layerDetails.availableCrs,
       extent: layerDetails.boundingBoxes[bboxKey],
-      queryable: true,
+      queryable: layerDetails.queryable,
+      opaque: layerDetails.opaque,
       version: endpoint.getVersion(),
       proxyMetaRequests: proxyEndpoint !== "" ? true : false,
       proxyMapRequests: proxyEndpoint !== "" ? true : false,

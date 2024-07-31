@@ -37,10 +37,10 @@ export class SelectWebService {
         "use-proxy",
       ) as HTMLInputElement;
       const url = webServiceInput.value;
-
+      const type = (document.getElementById('service-type') as HTMLSelectElement).selectedOptions[0].value;
       this.renderLayersListFromService(
         url,
-        undefined,
+        type as ServiceType,
         webServiceUseProxy.checked ? webServiceUseProxy.value : "",
       );
     });
@@ -82,7 +82,7 @@ export class SelectWebService {
           return a.title.localeCompare(b.title);
         })
         .forEach((layer) => {
-          layersListContainer.appendChild(this.renderLayerItem(layer));
+          layersListContainer.appendChild(this.renderLayerItem(layer, type));
         });
 
       searchInput.style.display = "";
@@ -99,7 +99,7 @@ export class SelectWebService {
     errMsg.style.display = "none";
   }
 
-  private renderLayerItem(layer: LayerResource) {
+  private renderLayerItem(layer: LayerResource, type: ServiceType) {
     const layerItemFragment = document.getElementById(
       "web-service-layer-item-template",
     ) as HTMLTemplateElement;
@@ -137,12 +137,33 @@ export class SelectWebService {
       opt.text = projection;
       epsgSelectInput.options.add(opt);
     });
+    //move preferred formats to top TODO - Use opaque option to suggest JPEG etc.
+    const preferredFormats = type === ServiceType.WMS ? (layer.opaque ? this.preferredWMSOpaqueFormats : this.preferredWMSTransparentFormats) : this.preferredWFSFormats;
+    const allFormats = layer.formats;
+    layer.formats = preferredFormats.filter(f => {
+      return layer.formats.some(l => {
+        return f === l;
+      })
+    })
+    const recommendedOptGroup = document.createElement('optgroup');
+    recommendedOptGroup.label = 'Recommended';
     layer.formats.forEach((format) => {
       const opt = document.createElement("option");
       opt.value = format;
       opt.text = format;
-      formatSelectInput.options.add(opt);
+      recommendedOptGroup.appendChild(opt);
     });
+    formatSelectInput.options.add(recommendedOptGroup);
+    const allOptGroup = document.createElement('optgroup');
+    allOptGroup.label = 'All';
+    formatSelectInput.options.add(allOptGroup);
+    allFormats.forEach((format) => {
+      const opt = document.createElement("option");
+      opt.value = format;
+      opt.text = format;
+      allOptGroup.appendChild(opt);
+    });
+    formatSelectInput.options.add(allOptGroup);
     btn.addEventListener("click", () => {
       const form = document.getElementById(
         "create-source-form",
@@ -208,4 +229,13 @@ export class SelectWebService {
 
     this._fuseInstance = new Fuse(layers, options);
   }
+
+  private preferredWMSTransparentFormats = ["image/png", "image/png; mode=8bit", "image/png8", "image/gif"];
+  private preferredWMSOpaqueFormats = ["image/jpeg", ...this.preferredWMSTransparentFormats];
+  private preferredWFSFormats = [
+    "application/json", "text/json", "geojson", "json",
+    "application/gml+xml; version=3.2", "gml32", "text/xml; subtype=gml/3.2",
+    "text/xml; subtype=gml/3.1.1", "gml3",
+    "kml", "application/vnd.google-earth.kml xml", "application/vnd.google-earth.kml+xml"
+  ];
 }

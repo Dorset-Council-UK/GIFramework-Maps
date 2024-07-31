@@ -10,6 +10,7 @@ export interface LayerResource {
   projections: string[];
   extent: Extent;
   queryable: boolean;
+  opaque: boolean,
   version: string;
   proxyMetaRequests: boolean;
   proxyMapRequests: boolean;
