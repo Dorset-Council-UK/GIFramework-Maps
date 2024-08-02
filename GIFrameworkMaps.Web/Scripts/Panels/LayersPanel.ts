@@ -340,6 +340,7 @@ export class LayersPanel implements SidebarPanel {
       const collapseButtonList = [].slice.call(
         layerListContainer.querySelectorAll(".accordion-button"),
       );
+
       this.gifwMapInstance.config.categories.forEach(category => {
         category.open = false;
       });
@@ -353,6 +354,7 @@ export class LayersPanel implements SidebarPanel {
         if(!(collapseButton.classList.contains("collapsed"))) {
           collapseButton.classList.add("collapsed");
           collapseButton.setAttribute("aria-expanded","false");
+
         }
       })
 
