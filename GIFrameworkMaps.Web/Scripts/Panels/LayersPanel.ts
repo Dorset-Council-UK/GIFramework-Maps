@@ -340,8 +340,10 @@ export class LayersPanel implements SidebarPanel {
       const collapseButtonList = [].slice.call(
         layerListContainer.querySelectorAll(".accordion-button"),
       );
+      const hideEvent = new Event('hide.bs.collapse');
       collapseElementList.map((collapseDiv: Element) => {
         if(collapseDiv.classList.contains("show")) {
+          collapseDiv.dispatchEvent(hideEvent);
           collapseDiv.classList.remove("show");
           collapseDiv.classList.add("hide");
           collapseDiv.setAttribute("aria-expanded","false");
