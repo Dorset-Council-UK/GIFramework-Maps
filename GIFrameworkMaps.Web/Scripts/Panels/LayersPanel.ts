@@ -340,18 +340,19 @@ export class LayersPanel implements SidebarPanel {
       const collapseButtonList = [].slice.call(
         layerListContainer.querySelectorAll(".accordion-button"),
       );
-      const hideEvent = new Event('hide.bs.collapse');
+      this.gifwMapInstance.config.categories.forEach(category => {
+        category.open = false;
+      });
       collapseElementList.map((collapseDiv: Element) => {
         if(collapseDiv.classList.contains("show")) {
-          collapseDiv.dispatchEvent(hideEvent);
           collapseDiv.classList.remove("show");
-          collapseDiv.classList.add("hide");
           collapseDiv.setAttribute("aria-expanded","false");
         }
       })
       collapseButtonList.map((collapseButton: Element) => {
         if(!(collapseButton.classList.contains("collapsed"))) {
           collapseButton.classList.add("collapsed");
+          collapseButton.setAttribute("aria-expanded","false");
         }
       })
 
