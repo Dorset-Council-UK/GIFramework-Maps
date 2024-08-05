@@ -1180,25 +1180,34 @@ export class Export {
       }
     }
 
-    //TODO - fiddle with these values. Do I need to use a separate value for x and y here... pageMarginX and pageMarginY
-    // values here are wrong, just in as placeholders
-    if (mapRotationDegrees <= 45 && mapRotationDegrees >= -45 ) {
-      pageMargin = 25;
-    } else if (mapRotationDegrees >= 46 && mapRotationDegrees <= 90) {
-      pageMargin = -25;
-    } else if (mapRotationDegrees >= 91 && mapRotationDegrees <= 135) {
-      pageMargin = 50;
-    } else if (mapRotationDegrees >= 136 && mapRotationDegrees <= 180) {
-      pageMargin = -25;
+    //TODO - fiddle with these values in the if statement, values here are wrong, just in as placeholders
+    let pageMarginX = 0;
+    let pageMarginY = 0;
+
+    if (mapRotationDegrees >= 0 && mapRotationDegrees <= 90 ) {
+      pageMarginX = pageMargin / 2 - 1;
+      pageMarginY = pageMargin / 2 + 25;
+    } else if (mapRotationDegrees >= 91 && mapRotationDegrees <= 180) {
+      pageMarginX = pageMargin / 2 - 1;
+      pageMarginY = pageMargin / 2 - 25;
+    } else if (mapRotationDegrees <= -1 && mapRotationDegrees >= -90) {
+      pageMarginX = pageMargin / 2;
+      pageMarginY = pageMargin / 2 + 25;
+    } else if (mapRotationDegrees <= -91 && mapRotationDegrees >= -179) {
+      pageMarginX = pageMargin / 2;
+      pageMarginY = pageMargin / 2 - 25;
     } else {
-      pageMargin;
+      pageMarginX = pageMargin / 2 - 1;
+      pageMarginY = pageMargin / 2 + 25;
     }
 
     pdf.addImage(
       northPointerBase64Encoded,
       "PNG",
-      pdf.internal.pageSize.width - newWidth - pageMargin / 2 - 1,
-      pageMargin / 2 + 25,
+      pdf.internal.pageSize.width - newWidth - pageMarginX,
+      pageMarginY,
+      //pdf.internal.pageSize.width - newWidth - pageMargin / 2 - 1,
+      //pageMargin / 2 + 25,
       newWidth,
       newHeight,
       undefined,
