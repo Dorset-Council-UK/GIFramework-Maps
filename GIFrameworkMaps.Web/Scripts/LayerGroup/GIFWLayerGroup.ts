@@ -589,6 +589,7 @@ export class GIFWLayerGroup implements LayerGroup {
     const sourceUrlOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
     const styleOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "style");
     const formatOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "format") || 'application/json';
+    const versionOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "version") || '1.1.0';
     const loadingStrategyOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "loadingStrategy");
     const urlType = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "type") || 'wfs'; //default to WFS unless overriden
     const typeName = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "typename");
@@ -614,7 +615,7 @@ export class GIFWLayerGroup implements LayerGroup {
       const wfsURL = new URL(sourceUrlOpt);
       //add the WFS request bits on
       wfsURL.searchParams.set('request', 'GetFeature');
-      wfsURL.searchParams.set('version', '1.1.0');
+      wfsURL.searchParams.set('version', versionOpt);
       wfsURL.searchParams.set('typename', typeName);
       wfsURL.searchParams.set('outputFormat', formatOpt);
       const paramsOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "params");
