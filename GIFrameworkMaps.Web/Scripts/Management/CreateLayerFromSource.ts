@@ -36,6 +36,7 @@ export class CreateLayerFromSource {
   listTemplateInput: HTMLInputElement;
   layerSourceURL: string;
   layerSourceName: string;
+  layerSourceType: ServiceType;
   proxyEndpoint: string;
   _cachedExampleFeature: unknown;
   constructor() {
@@ -51,6 +52,9 @@ export class CreateLayerFromSource {
     this.layerSourceName = (
       document.getElementById("layer-source-name") as HTMLInputElement
     ).value;
+    this.layerSourceType = (
+      document.getElementById("layer-source-type") as HTMLInputElement
+    ).value as ServiceType;
     this.proxyEndpoint = proxyEndpoint;
     FeatureQueryTemplateHelper.configureNunjucks();
   }
@@ -146,7 +150,7 @@ export class CreateLayerFromSource {
 
       const availableLayers = await Metadata.getLayersFromCapabilities(
         this.layerSourceURL,
-        ServiceType.WMS, //TODO - Make this work with other types
+        this.layerSourceType,
         this.getProxyEndpoint(),
       );
       if (availableLayers && availableLayers.length !== 0) {

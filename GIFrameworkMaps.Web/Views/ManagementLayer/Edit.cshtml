@@ -66,6 +66,7 @@
     //TODO - move this to a more generic area and return as part of viewmodel
     var name = "";
     var baseUrl = "";
+    var type = "WMS";
     if (Model.Layer.LayerSource.LayerSourceType.Name.Contains("WMS"))
     {
         var paramsOpt = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "params").FirstOrDefault().Value;
@@ -73,9 +74,16 @@
         name = values.Where(v => v.Key.ToLower() == "layers").FirstOrDefault().Value;
         baseUrl = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "url").FirstOrDefault().Value;
     }
+    else
+    {
+        name = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "typename").FirstOrDefault().Value;
+        baseUrl = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "url").FirstOrDefault().Value;
+        type = "WFS";
+    }
 }
 <input type="hidden" value="@name" id="layer-source-name" />
 <input type="hidden" value="@baseUrl" id="layer-source-url" />
+<input type="hidden" value="@type" id="layer-source-type" />
 
 
 <template id="template-helper-button-list-item">
