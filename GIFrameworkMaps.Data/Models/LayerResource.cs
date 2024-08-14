@@ -19,7 +19,7 @@ namespace GIFrameworkMaps.Data.Models
 		[JsonPropertyName("projection")]
 		public string[] Projections { get; set; } = [];
 		[JsonPropertyName("extent")]
-		public string[] Extent { get; set; } = [];
+		public decimal[] Extent { get; set; } = [];
 		[JsonPropertyName("version")]
 		public string? Version { get; set; }
 		[JsonPropertyName("proxyMetaRequests")]

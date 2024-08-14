@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
@@ -80,7 +81,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [HttpPost]
         public IActionResult CreateSource(string layerDetails, string type, string projection, string format) {
 
-            var layerResource = JsonSerializer.Deserialize<LayerResource>(layerDetails);
+			var options = new JsonSerializerOptions
+			{
+				NumberHandling = JsonNumberHandling.AllowReadingFromString
+			};
+			var layerResource = JsonSerializer.Deserialize<LayerResource>(layerDetails, options);
 
             var layerSource = new LayerSource
             {
