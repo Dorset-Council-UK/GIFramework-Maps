@@ -147,7 +147,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 					{
 						var typeNameOpt = new LayerSourceOption { Name = "typename", Value = model.LayerName };
 						var formatOpt = new LayerSourceOption { Name= "format", Value = model.Format };
-						model.LayerSource.LayerSourceOptions.AddRange(new[] { typeNameOpt, formatOpt });
+						var version = new LayerSourceOption { Name="version", Value = string.IsNullOrEmpty(model.Version) ? "2.0.0" : model.Version };
+						model.LayerSource.LayerSourceOptions.AddRange(new[] { typeNameOpt, formatOpt, version });
 					}
 					
                     if(!string.IsNullOrEmpty(model.Projection))
