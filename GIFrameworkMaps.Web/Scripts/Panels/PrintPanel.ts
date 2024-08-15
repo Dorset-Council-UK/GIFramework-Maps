@@ -5,6 +5,7 @@
   PageSizeOption,
 } from "../Export";
 import { PDFPageSettings } from "../Interfaces/Print/PDFPageSettings";
+import { PrintConfiguration } from "../Interfaces/Print/PrintConfiguration";
 import { SidebarPanel } from "../Interfaces/SidebarPanel";
 import { GIFWMap } from "../Map";
 import { Sidebar } from "../Sidebar";
@@ -82,14 +83,36 @@ export class PrintPanel implements SidebarPanel {
   cancelledByUser: boolean = false;
   longLoadingTimeout: number;
   longLoadingTimeoutLength: number = 10000;
+  printConfiguration: PrintConfiguration;
 
   constructor(container: string) {
     this.container = container;
   }
-  init() {
+  async init() {
+
+    const resp = await fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}print/configuration/${this.gifwMapInstance.config.id}`);
+    if (resp.ok) {
+      this.printConfiguration = await resp.json();
+    } else {
+      console.error("Failed to get print configuration", resp.statusText);
+      const errDialog = new CustomError(
+        AlertType.Popup,
+        AlertSeverity.Danger,
+        "Error getting print configs",
+        "<p>There was an error getting the print config for this version</p><p>This means the print functionality will not work. Please refresh the page to try again</p>",
+      );
+      errDialog.show();
+      document.getElementById("gifw-print-form").innerHTML =
+        `<div class="text-center">
+                    <i class="bi bi-exclamation-diamond-fill text-danger fs-1"></i>
+                    <p class="fs-4">There was an error loading the print configuration</p>
+                    <p>Printing is unavailable. Refresh the page to try again.</p>
+                </div>`;
+    }
+
     this.exportInstance = new Export(
       this.pdfPageSettings,
-      `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}print/configuration/${this.gifwMapInstance.config.id}`,
+      this.printConfiguration,
     );
     this.attachCloseButton();
     this.updateValidationRules();
@@ -212,6 +235,13 @@ export class PrintPanel implements SidebarPanel {
     printPageSizeInput.addEventListener("change", () => {
       this.updateValidationRules();
     });
+
+    const northPointerCheckbox: HTMLElement = container.querySelector(
+      "#gifw-print-north-pointer-container",
+    );
+    if (this.printConfiguration.northArrowURL == null) {
+      northPointerCheckbox.style.display = "none";
+    }
 
     const printButton = container.querySelector("#gifw-print-do-print");
     printButton.addEventListener("click", (e) => {

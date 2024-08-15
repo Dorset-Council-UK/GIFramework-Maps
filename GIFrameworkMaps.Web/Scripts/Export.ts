@@ -10,7 +10,6 @@ import {
 import { PrintConfiguration } from "./Interfaces/Print/PrintConfiguration";
 import { GIFWMap } from "./Map";
 import { GIFWMousePositionControl } from "./MousePositionControl";
-import { AlertSeverity, AlertType, CustomError } from "./Util";
 
 export type LegendPositioningOption =
   | "none"
@@ -27,37 +26,13 @@ type TitleBoxDimensions = {
 };
 export class Export {
   pageSettings: PDFPageSettings;
-  printConfigUrl: string;
   printConfiguration: PrintConfiguration;
   _timeoutId: number;
   _maxProcessingTime: number = 60000;
 
-  constructor(pageSettings: PDFPageSettings, printConfigUrl: string) {
+  constructor(pageSettings: PDFPageSettings, printConfiguration: PrintConfiguration) {
     this.pageSettings = pageSettings;
-    this.printConfigUrl = printConfigUrl;
-    this.init();
-  }
-
-  async init() {
-    const resp = await fetch(this.printConfigUrl);
-    if (resp.ok) {
-      this.printConfiguration = await resp.json();
-    } else {
-      console.error("Failed to get print configuration", resp.statusText);
-      const errDialog = new CustomError(
-        AlertType.Popup,
-        AlertSeverity.Danger,
-        "Error getting print configs",
-        "<p>There was an error getting the print config for this version</p><p>This means the print functionality will not work. Please refresh the page to try again</p>",
-      );
-      errDialog.show();
-      document.getElementById("gifw-print-form").innerHTML =
-        `<div class="text-center">
-                    <i class="bi bi-exclamation-diamond-fill text-danger fs-1"></i>
-                    <p class="fs-4">There was an error loading the print configuration</p>
-                    <p>Printing is unavailable. Refresh the page to try again.</p>
-                </div>`;
-    }
+    this.printConfiguration = printConfiguration;
   }
 
   /**
