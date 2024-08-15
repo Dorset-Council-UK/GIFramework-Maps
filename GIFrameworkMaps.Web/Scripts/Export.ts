@@ -1179,7 +1179,7 @@ export class Export {
     pdf.addImage(
       rotatedImage,
       "PNG",
-      pdf.internal.pageSize.width - newWidth - pageMargin / 2 - 1,
+      pdf.internal.pageSize.width - newWidth - pageMargin / 2 - 4,
       pageMargin / 2 + 25,
       newWidth,
       newHeight,
