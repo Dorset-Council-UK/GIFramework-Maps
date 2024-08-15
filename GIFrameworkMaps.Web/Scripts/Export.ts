@@ -1126,11 +1126,11 @@ export class Export {
     let newWidth = imgProps.width;
     let newHeight = imgProps.height;
     const maxLogoWidth = 40;
-    const maxLogoHeight = 8;
+    const maxLogoHeight = 20;
     const ratio = imgProps.height / imgProps.width;
 
     if (imgProps.height > maxLogoHeight || imgProps.width > maxLogoWidth) {
-      if (imgProps.height > imgProps.width) {
+      if (imgProps.height >= imgProps.width) {
         newHeight = maxLogoHeight;
         newWidth = newHeight * (1 / ratio);
       } else {
@@ -1167,7 +1167,7 @@ export class Export {
     const ratio = imgProps.height / imgProps.width;
     
     if (imgProps.height > maxNorthPointerHeight || imgProps.width > maxNorthPointerWidth) {
-      if (imgProps.height > imgProps.width) {
+      if (imgProps.height >= imgProps.width) {
         newHeight = maxNorthPointerHeight;
         newWidth = newHeight * (1 / ratio);
       } else {
