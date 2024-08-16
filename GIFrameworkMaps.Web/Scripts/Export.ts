@@ -1164,6 +1164,12 @@ export class Export {
     );
   }
 
+  /**
+   * Rotates an image based on the rotation of the base map.
+   * @param srcBase64
+   * @param degrees
+   * @returns
+   */
   private async rotateBase64Image(srcBase64: string, degrees: number): Promise<string> {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');

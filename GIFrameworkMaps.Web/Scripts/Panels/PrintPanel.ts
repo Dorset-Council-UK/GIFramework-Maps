@@ -89,7 +89,6 @@ export class PrintPanel implements SidebarPanel {
     this.container = container;
   }
   async init() {
-
     const resp = await fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}print/configuration/${this.gifwMapInstance.config.id}`);
     if (resp.ok) {
       this.printConfiguration = await resp.json();
@@ -109,7 +108,6 @@ export class PrintPanel implements SidebarPanel {
                     <p>Printing is unavailable. Refresh the page to try again.</p>
                 </div>`;
     }
-
     this.exportInstance = new Export(
       this.pdfPageSettings,
       this.printConfiguration,
