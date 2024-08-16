@@ -10,7 +10,7 @@ import VectorSource from "ol/source/Vector";
 import { Geometry, Point, SimpleGeometry } from "ol/geom";
 import { GIFWPopupOptions } from "./Popups/PopupOptions";
 import { ImageWMS, Source, TileWMS } from "ol/source";
-import { LayerSource, LayerSourceOption } from "./Interfaces/Layer";
+import { Layer, LayerSource, LayerSourceOption } from "./Interfaces/Layer";
 import LayerRenderer from "ol/renderer/Layer";
 import { Feature } from "ol";
 import GML32 from "ol/format/GML32";
@@ -804,6 +804,28 @@ export class Mapping {
       return formatStringToOpenLayersFormatMap.get(format.toLowerCase());
     }
     return new GeoJSON();
+  }
+
+  static createWFSFeatureRequestFromLayer(layer: Layer) {
+    const sourceUrlOpt = this.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
+    const formatOpt = this.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "format") || 'application/json';
+    const versionOpt = this.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "version") || '1.1.0';
+    const typeName = this.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "typename");
+    const wfsURL = new URL(sourceUrlOpt);
+    //add the WFS request bits on
+    wfsURL.searchParams.set('request', 'GetFeature');
+    wfsURL.searchParams.set('version', versionOpt);
+    wfsURL.searchParams.set('typename', typeName);
+    wfsURL.searchParams.set('outputFormat', formatOpt);
+    const paramsOpt = this.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "params");
+    if (paramsOpt !== null) {
+      const params: { [x: string]: string } = JSON.parse(paramsOpt);
+      const additionalWFSRequestParams = new URLSearchParams(params);
+      for (const p of additionalWFSRequestParams) {
+        wfsURL.searchParams.set(p[0], p[1])
+      }
+    }
+    return wfsURL.toString();
   }
 }
 

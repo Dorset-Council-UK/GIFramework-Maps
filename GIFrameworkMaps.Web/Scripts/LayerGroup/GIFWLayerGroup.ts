@@ -589,10 +589,8 @@ export class GIFWLayerGroup implements LayerGroup {
     const sourceUrlOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
     const styleOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "style");
     const formatOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "format") || 'application/json';
-    const versionOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "version") || '1.1.0';
     const loadingStrategyOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "loadingStrategy");
     const urlType = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "type") || 'wfs'; //default to WFS unless overriden
-    const typeName = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "typename");
 
     const format: GeoJSON | GML32 | GML3 | GML2 | KML = MappingUtil.getOpenLayersFormatFromOGCFormat(formatOpt);
     
@@ -612,21 +610,7 @@ export class GIFWLayerGroup implements LayerGroup {
     let url: string | FeatureUrlFunction = sourceUrlOpt;
     let baseUrl = sourceUrlOpt;
     if (urlType === 'wfs') {
-      const wfsURL = new URL(sourceUrlOpt);
-      //add the WFS request bits on
-      wfsURL.searchParams.set('request', 'GetFeature');
-      wfsURL.searchParams.set('version', versionOpt);
-      wfsURL.searchParams.set('typename', typeName);
-      wfsURL.searchParams.set('outputFormat', formatOpt);
-      const paramsOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "params");
-      if (paramsOpt !== null) {
-        const params: { [x: string]: string } = JSON.parse(paramsOpt);
-        const additionalWFSRequestParams = new URLSearchParams(params);
-        for (const p of additionalWFSRequestParams) {
-          wfsURL.searchParams.set(p[0],p[1])
-        }
-      }
-      baseUrl = wfsURL.toString();
+      baseUrl = MappingUtil.createWFSFeatureRequestFromLayer(layer);
     }
     url = baseUrl;
     if (loadingStrategy === bboxStrategy) {

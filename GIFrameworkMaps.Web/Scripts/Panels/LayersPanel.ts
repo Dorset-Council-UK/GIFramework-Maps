@@ -1,6 +1,6 @@
 ﻿import { Collapse, Modal, Tooltip } from "bootstrap";
 import Fuse from "fuse.js";
-import { Layer as olLayer } from "ol/layer";
+import { VectorImage, Layer as olLayer } from "ol/layer";
 import BaseLayer from "ol/layer/Base";
 import ImageLayer from "ol/layer/Image";
 import TileLayer from "ol/layer/Tile";
@@ -1356,7 +1356,9 @@ export class LayersPanel implements SidebarPanel {
     return (
       layer?.filterable &&
       (olLayer.getSource() instanceof TileWMS ||
-        olLayer.getSource() instanceof ImageWMS)
+        olLayer.getSource() instanceof ImageWMS ||
+        olLayer.getSource() instanceof VectorSource ||
+        olLayer.getSource() instanceof VectorImage)
     );
   }
 

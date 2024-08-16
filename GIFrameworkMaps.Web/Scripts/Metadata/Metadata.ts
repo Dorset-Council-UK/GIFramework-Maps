@@ -268,6 +268,7 @@ export class Metadata {
         proxyMetaRequests: proxyEndpoint !== "" ? true : false,
         proxyMapRequests: proxyEndpoint !== "" ? true : false,
         keywords: layer.keywords,
+        properties: null
       };
       return layerResource;
     } else if(type === ServiceType.WFS) {
@@ -289,6 +290,7 @@ export class Metadata {
         proxyMetaRequests: proxyEndpoint !== "" ? true : false,
         proxyMapRequests: proxyEndpoint !== "" ? true : false,
         keywords: layer.keywords,
+        properties: layer.properties
       };
       return layerResource; 
     }
@@ -335,6 +337,7 @@ export class Metadata {
             proxyMetaRequests: proxyEndpoint !== "" ? true : false,
             proxyMapRequests: proxyEndpoint !== "" ? true : false,
             keywords: [],
+            properties: null
           };
           availableLayers.push(layerResource);
         }
@@ -382,6 +385,7 @@ export class Metadata {
       proxyMetaRequests: proxyEndpoint !== "" ? true : false,
       proxyMapRequests: proxyEndpoint !== "" ? true : false,
       keywords: layerDetails.keywords,
+      properties: null
     };
     return layerResource;
   }
