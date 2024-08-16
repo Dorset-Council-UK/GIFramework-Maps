@@ -54,8 +54,8 @@ export class FeatureQuerySearch {
   _basicStyle: Style;
   _tipStyle: Style;
   _tipPoint: Geometry;
-  _queryLayer: VectorLayer<Feature<Geometry>>;
-  _vectorSource: VectorSource<Feature>;
+  _queryLayer: VectorLayer;
+  _vectorSource: VectorSource;
   _keyboardEventAbortController: AbortController;
 
   constructor(gifwMapInstance: GIFWMap) {
@@ -405,7 +405,7 @@ export class FeatureQuerySearch {
   }
 
   private async getSearchPromisesForLayers(
-    searchableLayers: Layer<Source, LayerRenderer<VectorLayer<Feature<Geometry>>>>[],
+    searchableLayers: Layer<Source, LayerRenderer<VectorLayer>>[],
     searchPolygon: olPolygon,
   ): Promise<Promise<FeatureQueryResponse>[]> {
     const searchPromises: Promise<FeatureQueryResponse>[] = [];
@@ -749,7 +749,7 @@ export class FeatureQuerySearch {
       LayerGroupType.SystemNative,
     ]);
 
-    let layers: Layer<Source, LayerRenderer<VectorLayer<Feature<Geometry>>>>[] = [];
+    let layers: Layer<Source, LayerRenderer<VectorLayer>>[] = [];
     layerGroups.forEach((lg) => {
       layers = layers.concat(lg.olLayerGroup.getLayersArray());
     });
@@ -760,7 +760,7 @@ export class FeatureQuerySearch {
         !(l.getMaxZoom() < roundedZoom || l.getMinZoom() >= roundedZoom),
     );
 
-    const searchableLayers: Layer<Source, LayerRenderer<VectorLayer<Feature<Geometry>>>>[] = [];
+    const searchableLayers: Layer<Source, LayerRenderer<VectorLayer>>[] = [];
 
     visibleLayers.forEach((l) => {
       //check layer is actually visible and can be clicked
