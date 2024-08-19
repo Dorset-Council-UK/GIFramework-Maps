@@ -30,7 +30,10 @@ export class Export {
   _timeoutId: number;
   _maxProcessingTime: number = 60000;
 
-  constructor(pageSettings: PDFPageSettings, printConfiguration: PrintConfiguration) {
+  constructor(
+    pageSettings: PDFPageSettings,
+    printConfiguration: PrintConfiguration,
+  ) {
     this.pageSettings = pageSettings;
     this.printConfiguration = printConfiguration;
   }
@@ -288,12 +291,14 @@ export class Export {
         console.error(ex);
       }
 
-      const northPointerCheckBox = document.getElementById("gifw-print-north-pointer") as HTMLInputElement;
+      const northPointerCheckBox = document.getElementById(
+        "gifw-print-north-pointer",
+      ) as HTMLInputElement;
       if (northPointerCheckBox.checked) {
         try {
           const northPointerResp = await this.getNorthArrow();
           const imgData = <string>northPointerResp;
-          await this.createNorthPointerBox(pdf, pageMargin, imgData, map)
+          await this.createNorthPointerBox(pdf, pageMargin, imgData, map);
         } catch (ex) {
           console.warn(`Getting the north arrow for a print failed.`);
           console.error(ex);
@@ -983,10 +988,9 @@ export class Export {
     }
   }
 
-
   /**
- * Gets the north pointer defined in the print configuration and converts it to a base64 string
- * */
+   * Gets the north pointer defined in the print configuration and converts it to a base64 string
+   * */
   private async getNorthArrow(): Promise<string | ArrayBuffer> {
     const resp = await fetch(this.printConfiguration.northArrowURL);
     if (resp.ok) {
@@ -1123,24 +1127,35 @@ export class Export {
   }
 
   /**
- * Creates the north pointer box and inserts the north pointer image
- * @param pdf
- * @param pageMargin
- * @param imgData - The base64 encoded north pointer image
- */
-  private async createNorthPointerBox(pdf: jsPDF, pageMargin: number, imgData: string, map: GIFWMap) {
+   * Creates the north pointer box and inserts the north pointer image
+   * @param pdf
+   * @param pageMargin
+   * @param imgData - The base64 encoded north pointer image
+   */
+  private async createNorthPointerBox(
+    pdf: jsPDF,
+    pageMargin: number,
+    imgData: string,
+    map: GIFWMap,
+  ) {
     const olMap = map.olMap;
     const mapRotationRadians = olMap.getView().getRotation(); //in radians
-    const mapRotationDegrees = mapRotationRadians * -180 / Math.PI; //convert to degrees
-    const rotatedImage = await this.rotateBase64Image(imgData, mapRotationDegrees);
+    const mapRotationDegrees = (mapRotationRadians * -180) / Math.PI; //convert to degrees
+    const rotatedImage = await this.rotateBase64Image(
+      imgData,
+      mapRotationDegrees,
+    );
     const imgProps = pdf.getImageProperties(rotatedImage);
     let newWidth = imgProps.width;
     let newHeight = imgProps.height;
     const maxNorthPointerWidth = 15;
     const maxNorthPointerHeight = 15;
     const ratio = imgProps.height / imgProps.width;
-    
-    if (imgProps.height > maxNorthPointerHeight || imgProps.width > maxNorthPointerWidth) {
+
+    if (
+      imgProps.height > maxNorthPointerHeight ||
+      imgProps.width > maxNorthPointerWidth
+    ) {
       if (imgProps.height >= imgProps.width) {
         newHeight = maxNorthPointerHeight;
         newWidth = newHeight * (1 / ratio);
@@ -1169,22 +1184,25 @@ export class Export {
    * @param degrees
    * @returns
    */
-  private async rotateBase64Image(srcBase64: string, degrees: number): Promise<string> {
+  private async rotateBase64Image(
+    srcBase64: string,
+    degrees: number,
+  ): Promise<string> {
     return new Promise((resolve, reject) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image()
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
       img.onload = () => {
         canvas.width = degrees % 180 === 0 ? img.width : img.height;
         canvas.height = degrees % 180 === 0 ? img.height : img.width;
 
         ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(degrees * Math.PI / -180);
+        ctx.rotate((degrees * Math.PI) / -180);
         ctx.drawImage(img, img.width / -2, img.height / -2);
-        resolve(canvas.toDataURL())
-      }
-      img.onerror = reject
-      img.src = srcBase64
-    })
+        resolve(canvas.toDataURL());
+      };
+      img.onerror = reject;
+      img.src = srcBase64;
+    });
   }
 }

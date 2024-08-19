@@ -119,7 +119,9 @@ export class PrintPanel implements SidebarPanel {
   }
 
   private async getPrintConfiguration() {
-    const resp = await fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}print/configuration/${this.gifwMapInstance.config.id}`);
+    const resp = await fetch(
+      `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}print/configuration/${this.gifwMapInstance.config.id}`,
+    );
     if (resp.ok) {
       return await resp.json();
     } else {
