@@ -94,7 +94,6 @@ export class Export {
     const mapHeight = height - (pageMargin * resolution) / 25.4; // pixels
     const originalMapSize = olMap.getSize();
     const viewResolution = olMap.getView().getResolution();
-/*    const mapRotation = olMap.getView().getRotation();*/
 
     let keyWasMoved = false;
 

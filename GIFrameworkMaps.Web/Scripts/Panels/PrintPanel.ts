@@ -89,32 +89,19 @@ export class PrintPanel implements SidebarPanel {
     this.container = container;
   }
   async init() {
-    const resp = await fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}print/configuration/${this.gifwMapInstance.config.id}`);
-    if (resp.ok) {
-      this.printConfiguration = await resp.json();
-    } else {
-      console.error("Failed to get print configuration", resp.statusText);
-      const errDialog = new CustomError(
-        AlertType.Popup,
-        AlertSeverity.Danger,
-        "Error getting print configs",
-        "<p>There was an error getting the print config for this version</p><p>This means the print functionality will not work. Please refresh the page to try again</p>",
+    try {
+      this.printConfiguration = await this.getPrintConfiguration();
+      this.exportInstance = new Export(
+        this.pdfPageSettings,
+        this.printConfiguration,
       );
-      errDialog.show();
-      document.getElementById("gifw-print-form").innerHTML =
-        `<div class="text-center">
-                    <i class="bi bi-exclamation-diamond-fill text-danger fs-1"></i>
-                    <p class="fs-4">There was an error loading the print configuration</p>
-                    <p>Printing is unavailable. Refresh the page to try again.</p>
-                </div>`;
+      this.attachCloseButton();
+      this.updateValidationRules();
+      this.attachPrintControls();
+    } catch (ex) {
+      console.error(ex);
+      PrintPanel.showPrintSetupError();
     }
-    this.exportInstance = new Export(
-      this.pdfPageSettings,
-      this.printConfiguration,
-    );
-    this.attachCloseButton();
-    this.updateValidationRules();
-    this.attachPrintControls();
   }
 
   render() {}
@@ -128,6 +115,15 @@ export class PrintPanel implements SidebarPanel {
       closeButton.addEventListener("click", () => {
         Sidebar.close();
       });
+    }
+  }
+
+  private async getPrintConfiguration() {
+    const resp = await fetch(`${document.location.protocol}//${this.gifwMapInstance.config.appRoot}print/configuration/${this.gifwMapInstance.config.id}`);
+    if (resp.ok) {
+      return await resp.json();
+    } else {
+      throw new Error(resp.statusText);
     }
   }
 
@@ -407,6 +403,22 @@ export class PrintPanel implements SidebarPanel {
         `<p class="mt-2">This map is taking a while to generate.</p><p>You can cancel it with the button above and try removing some layers or reducing the quality to speed it up.</p>`,
       );
     }
+  }
+
+  private static showPrintSetupError() {
+    const errDialog = new CustomError(
+      AlertType.Popup,
+      AlertSeverity.Danger,
+      "Error setting up print panel",
+      "<p>There was an error setting up the print panel</p><p>This means the print functionality will not work. Please refresh the page to try again</p>",
+    );
+    errDialog.show();
+    document.getElementById("gifw-print-form").innerHTML =
+      `<div class="text-center">
+                    <i class="bi bi-exclamation-diamond-fill text-danger fs-1"></i>
+                    <p class="fs-4">There was an error loading the print configuration</p>
+                    <p>Printing is unavailable. Refresh the page to try again.</p>
+                </div>`;
   }
 
   public setGIFWMapInstance(map: GIFWMap) {
