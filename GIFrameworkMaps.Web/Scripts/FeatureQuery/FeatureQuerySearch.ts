@@ -1,5 +1,5 @@
 ﻿import Buffer from "@turf/buffer";
-import { point as turfPoint, Units as turfUnits } from "@turf/helpers";
+import { point as turfPoint, Units as turfUnits, featureCollection as turfFeatureCollection } from "@turf/helpers";
 import intersect from "@turf/intersect";
 import lineIntersect from "@turf/line-intersect";
 import pointsWithinPolygon from "@turf/points-within-polygon";
@@ -577,11 +577,9 @@ export class FeatureQuerySearch {
                 formatter.writeFeatureObject(sourceFeatureClone);
               /* eslint-disable @typescript-eslint/no-explicit-any -- Cannot idenitify proper types to use. This code is safe as is, but handle with care */
               if (featureType === "Polygon" || featureType === "MultiPolygon") {
+               
                 if (
-                  intersect(
-                    turfSearchPolygon as any,
-                    turfSourceFeature as any,
-                  ) !== null
+                  intersect(turfFeatureCollection([turfSearchPolygon as any,turfSourceFeature])) !== null
                 ) {
                   features.add(f);
                 }
