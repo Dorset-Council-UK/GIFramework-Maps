@@ -234,7 +234,7 @@ export class SelectWebService {
   private preferredWMSOpaqueFormats = ["image/jpeg", ...this.preferredWMSTransparentFormats];
   private preferredWFSFormats = [
     "application/json", "text/json", "geojson", "json",
-    "application/gml+xml; version=3.2", "gml32", "text/xml; subtype=gml/3.2",
+    /*"application/gml+xml; version=3.2", "gml32", "text/xml; subtype=gml/3.2",*/ /*GML3.2 support is flaky in OpenLayers*/
     "text/xml; subtype=gml/3.1.1", "gml3",
     "kml", "application/vnd.google-earth.kml xml", "application/vnd.google-earth.kml+xml"
   ];
