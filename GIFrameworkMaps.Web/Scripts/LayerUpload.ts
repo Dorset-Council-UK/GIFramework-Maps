@@ -13,7 +13,6 @@ import {
   Browser as BrowserHelper,
 } from "./Util";
 import * as DOMPurify from "dompurify";
-import { Geometry } from "ol/geom";
 
 export class LayerUpload {
   dropTarget: HTMLElement;
@@ -146,12 +145,12 @@ export class LayerUpload {
   private processFiles(files: File[]) {
     if (files.length !== 0) {
       const failures: string[] = [];
-      const promises: Promise<VectorLayer<Feature<Geometry>>>[] = [];
+      const promises: Promise<VectorLayer>[] = [];
       files.forEach((f) => {
         const format = this.getFormatFromFile(f);
         if (format && this.validateFileSize(f)) {
           const reader = this.getFileReaderForFile(f);
-          const readerPromise = new Promise<VectorLayer<Feature<Geometry>>>(
+          const readerPromise = new Promise<VectorLayer>(
             (resolve, reject) => {
               reader.addEventListener("load", (e) => {
                 try {
@@ -227,7 +226,7 @@ export class LayerUpload {
       processingToast.show();
 
       Promise.allSettled(promises).then((layersPromise) => {
-        const addedLayers: VectorLayer<Feature<Geometry>>[] = [];
+        const addedLayers: VectorLayer[] = [];
         let totalNewExtent: Extent;
         layersPromise.forEach((lp) => {
           if (lp.status === "fulfilled") {
@@ -431,7 +430,7 @@ export class LayerUpload {
     return format;
   }
 
-  private validateAddedLayer(layer: VectorLayer<Feature<Geometry>>): boolean {
+  private validateAddedLayer(layer: VectorLayer): boolean {
     /*add any further validation tests here*/
     if (layer.getSource().getFeatures().length === 0) {
       return false;

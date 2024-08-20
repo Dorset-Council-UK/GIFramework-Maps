@@ -326,6 +326,40 @@ export class LayersPanel implements SidebarPanel {
       this.setLayerVisibilityState();
     });
 
+    /*COLLAPSE ALL FOLDERS*/
+    const collapseTag: HTMLButtonElement = container.querySelector(
+      "#gifw-layer-switcher-collapse",
+    );
+    collapseTag.addEventListener("click", () => {
+      const layerListContainer = document
+      .querySelector(this.container)
+      .querySelector(".layer-switcher-tree");
+      const collapseElementList = [].slice.call(
+        layerListContainer.querySelectorAll(".collapse"),
+      );
+      const collapseButtonList = [].slice.call(
+        layerListContainer.querySelectorAll(".accordion-button"),
+      );
+
+      this.gifwMapInstance.config.categories.forEach(category => {
+        category.open = false;
+      });
+      collapseElementList.map((collapseDiv: Element) => {
+        if(collapseDiv.classList.contains("show")) {
+          collapseDiv.classList.remove("show");
+          collapseDiv.setAttribute("aria-expanded","false");
+        }
+      })
+      collapseButtonList.map((collapseButton: Element) => {
+        if(!(collapseButton.classList.contains("collapsed"))) {
+          collapseButton.classList.add("collapsed");
+          collapseButton.setAttribute("aria-expanded","false");
+
+        }
+      })
+
+    });
+
     /*TURN OFF LAYERS BUTTON*/
     const turnOffAllButton = container.querySelector("#gifw-layers-turn-off");
 

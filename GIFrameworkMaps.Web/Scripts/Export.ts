@@ -10,7 +10,6 @@ import {
 import { PrintConfiguration } from "./Interfaces/Print/PrintConfiguration";
 import { GIFWMap } from "./Map";
 import { GIFWMousePositionControl } from "./MousePositionControl";
-import { AlertSeverity, AlertType, CustomError } from "./Util";
 
 export type LegendPositioningOption =
   | "none"
@@ -27,37 +26,16 @@ type TitleBoxDimensions = {
 };
 export class Export {
   pageSettings: PDFPageSettings;
-  printConfigUrl: string;
   printConfiguration: PrintConfiguration;
   _timeoutId: number;
   _maxProcessingTime: number = 60000;
 
-  constructor(pageSettings: PDFPageSettings, printConfigUrl: string) {
+  constructor(
+    pageSettings: PDFPageSettings,
+    printConfiguration: PrintConfiguration,
+  ) {
     this.pageSettings = pageSettings;
-    this.printConfigUrl = printConfigUrl;
-    this.init();
-  }
-
-  async init() {
-    const resp = await fetch(this.printConfigUrl);
-    if (resp.ok) {
-      this.printConfiguration = await resp.json();
-    } else {
-      console.error("Failed to get print configuration", resp.statusText);
-      const errDialog = new CustomError(
-        AlertType.Popup,
-        AlertSeverity.Danger,
-        "Error getting print configs",
-        "<p>There was an error getting the print config for this version</p><p>This means the print functionality will not work. Please refresh the page to try again</p>",
-      );
-      errDialog.show();
-      document.getElementById("gifw-print-form").innerHTML =
-        `<div class="text-center">
-                    <i class="bi bi-exclamation-diamond-fill text-danger fs-1"></i>
-                    <p class="fs-4">There was an error loading the print configuration</p>
-                    <p>Printing is unavailable. Refresh the page to try again.</p>
-                </div>`;
-    }
+    this.printConfiguration = printConfiguration;
   }
 
   /**
@@ -311,6 +289,20 @@ export class Export {
       } catch (ex) {
         console.warn(`Getting the logo for a print failed.`);
         console.error(ex);
+      }
+
+      const northPointerCheckBox = document.getElementById(
+        "gifw-print-north-pointer",
+      ) as HTMLInputElement;
+      if (northPointerCheckBox.checked) {
+        try {
+          const northPointerResp = await this.getNorthArrow();
+          const imgData = <string>northPointerResp;
+          await this.createNorthPointerBox(pdf, pageMargin, imgData, map);
+        } catch (ex) {
+          console.warn(`Getting the north arrow for a print failed.`);
+          console.error(ex);
+        }
       }
 
       const timestamp = new Date().toISOString();
@@ -996,6 +988,20 @@ export class Export {
     }
   }
 
+  /**
+   * Gets the north pointer defined in the print configuration and converts it to a base64 string
+   * */
+  private async getNorthArrow(): Promise<string | ArrayBuffer> {
+    const resp = await fetch(this.printConfiguration.northArrowURL);
+    if (resp.ok) {
+      const blobImg = await resp.blob();
+
+      return this.blobToBase64(blobImg);
+    } else {
+      throw Error("There was a network error.");
+    }
+  }
+
   private async keyWillFit(
     map: GIFWMap,
     pageMargin: number,
@@ -1098,11 +1104,11 @@ export class Export {
     let newWidth = imgProps.width;
     let newHeight = imgProps.height;
     const maxLogoWidth = 40;
-    const maxLogoHeight = 8;
+    const maxLogoHeight = 20;
     const ratio = imgProps.height / imgProps.width;
 
     if (imgProps.height > maxLogoHeight || imgProps.width > maxLogoWidth) {
-      if (imgProps.height > imgProps.width) {
+      if (imgProps.height >= imgProps.width) {
         newHeight = maxLogoHeight;
         newWidth = newHeight * (1 / ratio);
       } else {
@@ -1118,5 +1124,85 @@ export class Export {
       newWidth,
       newHeight,
     );
+  }
+
+  /**
+   * Creates the north pointer box and inserts the north pointer image
+   * @param pdf
+   * @param pageMargin
+   * @param imgData - The base64 encoded north pointer image
+   */
+  private async createNorthPointerBox(
+    pdf: jsPDF,
+    pageMargin: number,
+    imgData: string,
+    map: GIFWMap,
+  ) {
+    const olMap = map.olMap;
+    const mapRotationRadians = olMap.getView().getRotation(); //in radians
+    const mapRotationDegrees = (mapRotationRadians * -180) / Math.PI; //convert to degrees
+    const rotatedImage = await this.rotateBase64Image(
+      imgData,
+      mapRotationDegrees,
+    );
+    const imgProps = pdf.getImageProperties(rotatedImage);
+    let newWidth = imgProps.width;
+    let newHeight = imgProps.height;
+    const maxNorthPointerWidth = 15;
+    const maxNorthPointerHeight = 15;
+    const ratio = imgProps.height / imgProps.width;
+
+    if (
+      imgProps.height > maxNorthPointerHeight ||
+      imgProps.width > maxNorthPointerWidth
+    ) {
+      if (imgProps.height >= imgProps.width) {
+        newHeight = maxNorthPointerHeight;
+        newWidth = newHeight * (1 / ratio);
+      } else {
+        newWidth = maxNorthPointerWidth;
+        newHeight = newWidth * ratio;
+      }
+    }
+
+    pdf.addImage(
+      rotatedImage,
+      "PNG",
+      pdf.internal.pageSize.width - newWidth - pageMargin / 2 - 4,
+      pageMargin / 2 + 25,
+      newWidth,
+      newHeight,
+      undefined,
+      undefined,
+      0,
+    );
+  }
+
+  /**
+   * Rotates an image based on the rotation of the base map.
+   * @param srcBase64
+   * @param degrees
+   * @returns
+   */
+  private async rotateBase64Image(
+    srcBase64: string,
+    degrees: number,
+  ): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = degrees % 180 === 0 ? img.width : img.height;
+        canvas.height = degrees % 180 === 0 ? img.height : img.width;
+
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate((degrees * Math.PI) / -180);
+        ctx.drawImage(img, img.width / -2, img.height / -2);
+        resolve(canvas.toDataURL());
+      };
+      img.onerror = reject;
+      img.src = srcBase64;
+    });
   }
 }

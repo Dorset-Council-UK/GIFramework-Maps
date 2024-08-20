@@ -41,8 +41,8 @@ export class GIFWGeolocation extends olControl {
   _recentreControlElement: HTMLElement;
   _locationVectorSource: VectorSource;
   _pathVectorSource: VectorSource;
-  _locationLayer: VectorLayer<Feature<Geometry>>;
-  _pathLayer: VectorLayer<Feature<Geometry>>;
+  _locationLayer: VectorLayer;
+  _pathLayer: VectorLayer;
   _locationFeature: Feature<Point>;
   _pathFeature: Feature<LineString>;
   /*Simulation mode can be used to test the geolocation functionality without having to go outside.*/

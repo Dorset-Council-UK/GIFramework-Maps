@@ -3,17 +3,15 @@ import * as olLayer from "ol/layer";
 import VectorLayer from "ol/layer/Vector";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { LayerGroup } from "./LayerGroup";
-import { Feature } from "ol";
-import { Geometry } from "ol/geom";
 
 export class NativeLayerGroup implements LayerGroup {
-  layers: VectorLayer<Feature<Geometry>>[];
+  layers: VectorLayer[];
   gifwMapInstance: GIFWMap;
   olLayerGroup: olLayer.Group;
   layerGroupType: LayerGroupType;
 
   constructor(
-    layers: VectorLayer<Feature<Geometry>>[],
+    layers: VectorLayer[],
     gifwMapInstance: GIFWMap,
     layerGroupType: LayerGroupType,
   ) {
@@ -32,7 +30,7 @@ export class NativeLayerGroup implements LayerGroup {
    *
    */
   createLayersGroup(): olLayer.Group {
-    const ol_layers: Array<olLayer.Vector<Feature<Geometry>>> =
+    const ol_layers: Array<olLayer.Vector> =
       [];
     const lgType = this.layerGroupType;
     if (this.layers !== null) {
@@ -70,7 +68,7 @@ export class NativeLayerGroup implements LayerGroup {
     });
   }
 
-  addLayerToGroup(layer: VectorLayer<Feature<Geometry>>): void {
+  addLayerToGroup(layer: VectorLayer): void {
     layer.setProperties({ layerGroupType: this.layerGroupType });
     this.layers.push(layer);
     const newLayerGroup = this.olLayerGroup.getLayers();

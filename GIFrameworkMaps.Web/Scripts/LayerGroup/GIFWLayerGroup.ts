@@ -1,6 +1,5 @@
 ﻿import { ImageTile, View as olView } from "ol";
 import { applyStyle as olMapboxApplyStyle } from 'ol-mapbox-style';
-import Feature, { FeatureLike } from "ol/Feature";
 import { Extent, applyTransform, containsExtent } from "ol/extent";
 import { GeoJSON, KML, MVT } from "ol/format";
 import GML2 from "ol/format/GML2";
@@ -54,9 +53,9 @@ export class GIFWLayerGroup implements LayerGroup {
       | olLayer.Tile<olSource.XYZ>
       | olLayer.Tile<olSource.TileWMS>
       | olLayer.Image<olSource.ImageWMS>
-      | olLayer.VectorTile<FeatureLike>
-      | olLayer.Vector<FeatureLike>
-      | olLayer.VectorImage<Feature>
+      | olLayer.VectorTile
+      | olLayer.Vector
+      | olLayer.VectorImage
       > = [];
     const defaultMapProjection = this.gifwMapInstance.config.availableProjections.filter(p => p.isDefaultMapProjection === true)[0];
     const viewProj = `EPSG:${defaultMapProjection.epsgCode ?? "3857"}`;
@@ -502,7 +501,7 @@ export class GIFWLayerGroup implements LayerGroup {
     hasCustomHeaders: boolean,
     projection: string) {
 
-    const vectorTileSourceOpts:VectorTileOptions<FeatureLike>  = {
+    const vectorTileSourceOpts:VectorTileOptions  = {
       format: new MVT(),
       projection: projection,
       attributions: layer.layerSource.attribution.renderedAttributionHTML
@@ -593,13 +592,12 @@ export class GIFWLayerGroup implements LayerGroup {
     const urlType = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "type") || 'wfs'; //default to WFS unless overriden
 
     const format: GeoJSON | GML32 | GML3 | GML2 | KML = MappingUtil.getOpenLayersFormatFromOGCFormat(formatOpt);
-    
     let loadingStrategy = bboxStrategy;
     if (loadingStrategyOpt === "all" || urlType !== 'wfs') {
       loadingStrategy = allStrategy;
     }
 
-    let vector: olLayer.Vector<FeatureLike> | olLayer.VectorImage<Feature>;
+    let vector: olLayer.Vector | olLayer.VectorImage;
 
     if (layer.layerSource.layerSourceType.name === 'Vector') {
       vector = new olLayer.Vector();

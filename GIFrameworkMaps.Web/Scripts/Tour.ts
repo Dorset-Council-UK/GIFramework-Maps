@@ -36,7 +36,7 @@ export class Tour {
       this.tourConfig.steps
         .sort((a, b) => a.stepNumber - b.stepNumber)
         .forEach((step) => {
-          let buttons: Shepherd.Step.StepOptionsButton[] = [];
+          let buttons: Shepherd.StepOptionsButton[] = [];
           if (i === 0) {
             buttons = [
               {
@@ -65,11 +65,11 @@ export class Tour {
             ];
           }
 
-          let attachTo: Shepherd.Step.StepOptionsAttachTo = {};
+          let attachTo: Shepherd.StepOptionsAttachTo = {};
           if (step.attachToPosition && step.attachToSelector) {
             attachTo = {
               element: step.attachToSelector,
-              on: step.attachToPosition as Shepherd.Step.PopperPlacement,
+              on: step.attachToPosition as Shepherd.PopperPlacement,
             };
           }
 

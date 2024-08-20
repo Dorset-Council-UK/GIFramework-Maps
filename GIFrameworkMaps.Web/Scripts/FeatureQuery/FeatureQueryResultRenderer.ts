@@ -1,6 +1,5 @@
 ﻿import { Feature } from "ol";
 import { Coordinate } from "ol/coordinate";
-import { Geometry } from "ol/geom";
 import { Layer } from "ol/layer";
 import { Vector as VectorLayer } from "ol/layer";
 import VectorSource from "ol/source/Vector";
@@ -20,7 +19,7 @@ import { MetadataViewer } from "../Metadata/MetadataViewer";
 
 export class FeatureQueryResultRenderer {
   _gifwMapInstance: GIFWMap;
-  _highlighterLayer: VectorLayer<Feature>;
+  _highlighterLayer: VectorLayer;
   _vectorSource: VectorSource<Feature>;
   _highlightStyle: Style;
 
@@ -72,7 +71,7 @@ export class FeatureQueryResultRenderer {
    */
   public showFeaturePopup(
     coords: number[],
-    layer: Layer<Source, LayerRenderer<VectorLayer<Feature<Geometry>>>>,
+    layer: Layer<Source, LayerRenderer<VectorLayer>>,
     feature: Feature,
     parentResponses?: FeatureQueryResponse[],
   ) {
@@ -241,7 +240,13 @@ export class FeatureQueryResultRenderer {
               FeaturePropertiesHelper.getFirstAllowedPropertyFromProperties(
                 f.getProperties() as object[],
               );
-            listItemContent = firstProp[1].toString();
+            if (firstProp !== undefined) {
+              listItemContent = firstProp[1].toString();
+            } else {
+              //no properties available, just give them a generic title
+              listItemContent = "A feature (no data properties available)"
+            }
+            
           }
         }
 
@@ -319,7 +324,7 @@ export class FeatureQueryResultRenderer {
   private getPopupContentFromFeature(
     feature: Feature,
     featureOpts: GIFWPopupOptions,
-    layer: Layer<Source, LayerRenderer<VectorLayer<Feature>>>,
+    layer: Layer<Source, LayerRenderer<VectorLayer>>,
   ): string {
     //default to name or layerName if available
     let featureContent = feature?.get("name") || layer?.get("name");

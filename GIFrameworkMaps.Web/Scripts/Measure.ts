@@ -44,8 +44,8 @@ export class Measure extends olControl {
   _tipStyle: Style;
   _segmentStyles: Style[];
   _tipPoint: Geometry;
-  _measureLayer: VectorLayer<Feature<Geometry>>;
-  _vectorSource: VectorSource<Feature>;
+  _measureLayer: VectorLayer;
+  _vectorSource: VectorSource;
   _areaMeasurementControlElement: HTMLElement;
   _lineMeasurementControlElement: HTMLElement;
   _measureToggleControlElement: HTMLElement;

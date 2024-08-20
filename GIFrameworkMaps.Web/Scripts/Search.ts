@@ -27,7 +27,6 @@ import {
   Helper,
   Mapping as MappingHelper,
 } from "./Util";
-import { Geometry } from "ol/geom";
 
 export class Search {
   container: string;
@@ -59,8 +58,8 @@ export class Search {
   curSearchResultExtent: olExtent.Extent;
   curSearchResultMaxZoom: number;
   enableMultipleSearchResultsOnMap: boolean = false;
-  _resultsLayer: VectorLayer<Feature<Geometry>>;
-  _vectorSource: VectorSource<Feature>;
+  _resultsLayer: VectorLayer;
+  _vectorSource: VectorSource;
   _iconStyle: Style;
   _polyStyle: Style;
   _localStorageKey: string = "enableMultipleSearchResultsOnMap";
