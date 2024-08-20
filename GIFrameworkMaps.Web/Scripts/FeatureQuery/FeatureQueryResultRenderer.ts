@@ -249,7 +249,13 @@ export class FeatureQueryResultRenderer {
               FeaturePropertiesHelper.getFirstAllowedPropertyFromProperties(
                 f.getProperties() as object[],
               );
-            listItemContent = firstProp[1].toString();
+            if (firstProp !== undefined) {
+              listItemContent = firstProp[1].toString();
+            } else {
+              //no properties available, just give them a generic title
+              listItemContent = "A feature (no data properties available)"
+            }
+            
           }
         }
 
