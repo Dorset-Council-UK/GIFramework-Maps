@@ -94,8 +94,4 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="node_modules\%40camptocamp\ogc-client\dist\" />
-  </ItemGroup>
-
 </Project>

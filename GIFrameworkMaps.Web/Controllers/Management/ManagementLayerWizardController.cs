@@ -81,11 +81,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         [HttpPost]
         public IActionResult CreateSource(string layerDetails, string type, string projection, string format) {
 
-			var options = new JsonSerializerOptions
-			{
-				NumberHandling = JsonNumberHandling.AllowReadingFromString
-			};
-			var layerResource = JsonSerializer.Deserialize<LayerResource>(layerDetails, options);
+			var layerResource = JsonSerializer.Deserialize<LayerResource>(layerDetails, layerResourceDeserializationOpts);
 
             var layerSource = new LayerSource
             {
@@ -201,7 +197,12 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 		private static readonly JsonSerializerOptions wmsParamsObjectWriterOpts = new()
 		{
 			WriteIndented = true,
-			DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+			DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+		};
+
+		private static readonly JsonSerializerOptions layerResourceDeserializationOpts = new()
+		{
+			AllowTrailingCommas = true
 		};
 	}
 }

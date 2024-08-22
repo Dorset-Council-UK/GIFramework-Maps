@@ -1304,7 +1304,7 @@ export class LayersPanel implements SidebarPanel {
       const defaultStyle: LayerStyle = {
         name: "",
         title: "Default",
-        //abstract: "The default style for this layer",
+        abstract: "The default style for this layer",
       };
 
       stylesHtml.appendChild(
