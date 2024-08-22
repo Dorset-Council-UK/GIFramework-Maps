@@ -29,6 +29,7 @@ import CQL, { FilterType, PropertyTypes } from "./OL Extensions/CQL";
 import { LayersPanel } from "./Panels/LayersPanel";
 import { Alert, Helper, Mapping as MappingHelper } from "./Util";
 import { transformExtent } from "ol/proj";
+import { WfsEndpoint } from "@camptocamp/ogc-client";
 
 export class LayerFilter {
   gifwMapInstance: GIFWMap;
@@ -139,7 +140,6 @@ export class LayerFilter {
           cqlFilter = this.layer.get('gifw-filter-applied');
         }
       }
-      console.log(cqlFilter);
       let filter;
 
       const filterContainer = document.createElement("div");
@@ -165,7 +165,6 @@ export class LayerFilter {
           this.layer as olLayer,
         );
       }
-
       if (filter) {
         const filterHtml = this.createFilterHTMLFromExistingFilter(filter);
         filterContainer.appendChild(filterHtml);
@@ -1259,6 +1258,7 @@ export class LayerFilter {
         }
       }
     });
+    const source = (this.layer as olLayer).getSource();
     if (topLevelFilter) {
       let cqlFilter = this.cqlFormatter.write(topLevelFilter);
       (this.layer as olLayer).set("gifw-filter-applied", topLevelFilter);
@@ -1266,23 +1266,22 @@ export class LayerFilter {
         //append the default filter to the front
         cqlFilter = `(${this.defaultFilter}) AND (${cqlFilter})`;
       } else {
-        (this.layer as olLayer).unset("gifw-filter-applied");
+        /*(this.layer as olLayer).unset("gifw-filter-applied");*/
         if (this.defaultFilter && !this.layerConfig.defaultFilterEditable) {
           cqlFilter = this.defaultFilter;
         }
       }
-      const source = (this.layer as olLayer).getSource();
-      if (source instanceof Vector) {
+      if (source instanceof Vector || source instanceof VectorImage) {
         //apply CQL filter to WFS
         let vectorSourceUrl = source.getUrl();
         if (typeof vectorSourceUrl === 'string') {
-        //  //modify the URL string and setUrl
+          //  //modify the URL string and setUrl
           const url = new URL(vectorSourceUrl);
           url.searchParams.set('CQL_FILTER', cqlFilter);
           vectorSourceUrl = url.toString();
         } else {
           //NOTE: There are two ways to do this, either rebuild the URL function making the assumption that we are using a BBOX strategy
-          //or just dump the custom function and generate a string. Both have downsides. Recreating the feature function (commented out)
+          //or just dump the custom function and generate a string. Both have downsides. Recreating the feature function 
           //has the advantage of being able to maintain the BBOX strategy, but is a lot more complex to manage. Just overriding it is simple,
           //but you lose the BBOX strategy
           //const url = new URL(MappingHelper.createWFSFeatureRequestFromLayer(this.layerConfig));
@@ -1295,7 +1294,7 @@ export class LayerFilter {
             const viewProj = `EPSG:${defaultMapProjection.epsgCode ?? "3857"}`;
             projection = viewProj;
           }
-          
+
           const url = MappingHelper.createWFSFeatureRequestFromLayer(this.layerConfig);
           vectorSourceUrl = (extent) => {
             if (projection !== `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`) {
@@ -1315,6 +1314,38 @@ export class LayerFilter {
       } else {
         //apply CQL filter to WMS
         (source as TileWMS).updateParams({ CQL_FILTER: cqlFilter });
+      }
+    } else {
+      //no filters, remove all filter stuff!
+      (this.layer as olLayer).unset("gifw-filter-applied");
+      let cqlFilter:string = null;
+      if (this.defaultFilter && !this.layerConfig.defaultFilterEditable) {
+        cqlFilter = this.defaultFilter;
+      }
+      if (source instanceof Vector || source instanceof VectorImage) {
+        let vectorSourceUrl = source.getUrl();
+        let projection = MappingHelper.getLayerSourceOptionValueByName(this.layerConfig.layerSource.layerSourceOptions, "projection");
+        if (projection === null) {
+          const defaultMapProjection = this.gifwMapInstance.config.availableProjections.filter(p => p.isDefaultMapProjection === true)[0];
+          const viewProj = `EPSG:${defaultMapProjection.epsgCode ?? "3857"}`;
+          projection = viewProj;
+        }
+
+        const url = MappingHelper.createWFSFeatureRequestFromLayer(this.layerConfig);
+        vectorSourceUrl = (extent) => {
+          if (projection !== `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`) {
+            extent = transformExtent(extent, this.gifwMapInstance.olMap.getView().getProjection(), projection);
+          }
+          return (
+            `${url}&srsname=${projection}&` +
+            `bbox=${extent.join(',')},${projection}`
+          );
+        }
+      (source as Vector).setUrl(vectorSourceUrl);
+      source.refresh();
+      } else {
+        (source as TileWMS).updateParams({ CQL_FILTER: cqlFilter });
+
       }
     }
     this.layersPanelInstance.updateLayerFilteredStatusIcon(this.layerConfig.id);
@@ -1439,15 +1470,14 @@ export class LayerFilter {
     cqlFilter: string,
     layer?: olLayer,
   ): Filter {
-    const re = new RegExp("bbox(.*?) AND ");
     if (layer) {
       if (layer.get("gifw-filter-applied")) {
-        return layer.get("gifw-filter-applied").replace(re, "");
+        return layer.get("gifw-filter-applied");
       }
     }
 
     if (cqlFilter) {
-      return this.cqlFormatter.read(cqlFilter.replace(re, ""));
+      return this.cqlFormatter.read(cqlFilter);
     }
 
     return;
@@ -1699,6 +1729,27 @@ export class LayerFilter {
             (c) => c.type === CapabilityType.WPS_Execute,
           )[0];
         }
+      }
+        
+    } else if (source instanceof Vector || source instanceof VectorImage) {
+      //see if we can get the values via WFS
+      const layerConfig = this.gifwMapInstance.getLayerConfigById(this.layer.get("layerId"));
+      const urlType = MappingHelper.getLayerSourceOptionValueByName(layerConfig.layerSource.layerSourceOptions, "type") || 'wfs'; //default to WFS unless overriden
+      if (urlType === 'wfs') {
+
+        const baseUrl = MappingHelper.getLayerSourceOptionValueByName(layerConfig.layerSource.layerSourceOptions, "url");
+        const typeName = MappingHelper.getLayerSourceOptionValueByName(layerConfig.layerSource.layerSourceOptions, "typename");
+        const endpoint = await new WfsEndpoint(baseUrl).isReady();
+        const props = await endpoint.getFeatureTypePropDetails(typeName);
+        Object.entries(props).forEach(p => {
+          if (p[1].uniqueValues.length <= 100) {
+            this._uniquePropValuesCache.push({
+              propertyName: p[0],
+              values: p[1].uniqueValues.map(u => u.value.toString()).sort(),
+            });
+          }
+        })
+        this.useWPSSearchSuggestions = true;
       }
     }
   }

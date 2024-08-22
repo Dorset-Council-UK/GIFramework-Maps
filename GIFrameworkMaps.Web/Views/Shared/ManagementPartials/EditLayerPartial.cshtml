@@ -69,6 +69,16 @@
         <input asp-for="Layer.Filterable" class="form-check-input" />
         <label asp-for="Layer.Filterable" class="form-check-label"></label>
         <span asp-validation-for="Layer.Filterable" class="text-danger"></span>
+        @{
+            if(
+                Model.Layer.LayerSource.LayerSourceType.Name.Contains("Vector") &&
+                (Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "type").Any() && Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "type").First().Value != "wfs")
+            )
+            {
+                <p class="form-text text-danger">Non WFS Vector layers should not have this checkbox checked.</p>
+            }
+        }
+        
     </div>
 }
 

@@ -115,11 +115,11 @@ export class GIFWLayerGroup implements LayerGroup {
         } else if (layer.layerSource.layerSourceType.name === 'ImageWMS') {
           ol_layer = this.createImageWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
         } else if (layer.layerSource.layerSourceType.name === "Vector" || layer.layerSource.layerSourceType.name === "VectorImage") {
-          ol_layer = this.createVectorLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
+          ol_layer = this.createVectorLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
         } else if (layer.layerSource.layerSourceType.name === "VectorTile") {
-          ol_layer = await this.createVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
+          ol_layer = await this.createVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
         } else if (layer.layerSource.layerSourceType.name === 'OGCVectorTile') {
-          ol_layer = await this.createOGCVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
+          ol_layer = await this.createOGCVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
         }
 
         if (layer.isDefault) {
@@ -429,8 +429,6 @@ export class GIFWLayerGroup implements LayerGroup {
     minZoom: number,
     opacity: number,
     extent: Extent,
-    layerHeaders: Headers,
-    hasCustomHeaders: boolean,
     projection: string) {
 
 
@@ -497,8 +495,6 @@ export class GIFWLayerGroup implements LayerGroup {
     minZoom: number,
     opacity: number,
     extent: Extent,
-    layerHeaders: Headers,
-    hasCustomHeaders: boolean,
     projection: string) {
 
     const vectorTileSourceOpts:VectorTileOptions  = {
@@ -580,29 +576,23 @@ export class GIFWLayerGroup implements LayerGroup {
     minZoom: number,
     opacity: number,
     extent: Extent,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    layerHeaders: Headers,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    hasCustomHeaders: boolean,
     projection: string) {
     const sourceUrlOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
     const styleOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "style");
     const formatOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "format") || 'application/json';
     const loadingStrategyOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "loadingStrategy");
     const urlType = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "type") || 'wfs'; //default to WFS unless overriden
-
     const format: GeoJSON | GML32 | GML3 | GML2 | KML = MappingUtil.getOpenLayersFormatFromOGCFormat(formatOpt);
     let loadingStrategy = bboxStrategy;
     if (loadingStrategyOpt === "all" || urlType !== 'wfs') {
       loadingStrategy = allStrategy;
     }
-
     let vector: olLayer.Vector | olLayer.VectorImage;
 
     if (layer.layerSource.layerSourceType.name === 'Vector') {
-      vector = new olLayer.Vector();
+      vector = new olLayer.Vector({className: className});
     } else {
-      vector = new olLayer.VectorImage();
+      vector = new olLayer.VectorImage({ className: className });
     }
 
     let url: string | FeatureUrlFunction = sourceUrlOpt;
@@ -627,11 +617,9 @@ export class GIFWLayerGroup implements LayerGroup {
       url: url,
       strategy: loadingStrategy,
     });
-
     vector.setProperties({
       source: vectorSource,
       visible: visible,
-      className: className,
       maxZoom: maxZoom,
       minZoom: minZoom,
       opacity: opacity,

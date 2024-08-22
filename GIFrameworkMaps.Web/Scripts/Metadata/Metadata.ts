@@ -337,8 +337,9 @@ export class Metadata {
             proxyMetaRequests: proxyEndpoint !== "" ? true : false,
             proxyMapRequests: proxyEndpoint !== "" ? true : false,
             keywords: [],
-            properties: null
+            properties: layerDetails.properties
           };
+          
           availableLayers.push(layerResource);
         }
       }

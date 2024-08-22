@@ -76,9 +76,12 @@
     }
     else
     {
-        name = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "typename").FirstOrDefault().Value;
         baseUrl = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "url").FirstOrDefault().Value;
-        type = "WFS";
+        if (Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "typename").Any())
+        {
+            name = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "typename").FirstOrDefault().Value;
+            type = "WFS";
+        }
     }
 }
 <input type="hidden" value="@name" id="layer-source-name" />
