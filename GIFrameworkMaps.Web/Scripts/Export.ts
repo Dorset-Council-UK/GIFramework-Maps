@@ -10,6 +10,7 @@ import {
 import { PrintConfiguration } from "./Interfaces/Print/PrintConfiguration";
 import { GIFWMap } from "./Map";
 import { GIFWMousePositionControl } from "./MousePositionControl";
+import html2canvas from 'html2canvas';
 
 export type LegendPositioningOption =
   | "none"
@@ -282,6 +283,20 @@ export class Export {
 
       this.createAttributionsBox(pdf, map, pageMargin, chosenPageSettings);
 
+      const scalebarCheckbox = (document.getElementById(
+        "gifw-print-scale-bar",
+      ) as HTMLInputElement);
+      if (scalebarCheckbox.checked) {
+        try {
+          const scaleImg = await this.getScaleLine();
+          const imgData = <string>scaleImg;
+          await this.createScalebarBox(pdf, pageMargin, imgData);
+        } catch (ex) {
+          console.warn(`Getting the scaleline for a print failed.`);
+          console.error(ex);
+        }
+      }
+      
       try {
         const logoResp = await this.getLogo();
         const imgData = <string>logoResp;
@@ -1113,6 +1128,56 @@ export class Export {
         newWidth = newHeight * (1 / ratio);
       } else {
         newWidth = maxLogoWidth;
+        newHeight = newWidth * ratio;
+      }
+    }
+
+    pdf.addImage(
+      imgData,
+      pdf.internal.pageSize.width - newWidth - pageMargin / 2 - 1,
+      pageMargin / 2 + 1,
+      newWidth,
+      newHeight,
+    );
+  }
+
+  /** 
+   * Gets the scale line control and adds to canvas using html2canvas
+   * @returns
+   */
+  private async getScaleLine() {
+    const scalelineData: HTMLElement = document.getElementById('ol-scale-line ol-unselectable');
+    const image_ = html2canvas(scalelineData).then(canvas => {
+      const _image = new Image()
+      _image.src = canvas.toDataURL('image/png')
+      return new Promise((resolve) => {
+        resolve(_image)
+      })
+    })
+
+    return image_
+  }
+
+  /**
+ * Creates the scalebar box and inserts the scale bar or scale line
+ * @param pdf
+ * @param pageMargin
+ * @param imgData - The base64 encoded image
+ */
+  private createScalebarBox(pdf: jsPDF, pageMargin: number, imgData: string): void {
+    const imgProps = pdf.getImageProperties(imgData);
+    let newWidth = imgProps.width;
+    let newHeight = imgProps.height;
+    const maxScalebarWidth = 40;
+    const maxScalebarHeight = 20;
+    const ratio = imgProps.height / imgProps.width;
+
+    if (imgProps.height > maxScalebarHeight || imgProps.width > maxScalebarWidth) {
+      if (imgProps.height >= imgProps.width) {
+        newHeight = maxScalebarHeight;
+        newWidth = newHeight * (1 / ratio);
+      } else {
+        newWidth = maxScalebarWidth;
         newHeight = newWidth * ratio;
       }
     }
