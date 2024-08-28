@@ -2,6 +2,7 @@
 import { Map } from "ol";
 import * as olProj from "ol/proj";
 import { Size } from "ol/size";
+import * as olControl from "ol/control";
 import { LegendURLs } from "./Interfaces/LegendURLs";
 import {
   PDFPageSetting,
@@ -289,7 +290,7 @@ export class Export {
       if (scalebarCheckbox.checked) {
         try {
           const scaleImg = await this.getScaleLine();
-          const imgData = <string>scaleImg;
+          const imgData = scaleImg;
           await this.createScalebarBox(pdf, pageMargin, imgData);
         } catch (ex) {
           console.warn(`Getting the scaleline for a print failed.`);
@@ -416,6 +417,9 @@ export class Export {
     const viewResolution = olMap.getView().getResolution();
     const isScalePrint = scale ? true : false;
     const size = olMap.getSize();
+
+    const scaleLineCtrl = olMap.getControls().getArray().filter(c => c instanceof olControl.ScaleLine);
+    (scaleLineCtrl[0] as olControl.ScaleLine).setDpi(scaleResolution);
 
     if (isScalePrint) {
       olMap.getView().setResolution(scaleResolution);
@@ -1146,16 +1150,13 @@ export class Export {
    * @returns
    */
   private async getScaleLine() {
-    const scalelineData: HTMLElement = document.getElementById('ol-scale-line ol-unselectable');
-    const image_ = html2canvas(scalelineData).then(canvas => {
-      const _image = new Image()
-      _image.src = canvas.toDataURL('image/png')
-      return new Promise((resolve) => {
-        resolve(_image)
-      })
-    })
-
-    return image_
+    const scalelineData: HTMLElement = document.querySelector("div.ol-scale-line, div.ol-scale-bar");
+    const canvas = await html2canvas(scalelineData, {backgroundColor: null});
+    //const scaleLineElement = new Image()
+    //scaleLineElement.src = canvas.toDataURL('image/png')
+    //console.log(scaleLineElement);
+   
+    return canvas.toDataURL('image/png');
   }
 
   /**
@@ -1166,26 +1167,26 @@ export class Export {
  */
   private createScalebarBox(pdf: jsPDF, pageMargin: number, imgData: string): void {
     const imgProps = pdf.getImageProperties(imgData);
-    let newWidth = imgProps.width;
-    let newHeight = imgProps.height;
-    const maxScalebarWidth = 40;
-    const maxScalebarHeight = 20;
-    const ratio = imgProps.height / imgProps.width;
+    const newWidth = imgProps.width;
+    const newHeight = imgProps.height;
+    //const maxScalebarWidth = 40;
+    //const maxScalebarHeight = 20;
+    //const ratio = imgProps.height / imgProps.width;
 
-    if (imgProps.height > maxScalebarHeight || imgProps.width > maxScalebarWidth) {
-      if (imgProps.height >= imgProps.width) {
-        newHeight = maxScalebarHeight;
-        newWidth = newHeight * (1 / ratio);
-      } else {
-        newWidth = maxScalebarWidth;
-        newHeight = newWidth * ratio;
-      }
-    }
+    //if (imgProps.height > maxScalebarHeight || imgProps.width > maxScalebarWidth) {
+    //  if (imgProps.height >= imgProps.width) {
+    //    newHeight = maxScalebarHeight;
+    //    newWidth = newHeight * (1 / ratio);
+    //  } else {
+    //    newWidth = maxScalebarWidth;
+    //    newHeight = newWidth * ratio;
+    //  }
+    //}
 
     pdf.addImage(
       imgData,
-      pdf.internal.pageSize.width - newWidth - pageMargin / 2 - 1,
-      pageMargin / 2 + 1,
+      pdf.internal.pageSize.width - newWidth - pageMargin / 2 - 4,
+      pageMargin / 2 + 174,
       newWidth,
       newHeight,
     );
