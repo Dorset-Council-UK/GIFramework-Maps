@@ -645,7 +645,7 @@ export class Search {
     (
       document.querySelector("#gifw-search-results-count") as HTMLHeadElement
     ).innerText = "";
-    Helper.addLoadingOverlayToElement(searchResults, "afterbegin");
+    Helper.addLoadingOverlayToElement(searchResults, "afterbegin", "Searching");
     (
       document.getElementById("gifw-search-button") as HTMLButtonElement
     ).disabled = true;
