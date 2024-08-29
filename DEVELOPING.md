@@ -1,5 +1,5 @@
 ## Dependencies
-To run GIFrameworkMaps with minimal modification, you will need.
+To run GIFramework Maps with minimal modification, you will need.
 - A web server capable of running .NET applications, such as IIS, Kestrel or Azure (locally IIS Express or Kestrel should be fine). Linux servers can use Kestrel via an Nginx proxy.
 - PostgreSQL 13+ with PostGIS extension
 

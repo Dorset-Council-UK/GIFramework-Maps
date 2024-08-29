@@ -1,5 +1,5 @@
 ﻿import Buffer from "@turf/buffer";
-import { point as turfPoint, Units as turfUnits } from "@turf/helpers";
+import { point as turfPoint, Units as turfUnits, featureCollection as turfFeatureCollection } from "@turf/helpers";
 import intersect from "@turf/intersect";
 import lineIntersect from "@turf/line-intersect";
 import pointsWithinPolygon from "@turf/points-within-polygon";
@@ -54,8 +54,8 @@ export class FeatureQuerySearch {
   _basicStyle: Style;
   _tipStyle: Style;
   _tipPoint: Geometry;
-  _queryLayer: VectorLayer<Feature<Geometry>>;
-  _vectorSource: VectorSource<Feature>;
+  _queryLayer: VectorLayer;
+  _vectorSource: VectorSource;
   _keyboardEventAbortController: AbortController;
 
   constructor(gifwMapInstance: GIFWMap) {
@@ -405,7 +405,7 @@ export class FeatureQuerySearch {
   }
 
   private async getSearchPromisesForLayers(
-    searchableLayers: Layer<Source, LayerRenderer<VectorLayer<Feature<Geometry>>>>[],
+    searchableLayers: Layer<Source, LayerRenderer<VectorLayer>>[],
     searchPolygon: olPolygon,
   ): Promise<Promise<FeatureQueryResponse>[]> {
     const searchPromises: Promise<FeatureQueryResponse>[] = [];
@@ -577,11 +577,9 @@ export class FeatureQuerySearch {
                 formatter.writeFeatureObject(sourceFeatureClone);
               /* eslint-disable @typescript-eslint/no-explicit-any -- Cannot idenitify proper types to use. This code is safe as is, but handle with care */
               if (featureType === "Polygon" || featureType === "MultiPolygon") {
+               
                 if (
-                  intersect(
-                    turfSearchPolygon as any,
-                    turfSourceFeature as any,
-                  ) !== null
+                  intersect(turfFeatureCollection([turfSearchPolygon as any,turfSourceFeature])) !== null
                 ) {
                   features.add(f);
                 }
@@ -749,7 +747,7 @@ export class FeatureQuerySearch {
       LayerGroupType.SystemNative,
     ]);
 
-    let layers: Layer<Source, LayerRenderer<VectorLayer<Feature<Geometry>>>>[] = [];
+    let layers: Layer<Source, LayerRenderer<VectorLayer>>[] = [];
     layerGroups.forEach((lg) => {
       layers = layers.concat(lg.olLayerGroup.getLayersArray());
     });
@@ -760,7 +758,7 @@ export class FeatureQuerySearch {
         !(l.getMaxZoom() < roundedZoom || l.getMinZoom() >= roundedZoom),
     );
 
-    const searchableLayers: Layer<Source, LayerRenderer<VectorLayer<Feature<Geometry>>>>[] = [];
+    const searchableLayers: Layer<Source, LayerRenderer<VectorLayer>>[] = [];
 
     visibleLayers.forEach((l) => {
       //check layer is actually visible and can be clicked

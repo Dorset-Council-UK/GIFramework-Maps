@@ -3,6 +3,7 @@ using System;
 using GIFrameworkMaps.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240815101707_AddNorthArrowURLToPrintConfiguration")]
+    partial class AddNorthArrowURLToPrintConfiguration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -662,9 +665,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("AttributionId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("BoundId")
                         .HasColumnType("integer");
 
@@ -722,8 +722,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AttributionId");
 
                     b.HasIndex("BoundId");
 
@@ -1216,10 +1214,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.Version", b =>
                 {
-                    b.HasOne("GIFrameworkMaps.Data.Models.Attribution", "Attribution")
-                        .WithMany()
-                        .HasForeignKey("AttributionId");
-
                     b.HasOne("GIFrameworkMaps.Data.Models.Bound", "Bound")
                         .WithMany()
                         .HasForeignKey("BoundId")
@@ -1239,8 +1233,6 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
                     b.HasOne("GIFrameworkMaps.Data.Models.WelcomeMessage", "WelcomeMessage")
                         .WithMany()
                         .HasForeignKey("WelcomeMessageId");
-
-                    b.Navigation("Attribution");
 
                     b.Navigation("Bound");
 
