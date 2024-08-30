@@ -37,7 +37,7 @@
     "lodash": "4.17.21",
     "luxon": "3.5.0",
     "nunjucks": "3.2.4",
-    "ol": "10.0.0",
+    "ol": "10.1.0",
     "ol-contextmenu": "5.5.0",
     "ol-mapbox-style": "12.3.3",
     "proj4": "2.12.0",

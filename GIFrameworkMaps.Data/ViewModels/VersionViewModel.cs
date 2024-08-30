@@ -22,6 +22,7 @@ namespace GIFrameworkMaps.Data.ViewModels
 		public Bound? Bound { get; set; }
 		public WelcomeMessage? WelcomeMessage { get; set; }
 		public TourDetail? TourDetails { get; set; }
+		public Attribution? Attribution { get; set; }
 		public List<ProjectionViewModel> AvailableProjections { get; set; } = [];
 		public string? AppRoot { get; set; }
 		public string? GoogleMapsAPIKey { get; set; }
