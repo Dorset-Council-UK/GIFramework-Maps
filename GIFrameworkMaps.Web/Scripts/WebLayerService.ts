@@ -195,12 +195,15 @@ export class WebLayerService {
         if (!selectedProjection) {
           selectedProjection = layerDetails.projections[0];
         }
+        const preferredFormats = (layerDetails.opaque ? this.preferredWMSOpaqueFormats : this.preferredWMSTransparentFormats);
+        const selectedFormat = layerDetails.formats.filter(f => { return preferredFormats.indexOf(f) != -1 })[0] || layerDetails.formats[0];
         if (layerDetails.proxyMapRequests) {
+          
           const imageWMSOpts: ImageWMSOptions = {
             url: layerDetails.baseUrl,
             params: {
               LAYERS: layerDetails.name,
-              FORMAT: layerDetails.formats[0],
+              FORMAT: selectedFormat,
               TILED: "false",
             },
             attributions: layerDetails.attribution,
@@ -223,7 +226,7 @@ export class WebLayerService {
             url: layerDetails.baseUrl,
             params: {
               LAYERS: layerDetails.name,
-              FORMAT: layerDetails.formats[0],
+              FORMAT: selectedFormat,
               TILED: "true",
             },
             attributions: layerDetails.attribution,
@@ -371,4 +374,7 @@ export class WebLayerService {
 
     this._fuseInstance = new Fuse(layers, options);
   }
+
+  private preferredWMSTransparentFormats = ["image/png", "image/png; mode=8bit", "image/png8", "image/gif"];
+  private preferredWMSOpaqueFormats = ["image/jpeg", ...this.preferredWMSTransparentFormats];
 }

@@ -137,7 +137,7 @@ export class SelectWebService {
       opt.text = projection;
       epsgSelectInput.options.add(opt);
     });
-    //move preferred formats to top TODO - Use opaque option to suggest JPEG etc.
+    //move preferred formats to top
     const preferredFormats = type === ServiceType.WMS ? (layer.opaque ? this.preferredWMSOpaqueFormats : this.preferredWMSTransparentFormats) : this.preferredWFSFormats;
     const allFormats = layer.formats;
     layer.formats = preferredFormats.filter(f => {
