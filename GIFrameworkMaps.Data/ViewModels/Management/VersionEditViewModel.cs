@@ -13,6 +13,7 @@ namespace GIFrameworkMaps.Data.ViewModels.Management
 		public SelectList? AvailableBounds { get; set; }
 		public SelectList? AvailableTours { get; set; }
 		public SelectList? AvailableWelcomeMessages { get; set; }
+		public SelectList? AvailableAttributions { get; set; }
 
 		public IList<int> SelectedBasemaps { get; set; } = [];
 		[Display(Name = "Default basemap")]
