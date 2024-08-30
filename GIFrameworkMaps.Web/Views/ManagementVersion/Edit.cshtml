@@ -93,6 +93,14 @@
             </div>
 
             <div class="mb-3">
+                <label asp-for="Version.AttributionId" class="control-label"></label>
+                <select asp-for="Version.AttributionId" asp-items="Model.AvailableAttributions" class="form-select">
+                    <option value="">No fixed attribution</option>
+                </select>
+                <span asp-validation-for="Version.AttributionId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
                 <input asp-for="Version.ShowLogin" class="form-check-input" />
                 <label asp-for="Version.ShowLogin" class="form-check-label"></label>
                 <span asp-validation-for="Version.ShowLogin" class="text-danger"></span>

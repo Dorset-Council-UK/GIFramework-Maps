@@ -153,7 +153,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.ThemeId,
                 a => a.BoundId,
                 a => a.WelcomeMessageId,
-                a => a.TourDetailsId
+                a => a.TourDetailsId,
+				a => a.AttributionId
                 ))
             {
                 try
@@ -719,10 +720,17 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 				.OrderBy(o => o.Name)
 				.ToListAsync();
 
+			var attributions = await _context.Attributions
+				.AsNoTracking()
+				.Select(o => new { o.Id, o.Name})
+				.OrderBy(o => o.Name)
+				.ToListAsync();
+
 			model.AvailableThemes = new SelectList(themes, "Id", "Name", version.ThemeId);
 			model.AvailableBounds = new SelectList(bounds, "Id", "Name", version.BoundId);
 			model.AvailableWelcomeMessages = new SelectList(welcomeMessages, "Id", "Name", version.WelcomeMessageId);
 			model.AvailableTours = new SelectList(tours, "Id", "Name", version.TourDetailsId);
+			model.AvailableAttributions = new SelectList(attributions, "Id", "Name", version.AttributionId);
 
 			// Basemaps
 			model.AvailableBasemaps = await _context.Basemaps
