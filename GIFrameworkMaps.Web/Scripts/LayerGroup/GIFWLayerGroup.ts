@@ -506,7 +506,7 @@ export class GIFWLayerGroup implements LayerGroup {
 
     const serviceUrl = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
 
-    if (serviceUrl.indexOf('{z}/{x}/{y}') !== -1) {
+    if (serviceUrl.indexOf('{z}/{x}/{y}') !== -1 || serviceUrl.indexOf('{z}/{x}/{-y}') !== -1) {
       //we have a tile URL
       vectorTileSourceOpts.url = serviceUrl;
     } else {
