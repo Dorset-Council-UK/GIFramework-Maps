@@ -500,15 +500,29 @@ export class GIFWLayerGroup implements LayerGroup {
     const vectorTileSourceOpts:VectorTileOptions  = {
       format: new MVT(),
       projection: projection,
-      attributions: layer.layerSource.attribution.renderedAttributionHTML
+      attributions: layer.layerSource.attribution.renderedAttributionHTML,
     }
 
-
     const serviceUrl = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
-
-    if (serviceUrl.indexOf('{z}/{x}/{y}') !== -1 || serviceUrl.indexOf('{z}/{x}/{-y}') !== -1) {
+    const tmsRegexMatch = new RegExp("{(z|-?y|x)}");
+    if (serviceUrl.match(tmsRegexMatch) !== null) {
       //we have a tile URL
       vectorTileSourceOpts.url = serviceUrl;
+      let tileGrid;
+      const tileGridOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "tilegrid");
+      if (tileGridOpt !== null) {
+        if (tileGridOpt.indexOf('http') === 0) {
+          const externalTileMatrix = await fetch(tileGridOpt).then(resp => resp.json());
+          tileGrid = new TileGrid({
+            resolutions: (externalTileMatrix as TileMatrixSet).tileMatrices.map(({ cellSize }) => cellSize),
+            origin: externalTileMatrix.tileMatrices[0].pointOfOrigin,
+            tileSize: [externalTileMatrix.tileMatrices[0].tileHeight, externalTileMatrix.tileMatrices[0].tileWidth]
+          });
+        } else {
+          tileGrid = new TileGrid(JSON.parse(tileGridOpt));
+        }
+        vectorTileSourceOpts.tileGrid = tileGrid;
+      }
     } else {
       //we have a service metadata URL
       // Get the service metadata.
