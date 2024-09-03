@@ -108,14 +108,20 @@ export class LayerFilter {
       this.layerProperties = await this.getPropertiesForLayer();
       const source = (this.layer as olLayer).getSource();
 
-      if (!(source instanceof TileWMS || source instanceof ImageWMS || source instanceof Vector || source instanceof VectorImage)) {
+      if (
+        !(
+          source instanceof TileWMS ||
+          source instanceof ImageWMS ||
+          source instanceof Vector ||
+          source instanceof VectorImage
+        )
+      ) {
         this.filterModal.hide();
         Alert.showPopupError(
           "There was a problem",
           "<p>This layer cannot be filtered</p>",
         );
         return;
-        
       }
       if (!(this.layerProperties && this.layerProperties.length !== 0)) {
         this.filterModal.hide();
@@ -132,12 +138,12 @@ export class LayerFilter {
         cqlFilter = this.extractCQLFilterFromParams(params);
       } else {
         const sourceUrl = source.getUrl();
-        if (typeof sourceUrl === 'string') {
+        if (typeof sourceUrl === "string") {
           //get current CQL from string
-          cqlFilter = new URL(sourceUrl).searchParams.get('CQL_FILTER');
+          cqlFilter = new URL(sourceUrl).searchParams.get("CQL_FILTER");
         } else {
           //get CQL from ol properties
-          cqlFilter = this.layer.get('gifw-filter-applied');
+          cqlFilter = this.layer.get("gifw-filter-applied");
         }
       }
       let filter;
@@ -1266,7 +1272,6 @@ export class LayerFilter {
         //append the default filter to the front
         cqlFilter = `(${this.defaultFilter}) AND (${cqlFilter})`;
       } else {
-        /*(this.layer as olLayer).unset("gifw-filter-applied");*/
         if (this.defaultFilter && !this.layerConfig.defaultFilterEditable) {
           cqlFilter = this.defaultFilter;
         }
@@ -1274,40 +1279,57 @@ export class LayerFilter {
       if (source instanceof Vector || source instanceof VectorImage) {
         //apply CQL filter to WFS
         let vectorSourceUrl = source.getUrl();
-        if (typeof vectorSourceUrl === 'string') {
-          //  //modify the URL string and setUrl
+        if (typeof vectorSourceUrl === "string") {
+          //modify the URL string and setUrl
           const url = new URL(vectorSourceUrl);
-          url.searchParams.set('CQL_FILTER', cqlFilter);
+          url.searchParams.set("CQL_FILTER", cqlFilter);
           vectorSourceUrl = url.toString();
         } else {
           //NOTE: There are two ways to do this, either rebuild the URL function making the assumption that we are using a BBOX strategy
-          //or just dump the custom function and generate a string. Both have downsides. Recreating the feature function 
+          //or just dump the custom function and generate a string. Both have downsides. Recreating the feature function
           //has the advantage of being able to maintain the BBOX strategy, but is a lot more complex to manage. Just overriding it is simple,
           //but you lose the BBOX strategy
           //const url = new URL(MappingHelper.createWFSFeatureRequestFromLayer(this.layerConfig));
           //url.searchParams.set('CQL_FILTER', cqlFilter);
           //vectorSourceUrl = url.toString();
 
-          let projection = MappingHelper.getLayerSourceOptionValueByName(this.layerConfig.layerSource.layerSourceOptions, "projection");
+          let projection = MappingHelper.getLayerSourceOptionValueByName(
+            this.layerConfig.layerSource.layerSourceOptions,
+            "projection",
+          );
           if (projection === null) {
-            const defaultMapProjection = this.gifwMapInstance.config.availableProjections.filter(p => p.isDefaultMapProjection === true)[0];
+            const defaultMapProjection =
+              this.gifwMapInstance.config.availableProjections.filter(
+                (p) => p.isDefaultMapProjection === true,
+              )[0];
             const viewProj = `EPSG:${defaultMapProjection.epsgCode ?? "3857"}`;
             projection = viewProj;
           }
 
-          const url = MappingHelper.createWFSFeatureRequestFromLayer(this.layerConfig);
+          const url = MappingHelper.createWFSFeatureRequestFromLayer(
+            this.layerConfig,
+          );
           vectorSourceUrl = (extent) => {
-            if (projection !== `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`) {
-              extent = transformExtent(extent, this.gifwMapInstance.olMap.getView().getProjection(), projection);
+            if (
+              projection !==
+              `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`
+            ) {
+              extent = transformExtent(
+                extent,
+                this.gifwMapInstance.olMap.getView().getProjection(),
+                projection,
+              );
             }
 
-            const geomCol = this.layerProperties.filter(p => p.type.startsWith('gml:'))[0].name;
+            const geomCol = this.layerProperties.filter((p) =>
+              p.type.startsWith("gml:"),
+            )[0].name;
             //strip out existing bbox stuff from cqlFilter
             const re = new RegExp("bbox(.*?) AND ");
             cqlFilter = cqlFilter.replace(re, "");
-            cqlFilter = `bbox(${geomCol},${extent.join(',')}) AND ${cqlFilter}`;
+            cqlFilter = `bbox(${geomCol},${extent.join(",")}) AND ${cqlFilter}`;
             return `${url}&srsname=${projection}&CQL_FILTER=${encodeURIComponent(cqlFilter)}`;
-          }
+          };
         }
         source.setUrl(vectorSourceUrl);
         source.refresh();
@@ -1318,34 +1340,48 @@ export class LayerFilter {
     } else {
       //no filters, remove all filter stuff!
       (this.layer as olLayer).unset("gifw-filter-applied");
-      let cqlFilter:string = null;
+      let cqlFilter: string = null;
       if (this.defaultFilter && !this.layerConfig.defaultFilterEditable) {
         cqlFilter = this.defaultFilter;
       }
       if (source instanceof Vector || source instanceof VectorImage) {
         let vectorSourceUrl = source.getUrl();
-        let projection = MappingHelper.getLayerSourceOptionValueByName(this.layerConfig.layerSource.layerSourceOptions, "projection");
+        let projection = MappingHelper.getLayerSourceOptionValueByName(
+          this.layerConfig.layerSource.layerSourceOptions,
+          "projection",
+        );
         if (projection === null) {
-          const defaultMapProjection = this.gifwMapInstance.config.availableProjections.filter(p => p.isDefaultMapProjection === true)[0];
+          const defaultMapProjection =
+            this.gifwMapInstance.config.availableProjections.filter(
+              (p) => p.isDefaultMapProjection === true,
+            )[0];
           const viewProj = `EPSG:${defaultMapProjection.epsgCode ?? "3857"}`;
           projection = viewProj;
         }
 
-        const url = MappingHelper.createWFSFeatureRequestFromLayer(this.layerConfig);
+        const url = MappingHelper.createWFSFeatureRequestFromLayer(
+          this.layerConfig,
+        );
         vectorSourceUrl = (extent) => {
-          if (projection !== `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`) {
-            extent = transformExtent(extent, this.gifwMapInstance.olMap.getView().getProjection(), projection);
+          if (
+            projection !==
+            `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`
+          ) {
+            extent = transformExtent(
+              extent,
+              this.gifwMapInstance.olMap.getView().getProjection(),
+              projection,
+            );
           }
           return (
             `${url}&srsname=${projection}&` +
-            `bbox=${extent.join(',')},${projection}`
+            `bbox=${extent.join(",")},${projection}`
           );
-        }
-      (source as Vector).setUrl(vectorSourceUrl);
-      source.refresh();
+        };
+        (source as Vector).setUrl(vectorSourceUrl);
+        source.refresh();
       } else {
         (source as TileWMS).updateParams({ CQL_FILTER: cqlFilter });
-
       }
     }
     this.layersPanelInstance.updateLayerFilteredStatusIcon(this.layerConfig.id);
@@ -1523,8 +1559,14 @@ export class LayerFilter {
       }
     } else if (source instanceof Vector || source instanceof VectorImage) {
       //vector
-      baseUrl = MappingHelper.getLayerSourceOptionValueByName(this.layerConfig.layerSource.layerSourceOptions,'url');
-      featureTypeName = MappingHelper.getLayerSourceOptionValueByName(this.layerConfig.layerSource.layerSourceOptions, 'typename');
+      baseUrl = MappingHelper.getLayerSourceOptionValueByName(
+        this.layerConfig.layerSource.layerSourceOptions,
+        "url",
+      );
+      featureTypeName = MappingHelper.getLayerSourceOptionValueByName(
+        this.layerConfig.layerSource.layerSourceOptions,
+        "typename",
+      );
     }
     if (this.layerConfig.proxyMetaRequests) {
       proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
@@ -1549,10 +1591,9 @@ export class LayerFilter {
       ).length !== 0
     ) {
       //has all relevant capabilities
-      const describeFeatureCapability =
-        serverCapabilities.capabilities.filter(
-          (c) => c.type === CapabilityType.DescribeFeatureType,
-        )[0];
+      const describeFeatureCapability = serverCapabilities.capabilities.filter(
+        (c) => c.type === CapabilityType.DescribeFeatureType,
+      )[0];
       const featureDescription = await Metadata.getDescribeFeatureType(
         describeFeatureCapability.url,
         featureTypeName,
@@ -1562,13 +1603,10 @@ export class LayerFilter {
         undefined,
         layerHeaders,
       );
-        if (
-          featureDescription &&
-          featureDescription.featureTypes.length === 1
-        ) {
-          return featureDescription.featureTypes[0].properties;
-        }
+      if (featureDescription && featureDescription.featureTypes.length === 1) {
+        return featureDescription.featureTypes[0].properties;
       }
+    }
   }
 
   /**
@@ -1730,25 +1768,35 @@ export class LayerFilter {
           )[0];
         }
       }
-        
     } else if (source instanceof Vector || source instanceof VectorImage) {
       //see if we can get the values via WFS
-      const layerConfig = this.gifwMapInstance.getLayerConfigById(this.layer.get("layerId"));
-      const urlType = MappingHelper.getLayerSourceOptionValueByName(layerConfig.layerSource.layerSourceOptions, "type") || 'wfs'; //default to WFS unless overriden
-      if (urlType === 'wfs') {
-
-        const baseUrl = MappingHelper.getLayerSourceOptionValueByName(layerConfig.layerSource.layerSourceOptions, "url");
-        const typeName = MappingHelper.getLayerSourceOptionValueByName(layerConfig.layerSource.layerSourceOptions, "typename");
+      const layerConfig = this.gifwMapInstance.getLayerConfigById(
+        this.layer.get("layerId"),
+      );
+      const urlType =
+        MappingHelper.getLayerSourceOptionValueByName(
+          layerConfig.layerSource.layerSourceOptions,
+          "type",
+        ) || "wfs"; //default to WFS unless overriden
+      if (urlType === "wfs") {
+        const baseUrl = MappingHelper.getLayerSourceOptionValueByName(
+          layerConfig.layerSource.layerSourceOptions,
+          "url",
+        );
+        const typeName = MappingHelper.getLayerSourceOptionValueByName(
+          layerConfig.layerSource.layerSourceOptions,
+          "typename",
+        );
         const endpoint = await new WfsEndpoint(baseUrl).isReady();
         const props = await endpoint.getFeatureTypePropDetails(typeName);
-        Object.entries(props).forEach(p => {
+        Object.entries(props).forEach((p) => {
           if (p[1].uniqueValues.length <= 100) {
             this._uniquePropValuesCache.push({
               propertyName: p[0],
-              values: p[1].uniqueValues.map(u => u.value.toString()).sort(),
+              values: p[1].uniqueValues.map((u) => u.value.toString()).sort(),
             });
           }
-        })
+        });
         this.useWPSSearchSuggestions = true;
       }
     }

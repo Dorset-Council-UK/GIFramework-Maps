@@ -3,8 +3,6 @@ import * as GIFWSidebar from "../Scripts/Sidebar";
 
 export class SidebarControl extends olControl.Control {
   constructor(sidebar: GIFWSidebar.Sidebar) {
-    //const options = opt_options || {};
-
     const button = document.createElement("button");
     button.innerHTML = `<img src="${sidebar.icon}" alt="${sidebar.name} icon"/>`;
 
@@ -24,9 +22,7 @@ export class SidebarControl extends olControl.Control {
     button.addEventListener(
       "click",
       () => {
-        //Tooltip.getInstance(button).hide();
         sidebar.toggle.call(sidebar);
-        // This'll set the `this` value inside of `getSelection` to `self`
       },
       false,
     );
