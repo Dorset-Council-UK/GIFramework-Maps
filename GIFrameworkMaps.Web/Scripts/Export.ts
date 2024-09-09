@@ -1152,9 +1152,6 @@ export class Export {
   private async getScaleLine() {
     const scalelineData: HTMLElement = document.querySelector("div.ol-scale-line, div.ol-scale-bar");
     const canvas = await html2canvas(scalelineData, {backgroundColor: null});
-    //const scaleLineElement = new Image()
-    //scaleLineElement.src = canvas.toDataURL('image/png')
-    //console.log(scaleLineElement);
    
     return canvas.toDataURL('image/png');
   }
@@ -1167,21 +1164,12 @@ export class Export {
  */
   private createScalebarBox(pdf: jsPDF, pageMargin: number, imgData: string): void {
     const imgProps = pdf.getImageProperties(imgData);
-    const newWidth = imgProps.width;
-    const newHeight = imgProps.height;
-    //const maxScalebarWidth = 40;
-    //const maxScalebarHeight = 20;
-    //const ratio = imgProps.height / imgProps.width;
-
-    //if (imgProps.height > maxScalebarHeight || imgProps.width > maxScalebarWidth) {
-    //  if (imgProps.height >= imgProps.width) {
-    //    newHeight = maxScalebarHeight;
-    //    newWidth = newHeight * (1 / ratio);
-    //  } else {
-    //    newWidth = maxScalebarWidth;
-    //    newHeight = newWidth * ratio;
-    //  }
-    //}
+    const printResolution = parseInt(
+      (document.getElementById("gifw-print-resolution") as HTMLSelectElement)
+        .value,
+    );
+    const newWidth = (imgProps.width) * 25.4 / printResolution;
+    const newHeight = (imgProps.height) * 25.4 / printResolution;
 
     pdf.addImage(
       imgData,
