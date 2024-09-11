@@ -107,11 +107,12 @@ export class GIFWMap {
         window.location.hash,
       );
     }
+
     // set up controls
-  
     const attribution = new olControl.Attribution({
       collapsible: true,
       collapsed: this.mode === 'embed',
+      attributions: this.config.attribution?.renderedAttributionHTML,
     });
     const scalelineType = UserSettings.getItem("prefersScaleBar") === "true" ? 'bar' : 'line';
     const scaleline = this.createScaleLineControl(scalelineType)
