@@ -405,6 +405,7 @@
   background-color: #e0e0e0;
   background-repeat: no-repeat;
   background-size: cover;
+  background-position:center;
   margin-top: 0.5rem;
   border-color: #e0e0e0;
 }

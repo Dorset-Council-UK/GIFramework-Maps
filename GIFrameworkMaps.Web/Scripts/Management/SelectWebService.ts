@@ -1,6 +1,7 @@
 import Fuse from "fuse.js";
 import { LayerResource } from "../Interfaces/OGCMetadata/LayerResource";
 import { Metadata } from "../Metadata/Metadata";
+import { ServiceType } from "../Interfaces/WebLayerServiceDefinition";
 
 export class SelectWebService {
   preferredProjections: string[] = [];
@@ -19,15 +20,12 @@ export class SelectWebService {
 
     listConnectBtn.addEventListener("click", () => {
       //get selected value
-      const webServiceList = document.getElementById("service-select");
-      const url = (webServiceList as HTMLSelectElement).selectedOptions[0]
-        .value;
-      const version =
-        (webServiceList as HTMLSelectElement).selectedOptions[0].dataset
-          .wmsVersion || "1.1.0";
-      const proxyEndpoint = (webServiceList as HTMLSelectElement)
-        .selectedOptions[0].dataset.proxyVia;
-      this.renderLayersListFromService(url, version, proxyEndpoint);
+      const webServiceList = document.getElementById("service-select") as HTMLSelectElement;
+      const url = webServiceList.selectedOptions[0].value;
+      const version = webServiceList.selectedOptions[0].dataset.ogcVersion || "1.1.0";
+      const type = webServiceList.selectedOptions[0].dataset.type;
+      const proxyEndpoint = webServiceList.selectedOptions[0].dataset.proxyVia;
+      this.renderLayersListFromService(url, type as ServiceType, version, proxyEndpoint);
     });
 
     urlConnectBtn.addEventListener("click", () => {
@@ -39,10 +37,10 @@ export class SelectWebService {
         "use-proxy",
       ) as HTMLInputElement;
       const url = webServiceInput.value;
-
+      const type = (document.getElementById('service-type') as HTMLSelectElement).selectedOptions[0].value;
       this.renderLayersListFromService(
         url,
-        undefined,
+        type as ServiceType,
         webServiceUseProxy.checked ? webServiceUseProxy.value : "",
       );
     });
@@ -58,6 +56,7 @@ export class SelectWebService {
 
   private async renderLayersListFromService(
     url: string,
+    type: ServiceType,
     version?: string,
     proxyEndpoint?: string,
   ) {
@@ -65,6 +64,7 @@ export class SelectWebService {
     loadingSpinner.style.display = "block";
     const availableLayers = await Metadata.getLayersFromCapabilities(
       url,
+      type,
       version,
       proxyEndpoint,
     );
@@ -82,12 +82,14 @@ export class SelectWebService {
           return a.title.localeCompare(b.title);
         })
         .forEach((layer) => {
-          layersListContainer.appendChild(this.renderLayerItem(layer));
+          layersListContainer.appendChild(this.renderLayerItem(layer, type));
         });
 
       searchInput.style.display = "";
       searchInput.value = "";
       this.createOrUpdateFuseInstance(availableLayers);
+      const form = document.getElementById("create-source-form") as HTMLFormElement;
+      (form.querySelector('input[name="type"]') as HTMLInputElement).value = type;
     } else {
       layersListContainer.innerHTML =
         '<div class="alert alert-warning">No layers could be retrieved from the service. You may need to be logged in to the service to see layers, or the service is not advertising any layers at the moment.</div>';
@@ -97,7 +99,7 @@ export class SelectWebService {
     errMsg.style.display = "none";
   }
 
-  private renderLayerItem(layer: LayerResource) {
+  private renderLayerItem(layer: LayerResource, type: ServiceType) {
     const layerItemFragment = document.getElementById(
       "web-service-layer-item-template",
     ) as HTMLTemplateElement;
@@ -135,12 +137,33 @@ export class SelectWebService {
       opt.text = projection;
       epsgSelectInput.options.add(opt);
     });
+    //move preferred formats to top
+    const preferredFormats = type === ServiceType.WMS ? (layer.opaque ? this.preferredWMSOpaqueFormats : this.preferredWMSTransparentFormats) : this.preferredWFSFormats;
+    const allFormats = layer.formats;
+    layer.formats = preferredFormats.filter(f => {
+      return layer.formats.some(l => {
+        return f === l;
+      })
+    })
+    const recommendedOptGroup = document.createElement('optgroup');
+    recommendedOptGroup.label = 'Recommended';
     layer.formats.forEach((format) => {
       const opt = document.createElement("option");
       opt.value = format;
       opt.text = format;
-      formatSelectInput.options.add(opt);
+      recommendedOptGroup.appendChild(opt);
     });
+    formatSelectInput.options.add(recommendedOptGroup);
+    const allOptGroup = document.createElement('optgroup');
+    allOptGroup.label = 'All';
+    formatSelectInput.options.add(allOptGroup);
+    allFormats.forEach((format) => {
+      const opt = document.createElement("option");
+      opt.value = format;
+      opt.text = format;
+      allOptGroup.appendChild(opt);
+    });
+    formatSelectInput.options.add(allOptGroup);
     btn.addEventListener("click", () => {
       const form = document.getElementById(
         "create-source-form",
@@ -153,6 +176,7 @@ export class SelectWebService {
       ).value = epsgSelectInput.selectedOptions[0].value;
       (form.querySelector('input[name="format"]') as HTMLInputElement).value =
         formatSelectInput.selectedOptions[0].value;
+
       form.submit();
     });
 
@@ -205,4 +229,13 @@ export class SelectWebService {
 
     this._fuseInstance = new Fuse(layers, options);
   }
+
+  private preferredWMSTransparentFormats = ["image/png", "image/png; mode=8bit", "image/png8", "image/gif"];
+  private preferredWMSOpaqueFormats = ["image/jpeg", ...this.preferredWMSTransparentFormats];
+  private preferredWFSFormats = [
+    "application/json", "text/json", "geojson", "json",
+    /*"application/gml+xml; version=3.2", "gml32", "text/xml; subtype=gml/3.2",*/ /*GML3.2 support is flaky in OpenLayers*/
+    "text/xml; subtype=gml/3.1.1", "gml3",
+    "kml", "application/vnd.google-earth.kml xml", "application/vnd.google-earth.kml+xml"
+  ];
 }

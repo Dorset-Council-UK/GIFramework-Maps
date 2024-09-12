@@ -1,4 +1,5 @@
-﻿import { Extent } from "ol/extent";
+﻿import { FeaturePropertyType } from "@camptocamp/ogc-client";
+import { Extent } from "ol/extent";
 
 export interface LayerResource {
   name: string;
@@ -10,8 +11,10 @@ export interface LayerResource {
   projections: string[];
   extent: Extent;
   queryable: boolean;
+  opaque: boolean,
   version: string;
   proxyMetaRequests: boolean;
   proxyMapRequests: boolean;
   keywords?: string[];
+  properties: Record<string,FeaturePropertyType>
 }

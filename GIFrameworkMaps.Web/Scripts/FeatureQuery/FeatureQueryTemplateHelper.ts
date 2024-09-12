@@ -28,6 +28,9 @@ export class FeatureQueryTemplateHelper {
   }
 
   public static renderTemplate(template: string, props: object) {
-    return nunjucks.renderString(template, props);
+    if (template) {
+      return nunjucks.renderString(template, props);
+    }
+    return "";
   }
 }

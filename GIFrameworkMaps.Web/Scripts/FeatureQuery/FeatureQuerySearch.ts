@@ -1,9 +1,7 @@
 ﻿import Buffer from "@turf/buffer";
-import { point as turfPoint, Units as turfUnits, featureCollection as turfFeatureCollection } from "@turf/helpers";
-import intersect from "@turf/intersect";
-import lineIntersect from "@turf/line-intersect";
-import pointsWithinPolygon from "@turf/points-within-polygon";
-import { Feature } from "ol";
+import { point as turfPoint, Units as turfUnits } from "@turf/helpers";
+import booleanIntersects from "@turf/boolean-intersects";
+import { Feature, VectorTile } from "ol";
 import { Coordinate } from "ol/coordinate";
 import { never as olConditionNever } from "ol/events/condition";
 import { GeoJSON, WFS, WMSGetFeatureInfo } from "ol/format";
@@ -21,7 +19,7 @@ import { Layer } from "ol/layer";
 import VectorLayer from "ol/layer/Vector";
 import RenderFeature from "ol/render/Feature";
 import LayerRenderer from "ol/renderer/Layer";
-import { ImageWMS, Source, TileWMS, Vector } from "ol/source";
+import { ImageWMS, OGCVectorTile, Source, TileWMS, Vector } from "ol/source";
 import VectorSource from "ol/source/Vector";
 import { Fill, Stroke, Style, Text } from "ol/style";
 import CircleStyle from "ol/style/Circle";
@@ -102,7 +100,7 @@ export class FeatureQuerySearch {
           };
           searchPromises.push(this.getFeatureInfoForLayer(request));
           layerNames.push(layer.get("name"));
-        } else if (source instanceof Vector) {
+        } else if (source instanceof Vector || source instanceof OGCVectorTile || source instanceof VectorTile) {
           const features = new Set<Feature<Geometry> | RenderFeature>();
           this._gifwMapInstance.olMap
             .getFeaturesAtPixel(searchPixel, {
@@ -113,10 +111,12 @@ export class FeatureQuerySearch {
             .forEach((f) => {
               features.add(f);
             });
-          // Add features at the search coordinates that may not be visible at the search pixel, e.g. features with a fill opacity of zero
-          source.getFeaturesAtCoordinate(searchCoord).forEach((f) => {
-            features.add(f);
-          });
+          if (source instanceof Vector) {
+            // Add features at the search coordinates that may not be visible at the search pixel, e.g. features with a fill opacity of zero
+            source.getFeaturesAtCoordinate(searchCoord).forEach((f) => {
+              features.add(f);
+            });
+          }
 
           layerNames.push(layer.get("name"));
 
@@ -547,62 +547,32 @@ export class FeatureQuerySearch {
         }
       } else if (source instanceof Vector) {
         const features = new Set<Feature<Geometry> | RenderFeature>();
-
         const searchPolygonClone = new Feature(searchPolygon).clone();
         const searchFeatureGeom = searchPolygonClone.getGeometry();
-        searchFeatureGeom.transform("EPSG:3857", "EPSG:4326");
         searchPolygonClone.setGeometry(searchFeatureGeom);
-        const formatter = new GeoJSON({
-          dataProjection: "EPSG:4326",
-        });
+        const formatter = new GeoJSON();
         const turfSearchPolygon =
           formatter.writeFeatureObject(searchPolygonClone);
 
-        const sourceCandidates = source.getFeaturesInExtent(
+        const sourceCandidates: Feature[] = source.getFeaturesInExtent(
           searchPolygon.getExtent(),
         );
         if (sourceCandidates?.length !== 0) {
           sourceCandidates.forEach((f) => {
             /*This test makes sure we don't query the polygon we are using for the search*/
             if (f.getGeometry() !== searchPolygon) {
-              const featureType = f.getGeometry().getType();
               const sourceFeatureClone = f.clone();
               const sourceFeatureGeom = sourceFeatureClone.getGeometry();
-              sourceFeatureGeom.transform("EPSG:3857", "EPSG:4326");
               sourceFeatureClone.setGeometry(sourceFeatureGeom);
-              const formatter = new GeoJSON({
-                dataProjection: "EPSG:4326",
-              });
+              const formatter = new GeoJSON();
               const turfSourceFeature =
                 formatter.writeFeatureObject(sourceFeatureClone);
-              /* eslint-disable @typescript-eslint/no-explicit-any -- Cannot idenitify proper types to use. This code is safe as is, but handle with care */
-              if (featureType === "Polygon" || featureType === "MultiPolygon") {
-               
-                if (
-                  intersect(turfFeatureCollection([turfSearchPolygon as any,turfSourceFeature])) !== null
-                ) {
-                  features.add(f);
-                }
-              } else if (featureType === "Point") {
-                if (
-                  pointsWithinPolygon(
-                    turfSourceFeature as any,
-                    turfSearchPolygon as any,
-                  ) !== null
-                ) {
-                  features.add(f);
-                }
-              } else if (featureType === "LineString") {
-                if (
-                  lineIntersect(
-                    turfSearchPolygon as any,
-                    turfSourceFeature as any,
-                  ) !== null
-                ) {
-                  features.add(f);
-                }
+              if (booleanIntersects(
+                turfSearchPolygon,
+                turfSourceFeature,
+              )) {
+                features.add(f);
               }
-              /* eslint-enable @typescript-eslint/no-explicit-any */
             }
           });
         }

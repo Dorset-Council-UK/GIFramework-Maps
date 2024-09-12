@@ -6,6 +6,7 @@ import { FeatureQueryResponse } from "../Interfaces/FeatureQuery/FeatureQueryRes
 import { CapabilityType } from "../Interfaces/OGCMetadata/BasicServerCapabilities";
 import { Metadata } from "../Metadata/Metadata";
 import { FeatureQueryTemplateHelper } from "../FeatureQuery/FeatureQueryTemplateHelper";
+import { ServiceType } from "../Interfaces/WebLayerServiceDefinition";
 //global var defined in view. Replace me with another method :)
 declare let proxyEndpoint: string;
 export class CreateLayerFromSource {
@@ -35,6 +36,7 @@ export class CreateLayerFromSource {
   listTemplateInput: HTMLInputElement;
   layerSourceURL: string;
   layerSourceName: string;
+  layerSourceType: ServiceType;
   proxyEndpoint: string;
   _cachedExampleFeature: unknown;
   constructor() {
@@ -50,6 +52,9 @@ export class CreateLayerFromSource {
     this.layerSourceName = (
       document.getElementById("layer-source-name") as HTMLInputElement
     ).value;
+    this.layerSourceType = (
+      document.getElementById("layer-source-type") as HTMLInputElement
+    ).value as ServiceType;
     this.proxyEndpoint = proxyEndpoint;
     FeatureQueryTemplateHelper.configureNunjucks();
   }
@@ -142,9 +147,10 @@ export class CreateLayerFromSource {
 
   private async getPropertySuggestions() {
     if (this.layerSourceURL !== "" && this.layerSourceName !== "") {
+
       const availableLayers = await Metadata.getLayersFromCapabilities(
         this.layerSourceURL,
-        "",
+        this.layerSourceType,
         this.getProxyEndpoint(),
       );
       if (availableLayers && availableLayers.length !== 0) {

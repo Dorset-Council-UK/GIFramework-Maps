@@ -36,7 +36,13 @@ const managementBundle =
                 test: /\.tsx?$/,
                 use: 'ts-loader',
                 exclude: /node_modules/,
+          },
+          {
+            test: /\.m?js$/,
+            resolve: {
+              fullySpecified: false, // fix for ogc-client
             },
+          }
         ],
     },
     resolve: {

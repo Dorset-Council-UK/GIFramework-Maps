@@ -61,6 +61,14 @@ export class FeatureQueryResultRenderer {
     });
   }
 
+  /**
+   * Displays the feature information popup at the specified coords
+   * Will use either a predefined template or feature properties as appropriate
+   * @param coords Where to place the feature popup
+   * @param layer The layer this feature popup relates to
+   * @param feature The feature to show information for
+   * @param parentResponses Optional array of other features queried that the user can go back to
+   */
   public showFeaturePopup(
     coords: number[],
     layer: Layer<Source, LayerRenderer<VectorLayer>>,
@@ -68,132 +76,115 @@ export class FeatureQueryResultRenderer {
     parentResponses?: FeatureQueryResponse[],
   ) {
     let popupOptions: GIFWPopupOptions;
-    if (layer instanceof VectorLayer) {
-      const popupActions: GIFWPopupAction[] = [];
-      if (feature.getGeometry()) {
-        popupActions.push(
-          new GIFWPopupAction(
-            "Zoom to feature",
-            () => {
-              this._gifwMapInstance.zoomToFeature(feature);
-            },
-            false,
-            false,
-          ),
-        );
-      }
+    let popupActions: GIFWPopupAction[] = [];
+    if (feature.getGeometry()) {
+      popupActions.push(
+        new GIFWPopupAction(
+          "Zoom to feature",
+          () => {
+            this._gifwMapInstance.zoomToFeature(feature);
+          },
+          false,
+          false,
+        ),
+      );
+    }
 
-      if (parentResponses) {
-        popupActions.push(
-          new GIFWPopupAction(
-            "Back to list of results",
-            () => {
-              this.showFeatureArrayPopup(coords, parentResponses);
-            },
-            false,
-            false,
-          ),
-        );
-      }
+    //get layer template
+    const layerId = layer.get("layerId");
+    const gifwLayer = this._gifwMapInstance.getLayerConfigById(layerId, [
+      LayerGroupType.Overlay,
+    ]);
+    let popupContent: string | Element;
+    const props = feature.getProperties();
+
+    if (gifwLayer) {
+      //this indicates that it must be an overlay and will have the about this layer available
+      popupActions.push(new GIFWPopupAction("About this layer", () => {
+        MetadataViewer.showMetadataModal(gifwLayer, layer, this._gifwMapInstance)
+      }, false, false))
+    }
+
+    if (!gifwLayer?.infoTemplate) {
       if (feature.get("gifw-popup-opts") !== undefined) {
         popupOptions = feature.get("gifw-popup-opts") as GIFWPopupOptions;
         if (popupOptions.actions) {
-          popupOptions.actions = [
+          popupActions = [
             ...popupOptions.actions.filter((a) => a.fixed),
-            ...popupActions,
-          ];
+            ...popupActions
+          ]
+        }
+        if (popupOptions.content) {
+          popupContent = popupOptions.content;
         }
       } else {
-        const content = this.getPopupContentFromFeature(feature, null, layer);
-        popupOptions = new GIFWPopupOptions(content, popupActions, [0, 0]);
+        popupContent = this.getPopupContentFromFeature(feature, null, layer);
       }
-    } else {
-      //get layer template
-      const layerId = layer.get("layerId");
-      const gifwLayer = this._gifwMapInstance.getLayerConfigById(layerId, [
-        LayerGroupType.Overlay,
-      ]);
+      //no template, check feature props then fallback to generic template
+      if (!popupContent) {
+        //use generic template
+        let genericTemplate = "";
+        const keys = Helper.getKeysFromObject(props);
 
-      const props = feature.getProperties();
-      let popupContent = "";
-      try {
-        if (!gifwLayer.infoTemplate) {
-          //use generic template
-          let genericTemplate = "";
-          const keys = Helper.getKeysFromObject(props);
-
-          keys.forEach((k) => {
-            const value = Helper.getValueFromObjectByKey(props, k);
-            if (
-              FeaturePropertiesHelper.isUserDisplayablePropertyAndValue(
-                k,
-                value,
-              )
-            ) {
-              genericTemplate += `<tr><th>${k}</th><td>{{${k}}}</td>`;
-            }
-          });
-          if (genericTemplate !== "") {
-            genericTemplate = `<table class="table table-sm"><tbody>${genericTemplate}</tbody></table>`;
-            const titleProperty =
-              FeaturePropertiesHelper.getMostAppropriateTitleFromProperties(
-                props,
-              );
-            if (titleProperty) {
-              genericTemplate = `<h1>{{${titleProperty}}}</h1>${genericTemplate}`;
-            } else {
-              genericTemplate = `<h1>${layer.get(
-                "name",
-              )}</h1>${genericTemplate}`;
-            }
-
-            gifwLayer.infoTemplate = genericTemplate;
-          } else {
-            throw new Error(
-              "Template could not be determined or automatically setup",
-            );
+        keys.forEach((k) => {
+          const value = Helper.getValueFromObjectByKey(props, k);
+          if (
+            FeaturePropertiesHelper.isUserDisplayablePropertyAndValue(
+              k,
+              value,
+            )
+          ) {
+            genericTemplate += `<tr><th>${k}</th><td>{{${k}}}</td>`;
           }
+        });
+        if (genericTemplate !== "") {
+          genericTemplate = `<table class="table table-sm"><tbody>${genericTemplate}</tbody></table>`;
+          const titleProperty =
+            FeaturePropertiesHelper.getMostAppropriateTitleFromProperties(
+              props,
+            );
+          if (titleProperty) {
+            genericTemplate = `<h1>{{${titleProperty}}}</h1>${genericTemplate}`;
+          } else {
+            genericTemplate = `<h1>${layer.get(
+              "name",
+            )}</h1>${genericTemplate}`;
+          }
+
+          gifwLayer.infoTemplate = genericTemplate;
+        } else {
+          throw new Error(
+            "Template could not be determined or automatically setup",
+          );
         }
         popupContent = FeatureQueryTemplateHelper.renderTemplate(
           gifwLayer.infoTemplate,
           props,
         );
-        const popupActions: GIFWPopupAction[] = [];
-        if (feature.getGeometry()) {
-          popupActions.push(
-            new GIFWPopupAction(
-              "Zoom to feature",
-              () => {
-                this._gifwMapInstance.zoomToFeature(feature);
-              },
-              false,
-              false,
-            ),
-          );
-        }
-
-        popupActions.push(new GIFWPopupAction("About this layer", () => {
-          MetadataViewer.showMetadataModal(gifwLayer, layer, this._gifwMapInstance)
-        },false,false))
-
-        if (parentResponses) {
-          popupActions.push(
-            new GIFWPopupAction(
-              "Back to list of results",
-              () => {
-                this.showFeatureArrayPopup(coords, parentResponses);
-              },
-              false,
-              false,
-            ),
-          );
-        }
-        popupOptions = new GIFWPopupOptions(popupContent, popupActions, [0, 0]);
-      } catch (ex) {
-        console.error(ex);
-        popupContent = `<p>Something went wrong displaying this feature.</p><p>Please try again later, and let us know if the problem persists.</p>`;
       }
+    } else {
+      //has template
+      popupContent = FeatureQueryTemplateHelper.renderTemplate(
+        gifwLayer.infoTemplate,
+        props,
+      );
     }
+
+
+    if (parentResponses) {
+      popupActions.push(
+        new GIFWPopupAction(
+          "Back to list of results",
+          () => {
+            this.showFeatureArrayPopup(coords, parentResponses);
+          },
+          false,
+          false,
+        ),
+      );
+    }
+    popupOptions = new GIFWPopupOptions(popupContent, popupActions, [0, 0]);
+
     this.renderPopupFromOptions(popupOptions, coords);
     this.highlightFeature(feature);
     this._gifwMapInstance.popupOverlay.overlay.once("change:position", () =>

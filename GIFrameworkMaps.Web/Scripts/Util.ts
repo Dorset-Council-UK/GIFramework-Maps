@@ -10,8 +10,13 @@ import VectorSource from "ol/source/Vector";
 import { Point, SimpleGeometry } from "ol/geom";
 import { GIFWPopupOptions } from "./Popups/PopupOptions";
 import { ImageWMS, Source, TileWMS } from "ol/source";
-import { LayerSource } from "./Interfaces/Layer";
+import { Layer, LayerSource, LayerSourceOption } from "./Interfaces/Layer";
 import LayerRenderer from "ol/renderer/Layer";
+import GML32 from "ol/format/GML32";
+import GML3 from "ol/format/GML3";
+import GML2 from "ol/format/GML2";
+import GeoJSON from "ol/format/GeoJSON";
+import KML from "ol/format/KML";
 
 export class Projection {
   /**
@@ -65,6 +70,10 @@ export class Projection {
   ];
 }
 export class Browser {
+  /**
+   * Checks whether the current user agent is providing the hint that it prefers reduced motion
+   * @returns True for it does prefer reduced motion, false otherwise
+   */
   static PrefersReducedMotion(): boolean {
     const reduceMotionQuery = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -77,6 +86,11 @@ export class Browser {
     }
   }
 
+  /**
+   * Extracts individual, de-duplicated parameters from a URL #hash
+   * @param hash The hash as a string
+   * @returns The paramaters extracted from the hash as a Record
+   */
   static extractParamsFromHash(hash: string): Record<string, string> {
     if (hash.startsWith("#")) {
       hash = hash.substring(1);
@@ -92,6 +106,12 @@ export class Browser {
     return hashParams;
   }
 
+  /**
+ * Extracts an individual parameter from a URL #hash
+ * @param hash The hash as a string
+ * @param paramName The key of the paramater to extract
+ * @returns The matching parameter as a key/value record, or null if the key wasn't found
+ */
   static extractParamFromHash(hash: string, paramName: string) {
     const hashParams = this.extractParamsFromHash(hash);
     if (hashParams[paramName]) {
@@ -146,9 +166,23 @@ export class Browser {
 }
 
 export class Color {
+  /**
+   * Converts individual Red/Green/Blue values to a hex representation
+   * @param r The red channel value
+   * @param g The green channel value
+   * @param b The blue channel value
+   * @returns A hex string representation of the colour
+   * @author StackOverflow user Tim Down https://stackoverflow.com/a/5624139/863487
+   */
   static rgbToHex(r: number, g: number, b: number): string {
     return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
   }
+  /**
+   * Converts a hex colourstring into an RGB prepresentation of the colour
+   * @param hex The hex colour string
+   * @returns An object with individual r, g and b values, or null if the conversion was unsuccessful
+   * @author StackOverflow user Tim Down https://stackoverflow.com/a/5624139/863487
+   */
   static hexToRgb(hex: string) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result
@@ -162,9 +196,16 @@ export class Color {
 }
 
 export class Helper {
+  /**
+   * Adds a generic overlay with a loading spinner and text to an element
+   * @param ele The element to add the generic overlay to
+   * @param position The position within the ele to place the loading spinner
+   * @param [text="Loading"] Optional text to put below the spinner. Defaults to 'Loading'
+   */
   static addLoadingOverlayToElement(
     ele: HTMLElement,
     position: InsertPosition,
+    text: string = "Loading"
   ): void {
     const loadingOverlayHTML = `<div class="gifw-loading-overlay" style="min-height: 7rem;">
                     <div class="position-absolute start-50 translate-middle" style="margin-top: 1rem;">
@@ -172,7 +213,7 @@ export class Helper {
                         </div>
                     </div>
                     <div class="position-absolute start-50 translate-middle" style="margin-top: 4rem;">
-                        <p>Searching</p>
+                        <p>${text}</p>
                     </div>
                     <button class="btn btn-cancel position-absolute start-50 translate-middle" style="margin-top: 6rem;" type="button">Cancel</button>
                 </div>`;
@@ -182,6 +223,10 @@ export class Helper {
     });
   }
 
+  /**
+   * Removes a loading overlay (if it exists) from an element
+   * @param ele The element to remove the loading overlay from
+   */
   static removeLoadingOverlayFromElement(ele: HTMLElement): void {
     const loadingOverlay = ele.querySelector(
       ".gifw-loading-overlay",
@@ -191,6 +236,13 @@ export class Helper {
     }
   }
 
+  /**
+   * Adds a full screen loading 
+   * @param mapId
+   * @param loadingText
+   * @param cancellable
+   * @param cancelCallback
+   */
   static addFullScreenLoader(
     mapId: string,
     loadingText?: string,
@@ -204,7 +256,7 @@ export class Helper {
                     "><div class="spinner-border" role="status" style="
                         color: white;
                     ">
-                      <span class="visually-hidden">Loading...</span>
+                      <span class="visually-hidden">${loadingText}</span>
 
                     </div><p>${loadingText}</p>`;
     if (cancellable) {
@@ -292,6 +344,11 @@ export class Helper {
     return parents;
   }
 
+  /**
+   * Gets the individual keys for a key/value pair object
+   * @param obj An object of Key Value pairs
+   * @returns A list of strings
+   */
   static getKeysFromObject(obj: object) {
     const keys: string[] = [];
     for (const [key] of Object.entries(obj)) {
@@ -300,10 +357,18 @@ export class Helper {
     return keys;
   }
 
+  /**
+   * Gets an individual value from a key value pair based on a key name
+   * @param obj An object of Key Value pairs
+   * @param keyName The name of the key we want to extract the value from
+   * @returns The value we want to extract, or null if the key was not found
+   */
   static getValueFromObjectByKey(obj: object, keyName: string) {
-    for (const [key, value] of Object.entries(obj)) {
-      if (key.toLowerCase() === keyName.toLowerCase()) {
-        return value;
+    if (obj) {
+      for (const [key, value] of Object.entries(obj)) {
+        if (key.toLowerCase() === keyName.toLowerCase()) {
+          return value;
+        }
       }
     }
     return null;
@@ -344,7 +409,13 @@ export class CustomError {
   severity: AlertSeverity;
   title: string;
   content: string;
-
+  /**
+   * Ctor for a custom error
+   * @param errorType The error type to show, either Popup (an interrupting modal overlay) or Toast (a non intrusive notification in the bottom left)
+   * @param severity The severity level of the notification
+   * @param title The title of the notification
+   * @param content The content of the notification, as a plain string or HTML
+   */
   constructor(
     errorType: AlertType,
     severity: AlertSeverity,
@@ -409,9 +480,10 @@ export class File {
 
 export class Style {
   /**
-   * Results an OpenLayers tyle based on geometry type and theme
-   *
-   *
+   * Returns an OpenLayers style based on Geometry type and map theme
+   * @param geomType The type of geometry (Point, MultiPoint, Polygon, MultiPolygon, LineString, MultiLineString)
+   * @param theme The current map theme
+   * @returns An OpenLayers style
    */
   static getDefaultStyleByGeomType(geomType: string, theme: Theme): olStyle {
     const rgbColor = Color.hexToRgb(theme.primaryColour);
@@ -463,14 +535,22 @@ export class Alert {
   title: string;
   content: string;
   errorElement: HTMLElement;
+  /**
+   * Constructor for an Alert which can be shown and hidden
+   * @param alertType The alert type to show, either Popup (an interrupting modal overlay) or Toast (a non intrusive notification in the bottom left)
+   * @param severity The severity level of the notification
+   * @param title The title of the notification
+   * @param content The content of the notification, as a plain string or HTML
+   * @param errorElementSelector A selector for the existing DOM element to use for the notification
+   */
   constructor(
-    errorType: AlertType,
+    alertType: AlertType,
     severity: AlertSeverity,
     title: string,
     content: string,
     errorElementSelector: string,
   ) {
-    this.type = errorType;
+    this.type = alertType;
     this.severity = severity;
     this.title = title;
     this.content = content;
@@ -582,6 +662,11 @@ export class Alert {
     }
   }
 
+  /**
+   * Shows a generic error popup
+   * @param title The title of the error message
+   * @param content The content of the error message, as a plain string or HTML
+   */
   static showPopupError(title: string, content: string) {
     const alert = new Alert(
       AlertType.Popup,
@@ -593,6 +678,12 @@ export class Alert {
     alert.show();
   }
 
+  /**
+   * Shows a notification toast that automatically dismisses after 4 seconds.
+   * @param title The title of the notification
+   * @param content The content of the notification, as a plain string or HTML
+   * @param severity The Severity level of the notification, which controls the styling of the notification
+   */
   static showTimedToast(
     title: string,
     content: string,
@@ -622,6 +713,11 @@ export class Alert {
 }
 
 export class Mapping {
+  /**
+   * Extracts custom HTTP header options from the layer source
+   * @param layerSource The layer source to extract header options from
+   * @returns Headers object
+   */
   static extractCustomHeadersFromLayerSource(
     layerSource: LayerSource,
   ): Headers {
@@ -646,6 +742,12 @@ export class Mapping {
     return customHeaders;
   }
 
+  /**
+   * Generates a permalink (or 'share link') based on the current map
+   * @param map The GIFramework Map object
+   * @param includeSearchResults Whether to include any search result pins
+   * @returns A string with a URL to the current map view
+   */
   static generatePermalinkForMap(
     map: GIFWMap,
     includeSearchResults: boolean = true,
@@ -759,7 +861,78 @@ export class Mapping {
     }
     return speed;
   }
+
+  /**
+   * Gets the first matching option from a list of LayerSourceOption by key name and returns the value
+   * @param sourceOpts The list of LayerSourceOption
+   * @param keyName The key name to find
+   * @returns The Value of the first LayerSourceOption from the list that matches the key, or null
+   */
+  static getLayerSourceOptionValueByName(sourceOpts: LayerSourceOption[], keyName: string): string {
+    const selectedOpt = sourceOpts.filter((o) => {
+      return o.name == keyName;
+    });
+    if (selectedOpt.length !== 0) {
+      return selectedOpt[0].value;
+    }
+    return null;
+  }
+
+  /**
+   * Gets the appropriate OpenLayers vector format based on a format string
+   * @param format The format string to convert to an OpenLayers format. Generally a MIME type or map server format string
+   * @returns an OpenLayers Format of GML32, GML3, GML2, GeoJSON or KML. Defaults to GeoJSON if no match is found
+   */
+  static getOpenLayersFormatFromOGCFormat(format: string) {
+    const formatStringToOpenLayersFormatMap = new Map();
+    formatStringToOpenLayersFormatMap.set("application/gml+xml; version=3.2", new GML32());
+    formatStringToOpenLayersFormatMap.set("text/xml; subtype=gml/3.2", new GML32());
+    formatStringToOpenLayersFormatMap.set("gml32", new GML32());
+    formatStringToOpenLayersFormatMap.set("text/xml; subtype=gml/3.1.1", new GML3());
+    formatStringToOpenLayersFormatMap.set("gml3", new GML3());
+    formatStringToOpenLayersFormatMap.set("text/xml; subtype=gml/2.1.2", new GML2());
+    formatStringToOpenLayersFormatMap.set("gml2", new GML2());
+    formatStringToOpenLayersFormatMap.set("application/json", new GeoJSON());
+    formatStringToOpenLayersFormatMap.set("text/json", new GeoJSON());
+    formatStringToOpenLayersFormatMap.set("geojson", new GeoJSON());
+    formatStringToOpenLayersFormatMap.set("json", new GeoJSON());
+    formatStringToOpenLayersFormatMap.set("application/vnd.google-earth.kml xml", new KML());
+    formatStringToOpenLayersFormatMap.set("application/vnd.google-earth.kml+xml", new KML());
+    formatStringToOpenLayersFormatMap.set("kml", new KML());
+    if (formatStringToOpenLayersFormatMap.has(format.toLowerCase())) {
+      return formatStringToOpenLayersFormatMap.get(format.toLowerCase());
+    }
+    return new GeoJSON();
+  }
+
+  /**
+   * Creates a WFS feature request URL from a Layer
+   * @param layer The WFS layer to create a GetFeature request from
+   * @returns A WFS feature request URL as a string
+   */
+  static createWFSFeatureRequestFromLayer(layer: Layer) {
+    const sourceUrlOpt = this.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
+    const formatOpt = this.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "format") || 'application/json';
+    const versionOpt = this.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "version") || '1.1.0';
+    const typeName = this.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "typename");
+    const wfsURL = new URL(sourceUrlOpt);
+    //add the WFS request bits on
+    wfsURL.searchParams.set('request', 'GetFeature');
+    wfsURL.searchParams.set('version', versionOpt);
+    wfsURL.searchParams.set('typename', typeName);
+    wfsURL.searchParams.set('outputFormat', formatOpt);
+    const paramsOpt = this.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "params");
+    if (paramsOpt !== null) {
+      const params: { [x: string]: string } = JSON.parse(paramsOpt);
+      const additionalWFSRequestParams = new URLSearchParams(params);
+      for (const p of additionalWFSRequestParams) {
+        wfsURL.searchParams.set(p[0], p[1])
+      }
+    }
+    return wfsURL.toString();
+  }
 }
+
 
 export const enum AlertType {
   Popup,

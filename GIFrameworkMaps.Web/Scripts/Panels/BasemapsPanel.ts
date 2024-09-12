@@ -235,7 +235,7 @@ export class BasemapsPanel implements SidebarPanel {
         .getLayersArray()
         .filter((l) => l.get("layerId") != basemapId);
       basemap.setVisible(true);
-      otherBasemaps.forEach((b) => {
+      otherBasemaps.filter(b => b.getVisible() === true).forEach((b) => {
         b.setVisible(false);
       });
     }

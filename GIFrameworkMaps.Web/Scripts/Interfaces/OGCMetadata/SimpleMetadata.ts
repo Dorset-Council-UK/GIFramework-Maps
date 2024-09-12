@@ -1,14 +1,14 @@
-﻿export interface CSWMetadata {
+﻿export interface SimpleMetadata {
   title: string;
   abstract: string;
   attribution: string;
   keywords: string[];
   accessRights: string;
-  dataLinks: CSWMetadataLinks[];
+  dataLinks: MetadataLinks[];
   documentURL: string;
 }
 
-export interface CSWMetadataLinks {
+export interface MetadataLinks {
   url: string;
   type: string;
 }

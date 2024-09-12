@@ -1,20 +1,30 @@
-﻿import { GIFWMap } from "../Map";
-import { ImageTile, View as olView } from "ol";
+﻿import { ImageTile, View as olView } from "ol";
+import { applyStyle as olMapboxApplyStyle } from 'ol-mapbox-style';
+import { Extent, applyTransform, containsExtent } from "ol/extent";
+import { GeoJSON, KML, MVT } from "ol/format";
+import GML2 from "ol/format/GML2";
+import GML3 from "ol/format/GML3";
+import GML32 from "ol/format/GML32";
 import * as olLayer from "ol/layer";
-import * as olSource from "ol/source";
+import BaseLayer from "ol/layer/Base";
+import { bbox as bboxStrategy, all as allStrategy } from 'ol/loadingstrategy';
 import * as olProj from "ol/proj";
-import { Layer } from "../Interfaces/Layer";
+import { getTransform, transformExtent } from "ol/proj";
+import LayerRenderer from "ol/renderer/Layer";
+import * as olSource from "ol/source";
 import { Options as ImageWMSOptions } from "ol/source/ImageWMS";
 import { Options as TileWMSOptions } from "ol/source/TileWMS";
+import { Options as VectorTileOptions } from "ol/source/VectorTile";
 import { Options as XYZOptions } from "ol/source/XYZ";
-import { Extent, applyTransform, containsExtent } from "ol/extent";
-import { LayerGroupType } from "../Interfaces/LayerGroupType";
-import { LayerGroup } from "./LayerGroup";
 import TileGrid from "ol/tilegrid/TileGrid";
-import BaseLayer from "ol/layer/Base";
+import { Layer } from "../Interfaces/Layer";
+import { LayerGroupType } from "../Interfaces/LayerGroupType";
+import { GIFWMap } from "../Map";
 import { Mapping as MappingUtil } from "../Util";
-import LayerRenderer from "ol/renderer/Layer";
-import { getTransform, transformExtent } from "ol/proj";
+import { LayerGroup } from "./LayerGroup";
+import OpenLayersParser from "geostyler-openlayers-parser";
+import { TileMatrixSet } from "../Interfaces/OGCMetadata/TileMatrixSet"
+import { FeatureUrlFunction } from "ol/featureloader";
 
 export class GIFWLayerGroup implements LayerGroup {
   layers: Layer[];
@@ -30,9 +40,6 @@ export class GIFWLayerGroup implements LayerGroup {
     this.layers = layers;
     this.gifwMapInstance = gifwMapInstance;
     this.layerGroupType = layerGroupType;
-
-    this.olLayerGroup = this.createLayersGroup();
-    this.addChangeEvents();
   }
 
   /**
@@ -41,24 +48,26 @@ export class GIFWLayerGroup implements LayerGroup {
    * @returns olLayer.Group
    *
    */
-  createLayersGroup(): olLayer.Group {
+  async createLayersGroup(): Promise<olLayer.Group> {
     const ol_layers: Array<
       | olLayer.Tile<olSource.XYZ>
       | olLayer.Tile<olSource.TileWMS>
       | olLayer.Image<olSource.ImageWMS>
+      | olLayer.VectorTile
+      | olLayer.Vector
+      | olLayer.VectorImage
       > = [];
     const defaultMapProjection = this.gifwMapInstance.config.availableProjections.filter(p => p.isDefaultMapProjection === true)[0];
     const viewProj = `EPSG:${defaultMapProjection.epsgCode ?? "3857"}`;
     if (this.layers !== null) {
-      this.layers.forEach((layer) => {
-        //let opts: Record<string, any> = {};
+
+      for (const layer of this.layers) {
         let ol_layer;
         /*define reused attributes*/
-        const className = `${
-          this.layerGroupType === LayerGroupType.Basemap
-            ? "basemapLayer"
-            : "layer"
-        }-${layer.id}`;
+        const className = `${this.layerGroupType === LayerGroupType.Basemap
+          ? "basemapLayer"
+          : "layer"
+          }-${layer.id}`;
         const visible = layer.isDefault !== undefined ? layer.isDefault : false;
         const minZoom = layer.minZoom ? layer.minZoom - 1 : 0;
         const maxZoom = layer.maxZoom ? layer.maxZoom : 100;
@@ -79,11 +88,7 @@ export class GIFWLayerGroup implements LayerGroup {
             (l) => l.name.toLowerCase() === "projection",
           )
         ) {
-          projection = layer.layerSource.layerSourceOptions
-            .filter((l) => l.name.toLowerCase() === "projection")
-            .map((p) => {
-              return p.value;
-            })[0];
+          projection = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "projection");
         }
         let extent: Extent;
         if (layer.bound) {
@@ -102,157 +107,21 @@ export class GIFWLayerGroup implements LayerGroup {
             extent = transformExtent(extent, 'EPSG:3857', `EPSG:${defaultMapProjection.epsgCode ?? '3857'}`);
           }
         }
-        switch (layer.layerSource.layerSourceType.name) {
-          case "XYZ": {
-            const xyzOpts: XYZOptions = {
-              url: layer.layerSource.layerSourceOptions.filter(
-                (o) => o.name.toLowerCase() === "url",
-              )[0].value,
-              attributions:
-                layer.layerSource.attribution.renderedAttributionHTML,
-              crossOrigin: "anonymous",
-              projection: projection,
-            };
 
-            const tileGrid = layer.layerSource.layerSourceOptions.filter(
-              (o) => o.name.toLowerCase() === "tilegrid",
-            );
-            if (tileGrid.length !== 0) {
-              xyzOpts.tileGrid = new TileGrid(JSON.parse(tileGrid[0].value));
-            }
-
-            if (layer.proxyMapRequests || hasCustomHeaders) {
-              xyzOpts.tileLoadFunction = (
-                imageTile: ImageTile,
-                src: string,
-              ) => {
-                if (layer.proxyMapRequests) {
-                  src = this.gifwMapInstance.createProxyURL(src);
-                }
-                this.customTileLoader(imageTile, src, layerHeaders);
-              };
-            }
-            ol_layer = new olLayer.Tile({
-              source: new olSource.XYZ(xyzOpts),
-              visible: visible,
-              className: className,
-              maxZoom: maxZoom,
-              minZoom: minZoom,
-              opacity: opacity,
-              extent: extent,
-              zIndex:
-                this.layerGroupType === LayerGroupType.Basemap
-                  ? -1000
-                  : layer.zIndex <= -1000
-                    ? -999
-                    : layer.zIndex,
-            });
-
-            break;
-          }
-          case "TileWMS": {
-            /*TODO THIS ISN'T NICE AT ALL*/
-            const tileWMSOpts: TileWMSOptions = {
-              url: layer.layerSource.layerSourceOptions
-                .filter((o) => {
-                  return o.name.toLowerCase() == "url";
-                })
-                .map((o) => {
-                  return o.value;
-                })[0],
-              attributions:
-                layer.layerSource.attribution.renderedAttributionHTML,
-              params: layer.layerSource.layerSourceOptions
-                .filter((o) => {
-                  return o.name.toLowerCase() == "params";
-                })
-                .map((o) => {
-                  return JSON.parse(o.value);
-                })[0],
-              crossOrigin: "anonymous",
-              projection: projection,
-            };
-
-            if (layer.proxyMapRequests || hasCustomHeaders) {
-              tileWMSOpts.tileLoadFunction = async (
-                imageTile: ImageTile,
-                src: string,
-              ) => {
-                if (layer.proxyMapRequests) {
-                  src = this.gifwMapInstance.createProxyURL(src);
-                }
-                this.customTileLoader(imageTile, src, layerHeaders);
-              };
-            }
-
-            ol_layer = new olLayer.Tile({
-              source: new olSource.TileWMS(tileWMSOpts),
-              visible: visible,
-              className: className,
-              maxZoom: maxZoom,
-              minZoom: minZoom,
-              opacity: opacity,
-              extent: extent,
-              zIndex:
-                this.layerGroupType === LayerGroupType.Basemap
-                  ? -1000
-                  : layer.zIndex <= -1000
-                    ? -999
-                    : layer.zIndex,
-            });
-            break;
-          }
-          case "ImageWMS": {
-            const imageWMSOpts: ImageWMSOptions = {
-              url: layer.layerSource.layerSourceOptions
-                .filter((o) => {
-                  return o.name == "url";
-                })
-                .map((o) => {
-                  return o.value;
-                })[0],
-              attributions:
-                layer.layerSource.attribution.renderedAttributionHTML,
-              params: layer.layerSource.layerSourceOptions
-                .filter((o) => {
-                  return o.name == "params";
-                })
-                .map((o) => {
-                  return JSON.parse(o.value);
-                })[0],
-              projection: projection,
-            };
-            if (layer.proxyMapRequests || hasCustomHeaders) {
-              /* eslint-disable @typescript-eslint/no-explicit-any -- Cannot find suitable type that can be used as is for imageTile */
-              imageWMSOpts.imageLoadFunction = (
-                imageTile: any,
-                src: string,
-              ) => {
-                if (layer.proxyMapRequests) {
-                  src = this.gifwMapInstance.createProxyURL(src);
-                }
-                this.customTileLoader(imageTile, src, layerHeaders);
-              };
-              /* eslint-enable @typescript-eslint/no-explicit-any */
-            }
-            ol_layer = new olLayer.Image({
-              source: new olSource.ImageWMS(imageWMSOpts),
-              visible: visible,
-              className: className,
-              maxZoom: maxZoom,
-              minZoom: minZoom,
-              opacity: opacity,
-              extent: extent,
-              zIndex:
-                this.layerGroupType === LayerGroupType.Basemap
-                  ? -1000
-                  : layer.zIndex <= -1000
-                    ? -999
-                    : layer.zIndex,
-            });
-            break;
-          }
+        if (layer.layerSource.layerSourceType.name === 'XYZ') {
+          ol_layer = this.createXYZLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
+        } else if (layer.layerSource.layerSourceType.name === 'TileWMS') {
+          ol_layer = this.createTileWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection)
+        } else if (layer.layerSource.layerSourceType.name === 'ImageWMS') {
+          ol_layer = this.createImageWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
+        } else if (layer.layerSource.layerSourceType.name === "Vector" || layer.layerSource.layerSourceType.name === "VectorImage") {
+          ol_layer = this.createVectorLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
+        } else if (layer.layerSource.layerSourceType.name === "VectorTile") {
+          ol_layer = await this.createVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
+        } else if (layer.layerSource.layerSourceType.name === 'OGCVectorTile') {
+          ol_layer = await this.createOGCVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
         }
+
         if (layer.isDefault) {
           ol_layer.setProperties({ hasBeenOpened: true });
         }
@@ -284,8 +153,9 @@ export class GIFWLayerGroup implements LayerGroup {
           }
         }
         ol_layers.push(ol_layer);
-      });
+      }
     }
+
     const layerGroup = new olLayer.Group({
       layers: ol_layers,
     });
@@ -385,5 +255,413 @@ export class GIFWLayerGroup implements LayerGroup {
     newLayerGroup.push(ol_layer);
     this.olLayerGroup.setLayers(newLayerGroup);
     this.addChangeEventsForLayer(ol_layer);
+  }
+
+  private createXYZLayer(
+    layer: Layer,
+    visible: boolean,
+    className: string,
+    maxZoom: number,
+    minZoom: number,
+    opacity: number,
+    extent: Extent,
+    layerHeaders: Headers,
+    hasCustomHeaders: boolean,
+    projection: string) {
+    const xyzOpts: XYZOptions = {
+      url: MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url"),
+      attributions: layer.layerSource.attribution.renderedAttributionHTML,
+      crossOrigin: "anonymous",
+      projection: projection,
+    };
+
+    const tileGrid = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "tilegrid");
+    if (tileGrid !== null) {
+      xyzOpts.tileGrid = new TileGrid(JSON.parse(tileGrid));
+    }
+
+    if (layer.proxyMapRequests || hasCustomHeaders) {
+      xyzOpts.tileLoadFunction = (
+        imageTile: ImageTile,
+        src: string,
+      ) => {
+        if (layer.proxyMapRequests) {
+          src = this.gifwMapInstance.createProxyURL(src);
+        }
+        this.customTileLoader(imageTile, src, layerHeaders);
+      };
+    }
+    const ol_layer = new olLayer.Tile({
+      source: new olSource.XYZ(xyzOpts),
+      visible: visible,
+      className: className,
+      maxZoom: maxZoom,
+      minZoom: minZoom,
+      opacity: opacity,
+      extent: extent,
+      zIndex:
+        this.layerGroupType === LayerGroupType.Basemap
+          ? -1000
+          : layer.zIndex <= -1000
+            ? -999
+            : layer.zIndex,
+    });
+    return ol_layer;
+  }
+
+  private createTileWMSLayer(
+    layer: Layer,
+    visible: boolean,
+    className: string,
+    maxZoom: number,
+    minZoom: number,
+    opacity: number,
+    extent: Extent,
+    layerHeaders: Headers,
+    hasCustomHeaders: boolean,
+    projection: string) {
+    const tileWMSOpts: TileWMSOptions = {
+      url: MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url"),
+      attributions:
+        layer.layerSource.attribution.renderedAttributionHTML,
+      params: layer.layerSource.layerSourceOptions
+        .filter((o) => {
+          return o.name.toLowerCase() == "params";
+        })
+        .map((o) => {
+          return JSON.parse(o.value);
+        })[0],
+      crossOrigin: "anonymous",
+      projection: projection,
+    };
+
+    if (layer.proxyMapRequests || hasCustomHeaders) {
+      tileWMSOpts.tileLoadFunction = async (
+        imageTile: ImageTile,
+        src: string,
+      ) => {
+        if (layer.proxyMapRequests) {
+          src = this.gifwMapInstance.createProxyURL(src);
+        }
+        this.customTileLoader(imageTile, src, layerHeaders);
+      };
+    }
+
+    const ol_layer = new olLayer.Tile({
+      source: new olSource.TileWMS(tileWMSOpts),
+      visible: visible,
+      className: className,
+      maxZoom: maxZoom,
+      minZoom: minZoom,
+      opacity: opacity,
+      extent: extent,
+      zIndex:
+        this.layerGroupType === LayerGroupType.Basemap
+          ? -1000
+          : layer.zIndex <= -1000
+            ? -999
+            : layer.zIndex,
+    });
+    return ol_layer;
+  }
+
+  private createImageWMSLayer(
+    layer: Layer,
+    visible: boolean,
+    className: string,
+    maxZoom: number,
+    minZoom: number,
+    opacity: number,
+    extent: Extent,
+    layerHeaders: Headers,
+    hasCustomHeaders: boolean,
+    projection: string) {
+
+    const imageWMSOpts: ImageWMSOptions = {
+      url: MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url"),
+      attributions: layer.layerSource.attribution.renderedAttributionHTML,
+      params: layer.layerSource.layerSourceOptions
+        .filter((o) => {
+          return o.name == "params";
+        })
+        .map((o) => {
+          return JSON.parse(o.value);
+        })[0],
+      projection: projection,
+    };
+    if (layer.proxyMapRequests || hasCustomHeaders) {
+      /* eslint-disable @typescript-eslint/no-explicit-any -- Cannot find suitable type that can be used as is for imageTile */
+      imageWMSOpts.imageLoadFunction = (
+        imageTile: any,
+        src: string,
+      ) => {
+        if (layer.proxyMapRequests) {
+          src = this.gifwMapInstance.createProxyURL(src);
+        }
+        this.customTileLoader(imageTile, src, layerHeaders);
+      };
+      /* eslint-enable @typescript-eslint/no-explicit-any */
+    }
+    const ol_layer = new olLayer.Image({
+      source: new olSource.ImageWMS(imageWMSOpts),
+      visible: visible,
+      className: className,
+      maxZoom: maxZoom,
+      minZoom: minZoom,
+      opacity: opacity,
+      extent: extent,
+      zIndex:
+        this.layerGroupType === LayerGroupType.Basemap
+          ? -1000
+          : layer.zIndex <= -1000
+            ? -999
+            : layer.zIndex,
+    });
+
+    return ol_layer;
+  }
+
+  private async createOGCVectorTileLayer(
+    layer: Layer,
+    visible: boolean,
+    className: string,
+    maxZoom: number,
+    minZoom: number,
+    opacity: number,
+    extent: Extent,
+    projection: string) {
+
+
+    let tileGrid;
+    const tileGridOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "tilegrid");
+    if (tileGridOpt !== null) {
+      if (tileGridOpt.indexOf('http') === 0) {
+        const externalTileMatrix = await fetch(tileGridOpt).then(resp => resp.json());
+        tileGrid = new TileGrid({
+          resolutions: (externalTileMatrix as TileMatrixSet).tileMatrices.map(({ cellSize }) => cellSize),
+          origin: externalTileMatrix.tileMatrices[0].pointOfOrigin,
+          tileSize: [externalTileMatrix.tileMatrices[0].tileHeight, externalTileMatrix.tileMatrices[0].tileWidth]
+        });
+      } else {
+        tileGrid = new TileGrid(JSON.parse(tileGridOpt));
+      }
+    }
+
+    // Define the vector tile layer.
+    const formatMvt = new MVT();
+    formatMvt.supportedMediaTypes.push('application/octet-stream');
+
+    const vectorTileLayer = new olLayer.VectorTile({
+      source: new olSource.OGCVectorTile({
+        url: MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url"),
+        format: formatMvt,
+        projection: projection,
+        attributions: layer.layerSource.attribution.renderedAttributionHTML,
+      }),
+      declutter: true,
+      visible: visible,
+      className: className,
+      maxZoom: maxZoom,
+      minZoom: minZoom,
+      opacity: opacity,
+      extent: extent,
+      zIndex:
+        this.layerGroupType === LayerGroupType.Basemap
+          ? -1000
+          : layer.zIndex <= -1000
+            ? -999
+            : layer.zIndex,
+    });
+    //get style from options
+    const styleOpts = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "style");
+    if (styleOpts !== null) {
+      olMapboxApplyStyle(
+        vectorTileLayer,
+        styleOpts,
+        { updateSource: false },
+        { styleUrl: null },
+        tileGrid?.getResolutions()
+      );
+    }
+    
+    return vectorTileLayer;
+  }
+
+  private async createVectorTileLayer(
+    layer: Layer,
+    visible: boolean,
+    className: string,
+    maxZoom: number,
+    minZoom: number,
+    opacity: number,
+    extent: Extent,
+    projection: string) {
+
+    const vectorTileSourceOpts:VectorTileOptions  = {
+      format: new MVT(),
+      projection: projection,
+      attributions: layer.layerSource.attribution.renderedAttributionHTML,
+    }
+
+    const serviceUrl = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
+    const tmsRegexMatch = new RegExp("{(z|-?y|x)}");
+    if (serviceUrl.match(tmsRegexMatch) !== null) {
+      //we have a tile URL
+      vectorTileSourceOpts.url = serviceUrl;
+      let tileGrid;
+      const tileGridOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "tilegrid");
+      if (tileGridOpt !== null) {
+        if (tileGridOpt.indexOf('http') === 0) {
+          const externalTileMatrix = await fetch(tileGridOpt).then(resp => resp.json());
+          tileGrid = new TileGrid({
+            resolutions: (externalTileMatrix as TileMatrixSet).tileMatrices.map(({ cellSize }) => cellSize),
+            origin: externalTileMatrix.tileMatrices[0].pointOfOrigin,
+            tileSize: [externalTileMatrix.tileMatrices[0].tileHeight, externalTileMatrix.tileMatrices[0].tileWidth]
+          });
+        } else {
+          tileGrid = new TileGrid(JSON.parse(tileGridOpt));
+        }
+        vectorTileSourceOpts.tileGrid = tileGrid;
+      }
+    } else {
+      //we have a service metadata URL
+      // Get the service metadata.
+      const service = await fetch(serviceUrl).then(response => response.json());
+
+      // Read the tile grid dimensions from the service metadata.
+      const serviceExtent = [service.fullExtent.xmin, service.fullExtent.ymin, service.fullExtent.xmax, service.fullExtent.ymax];
+      const origin = [service.tileInfo.origin.x, service.tileInfo.origin.y];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resolutions = service.tileInfo.lods.map((l: { resolution: any; }) => l.resolution).slice(0, 16);
+      const tileSize = service.tileInfo.rows;
+      const tiles = service.tiles[0];
+
+      // Set the grid pattern options for the vector tile service.
+      const tileGrid = new TileGrid({
+        extent: serviceExtent,
+        origin: origin,
+        resolutions: resolutions,
+        tileSize: tileSize
+      });
+      vectorTileSourceOpts.tileGrid = tileGrid;
+      vectorTileSourceOpts.url = tiles;
+    }
+    
+
+    // Define the vector tile layer.
+
+    const vectorTileLayer = new olLayer.VectorTile({
+      declutter: true,
+      visible: visible,
+      className: className,
+      maxZoom: maxZoom,
+      minZoom: minZoom,
+      opacity: opacity,
+      extent: extent,
+      zIndex:
+        this.layerGroupType === LayerGroupType.Basemap
+          ? -1000
+          : layer.zIndex <= -1000
+            ? -999
+            : layer.zIndex,
+    });
+    //get style from options
+    const styleOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "style");
+    if (styleOpt !== null) {
+      olMapboxApplyStyle(vectorTileLayer, styleOpt, '', '', vectorTileSourceOpts.tileGrid?.getResolutions()).then(() => {
+        vectorTileLayer.setSource(
+          new olSource.VectorTile(vectorTileSourceOpts)
+        )
+      })
+    } else {
+      vectorTileLayer.setSource(
+        new olSource.VectorTile(vectorTileSourceOpts)
+      )
+    }
+
+    return vectorTileLayer;
+  }
+
+  private createVectorLayer(
+    layer: Layer,
+    visible: boolean,
+    className: string,
+    maxZoom: number,
+    minZoom: number,
+    opacity: number,
+    extent: Extent,
+    projection: string) {
+    const sourceUrlOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
+    const styleOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "style");
+    const formatOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "format") || 'application/json';
+    const loadingStrategyOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "loadingStrategy");
+    const urlType = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "type") || 'wfs'; //default to WFS unless overriden
+    const format: GeoJSON | GML32 | GML3 | GML2 | KML = MappingUtil.getOpenLayersFormatFromOGCFormat(formatOpt);
+    let loadingStrategy = bboxStrategy;
+    if (loadingStrategyOpt === "all" || urlType !== 'wfs') {
+      loadingStrategy = allStrategy;
+    }
+    let vector: olLayer.Vector | olLayer.VectorImage;
+
+    if (layer.layerSource.layerSourceType.name === 'Vector') {
+      vector = new olLayer.Vector({className: className});
+    } else {
+      vector = new olLayer.VectorImage({ className: className });
+    }
+
+    let url: string | FeatureUrlFunction = sourceUrlOpt;
+    let baseUrl = sourceUrlOpt;
+    if (urlType === 'wfs') {
+      baseUrl = MappingUtil.createWFSFeatureRequestFromLayer(layer);
+    }
+    url = baseUrl;
+    if (loadingStrategy === bboxStrategy) {
+      url = (extent) => {
+        if (projection !== `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`) {
+          extent = transformExtent(extent, this.gifwMapInstance.olMap.getView().getProjection(), projection);
+        }
+        return (
+          `${baseUrl}&srsname=${projection}&` +
+          `bbox=${extent.join(',')},${projection}`
+        );
+      }
+    }
+    const vectorSource = new olSource.Vector({
+      format: format,
+      url: url,
+      strategy: loadingStrategy,
+    });
+    vector.setProperties({
+      source: vectorSource,
+      visible: visible,
+      maxZoom: maxZoom,
+      minZoom: minZoom,
+      opacity: opacity,
+      extent: extent,
+      projection: projection,
+      zIndex:
+        this.layerGroupType === LayerGroupType.Basemap
+          ? -1000
+          : layer.zIndex <= -1000
+            ? -999
+            : layer.zIndex,
+    })
+      
+    try {
+      const parser = new OpenLayersParser();
+      const jsonStyle = JSON.parse(styleOpt);
+      if (jsonStyle !== null) {
+        parser
+          .writeStyle(jsonStyle)
+          .then(({ output: olStyle }) => vector.setStyle(olStyle));
+      } else {
+        vector.setStyle();
+      }
+    } catch (ex) {
+      console.warn('Style could not be set on layer', ex);
+      vector.setStyle();
+    }
+
+    return vector;
   }
 }
