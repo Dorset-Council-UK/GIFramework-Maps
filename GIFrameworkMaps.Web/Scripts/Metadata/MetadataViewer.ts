@@ -1,37 +1,29 @@
 ﻿import { Modal } from "bootstrap";
+import { VectorImage, Layer as olLayer } from "ol/layer";
+import { ImageWMS, TileWMS, Vector } from "ol/source";
 import Badge from "../Badge";
 import { Layer } from "../Interfaces/Layer";
 import {
-  CSWMetadata,
-  CSWMetadataLinks,
-} from "../Interfaces/OGCMetadata/CSWMetadata";
-import { Layer as olLayer } from "ol/layer";
-import { ImageWMS, TileWMS } from "ol/source";
-import { Metadata } from "./Metadata";
-import { Helper, Mapping as MappingUtil } from "../Util";
+    SimpleMetadata,
+    MetadataLinks,
+} from "../Interfaces/OGCMetadata/SimpleMetadata";
 import { GIFWMap } from "../Map";
+import { Helper, Mapping as MappingUtil } from "../Util";
+import { Metadata } from "./Metadata";
+import { ServiceType } from "../Interfaces/WebLayerServiceDefinition";
 
 export class MetadataViewer {
-  static async getCSWMetadataForLayer(
+  static async getMetadataForLayer(
     layer: Layer,
     olLayer: olLayer,
     proxyEndpoint: string = "",
   ) {
     /*get metadata from sources in priority order*/
-    /* 1: CSW Metadata document included in params
-           2: Metadata from GetCapabilities document
-           3: Metadata from database description
+    /*     1: Metadata from GetCapabilities document
+           2: Metadata from database description
         */
 
-    let metadata = await this.getMetadataFromCSWDocument(
-      layer,
-      olLayer,
-      proxyEndpoint,
-    );
-    if (metadata) {
-      return metadata;
-    }
-    metadata = await this.getMetadataFromGetCapabilities(
+    let metadata = await this.getMetadataFromGetCapabilities(
       layer,
       olLayer,
       proxyEndpoint,
@@ -46,148 +38,42 @@ export class MetadataViewer {
 
     return null;
   }
-
-  static async getMetadataFromCSWDocument(
-    layer: Layer,
-    olLayer: olLayer,
-    proxyEndpoint?: string,
-  ) {
-    try {
-      const cswMetadataEndpoint = layer.layerSource.layerSourceOptions.filter(
-        (l) => l.name == "cswendpoint",
-      );
-      if (cswMetadataEndpoint && cswMetadataEndpoint.length !== 0) {
-        const cswMetadataURL = new URL(cswMetadataEndpoint[0].value);
-        const descriptionParams = layer.layerSource.layerSourceOptions.filter(
-          (l) => l.name == "cswparams",
-        );
-        if (descriptionParams.length == 1) {
-          const cswParams = JSON.parse(descriptionParams[0].value);
-          if (cswParams) {
-            let combinedParams = new URLSearchParams(cswParams);
-            if (cswMetadataURL.searchParams) {
-              combinedParams = new URLSearchParams({
-                ...Object.fromEntries(combinedParams),
-                ...Object.fromEntries(cswMetadataURL.searchParams),
-              });
-            }
-            cswMetadataURL.search = combinedParams.toString();
-          }
-        }
-
-        let fetchUrl = cswMetadataURL.toString();
-        if (proxyEndpoint !== "") {
-          fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
-        }
-
-        const response = await fetch(fetchUrl);
-        if (!response.ok) {
-          throw new Error(
-            `Couldn't retrieve metadata document from CSW endpoint. Status: ${response.status}`,
-          );
-        }
-        const data = await response.text();
-
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(data, "application/xml");
-        if (!doc.childNodes[0].hasChildNodes()) {
-          throw new Error(`Metadata document returned no information`);
-        }
-        const keywordTags = doc.getElementsByTagName("dc:subject");
-        const refTags = doc.getElementsByTagName("dct:references");
-        const keywords = [];
-        const refs: CSWMetadataLinks[] = [];
-        for (const keyword of keywordTags) {
-          keywords.push(keyword.innerHTML);
-        }
-        for (const ref of refTags) {
-          if (ref.innerHTML !== "" && ref.getAttribute("scheme") !== null) {
-            if (
-              olLayer.getSource() instanceof TileWMS ||
-              olLayer.getSource() instanceof ImageWMS
-            ) {
-              const source = olLayer.getSource();
-              let baseUrl: string;
-              let params;
-              if (source instanceof TileWMS) {
-                baseUrl = source.getUrls()[0];
-                params = source.getParams();
-              } else {
-                baseUrl = (source as ImageWMS).getUrl();
-                params = (source as ImageWMS).getParams();
-              }
-              const version =
-                (Helper.getValueFromObjectByKey(params, "version") as string) ||
-                "1.1.0";
-
-              const type = ref.getAttribute("scheme");
-              if (type.toUpperCase() == "OGC:WMS") {
-                const metaLink: CSWMetadataLinks = {
-                  url: Metadata.constructGetCapabilitiesURL(
-                    baseUrl,
-                    "WMS",
-                    version,
-                  ),
-                  type: "WMS GetCapabilities",
-                };
-
-                refs.push(metaLink);
-              }
-              if (type.toUpperCase() == "OGC:WFS") {
-                const metaLink: CSWMetadataLinks = {
-                  url: Metadata.constructGetCapabilitiesURL(
-                    baseUrl,
-                    "WFS",
-                    version,
-                  ),
-                  type: "WFS GetCapabilities",
-                };
-
-                refs.push(metaLink);
-              }
-            }
-          }
-        }
-        const CSWMetadata: CSWMetadata = {
-          title:
-            doc.getElementsByTagName("dc:title")[0]?.innerHTML || layer.name,
-          abstract:
-            doc.getElementsByTagName("dct:abstract")[0]?.innerHTML ||
-            "No description provided",
-          accessRights:
-            doc.getElementsByTagName("dct:accessRights")[0]?.innerHTML,
-          keywords: keywords,
-          attribution: "",
-          dataLinks: refs,
-          documentURL: cswMetadataURL.toString(),
-        };
-        return CSWMetadata;
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    return null;
-  }
-
+    
   static async getMetadataFromGetCapabilities(
     layer: Layer,
     olLayer: olLayer,
     proxyEndpoint?: string,
   ) {
     try {
+      const source = olLayer.getSource();
       if (
-        olLayer.getSource() instanceof TileWMS ||
-        olLayer.getSource() instanceof ImageWMS
+        source instanceof TileWMS ||
+        source instanceof ImageWMS ||
+        source instanceof Vector ||
+        source instanceof VectorImage
       ) {
-        const source = olLayer.getSource();
         let baseUrl: string;
         let params;
+        let serviceType: ServiceType = ServiceType.WMS;
+        let layerName = "";
         if (source instanceof TileWMS) {
           baseUrl = source.getUrls()[0];
           params = source.getParams();
-        } else {
+          layerName = params.LAYERS;
+
+        } else if (source instanceof ImageWMS) {
           baseUrl = (source as ImageWMS).getUrl();
           params = (source as ImageWMS).getParams();
+          layerName = params.LAYERS;
+        } else {
+          baseUrl = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
+          layerName = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "typename");
+          const paramsOpt = MappingUtil.getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "params");
+          if (paramsOpt !== null) {
+            params = JSON.parse(paramsOpt);
+          }
+          serviceType = ServiceType.WFS;
+          
         }
         const version =
           (Helper.getValueFromObjectByKey(params, "version") as string) ||
@@ -195,40 +81,33 @@ export class MetadataViewer {
         const httpHeaders = MappingUtil.extractCustomHeadersFromLayerSource(
           layer.layerSource,
         );
-        const layers = await Metadata.getLayersFromCapabilities(
-          baseUrl,
-          version,
-          proxyEndpoint,
-          httpHeaders,
-        );
-        const featureTypeName = params.LAYERS;
-        if (layers) {
-          const matchedLayer = layers.filter((l) => l.name === featureTypeName);
-          if (matchedLayer.length !== 0) {
-            const CSWMetadata: CSWMetadata = {
-              title: matchedLayer[0].title || layer.name,
-              abstract: matchedLayer[0].abstract || "No description provided",
-              attribution: matchedLayer[0].attribution,
-              accessRights: "",
-              keywords: matchedLayer[0].keywords,
-              dataLinks: [
-                {
-                  url: Metadata.constructGetCapabilitiesURL(
-                    baseUrl,
-                    "WMS",
-                    version,
-                  ),
-                  type: "WMS GetCapabilities",
-                },
-              ],
-              documentURL: Metadata.constructGetCapabilitiesURL(
-                baseUrl,
-                "WMS",
-                version,
-              ),
-            };
-            return CSWMetadata;
-          }
+
+        const layerMetadata = await Metadata.getLayerMetadataFromCapabilities(baseUrl, layerName, serviceType, version, proxyEndpoint, httpHeaders);
+        
+        if (layerMetadata) {
+          const simpleMetadata: SimpleMetadata = {
+            title: layerMetadata.title || layer.name,
+            abstract: layerMetadata.abstract || "No description provided",
+            attribution: layerMetadata.attribution || layer.layerSource.attribution.renderedAttributionHTML,
+            accessRights: "",
+            keywords: layerMetadata.keywords,
+            dataLinks: [
+              {
+                url: Metadata.constructGetCapabilitiesURL(
+                  baseUrl,
+                  serviceType,
+                  version,
+                ),
+                type: `${ServiceType[serviceType].toUpperCase()} GetCapabilities`,
+              },
+            ],
+            documentURL: Metadata.constructGetCapabilitiesURL(
+              baseUrl,
+              serviceType,
+              version,
+            ),
+          };
+          return simpleMetadata;
         }
       }
     } catch (e) {
@@ -242,7 +121,7 @@ export class MetadataViewer {
 
   static getMetadataFromLayerSource(layer: Layer) {
     if (layer.layerSource.description !== "") {
-      const CSWMetadata: CSWMetadata = {
+      const SimpleMetadata: SimpleMetadata = {
         title: layer.name,
         abstract: layer.layerSource.description || "No description provided",
         attribution: layer.layerSource.attribution.renderedAttributionHTML,
@@ -251,7 +130,7 @@ export class MetadataViewer {
         dataLinks: null,
         documentURL: null,
       };
-      return CSWMetadata;
+      return SimpleMetadata;
     }
     return null;
   }
@@ -259,40 +138,40 @@ export class MetadataViewer {
   /**
    * Returns the HTML for the CSWMetadata modal
    *
-   * @param {CSWMetadata} CSWMetadata - CSWMetadata object
+   * @param {SimpleMetadata} simpleMetadata - CSWMetadata object
    * @returns HTML for the CSWMetadata
    *
    */
 
-  static createCSWMetadataHTML(
-    CSWMetadata: CSWMetadata,
+  static createMetadataHTML(
+    simpleMetadata: SimpleMetadata,
     isFiltered: boolean = false,
   ): string {
-    if (CSWMetadata.abstract !== undefined) {
+    if (simpleMetadata.abstract !== undefined) {
       return `
-                <h5>${CSWMetadata.title}</h5>
+                <h5>${simpleMetadata.title}</h5>
                 ${isFiltered ? this.renderLayerFilteredWarning() : ""}
-                <p class="text-pre-line">${CSWMetadata.abstract}</p>
-                ${this.renderMetadataKeywords(CSWMetadata.keywords)}
-                ${this.renderAttribution(CSWMetadata.attribution)}
+                <p class="text-pre-line">${simpleMetadata.abstract}</p>
+                ${this.renderMetadataKeywords(simpleMetadata.keywords)}
+                ${this.renderAttribution(simpleMetadata.attribution)}
                 ${this.renderMetadataDataLinks(
-                  CSWMetadata.dataLinks,
-                  CSWMetadata.documentURL,
+                  simpleMetadata.dataLinks,
+                  simpleMetadata.documentURL,
                 )}
-                ${this.renderAccessRights(CSWMetadata.accessRights)}
+                ${this.renderAccessRights(simpleMetadata.accessRights)}
                 `;
     } else {
       return `
-                <h5>${CSWMetadata.title}</h5>
+                <h5>${simpleMetadata.title}</h5>
                 ${isFiltered ? this.renderLayerFilteredWarning() : ""}
                 <p class="text-pre-line">No description</p>
-                ${this.renderMetadataKeywords(CSWMetadata.keywords)}
-                ${this.renderAttribution(CSWMetadata.attribution)}
+                ${this.renderMetadataKeywords(simpleMetadata.keywords)}
+                ${this.renderAttribution(simpleMetadata.attribution)}
                 ${this.renderMetadataDataLinks(
-                  CSWMetadata.dataLinks,
-                  CSWMetadata.documentURL,
+                  simpleMetadata.dataLinks,
+                  simpleMetadata.documentURL,
                 )}
-                ${this.renderAccessRights(CSWMetadata.accessRights)}
+                ${this.renderAccessRights(simpleMetadata.accessRights)}
                 `;
     }
   }
@@ -317,7 +196,7 @@ export class MetadataViewer {
   }
 
   private static renderMetadataDataLinks(
-    dataLinks: CSWMetadataLinks[],
+    dataLinks: MetadataLinks[],
     documentURL: string,
   ): string {
     if (!(dataLinks === null && documentURL === null)) {
@@ -396,13 +275,13 @@ export class MetadataViewer {
         proxyEndpoint = `${document.location.protocol}//${gifwMapInstance.config.appRoot}proxy`;
       }
       const isFiltered = gifwMapInstance.getLayerFilteredStatus(layerConfig, olLayer, false);
-      const metadata = await MetadataViewer.getCSWMetadataForLayer(
+      const metadata = await MetadataViewer.getMetadataForLayer(
         layerConfig,
         olLayer,
         proxyEndpoint,
       );
       if (metadata) {
-        metaModalContent.innerHTML = MetadataViewer.createCSWMetadataHTML(
+        metaModalContent.innerHTML = MetadataViewer.createMetadataHTML(
           metadata,
           isFiltered,
         );

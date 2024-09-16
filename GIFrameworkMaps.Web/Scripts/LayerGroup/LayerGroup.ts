@@ -11,7 +11,7 @@ export interface LayerGroup {
   olLayerGroup: olLayer.Group;
   layerGroupType: LayerGroupType;
   layers: Layer[] | VectorLayer[];
-  createLayersGroup: () => olLayer.Group;
+  createLayersGroup: () => Promise<olLayer.Group> | olLayer.Group;
   addChangeEvents: () => void;
   addLayerToGroup: (
     layer: Layer | VectorLayer,

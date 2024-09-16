@@ -5,6 +5,7 @@ import { Theme } from "./Theme";
 import { TourDetails } from "./Tour/TourDetails";
 import { WelcomeMessage } from "./WelcomeMessage";
 import { Projection } from "./Projection";
+import { Attribution } from "./Attribution";
 
 export interface VersionViewModel {
   id: number;
@@ -20,6 +21,7 @@ export interface VersionViewModel {
   bound: Bound;
   welcomeMessage: WelcomeMessage;
   tourDetails: TourDetails;
+  attribution: Attribution;
   availableProjections: Projection[];
   appRoot: string;
   appInsightsKey: string;

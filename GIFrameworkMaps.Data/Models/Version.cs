@@ -40,6 +40,8 @@ namespace GIFrameworkMaps.Data.Models
         public int? WelcomeMessageId { get; set; }
         [Display(Name = "Tour (optional)")]
         public int? TourDetailsId { get; set; }
+		[Display(Name = "Fixed attribution to always display alongside the usual ones (optional)")]
+		public int? AttributionId { get; set; }
         [Display(Name = "Version Notes (optional)"), MaxLength(500)]
         public string? VersionNotes { get; set; }
 		public List<VersionProjection> VersionProjections { get; set; } = [];
@@ -54,5 +56,6 @@ namespace GIFrameworkMaps.Data.Models
         public virtual Theme? Theme { get; set; }
         public virtual WelcomeMessage? WelcomeMessage { get; set; }
         public virtual TourDetail? TourDetails { get; set; }
+		public virtual Attribution? Attribution { get; set; }
     }
 }

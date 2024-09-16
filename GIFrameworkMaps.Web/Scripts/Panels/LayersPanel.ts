@@ -1,6 +1,6 @@
 ﻿import { Collapse, Modal, Tooltip } from "bootstrap";
 import Fuse from "fuse.js";
-import { Layer as olLayer } from "ol/layer";
+import { VectorImage, Layer as olLayer } from "ol/layer";
 import BaseLayer from "ol/layer/Base";
 import ImageLayer from "ol/layer/Image";
 import TileLayer from "ol/layer/Tile";
@@ -15,7 +15,6 @@ import { Category } from "../Interfaces/Category";
 import { Layer } from "../Interfaces/Layer";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { LayerListSortingOption } from "../Interfaces/LayerPanel/LayerListSortingOption";
-import { Style } from "../Interfaces/OGCMetadata/Style";
 import { SidebarPanel } from "../Interfaces/SidebarPanel";
 import { LayerFilter } from "../LayerFilter";
 import { LayerUpload } from "../LayerUpload";
@@ -27,6 +26,7 @@ import { UserSettings } from "../UserSettings";
 import { PanelHelper } from "./PanelHelper";
 import { Alert, AlertSeverity, Helper, Mapping as MappingUtil } from "../Util";
 import { LayerList } from "./LayerList";
+import { LayerStyle } from "@camptocamp/ogc-client";
 
 export class LayersPanel implements SidebarPanel {
   container: string;
@@ -469,6 +469,8 @@ export class LayersPanel implements SidebarPanel {
     // When the map has fully rendered, check for active layer errors
     this.gifwMapInstance.olMap.on("rendercomplete", () => {
       this.raiseAlertForErrors();
+      //remove all spinners?
+      document.querySelectorAll('.layer-switcher-tree .spinner').forEach(s => {s.remove() })
     });
 
     const layerGroups = this.gifwMapInstance.getLayerGroupsOfType([
@@ -545,7 +547,6 @@ export class LayersPanel implements SidebarPanel {
   }
 
   private loadStartEvent(source: Source, l: olLayer, layerName: string) {
-    if (!(source instanceof VectorSource)) {
       const checkbox = this.getLayerCheckbox(l);
       if (checkbox !== null) {
         let spinner =
@@ -584,7 +585,7 @@ export class LayersPanel implements SidebarPanel {
           }
         }, 30000);
       }
-    }
+    
   }
   private loadEndEvent(l: olLayer, layerName: string) {
     setTimeout(() => {
@@ -1208,7 +1209,7 @@ export class LayersPanel implements SidebarPanel {
    * @returns void
    *
    */
-  private showAlternateStyleModal(layer: BaseLayer) {
+  private async showAlternateStyleModal(layer: BaseLayer) {
     const styleModal = new Modal(
       document.getElementById("layer-update-style-modal"),
       {},
@@ -1259,25 +1260,22 @@ export class LayersPanel implements SidebarPanel {
         const httpHeaders = MappingUtil.extractCustomHeadersFromLayerSource(
           gifwLayer.layerSource,
         );
-        const styleListPromise = Metadata.getStylesForLayer(
+        const styles = await Metadata.getStylesForLayer(
           baseUrl,
           featureTypeName,
           proxyEndpoint,
           additionalParams,
           httpHeaders,
         );
-        if (styleListPromise) {
-          styleListPromise
-            .then((styles) => {
-              styleModalContent.innerHTML = "";
-              styleModalContent.appendChild(
-                this.renderStylesList(styles, layerSource),
-              );
-            })
-            .catch((e) => {
-              console.error(e);
-              styleModalContent.innerHTML = `<div class="alert alert-warning">There was a problem getting the styles list from the server.</div><code>${e}</code>`;
-            });
+
+        if (styles.length !== 0) {
+          styleModalContent.innerHTML = "";
+          styleModalContent.appendChild(
+            this.renderStylesList(styles, layerSource),
+          );
+          return;
+        } else {
+          styleModalContent.innerHTML = `<div class="alert alert-info">There are no additional styles available for this layer</div>`;
           return;
         }
       }
@@ -1295,7 +1293,7 @@ export class LayersPanel implements SidebarPanel {
    *
    */
   private renderStylesList(
-    styles: Style[],
+    styles: LayerStyle[],
     layerSource: ImageWMS | TileWMS,
   ): HTMLElement {
     let stylesHtml: HTMLElement;
@@ -1303,7 +1301,7 @@ export class LayersPanel implements SidebarPanel {
       stylesHtml = document.createElement("div");
       stylesHtml.className = "list-group";
       const currentStyleName = layerSource.getParams()?.STYLES || "";
-      const defaultStyle: Style = {
+      const defaultStyle: LayerStyle = {
         name: "",
         title: "Default",
         abstract: "The default style for this layer",
@@ -1344,7 +1342,7 @@ export class LayersPanel implements SidebarPanel {
    *
    */
   private renderStyleItem(
-    style: Style,
+    style: LayerStyle,
     layerSource: ImageWMS | TileWMS,
     isActive: boolean = false,
   ): HTMLElement {
@@ -1354,8 +1352,7 @@ export class LayersPanel implements SidebarPanel {
     styleLinkContainer.href = "#";
     styleLinkContainer.dataset.gifwLayerStyleName = style.name;
     styleLinkContainer.innerHTML = `<h5 class="mb-2">${style.title}</h5>`;
-    styleLinkContainer.innerHTML += `<p class="mb-1">${style.abstract ? style.abstract : "No description provided"
-      }</p>`;
+    styleLinkContainer.innerHTML += `<p class="mb-1">${style.abstract ? style.abstract : "No description provided"}</p>`;
 
     styleLinkContainer.addEventListener("click", (e) => {
       const selectedStyleName = (e.currentTarget as HTMLElement).dataset
@@ -1393,7 +1390,9 @@ export class LayersPanel implements SidebarPanel {
     return (
       layer?.filterable &&
       (olLayer.getSource() instanceof TileWMS ||
-        olLayer.getSource() instanceof ImageWMS)
+        olLayer.getSource() instanceof ImageWMS ||
+        olLayer.getSource() instanceof VectorSource ||
+        olLayer.getSource() instanceof VectorImage)
     );
   }
 

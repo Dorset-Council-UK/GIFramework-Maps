@@ -88,7 +88,8 @@ namespace GIFrameworkMaps.Data
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                searchTerm = searchTerm.Trim();
+				//trim extra spaces and replace tab characters (often included when coords are copied from Excel sheets)
+                searchTerm = searchTerm.Trim().Replace("\t"," ");
 
 				// Extract IDs from the required searches list (delay getting the data, no ToList)
 				var requiredIds = requiredSearchesList

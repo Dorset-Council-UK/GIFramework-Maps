@@ -39,6 +39,10 @@ namespace GIFrameworkMaps.Data.EntitiesConfiguration
 			builder
 				.Navigation(o => o.WelcomeMessage)
 				.AutoInclude();
+
+			builder
+				.Navigation(o => o.Attribution) 
+				.AutoInclude();
 		}
 	}
 }

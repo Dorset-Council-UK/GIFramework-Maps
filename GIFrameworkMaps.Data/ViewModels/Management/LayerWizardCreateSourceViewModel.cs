@@ -18,6 +18,7 @@ namespace GIFrameworkMaps.Data.ViewModels.Management
 		public string? Projection { get; set; }
 		public string? Format { get; set; }
 		public string? Version { get; set; }
+		public ServiceType ServiceType { get; set; }
 		[BindNever]
 		public HtmlString? ServiceAttribution { get; set; }
 		public bool AttributionMatched { get; set; }
