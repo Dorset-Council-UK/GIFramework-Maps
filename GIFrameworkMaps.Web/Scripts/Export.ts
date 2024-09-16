@@ -31,6 +31,7 @@ export class Export {
   printConfiguration: PrintConfiguration;
   _timeoutId: number;
   _maxProcessingTime: number = 60000;
+  startingAttrYPosition: number;
 
   constructor(
     pageSettings: PDFPageSettings,
@@ -291,7 +292,7 @@ export class Export {
         try {
           const scaleImg = await this.getScaleLine();
           const imgData = scaleImg;
-          await this.createScalebarBox(pdf, pageMargin, imgData);
+          await this.createScalebarBox(pdf, pageMargin, imgData, this.startingAttrYPosition);
         } catch (ex) {
           console.warn(`Getting the scaleline for a print failed.`);
           console.error(ex);
@@ -740,7 +741,7 @@ export class Export {
 
     const attrTotalLines = attrLines.length;
     const startingAttrXPosition = pdf.internal.pageSize.width - pageMargin;
-    const startingAttrYPosition =
+    this.startingAttrYPosition =
       pdf.internal.pageSize.height -
       4 -
       ((pdf.getTextDimensions(attributionText).h + 1) * attrTotalLines - 1);
@@ -749,7 +750,7 @@ export class Export {
     pdf.setDrawColor(0, 0, 0);
     pdf.rect(
       startingAttrXPosition - maxAttrTextWidth + 5,
-      startingAttrYPosition - pageMargin / 2,
+      this.startingAttrYPosition - pageMargin / 2,
       maxAttrTextWidth + 5,
       (pdf.getTextDimensions(attributionText).h + 1) * attrTotalLines + 3,
       "DF",
@@ -758,7 +759,7 @@ export class Export {
     pdf.text(
       attributionText,
       startingAttrXPosition + 7.5,
-      startingAttrYPosition - 5,
+      this.startingAttrYPosition - 5,
       { maxWidth: maxAttrWidth, align: "right" },
     );
   }
@@ -1161,8 +1162,9 @@ export class Export {
  * @param pdf
  * @param pageMargin
  * @param imgData - The base64 encoded image
+ * @param startingAttrYPosition - The starting Y position of the attribution
  */
-  private createScalebarBox(pdf: jsPDF, pageMargin: number, imgData: string): void {
+  private createScalebarBox(pdf: jsPDF, pageMargin: number, imgData: string, startingAttrYPosition: number): void {
     const imgProps = pdf.getImageProperties(imgData);
     const printResolution = parseInt(
       (document.getElementById("gifw-print-resolution") as HTMLSelectElement)
@@ -1174,7 +1176,7 @@ export class Export {
     pdf.addImage(
       imgData,
       pdf.internal.pageSize.width - newWidth - pageMargin / 2 - 4,
-      pageMargin / 2 + 174,
+      startingAttrYPosition - pageMargin / 2 - 6,
       newWidth,
       newHeight,
     );
