@@ -202,7 +202,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
 		private static readonly JsonSerializerOptions layerResourceDeserializationOpts = new()
 		{
-			AllowTrailingCommas = true
+			AllowTrailingCommas = true,
+			NumberHandling = JsonNumberHandling.AllowReadingFromString,
 		};
 	}
 }
