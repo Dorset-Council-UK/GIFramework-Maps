@@ -1151,10 +1151,16 @@ export class Export {
    * @returns
    */
   private async getScaleLine() {
-    const scalelineData: HTMLElement = document.querySelector("div.ol-scale-line, div.ol-scale-bar");
-    const canvas = await html2canvas(scalelineData, {backgroundColor: null});
-   
-    return canvas.toDataURL('image/png');
+    const scalelineData: HTMLElement = document.querySelector("div.ol-scale-line");
+
+    if (scalelineData != null) {
+      const canvas = await html2canvas(scalelineData, { backgroundColor: null });
+      return canvas.toDataURL('image/png');
+    } else {
+      const scalelineData: HTMLElement = document.querySelector("div.ol-scale-bar");
+      const canvas = await html2canvas(scalelineData, { backgroundColor: null, width: scalelineData.clientWidth + 20, height: scalelineData.clientHeight + 20, x: -5, y: -15 });
+      return canvas.toDataURL('image/png');
+    }
   }
 
   /**
@@ -1176,7 +1182,7 @@ export class Export {
     pdf.addImage(
       imgData,
       pdf.internal.pageSize.width - newWidth - pageMargin / 2 - 4,
-      startingAttrYPosition - pageMargin / 2 - 6,
+      startingAttrYPosition - pageMargin / 2 - 12,
       newWidth,
       newHeight,
     );
