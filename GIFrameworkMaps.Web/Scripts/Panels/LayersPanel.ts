@@ -330,7 +330,7 @@ export class LayersPanel implements SidebarPanel {
     const collapseTag: HTMLButtonElement = container.querySelector(
       "#gifw-layer-switcher-collapse",
     );
-    collapseTag.addEventListener("click", () => {
+    collapseTag.addEventListener("click", (e) => {
       const layerListContainer = document
       .querySelector(this.container)
       .querySelector(".layer-switcher-tree");
@@ -357,7 +357,7 @@ export class LayersPanel implements SidebarPanel {
 
         }
       })
-
+        e.preventDefault();
     });
 
     /*TURN OFF LAYERS BUTTON*/
