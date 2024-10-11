@@ -72,6 +72,7 @@ export class Export {
       .getElementById(map.id)
       .dispatchEvent(new Event("gifw-measure-deactivate"));
     const olMap = map.olMap;
+    const oneInch = 25.4;
 
     const chosenPageSettings = this.pageSettings[pageSize];
     const width = Math.round(
@@ -79,14 +80,14 @@ export class Export {
         ? chosenPageSettings.pageWidth
         : chosenPageSettings.pageHeight) *
         resolution) /
-        25.4,
+        oneInch,
     ); //pixels
     const height = Math.round(
       ((pageOrientation === "l"
         ? chosenPageSettings.pageHeight
         : chosenPageSettings.pageWidth) *
         resolution) /
-        25.4,
+        oneInch,
     ); //pixels
     const pageMargin = 20; //mm
     let legendMargin = 0; //mm
@@ -96,8 +97,8 @@ export class Export {
           ? chosenPageSettings.inlineLegendLandscapeMaxWidth
           : chosenPageSettings.inlineLegendPortraitMaxWidth) | 0;
     }
-    const mapWidth = width - ((pageMargin + legendMargin) * resolution) / 25.4; //pixels
-    const mapHeight = height - (pageMargin * resolution) / 25.4; // pixels
+    const mapWidth = width - ((pageMargin + legendMargin) * resolution) / oneInch; //pixels
+    const mapHeight = height - (pageMargin * resolution) / oneInch; // pixels
     const originalMapSize = olMap.getSize();
     const viewResolution = olMap.getView().getResolution();
 
@@ -169,8 +170,8 @@ export class Export {
         // Set print size to standard
         legendMargin = 0;
         const mapWidth =
-          width - ((pageMargin + legendMargin) * resolution) / 25.4; //pixels
-        const mapHeight = height - (pageMargin * resolution) / 25.4; // pixels
+          width - ((pageMargin + legendMargin) * resolution) / oneInch; //pixels
+        const mapHeight = height - (pageMargin * resolution) / oneInch; // pixels
         this.setMapSizeForPrinting(
           olMap,
           mapWidth,
@@ -376,6 +377,7 @@ export class Export {
     const maxY = extent[3];
     const centX = center[0];
     const centY = center[1];
+    const oneInch = 25.4;
     //We slightly abuse the 'fit' extent functionality to make prints fit
     //better regardless of user screen size. The extent is calculated based
     //on the left and right hand extents of the map only when in landscape, and
@@ -412,7 +414,7 @@ export class Export {
       scale /
       olProj.getPointResolution(
         olMap.getView().getProjection(),
-        resolution / 25.4,
+        resolution / oneInch,
         olMap.getView().getCenter(),
       );
     const viewResolution = olMap.getView().getResolution();
@@ -833,8 +835,9 @@ export class Export {
             const layerNameWidth = pdf.getTextDimensions(layerName).w;
             const img = p.value[1];
             const imgProps = pdf.getImageProperties(img);
-            const widthInMM = (imgProps.width * 25.4) / 96;
-            const heightInMM = (imgProps.height * 25.4) / 96;
+            const oneInch = 25.4;
+            const widthInMM = (imgProps.width * oneInch) / 96;
+            const heightInMM = (imgProps.height * oneInch) / 96;
             pdf.text(layerName, currentX + 2, currentY);
             currentY += pdf.getTextDimensions(layerName).h;
             pdf.addImage(img, currentX + 2, currentY, widthInMM, heightInMM);
@@ -856,8 +859,9 @@ export class Export {
             const layerNameHeight = pdf.getTextDimensions(layerName).h;
             const img = p.value[1];
             const imgProps = pdf.getImageProperties(img);
-            const widthInMM = (imgProps.width * 25.4) / 96;
-            const heightInMM = (imgProps.height * 25.4) / 96;
+            const oneInch = 25.4;
+            const widthInMM = (imgProps.width * oneInch) / 96;
+            const heightInMM = (imgProps.height * oneInch) / 96;
             rectangleHeight += layerNameHeight + heightInMM + 8;
             if (widthInMM > rectangleWidth) rectangleWidth = widthInMM + 3;
             if (layerNameWidth > rectangleWidth)
@@ -896,8 +900,9 @@ export class Export {
             const layerNameWidth = pdf.getTextDimensions(layerName).w;
             const img = p.value[1];
             const imgProps = pdf.getImageProperties(img);
-            const widthInMM = (imgProps.width * 25.4) / 96;
-            const heightInMM = (imgProps.height * 25.4) / 96;
+            const oneInch = 25.4;
+            const widthInMM = (imgProps.width * oneInch) / 96;
+            const heightInMM = (imgProps.height * oneInch) / 96;
             pdf.text(layerName, currentX + 2, currentY);
             currentY += pdf.getTextDimensions(layerName).h;
             pdf.addImage(img, currentX + 2, currentY, widthInMM, heightInMM);
@@ -923,8 +928,9 @@ export class Export {
             const layerNameWidth = pdf.getTextDimensions(layerName).w;
             const img = p.value[1];
             const imgProps = pdf.getImageProperties(img);
-            let widthInMM = (imgProps.width * 25.4) / 96;
-            let heightInMM = (imgProps.height * 25.4) / 96;
+            const oneInch = 25.4;
+            let widthInMM = (imgProps.width * oneInch) / 96;
+            let heightInMM = (imgProps.height * oneInch) / 96;
             if (
               currentY + heightInMM + pdf.getTextDimensions(layerName).h >=
               pageHeight - pageMargin
@@ -1053,6 +1059,7 @@ export class Export {
       );
       const legendPromises = this.getLegendImages(legendUrls);
       const promises = await Promise.allSettled(legendPromises);
+      const oneInch = 25.4;
       //calculate width and height required
       pdf.setFontSize(pageSettings.titleFontSize);
       let totalRequiredHeight = pdf.getTextDimensions("Map key").h;
@@ -1069,8 +1076,8 @@ export class Export {
 
           const img = p.value[1];
           const imgProps = pdf.getImageProperties(img);
-          const widthInMM = (imgProps.width * 25.4) / 96;
-          const heightInMM = (imgProps.height * 25.4) / 96;
+          const widthInMM = (imgProps.width * oneInch) / 96;
+          const heightInMM = (imgProps.height * oneInch) / 96;
 
           totalRequiredHeight += heightInMM;
           if (totalRequiredWidth < widthInMM) totalRequiredWidth = widthInMM;
@@ -1174,12 +1181,13 @@ export class Export {
  */
   private createScalebarBox(pdf: jsPDF, pageMargin: number, imgData: string, startingAttrYPosition: number): void {
     const imgProps = pdf.getImageProperties(imgData);
+    const oneInch = 25.4;
     const printResolution = parseInt(
       (document.getElementById("gifw-print-resolution") as HTMLSelectElement)
         .value,
     );
-    const newWidth = (imgProps.width) * 25.4 / printResolution;
-    const newHeight = (imgProps.height) * 25.4 / printResolution;
+    const newWidth = (imgProps.width) * oneInch / printResolution;
+    const newHeight = (imgProps.height) * oneInch / printResolution;
 
     // Y Height is adjusted here due to OpenLayers interpretting pixels differently depending on DPI chosen
     let adjustedYHeight = 0;
