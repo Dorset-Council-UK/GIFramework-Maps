@@ -1147,7 +1147,9 @@ export class Export {
   }
 
   /** 
-   * Gets the scale line control and adds to canvas using html2canvas
+   * Gets the scale line control and adds to canvas using html2canvas. 
+   * Due to the way OpenLayers works, the scale bar uses additional options for html2canvas
+   * that adjust the size of the canvas selected to make sure to include the scale numbers and text properly.
    * @returns
    */
   private async getScaleLine() {
@@ -1179,10 +1181,22 @@ export class Export {
     const newWidth = (imgProps.width) * 25.4 / printResolution;
     const newHeight = (imgProps.height) * 25.4 / printResolution;
 
+    // Y Height is adjusted here due to OpenLayers interpretting pixels differently depending on DPI chosen
+    let adjustedYHeight = 0;
+    if (printResolution == 96) {
+      adjustedYHeight = 15;
+    } else if (printResolution == 150) {
+      adjustedYHeight = 10;
+    } else if (printResolution == 200) {
+      adjustedYHeight = 8;
+    } else {
+      adjustedYHeight = 6;
+    }
+
     pdf.addImage(
       imgData,
       pdf.internal.pageSize.width - newWidth - pageMargin / 2 - 4,
-      startingAttrYPosition - pageMargin / 2 - 12,
+      startingAttrYPosition - pageMargin / 2 - adjustedYHeight,
       newWidth,
       newHeight,
     );
