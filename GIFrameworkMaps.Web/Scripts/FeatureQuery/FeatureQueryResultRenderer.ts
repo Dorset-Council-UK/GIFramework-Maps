@@ -253,8 +253,9 @@ export class FeatureQueryResultRenderer {
         const listItemLink = document.createElement("a");
         listItemLink.text = listItemContent;
         listItemLink.href = "#";
-        listItemLink.addEventListener("click", () => {
-          this.showFeaturePopup(coords, r.layer, f, responsesWithData);
+        listItemLink.addEventListener("click", (e) => {
+            this.showFeaturePopup(coords, r.layer, f, responsesWithData);
+            e.preventDefault();
         });
         listItem.appendChild(listItemLink);
         featureList.appendChild(listItem);

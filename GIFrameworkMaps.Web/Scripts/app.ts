@@ -50,9 +50,12 @@ document.addEventListener("DOMContentLoaded", () => {
     configure_cookie_control == "Civic Cookie Control" &&
     typeof CookieControl != "undefined"
   ) {
-    document
-      .getElementById("CookieControlLink")
-      .addEventListener("click", CookieControl.open);
+      document
+          .getElementById("CookieControlLink")
+          .addEventListener("click", (e) => {
+              CookieControl.open;
+              e.preventDefault();
+          });
   }
 
   const mapId = "giframeworkMap";
