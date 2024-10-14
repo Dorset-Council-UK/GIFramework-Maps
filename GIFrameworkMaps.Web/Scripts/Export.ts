@@ -1185,11 +1185,11 @@ export class Export {
 
     // Y Height is adjusted here due to OpenLayers interpretting pixels differently depending on DPI chosen
     let adjustedYHeight = 0;
-    if (printResolution == 96) {
+    if (printResolution <= 96) {
       adjustedYHeight = 15;
-    } else if (printResolution == 150) {
+    } else if (printResolution <= 150) {
       adjustedYHeight = 10;
-    } else if (printResolution == 200) {
+    } else if (printResolution <= 200) {
       adjustedYHeight = 8;
     } else {
       adjustedYHeight = 6;
