@@ -2,6 +2,7 @@
 import { Map } from "ol";
 import * as olProj from "ol/proj";
 import { Size } from "ol/size";
+import * as olControl from "ol/control";
 import { LegendURLs } from "./Interfaces/LegendURLs";
 import {
   PDFPageSetting,
@@ -10,6 +11,7 @@ import {
 import { PrintConfiguration } from "./Interfaces/Print/PrintConfiguration";
 import { GIFWMap } from "./Map";
 import { GIFWMousePositionControl } from "./MousePositionControl";
+import html2canvas from 'html2canvas';
 
 export type LegendPositioningOption =
   | "none"
@@ -29,6 +31,9 @@ export class Export {
   printConfiguration: PrintConfiguration;
   _timeoutId: number;
   _maxProcessingTime: number = 60000;
+  startingAttrYPosition: number;
+  ONE_INCH: 25.4;
+  DEFAULT_SCREEN_RESOLUTION: 96;
 
   constructor(
     pageSettings: PDFPageSettings,
@@ -76,14 +81,14 @@ export class Export {
         ? chosenPageSettings.pageWidth
         : chosenPageSettings.pageHeight) *
         resolution) /
-        25.4,
+        this.ONE_INCH,
     ); //pixels
     const height = Math.round(
       ((pageOrientation === "l"
         ? chosenPageSettings.pageHeight
         : chosenPageSettings.pageWidth) *
         resolution) /
-        25.4,
+        this.ONE_INCH,
     ); //pixels
     const pageMargin = 20; //mm
     let legendMargin = 0; //mm
@@ -93,8 +98,8 @@ export class Export {
           ? chosenPageSettings.inlineLegendLandscapeMaxWidth
           : chosenPageSettings.inlineLegendPortraitMaxWidth) | 0;
     }
-    const mapWidth = width - ((pageMargin + legendMargin) * resolution) / 25.4; //pixels
-    const mapHeight = height - (pageMargin * resolution) / 25.4; // pixels
+    const mapWidth = width - ((pageMargin + legendMargin) * resolution) / this.ONE_INCH; //pixels
+    const mapHeight = height - (pageMargin * resolution) / this.ONE_INCH; // pixels
     const originalMapSize = olMap.getSize();
     const viewResolution = olMap.getView().getResolution();
 
@@ -166,8 +171,8 @@ export class Export {
         // Set print size to standard
         legendMargin = 0;
         const mapWidth =
-          width - ((pageMargin + legendMargin) * resolution) / 25.4; //pixels
-        const mapHeight = height - (pageMargin * resolution) / 25.4; // pixels
+          width - ((pageMargin + legendMargin) * resolution) / this.ONE_INCH; //pixels
+        const mapHeight = height - (pageMargin * resolution) / this.ONE_INCH; // pixels
         this.setMapSizeForPrinting(
           olMap,
           mapWidth,
@@ -282,6 +287,20 @@ export class Export {
 
       this.createAttributionsBox(pdf, map, pageMargin, chosenPageSettings);
 
+      const scalebarCheckbox = (document.getElementById(
+        "gifw-print-scale-bar",
+      ) as HTMLInputElement);
+      if (scalebarCheckbox.checked) {
+        try {
+          const scaleImg = await this.getScaleLine();
+          const imgData = scaleImg;
+          await this.createScalebarBox(pdf, pageMargin, imgData, this.startingAttrYPosition);
+        } catch (ex) {
+          console.warn(`Getting the scaleline for a print failed.`);
+          console.error(ex);
+        }
+      }
+      
       try {
         const logoResp = await this.getLogo();
         const imgData = <string>logoResp;
@@ -395,12 +414,15 @@ export class Export {
       scale /
       olProj.getPointResolution(
         olMap.getView().getProjection(),
-        resolution / 25.4,
+        resolution / this.ONE_INCH,
         olMap.getView().getCenter(),
       );
     const viewResolution = olMap.getView().getResolution();
     const isScalePrint = scale ? true : false;
     const size = olMap.getSize();
+
+    const scaleLineCtrl = olMap.getControls().getArray().filter(c => c instanceof olControl.ScaleLine);
+    (scaleLineCtrl[0] as olControl.ScaleLine).setDpi(scaleResolution);
 
     if (isScalePrint) {
       olMap.getView().setResolution(scaleResolution);
@@ -721,7 +743,7 @@ export class Export {
 
     const attrTotalLines = attrLines.length;
     const startingAttrXPosition = pdf.internal.pageSize.width - pageMargin;
-    const startingAttrYPosition =
+    this.startingAttrYPosition =
       pdf.internal.pageSize.height -
       4 -
       ((pdf.getTextDimensions(attributionText).h + 1) * attrTotalLines - 1);
@@ -730,7 +752,7 @@ export class Export {
     pdf.setDrawColor(0, 0, 0);
     pdf.rect(
       startingAttrXPosition - maxAttrTextWidth + 5,
-      startingAttrYPosition - pageMargin / 2,
+      this.startingAttrYPosition - pageMargin / 2,
       maxAttrTextWidth + 5,
       (pdf.getTextDimensions(attributionText).h + 1) * attrTotalLines + 3,
       "DF",
@@ -739,7 +761,7 @@ export class Export {
     pdf.text(
       attributionText,
       startingAttrXPosition + 7.5,
-      startingAttrYPosition - 5,
+      this.startingAttrYPosition - 5,
       { maxWidth: maxAttrWidth, align: "right" },
     );
   }
@@ -813,8 +835,8 @@ export class Export {
             const layerNameWidth = pdf.getTextDimensions(layerName).w;
             const img = p.value[1];
             const imgProps = pdf.getImageProperties(img);
-            const widthInMM = (imgProps.width * 25.4) / 96;
-            const heightInMM = (imgProps.height * 25.4) / 96;
+            const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+            const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
             pdf.text(layerName, currentX + 2, currentY);
             currentY += pdf.getTextDimensions(layerName).h;
             pdf.addImage(img, currentX + 2, currentY, widthInMM, heightInMM);
@@ -836,8 +858,8 @@ export class Export {
             const layerNameHeight = pdf.getTextDimensions(layerName).h;
             const img = p.value[1];
             const imgProps = pdf.getImageProperties(img);
-            const widthInMM = (imgProps.width * 25.4) / 96;
-            const heightInMM = (imgProps.height * 25.4) / 96;
+            const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+            const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
             rectangleHeight += layerNameHeight + heightInMM + 8;
             if (widthInMM > rectangleWidth) rectangleWidth = widthInMM + 3;
             if (layerNameWidth > rectangleWidth)
@@ -876,8 +898,8 @@ export class Export {
             const layerNameWidth = pdf.getTextDimensions(layerName).w;
             const img = p.value[1];
             const imgProps = pdf.getImageProperties(img);
-            const widthInMM = (imgProps.width * 25.4) / 96;
-            const heightInMM = (imgProps.height * 25.4) / 96;
+            const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+            const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
             pdf.text(layerName, currentX + 2, currentY);
             currentY += pdf.getTextDimensions(layerName).h;
             pdf.addImage(img, currentX + 2, currentY, widthInMM, heightInMM);
@@ -903,8 +925,8 @@ export class Export {
             const layerNameWidth = pdf.getTextDimensions(layerName).w;
             const img = p.value[1];
             const imgProps = pdf.getImageProperties(img);
-            let widthInMM = (imgProps.width * 25.4) / 96;
-            let heightInMM = (imgProps.height * 25.4) / 96;
+            let widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+            let heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
             if (
               currentY + heightInMM + pdf.getTextDimensions(layerName).h >=
               pageHeight - pageMargin
@@ -1049,8 +1071,8 @@ export class Export {
 
           const img = p.value[1];
           const imgProps = pdf.getImageProperties(img);
-          const widthInMM = (imgProps.width * 25.4) / 96;
-          const heightInMM = (imgProps.height * 25.4) / 96;
+          const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+          const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
 
           totalRequiredHeight += heightInMM;
           if (totalRequiredWidth < widthInMM) totalRequiredWidth = widthInMM;
@@ -1121,6 +1143,62 @@ export class Export {
       imgData,
       pdf.internal.pageSize.width - newWidth - pageMargin / 2 - 1,
       pageMargin / 2 + 1,
+      newWidth,
+      newHeight,
+    );
+  }
+
+  /** 
+   * Gets the scale line control and adds to canvas using html2canvas. 
+   * Due to the way OpenLayers works, the scale bar uses additional options for html2canvas
+   * that adjust the size of the canvas selected to make sure to include the scale numbers and text properly.
+   * @returns
+   */
+  private async getScaleLine() {
+    const scalelineData: HTMLElement = document.querySelector("div.ol-scale-line");
+
+    if (scalelineData != null) {
+      const canvas = await html2canvas(scalelineData, { backgroundColor: null });
+      return canvas.toDataURL('image/png');
+    } else {
+      const scalelineData: HTMLElement = document.querySelector("div.ol-scale-bar");
+      const canvas = await html2canvas(scalelineData, { backgroundColor: null, width: scalelineData.clientWidth + 20, height: scalelineData.clientHeight + 20, x: -5, y: -15 });
+      return canvas.toDataURL('image/png');
+    }
+  }
+
+  /**
+ * Creates the scalebar box and inserts the scale bar or scale line
+ * @param pdf
+ * @param pageMargin
+ * @param imgData - The base64 encoded image
+ * @param startingAttrYPosition - The starting Y position of the attribution
+ */
+  private createScalebarBox(pdf: jsPDF, pageMargin: number, imgData: string, startingAttrYPosition: number): void {
+    const imgProps = pdf.getImageProperties(imgData);
+    const printResolution = parseInt(
+      (document.getElementById("gifw-print-resolution") as HTMLSelectElement)
+        .value,
+    );
+    const newWidth = (imgProps.width) * this.ONE_INCH / printResolution;
+    const newHeight = (imgProps.height) * this.ONE_INCH / printResolution;
+
+    // Y Height is adjusted here due to OpenLayers interpretting pixels differently depending on DPI chosen
+    let adjustedYHeight = 0;
+    if (printResolution <= 96) {
+      adjustedYHeight = 15;
+    } else if (printResolution <= 150) {
+      adjustedYHeight = 10;
+    } else if (printResolution <= 200) {
+      adjustedYHeight = 8;
+    } else {
+      adjustedYHeight = 6;
+    }
+
+    pdf.addImage(
+      imgData,
+      pdf.internal.pageSize.width - newWidth - pageMargin / 2 - 4,
+      startingAttrYPosition - pageMargin / 2 - adjustedYHeight,
       newWidth,
       newHeight,
     );
