@@ -32,8 +32,8 @@ export class Export {
   _timeoutId: number;
   _maxProcessingTime: number = 60000;
   startingAttrYPosition: number;
-  ONE_INCH: 25.4;
-  DEFAULT_SCREEN_RESOLUTION: 96;
+  ONE_INCH: number =  25.4;
+  DEFAULT_SCREEN_RESOLUTION: number = 96;
 
   constructor(
     pageSettings: PDFPageSettings,
