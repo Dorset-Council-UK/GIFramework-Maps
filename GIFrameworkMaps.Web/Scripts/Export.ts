@@ -1162,7 +1162,7 @@ export class Export {
       return canvas.toDataURL('image/png');
     } else {
       const scalelineData: HTMLElement = document.querySelector("div.ol-scale-bar");
-      const canvas = await html2canvas(scalelineData, { backgroundColor: null, width: scalelineData.clientWidth + 20, height: scalelineData.clientHeight + 20, x: -5, y: -15 });
+      const canvas = await html2canvas(scalelineData, { backgroundColor: null, width: scalelineData.clientWidth + 20, height: scalelineData.clientHeight + 20, x: -5, y: -1 });
       return canvas.toDataURL('image/png');
     }
   }
