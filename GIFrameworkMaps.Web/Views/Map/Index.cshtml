@@ -1,10 +1,11 @@
 ﻿@using GIFrameworkMaps.Data.ViewModels
 @using GIFrameworkMaps.Data.ViewModels.Management
-@using Microsoft.Extensions.Configuration
+@using Microsoft.Extensions.Options
 @model VersionViewModel
-@inject IConfiguration configuration
+@inject IOptions<GIFrameworkMapsOptions> giFrameworkMapsOptions;
 @{
     string logoURL = Model.Theme.LogoURL;
+    var options = giFrameworkMapsOptions.Value;
 }
 @{
     ViewData["VersionName"] = Model.Name;
@@ -14,9 +15,9 @@
     ViewData["Description"] = Model.Description;
     ViewData["LogoURL"] = Model.Theme.LogoURL;
     ViewData["CustomFaviconURL"] = Model.Theme.CustomFaviconURL;
-    ViewData["ToSLink"] = configuration.GetValue<string>("GIFrameworkMaps:ToSLink");
-    ViewData["PrivacyLink"] = configuration.GetValue<string>("GIFrameworkMaps:PrivacyLink");
-    ViewData["AdminDocsLink"] = configuration.GetValue<string>("GIFrameworkMaps:AdminDocsLink");
+    ViewData["ToSLink"] = options.ToSLink;
+    ViewData["PrivacyLink"] = options.PrivacyLink;
+    ViewData["AdminDocsLink"] = options.AdminDocsLink;
     ViewData["ShowLogin"] = Model.ShowLogin;
     Layout = "_MapLayout";
     AnalyticsViewModel analyticsModel = (ViewData["AnalyticsModel"] != null ? (AnalyticsViewModel)ViewData["AnalyticsModel"] : new AnalyticsViewModel());
