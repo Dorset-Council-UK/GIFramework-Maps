@@ -1,4 +1,4 @@
-﻿namespace GIFrameworkMaps.Web.Options
+﻿namespace GIFrameworkMaps.Web
 {
 	public class GIFrameworkMapsOptions
 	{
