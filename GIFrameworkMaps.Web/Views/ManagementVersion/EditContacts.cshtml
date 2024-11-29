@@ -1,9 +1,9 @@
 ﻿@using GIFrameworkMaps.Data.ViewModels.Management
-@using Microsoft.Extensions.Configuration
+@using Microsoft.Extensions.Options
 @model VersionEditViewModel
-@inject IConfiguration configuration;
+@inject IOptions<GIFrameworkMapsOptions> giFrameworkMapsOptions;
 @{
-    string appName = configuration.GetValue<string>("GIFrameworkMaps:appName");
+    string appName = giFrameworkMapsOptions.Value.appName;
     ViewData["Title"] = $"Manage version users for '{Model.Version.Name}'";
     List<string> emailList = new List<string>();
     List<string> ContactableUsers = Model.Version.VersionContacts.Where(u => u.Enabled == true).Select(u => u.UserId).ToList();
