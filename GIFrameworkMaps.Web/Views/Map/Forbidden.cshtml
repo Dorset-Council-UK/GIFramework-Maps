@@ -1,8 +1,8 @@
 ﻿@model GIFrameworkMaps.Data.Models.Version
-@using Microsoft.Extensions.Configuration;
-@inject IConfiguration configuration;
+@using Microsoft.Extensions.Options
+@inject IOptions<GIFrameworkMapsOptions> giFrameworkMapsOptions;
 @{
-    string appName = configuration.GetValue<string>("GIFrameworkMaps:appName");
+    string appName = giFrameworkMapsOptions.Value.appName;
     ViewData["Title"] = "Forbidden";
 }
 
@@ -29,9 +29,9 @@
     // Request access to version button (conditional depending on whether there is a value in appSettings). 
     // This can be a URL to an online form, a mailto: link or anything you prefer. Make sure your tokens match those detailed below to automatically pull through the details.
     var userId = (User.Claims.FirstOrDefault(c => c.Type.Contains("nameidentifier")) != null ? User.Claims.FirstOrDefault(c => c.Type.Contains("nameidentifier")).Value : "Not provided");
-    string appAccessRequestLink = configuration.GetValue<string>("GIFrameworkMaps:AppAccessRequestLink");
+    string appAccessRequestLink = giFrameworkMapsOptions.Value.AppAccessRequestLink;
 
-    if (configuration.GetValue<string>("GIFrameworkMaps:AppAccessRequestLink") != "")
+    if (appAccessRequestLink != "")
     {
         string linkForVersionAccessRequest = appAccessRequestLink
             .Replace("{{VERSIONID}}", Model.Id.ToString())
