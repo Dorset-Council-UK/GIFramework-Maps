@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Svg;
 using System;
 using System.Collections.Generic;
@@ -22,15 +23,17 @@ namespace GIFrameworkMaps.Web.Controllers
 			ICommonRepository repository,
 			IWebHostEnvironment webHostEnvironment,
 			IAuthorizationService authorization,
-			IConfiguration configuration,
+			IOptions<GIFrameworkMapsOptions> options,
+			IOptions<ApiKeyOptions> apiKeyOptions,
 			ApplicationDbContext context) : Controller
     {
         //dependency injection
         private readonly ILogger<APIController> _logger = logger;
         private readonly ICommonRepository _repository = repository;
         private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
-        private readonly IConfiguration _configuration = configuration;
-        private readonly IAuthorizationService _authorization = authorization;
+		private readonly GIFrameworkMapsOptions _options = options.Value;
+		private readonly ApiKeyOptions _apiKeyOptions = apiKeyOptions.Value;
+		private readonly IAuthorizationService _authorization = authorization;
         private readonly ApplicationDbContext _context = context;
 
 		public IActionResult SVGIcon(string shape, string colour, string border_colour = "", string label = "", int height = 50, int width = 50)
@@ -115,7 +118,7 @@ namespace GIFrameworkMaps.Web.Controllers
                 version = await _repository.GetVersion(id);
             }
             
-            string appName = _configuration.GetValue<string>("GIFrameworkMaps:appName");
+			string appName = _options.appName;
             if (version != null && version.Theme != null)
             {
                 ManifestIcon largeIcon = new()
@@ -180,8 +183,8 @@ namespace GIFrameworkMaps.Web.Controllers
                     var host = Request.Host.ToUriComponent();
                     var pathBase = Request.PathBase.ToUriComponent();
                     versionViewModel.AppRoot = $"{host}{pathBase}/";
-                    versionViewModel.GoogleMapsAPIKey = _configuration.GetValue<string>("ApiKeys:Google:MapsAPIKey");
-                    versionViewModel.IsLoggedIn = User.Identity.IsAuthenticated;
+					versionViewModel.GoogleMapsAPIKey = _apiKeyOptions?.Google?.MapsApiKey ?? string.Empty;
+					versionViewModel.IsLoggedIn = User.Identity.IsAuthenticated;
                     return Json(versionViewModel);
                 }
                 else
