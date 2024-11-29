@@ -18,7 +18,6 @@ using Yarp.ReverseProxy.Transforms;
 using GIFrameworkMaps.Data.Models;
 using System.Threading;
 using NodaTime;
-using GIFrameworkMaps.Web.Options;
 
 namespace GIFrameworkMaps.Web
 {

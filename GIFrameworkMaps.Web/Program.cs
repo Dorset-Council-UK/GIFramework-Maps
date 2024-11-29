@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using NodaTime;
@@ -27,13 +28,15 @@ using Yarp.ReverseProxy.Forwarder;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<GIFrameworkMapsOptions>(builder.Configuration.GetSection(GIFrameworkMapsOptions.GIFrameworkMaps));
+var options = builder.Configuration.GetSection(GIFrameworkMapsOptions.GIFrameworkMaps).Get<GIFrameworkMapsOptions>();
+
 ConfigureKeyVault(builder);
-ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
+ConfigureServices(builder.Services, builder.Configuration, builder.Environment, options);
 
 var app = builder.Build();
 var forwarder = app.Services.GetService<IHttpForwarder>();
 
-var startup = new Startup(builder.Configuration);
+var startup = new Startup(options);
 startup.Configure(app, app.Environment, forwarder);
 await app.RunAsync();
 
@@ -61,19 +64,19 @@ void ConfigureKeyVault(WebApplicationBuilder builder)
                 x509Certificate));
 
 		builder.Services.Configure<ApiKeyOptions>(builder.Configuration.GetSection(ApiKeyOptions.ApiKeys));
-    }
+	}
 }
 
-void ConfigureServices(IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+void ConfigureServices(IServiceCollection services, IConfiguration configuration, IHostEnvironment environment, GIFrameworkMapsOptions options)
 {
-    // Configure forwarded headers options
-    services.Configure<ForwardedHeadersOptions>(options =>
-    {
-        options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
-    });
+	// Configure forwarded headers options
+	services.Configure<ForwardedHeadersOptions>(options =>
+	{
+		options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+	});
 
     // Suppress X-Frame-Options header if specified in the configuration
-    if (bool.TryParse(configuration["GIFrameworkMaps:SuppressXFrameOptions"], out bool suppressXFrameOptions) && suppressXFrameOptions)
+    if (options.SuppressXFrameOptions)
     {
         services.AddAntiforgery(x => x.SuppressXFrameOptionsHeader = true);
     }
@@ -128,15 +131,15 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         services.AddRazorPages();
     }
 
-	// Add custom authorization handlers and policies
-	builder.Services.AddTransient<IAuthorizationHandler, HasAccessToVersionAuthorizationHandler>();
-	builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformer>();
+    // Add custom authorization handlers and policies
+    builder.Services.AddTransient<IAuthorizationHandler, HasAccessToVersionAuthorizationHandler>();
+    builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformer>();
 
-	builder.Services.AddAuthorizationBuilder()
-		.AddPolicy("CanAccessVersion", policy => policy.AddRequirements(new HasAccessToVersionRequirement()));
+    builder.Services.AddAuthorizationBuilder()
+        .AddPolicy("CanAccessVersion", policy => policy.AddRequirements(new HasAccessToVersionRequirement()));
 
-	// Add scoped repositories
-	services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
+    // Add scoped repositories
+    services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
     services.AddScoped<ICommonRepository, CommonRepository>();
     services.AddScoped<ISearchRepository, SearchRepository>();
     services.AddScoped<IPrintRepository, PrintRepository>();
