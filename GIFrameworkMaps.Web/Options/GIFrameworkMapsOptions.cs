@@ -3,7 +3,6 @@
 	public class GIFrameworkMapsOptions
 	{
 		public const string GIFrameworkMaps = "GIFrameworkMaps";
-
 		public string appName { get; set; }
 		public bool UseHttpsRedirection { get; set; }
 		public string ToSLink { get; set; }
