@@ -1,7 +1,7 @@
-﻿@using Microsoft.Extensions.Configuration;
-@inject IConfiguration configuration;
+﻿@using Microsoft.Extensions.Options
+@inject IOptions<GIFrameworkMapsOptions> giFrameworkMapsOptions;
 @{
-    string appName = configuration.GetValue<string>("GIFrameworkMaps:appName");
+    string appName = giFrameworkMapsOptions.Value.appName;
     ViewData["Title"] = "Layers";
 }
 
