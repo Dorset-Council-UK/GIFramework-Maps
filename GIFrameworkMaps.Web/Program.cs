@@ -27,10 +27,12 @@ using Yarp.ReverseProxy.Forwarder;
 
 var builder = WebApplication.CreateBuilder(args);
 
+ConfigureKeyVault(builder);
+
 builder.Services.Configure<GIFrameworkMapsOptions>(builder.Configuration.GetSection(GIFrameworkMapsOptions.GIFrameworkMaps));
+builder.Services.Configure<ApiKeyOptions>(builder.Configuration.GetSection(ApiKeyOptions.ApiKeys));
 var options = builder.Configuration.GetSection(GIFrameworkMapsOptions.GIFrameworkMaps).Get<GIFrameworkMapsOptions>();
 
-ConfigureKeyVault(builder);
 ConfigureServices(builder.Services, builder.Configuration, builder.Environment, options);
 
 var app = builder.Build();
@@ -62,8 +64,6 @@ void ConfigureKeyVault(WebApplicationBuilder builder)
                 builder.Configuration.GetSection("KeyVault").GetSection("AzureAd")["DirectoryId"],
                 builder.Configuration.GetSection("KeyVault").GetSection("AzureAd")["ApplicationId"],
                 x509Certificate));
-
-		builder.Services.Configure<ApiKeyOptions>(builder.Configuration.GetSection(ApiKeyOptions.ApiKeys));
 	}
 }
 
