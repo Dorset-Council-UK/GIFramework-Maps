@@ -1,5 +1,5 @@
-﻿@using Microsoft.Extensions.Configuration;
-@inject IConfiguration configuration;
+﻿@using Microsoft.Extensions.Options
+@inject IOptions<GIFrameworkMapsOptions> giFrameworkMapsOptions;
 <div class="card-body pt-0">
     <div class="card-title-closeable py-3">
         <h5 class="card-title">Share</h5>
@@ -23,7 +23,7 @@
         <h6>Generate a short link</h6>
         <p>Generate a shorter link that does everything the link above does, but shorter!</p>
         <button id="gifw-generate-short-link" class="btn btn-outline-primary">Generate short link</button>
-        @if (!configuration.GetValue<bool>("GIFrameworkMaps:HideEmbedOption"))
+        @if (!giFrameworkMapsOptions.Value.HideEmbedOption)
         {
             <h6 class="mt-2">Embed the map in your own page</h6>
             <p>Copy the code below and paste into your webpage to embed the map</p>

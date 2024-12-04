@@ -21,18 +21,15 @@ using NodaTime;
 
 namespace GIFrameworkMaps.Web
 {
-	public class Startup(IConfiguration configuration)
+	public class Startup(GIFrameworkMapsOptions options)
 	{
-		public IConfiguration Configuration { get; } = configuration;
-
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
 		public void Configure(
             IApplicationBuilder app, 
             IWebHostEnvironment env, 
             IHttpForwarder forwarder)
         {
-
-            app.UseForwardedHeaders();
+			app.UseForwardedHeaders();
             if (env.IsDevelopment())
             {
                 SeedDatabase(app);
@@ -43,14 +40,8 @@ namespace GIFrameworkMaps.Web
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-            bool useHttpsRedirection = true;
 
-            if (bool.TryParse(Configuration["GIFrameworkMaps:UseHttpsRedirection"], out bool config_useHttpsRedirection))
-            {
-                useHttpsRedirection = config_useHttpsRedirection;
-            };
-
-            if (useHttpsRedirection)
+            if (options.UseHttpsRedirection)
             {
                 app.UseHttpsRedirection();
             }
