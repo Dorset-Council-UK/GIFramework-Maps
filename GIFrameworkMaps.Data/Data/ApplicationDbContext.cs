@@ -26,6 +26,7 @@ namespace GIFrameworkMaps.Data
         public DbSet<LayerSource> LayerSources { get; set; }
         public DbSet<LayerSourceOption> LayerSourceOptions { get; set; }
         public DbSet<LayerSourceType> LayerSourceTypes { get; set; }
+		public DbSet<LayerDisclaimer> LayerDisclaimers { get; set; }
         public DbSet<LocalSearchDefinition> LocalSearchDefinitions { get; set; }
         public DbSet<PrintConfiguration> PrintConfigurations { get; set; }
 		public DbSet<Projection> Projections { get; set; }
@@ -56,6 +57,7 @@ namespace GIFrameworkMaps.Data
 			modelBuilder.ApplyConfiguration(new DatabaseSearchResultConfiguration());
 			modelBuilder.ApplyConfiguration(new LayerConfiguration());
 			modelBuilder.ApplyConfiguration(new LayerSourceConfiguration());
+			modelBuilder.ApplyConfiguration(new LayerDisclaimerConfiguration());
 			modelBuilder.ApplyConfiguration(new ProjectionConfiguration());
 			modelBuilder.ApplyConfiguration(new ShortLinkConfiguration());
 			modelBuilder.ApplyConfiguration(new TourDetailConfiguration());

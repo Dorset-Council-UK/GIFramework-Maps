@@ -22,12 +22,19 @@ export interface LayerSource {
   layerSourceOptions: LayerSourceOption[];
 }
 
+export interface LayerDisclaimer {
+  id: number;
+  disclaimer: string;
+  frequency: number;
+  dismissText: string;
+}
 export interface Layer {
   id: string;
   name: string;
   sortOrder: number;
   isDefault: boolean;
   layerSource: LayerSource;
+  layerDisclaimer: LayerDisclaimer;
   bound: Bound;
   minZoom: number;
   maxZoom: number;

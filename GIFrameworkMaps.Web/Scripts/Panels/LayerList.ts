@@ -1,5 +1,5 @@
 ﻿import { Category } from "../Interfaces/Category";
-import { Layer } from "../Interfaces/Layer";
+import { Layer, LayerDisclaimer } from "../Interfaces/Layer";
 import { Layer as olLayer } from "ol/layer";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { LayerListSortingOption } from "../Interfaces/LayerPanel/LayerListSortingOption";
@@ -7,6 +7,9 @@ import { LayerFilter } from "../LayerFilter";
 import { GIFWMap } from "../Map";
 import { MetadataViewer } from "../Metadata/MetadataViewer";
 import { LayersPanel } from "./LayersPanel";
+import { Alert, AlertSeverity, AlertType } from "../Util";
+import { UserSettings } from "../UserSettings";
+import { DateTime } from "luxon";
 
 export class LayerList {
   layerCategories: Category[];
@@ -162,6 +165,9 @@ export class LayerList {
       const element: HTMLInputElement = <HTMLInputElement>e.currentTarget;
       const layerId = element.value;
       this.gifwMapInstance.setLayerVisibility(layerId, element.checked);
+      if (element.checked && layer.layerDisclaimer !== null) {
+        this.showLayerDisclaimerIfAppropriate(layer.layerDisclaimer);
+      }
     });
 
     const label = document.createElement("label");
@@ -274,4 +280,59 @@ export class LayerList {
       return 0;
     }
   }
+
+  private showLayerDisclaimerIfAppropriate(disclaimer: LayerDisclaimer) {
+    //check localstorage to see if this dislaimer has been shown
+    const lastViewedTimeSetting = UserSettings.getItem(`DisclaimerLastViewed-${disclaimer.id}`);
+    let lastViewed = null;
+    if (lastViewedTimeSetting) {
+      //attempt to convert the stored string into a real date
+      const lastViewedTime = DateTime.fromISO(lastViewedTimeSetting);
+      if (lastViewedTime.invalidReason === null) {
+        lastViewed = lastViewedTime.toJSDate();
+      } else {
+        //delete the invalid iteam
+        UserSettings.removeItem(`DisclaimerLastViewed-${disclaimer.id}`);
+      }
+    }
+
+    if (this.showDisclaimer(disclaimer.frequency, lastViewed)) {
+      const modalContent = disclaimer.disclaimer;
+      const disclaimerModal = new Alert(
+        AlertType.Popup,
+        AlertSeverity.Info,
+        `Disclaimer`,
+        modalContent,
+        "#layer-disclaimer-modal",
+      );
+      if (disclaimer.dismissText !== null) {
+        document.querySelector('#layer-disclaimer-modal button').textContent = disclaimer.dismissText;
+      } else {
+        document.querySelector('#layer-disclaimer-modal button').textContent = 'Close';
+      }
+      disclaimerModal.show();
+      UserSettings.setItem(`DisclaimerLastViewed-${disclaimer.id}`, new Date().toISOString());
+    }
+  }
+  private showDisclaimer(frequency: number, lastViewed: Date): boolean {
+    if (lastViewed === null) {
+      return true;
+    }
+    switch (frequency) {
+      case -1:
+        //once
+        return lastViewed === null;
+      case 0:
+        //always (should be equivilant to this map session?)
+        return true;
+      default: {
+        //specified days
+        const comparisonDate = DateTime.now()
+          .minus({ days: frequency })
+          .toJSDate();
+        return lastViewed < comparisonDate;
+      }
+    }
+  }
+
 }

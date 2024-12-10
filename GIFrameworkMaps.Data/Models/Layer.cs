@@ -37,7 +37,8 @@ namespace GIFrameworkMaps.Data.Models
         public bool ProxyMapRequests { get; set; }
         public int LayerSourceId { get; set; }
         public LayerSource? LayerSource { get; set; }
-        //public virtual List<Category> Categories { get; set; }
+		public LayerDisclaimer? LayerDisclaimer { get; set; }
+		//public virtual List<Category> Categories { get; set; }
 
-    }
+	}
 }

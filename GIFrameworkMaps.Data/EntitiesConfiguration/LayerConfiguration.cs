@@ -19,6 +19,10 @@ namespace GIFrameworkMaps.Data.EntitiesConfiguration
 			builder
 				.Navigation(o => o.LayerSource)
 				.AutoInclude();
+
+			builder
+				.Navigation(o => o.LayerDisclaimer)
+				.AutoInclude();
 		}
 	}
 }
