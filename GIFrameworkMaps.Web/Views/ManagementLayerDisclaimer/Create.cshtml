@@ -1,0 +1,62 @@
+﻿@model GIFrameworkMaps.Data.Models.LayerDisclaimer
+@{
+    ViewData["Title"] = $"Create new layer disclaimer";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div>
+    <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/gui/layer-disclaimers/" class="btn btn-outline-primary" target="_blank"
+       role="button">Stuck? Read the help documentation</a>
+</div>
+
+<div class="row mt-2">
+    <div class="col-md-8">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <div class="mb-3">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Disclaimer" class="control-label"></label>
+                <textarea asp-for="Disclaimer" class="form-control" rows="5"></textarea>
+                <div class="form-text">Please include any HTML markup for paragraphs, headers and links</div>
+                <span asp-validation-for="Disclaimer" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Frequency" class="control-label"></label>
+                <select asp-for="Frequency" class="form-select">
+                    <option value="-1">Just once</option>
+                    <option value="0">Always (once per session)</option>
+                    <option value="1">Once a day</option>
+                    <option value="7">Once a week</option>
+                    <option value="14">Once every fortnight</option>
+                    <option value="30">Once a month</option>
+                    <option value="182">Once every six months</option>
+                    <option value="365">Once a year</option>
+                </select>
+                <span asp-validation-for="Frequency" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="DismissText" class="control-label"></label>
+                <input asp-for="DismissText" class="form-control" />
+                <div class="form-text">The text you want on your button. Leave this blank to use the default of 'Close'</div>
+                <span asp-validation-for="DismissText" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Cancel</a>
+</div>
+
+
+            
+
+

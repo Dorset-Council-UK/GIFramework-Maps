@@ -1,0 +1,42 @@
+﻿@model List<GIFrameworkMaps.Data.Models.LayerDisclaimer>
+@{
+    ViewData["Title"] = "Layer Disclaimers";
+
+    // Working out the base edit URL once is significantly faster than doing it for each row
+    var editUrl = Url.Action("Edit");
+}
+
+<partial name="ManagementPartials/BackToManagementHome" />
+
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Create, edit and delete layer dislcaimers</p>
+
+<a href="@Url.Action("Create")" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add new layer disclaimer</a>
+
+@if (Model != null)
+{
+    <table class="table table-bordered table-striped mt-2">
+        <thead>
+            <tr>
+                <th>ID</th><th>Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (GIFrameworkMaps.Data.Models.LayerDisclaimer layerDisclaimer in Model.OrderBy(a => a.Id))
+            {
+                <tr>
+                    <td>@layerDisclaimer.Id</td>
+                    <td><a href="@editUrl/@layerDisclaimer.Id">@layerDisclaimer.Name</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No layer disclaimers have been created yet</div>
+}
+
+            
+
+

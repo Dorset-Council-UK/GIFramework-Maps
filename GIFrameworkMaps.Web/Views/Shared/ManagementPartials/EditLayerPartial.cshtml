@@ -88,6 +88,14 @@
 <div class="collapse border-start border-bottom border-5 ps-3 mb-3" id="advancedSettings">
 
     <div class="mb-3">
+        <label asp-for="Layer.LayerDisclaimerId" class="control-label"></label>
+        <select asp-for="Layer.LayerDisclaimerId" asp-items="Model.AvailableDisclaimers" class="form-select">
+            <option value="">No disclaimer</option>
+        </select>
+        <span asp-validation-for="Layer.LayerDisclaimerId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
         <label asp-for="Layer.BoundId" class="control-label"></label>
         <select asp-for="Layer.BoundId" asp-items="Model.AvailableBounds" class="form-select">
             <option value="">Not bounded</option>

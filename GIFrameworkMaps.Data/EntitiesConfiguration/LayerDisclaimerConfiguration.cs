@@ -15,6 +15,7 @@ namespace GIFrameworkMaps.Data.EntitiesConfiguration
 			builder
 				.Property(o => o.Frequency)
 				.HasDefaultValue(-1);
+
 		}
 	}
 }
