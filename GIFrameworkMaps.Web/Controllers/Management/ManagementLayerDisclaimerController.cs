@@ -92,7 +92,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
                 if (await TryUpdateModelAsync(
                 layerDisclaimerToUpdate,
-                "",
+                "LayerDisclaimer",
                 a => a.Name, 
                 a => a.Disclaimer, 
                 a => a.Frequency, 

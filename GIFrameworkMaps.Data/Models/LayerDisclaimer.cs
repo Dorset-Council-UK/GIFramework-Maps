@@ -13,7 +13,7 @@ namespace GIFrameworkMaps.Data.Models
 		[MaxLength(4000)]
 		public string? Disclaimer { get; set; }
 		[Required]
-		public int Frequency { get; set; } = -1;
+		public int Frequency { get; set; }
 		[DisplayName("Dismiss Text")]
 		[MaxLength(50)]
 		public string? DismissText { get; set; }

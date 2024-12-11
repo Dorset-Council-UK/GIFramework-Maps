@@ -6,7 +6,7 @@
 <h1>@ViewData["Title"]</h1>
 
 <div>
-    <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/gui/layer-disclaimers/" class="btn btn-outline-primary" target="_blank"
+    <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/gui/layers/#layer-disclaimers" class="btn btn-outline-primary" target="_blank"
        role="button">Stuck? Read the help documentation</a>
 </div>
 
@@ -30,7 +30,7 @@
                 <label asp-for="LayerDisclaimer.Frequency" class="control-label"></label>
                 <select asp-for="LayerDisclaimer.Frequency" class="form-select">
                     <option value="-1">Just once</option>
-                    <option value="0">Always</option>
+                    <option value="0">Always (once per session)</option>
                     <option value="1">Once a day</option>
                     <option value="7">Once a week</option>
                     <option value="14">Once every fortnight</option>
