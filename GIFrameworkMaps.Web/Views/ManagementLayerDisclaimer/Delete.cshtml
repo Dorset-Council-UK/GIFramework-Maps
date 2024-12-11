@@ -1,0 +1,43 @@
+﻿@model GIFrameworkMaps.Data.ViewModels.Management.LayerDisclaimerViewModel
+@{
+    ViewData["Title"] = $"Delete layer disclaimer '{Model.LayerDisclaimer.Name}'";
+}
+
+<h1>@ViewData["Title"]</h1>
+<div class="row mt-2">
+
+    @if(Model.LayersUsingDisclaimer != null && Model.LayersUsingDisclaimer.Count != 0){
+        <h3>The following layers are using this disclaimer. Change the disclaimer on the layers before deleting this disclaimer.</h3>
+        <table class="table table-striped">
+            <tbody>
+                @foreach (var layer in Model.LayersUsingDisclaimer)
+                {
+                    <tr>
+                        <td><a href="@Url.ActionLink("Edit","ManagementLayer", new {id=layer.Id})">@layer.Name</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }else{
+        <h2>Are you sure you want to delete this disclaimer?</h2>
+        <p class="lead">This action cannot be undone.</p>
+
+        <form asp-action="Delete">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <input type="hidden" asp-for="LayerDisclaimer.Id" />
+            <div class="mb-3">
+                <input type="submit" value="Delete" class="btn btn-danger" />
+            </div>
+        </form>
+    }
+
+</div>
+    
+
+<div>
+    <a asp-action="Index">Cancel</a>
+</div>
+
+            
+
+

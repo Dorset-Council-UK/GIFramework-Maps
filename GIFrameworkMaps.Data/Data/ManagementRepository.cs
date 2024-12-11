@@ -125,7 +125,30 @@ namespace GIFrameworkMaps.Data
             return await _context.LayerSourceOptions.FindAsync(id);
 		}
 
-        public async Task<WebLayerServiceDefinition?> GetWebLayerServiceDefinition(int id)
+		public async Task<List<LayerDisclaimer>> GetLayerDisclaimers()
+		{
+			return await _context.LayerDisclaimers
+				.AsNoTracking()
+				.ToListAsync();
+		}
+		public async Task<LayerDisclaimer?> GetLayerDisclaimer(int id)
+		{
+			return await _context.LayerDisclaimers.FindAsync(id);
+		}
+		public async Task<LayerDisclaimerViewModel?> GetLayerDisclaimerViewModel(int id)
+		{
+			var layerDisclaimer = await _context.LayerDisclaimers.FindAsync(id);
+			if (layerDisclaimer == null) { return null; }
+			var layersUsingDisclaimer = await _context.Layers.Where(l => l.LayerDisclaimerId == id).ToListAsync();
+			var viewModel = new LayerDisclaimerViewModel()
+			{
+				LayerDisclaimer = layerDisclaimer,
+				LayersUsingDisclaimer = layersUsingDisclaimer
+			};
+			return viewModel;
+
+		}
+		public async Task<WebLayerServiceDefinition?> GetWebLayerServiceDefinition(int id)
         {
             return await _context.WebLayerServiceDefinitions.FindAsync(id);
 		}

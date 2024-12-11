@@ -22,5 +22,6 @@ namespace GIFrameworkMaps.Data.ViewModels
 		public bool ProxyMetaRequests { get; set; }
 		public bool ProxyMapRequests { get; set; }
 		public LayerSource? LayerSource { get; set; }
+		public LayerDisclaimer? LayerDisclaimer { get; set; }
 	}
 }
