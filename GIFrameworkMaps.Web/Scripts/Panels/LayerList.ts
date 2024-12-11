@@ -282,8 +282,14 @@ export class LayerList {
   }
 
   private showLayerDisclaimerIfAppropriate(disclaimer: LayerDisclaimer) {
-    //check localstorage to see if this dislaimer has been shown
+    //check sessionStorage to see if this disclaimer has been shown in this session
+    const lastViewedSession = UserSettings.getSessionItem(`DisclaimerViewed-${disclaimer.id}`);
+    if (lastViewedSession !== null) {
+      return;
+    }
+    //check localstorage to see if this dislaimer has been shown recently
     const lastViewedTimeSetting = UserSettings.getItem(`DisclaimerLastViewed-${disclaimer.id}`);
+    
     let lastViewed = null;
     if (lastViewedTimeSetting) {
       //attempt to convert the stored string into a real date
@@ -312,6 +318,7 @@ export class LayerList {
       }
       disclaimerModal.show();
       UserSettings.setItem(`DisclaimerLastViewed-${disclaimer.id}`, new Date().toISOString());
+      UserSettings.setSessionItem(`DisclaimerViewed-${disclaimer.id}`, "true")
     }
   }
   private showDisclaimer(frequency: number, lastViewed: Date): boolean {
@@ -323,7 +330,7 @@ export class LayerList {
         //once
         return lastViewed === null;
       case 0:
-        //always (should be equivilant to this map session?)
+        //always (should only show once per session)
         return true;
       default: {
         //specified days
@@ -334,5 +341,4 @@ export class LayerList {
       }
     }
   }
-
 }
