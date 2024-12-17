@@ -150,6 +150,11 @@ namespace GIFrameworkMaps.Web
                    defaults: new { controller = "ManagementLayerCategory", action = "Index" });
 
 				endpoints.MapControllerRoute(
+				   name: "ManagementInterface-LayerDisclaimer",
+				   pattern: "Management/LayerDisclaimer/{action=Index}/{id?}",
+				   defaults: new { controller = "ManagementLayerDisclaimer", action = "Index" });
+
+				endpoints.MapControllerRoute(
 				   name: "ManagementInterface-Basemap",
 				   pattern: "Management/Basemap/{action=Index}/{id?}",
 				   defaults: new { controller = "ManagementBasemap", action = "Index" });

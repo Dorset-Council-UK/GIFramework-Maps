@@ -8,6 +8,7 @@ namespace GIFrameworkMaps.Data.ViewModels.Management
 	{
 		public Layer? Layer { get; set; }
 		public SelectList? AvailableBounds { get; set; }
+		public SelectList? AvailableDisclaimers { get; set; }
 		public IList<int> SelectedCategories { get; set; } = [];
 		public IList<Category> AvailableCategories { get; set; } = [];
 	}

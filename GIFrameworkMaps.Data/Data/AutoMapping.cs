@@ -33,6 +33,7 @@ namespace GIFrameworkMaps.Data
 			CreateMap<CategoryLayer, LayerViewModel>()
 				.ForMember(cl => cl.Id, lvm => lvm.MapFrom(s => s.LayerId))
 				.ForMember(cl => cl.LayerSource, lvm => lvm.MapFrom(s => s.Layer!.LayerSource))
+				.ForMember(cl => cl.LayerDisclaimer, lvm => lvm.MapFrom(s => s.Layer!.LayerDisclaimer))
 				.ForMember(cl => cl.Name, lvm => lvm.MapFrom(s => s.Layer!.Name))
 				.ForMember(cl => cl.ZIndex, lvm => lvm.MapFrom(s => s.Layer!.ZIndex))
 				.ForMember(cl => cl.SortOrder, lvm => lvm.MapFrom(s => s.SortOrder))

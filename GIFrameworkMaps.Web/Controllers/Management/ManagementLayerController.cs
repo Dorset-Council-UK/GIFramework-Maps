@@ -140,7 +140,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.DefaultFilterEditable,
                 a => a.Filterable,
                 a => a.ProxyMapRequests,
-                a => a.ProxyMetaRequests))
+                a => a.ProxyMetaRequests,
+				a => a.LayerDisclaimerId))
             {
 
                 try
@@ -212,11 +213,15 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 return;
             }
 
-            //delete category layers not needed anymore
-            await _context.CategoryLayers.Where(c => c.LayerId == layerToUpdate.Id && !selectedCategories.Contains(c.CategoryId)).ExecuteDeleteAsync();
+			//delete category layers not needed anymore
+			var categoriesToRemove = _context.CategoryLayers.Where(c => c.LayerId == layerToUpdate.Id && !selectedCategories.Contains(c.CategoryId));
+			if (categoriesToRemove.Any())
+			{
+				_context.CategoryLayers.RemoveRange(categoriesToRemove);
+			}
 
-            //add new category layers
-            foreach (int category in selectedCategories)
+			//add new category layers
+			foreach (int category in selectedCategories)
             {
                 if (!_context.CategoryLayers.Where(c => c.LayerId == layerToUpdate.Id && c.CategoryId == category).Any())
                 {
@@ -233,12 +238,17 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 				.AsNoTracking()
 				.OrderBy(o => o.Name);
 
+			var disclaimers = _context.LayerDisclaimers
+				.AsNoTracking()
+				.OrderBy(o => o.Name);
+
             var categories = _context.Categories
 				.AsNoTracking()
 				.OrderBy(b => b.Name);
 
 			model.AvailableBounds = new SelectList(bounds, "Id", "Name", layer.BoundId);
-            model.AvailableCategories = await categories.ToListAsync();
+			model.AvailableDisclaimers = new SelectList(disclaimers, "Id", "Name", layer.LayerDisclaimerId);
+			model.AvailableCategories = await categories.ToListAsync();
             ViewData["SelectedCategories"] = model.SelectedCategories;
             ViewData["AllCategories"] = model.AvailableCategories;
         }

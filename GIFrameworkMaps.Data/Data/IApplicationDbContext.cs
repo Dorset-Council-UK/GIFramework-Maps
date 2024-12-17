@@ -23,6 +23,7 @@ namespace GIFrameworkMaps.Data
         DbSet<DatabaseSearchResult> DatabaseSearchResults { get; set; }
         DbSet<Layer> Layers { get; set; }
         DbSet<LayerSource> LayerSources { get; set; }
+		DbSet<LayerDisclaimer> LayerDisclaimers { get; set; }
         DbSet<LayerSourceOption> LayerSourceOptions { get; set; }
         DbSet<LayerSourceType> LayerSourceTypes { get; set; }
         DbSet<LocalSearchDefinition> LocalSearchDefinitions { get; set; }

@@ -1,0 +1,78 @@
+﻿@model GIFrameworkMaps.Data.ViewModels.Management.LayerDisclaimerViewModel
+@{
+    ViewData["Title"] = $"Edit layer disclaimer '{Model.LayerDisclaimer.Name}'";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div>
+    <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/gui/layers/#layer-disclaimers" class="btn btn-outline-primary" target="_blank"
+       role="button">Stuck? Read the help documentation</a>
+</div>
+
+<div class="row mt-2 mb-2">
+    <div class="col-md-6">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <input type="hidden" asp-for="LayerDisclaimer.Id" />
+            <div class="mb-3">
+                <label asp-for="LayerDisclaimer.Name" class="control-label"></label>
+                <input asp-for="LayerDisclaimer.Name" class="form-control" />
+                <span asp-validation-for="LayerDisclaimer.Name" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="LayerDisclaimer.Disclaimer" class="control-label"></label>
+                <textarea asp-for="LayerDisclaimer.Disclaimer" class="form-control" rows="5"></textarea>
+                <div class="form-text">Please include any HTML markup for paragraphs, headers and links</div>
+                <span asp-validation-for="LayerDisclaimer.Disclaimer" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="LayerDisclaimer.Frequency" class="control-label"></label>
+                <select asp-for="LayerDisclaimer.Frequency" class="form-select">
+                    <option value="-1">Just once</option>
+                    <option value="0">Always (once per session)</option>
+                    <option value="1">Once a day</option>
+                    <option value="7">Once a week</option>
+                    <option value="14">Once every fortnight</option>
+                    <option value="30">Once a month</option>
+                    <option value="182">Once every six months</option>
+                    <option value="365">Once a year</option>
+                </select>
+                <span asp-validation-for="LayerDisclaimer.Frequency" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="LayerDisclaimer.DismissText" class="control-label"></label>
+                <input asp-for="LayerDisclaimer.DismissText" class="form-control" />
+                <div class="form-text">The text you want on your button. Leave this blank to use the default of 'Close'</div>
+                <span asp-validation-for="LayerDisclaimer.DismissText" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                <a asp-action="Index" class="btn btn-link">Cancel</a>
+            </div>
+        </form>
+        <a asp-action="Delete" asp-route-id="@Model.LayerDisclaimer.Id" class="btn btn-danger">Delete</a>
+    </div>
+    <div class="col-md-6">
+        <h3>Layers using this disclaimer</h3>
+        @if(Model.LayersUsingDisclaimer is not null && Model.LayersUsingDisclaimer.Count > 0){
+            <table class="table table-striped">
+                <tbody>
+                    @foreach (var layer in Model.LayersUsingDisclaimer)
+                    {
+                        <tr><td><a href="@Url.ActionLink("Edit","ManagementLayer", new {id=layer.Id})">@layer.Name</a></td></tr>
+                    }
+                </tbody>
+            </table>
+        }else{
+            <div class="alert alert-info">There are no layers using this disclaimer</div>
+        }
+    </div>
+</div>
+
+
+
+
+            
+
+
