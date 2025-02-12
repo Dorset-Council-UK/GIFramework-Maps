@@ -12,7 +12,7 @@ import {
   File as FileHelper,
   Browser as BrowserHelper,
 } from "./Util";
-import * as DOMPurify from "dompurify";
+import DOMPurify from 'dompurify';
 
 export class LayerUpload {
   dropTarget: HTMLElement;
