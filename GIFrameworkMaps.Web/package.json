@@ -14,7 +14,7 @@
     "audit": "npm audit",
     "audit fix": "npm audit fix",
     "outdated": "npm outdated",
-    "lint": "npx eslint . --ext .ts",
+    "lint": "npx eslint",
     "prettier": "npx prettier . --write",
     "watch:prettier": "npx onchange \"Scripts/*.ts\" \"wwwroot/css/*.css\" -- prettier --write --ignore-unknown {{changed}}"
   },
@@ -23,8 +23,8 @@
     "@microsoft/applicationinsights-web": "3.3.5",
     "@microsoft/signalr": "8.0.7",
     "@popperjs/core": "2.11.8",
-    "@turf/buffer": "7.2.0",
     "@turf/boolean-intersects": "7.2.0",
+    "@turf/buffer": "7.2.0",
     "@turf/kinks": "7.2.0",
     "@turf/unkink-polygon": "7.2.0",
     "accessible-autocomplete": "3.0.1",
@@ -46,6 +46,8 @@
     "uuid": "11.0.5"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.20.0",
     "@types/bootstrap": "5.2.10",
     "@types/dom-screen-wake-lock": "1.0.3",
     "@types/dompurify": "3.2.0",
@@ -56,12 +58,14 @@
     "@types/sortablejs": "1.15.8",
     "@typescript-eslint/eslint-plugin": "8.24.0",
     "@typescript-eslint/parser": "8.24.0",
-    "eslint": "9.20.1",
+    "eslint": "^9.20.1",
     "eslint-config-prettier": "10.0.1",
+    "globals": "^15.14.0",
     "onchange": "7.1.0",
     "prettier": "3.5.0",
     "ts-loader": "9.5.2",
     "typescript": "5.7.3",
+    "typescript-eslint": "^8.24.0",
     "webpack": "5.97.1",
     "webpack-cli": "6.0.1",
     "webpack-merge": "6.0.1"
