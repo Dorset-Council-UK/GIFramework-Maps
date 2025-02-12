@@ -10,105 +10,119 @@ import {
   evaluateXPathToFirstNode,
 } from "fontoxpath";
 import { LayerResource } from "../Interfaces/OGCMetadata/LayerResource";
-import { Browser as BrowserUtil } from "../Util";
+import { combineURLSearchParams } from "../Util";
 import { GenericEndpointInfo, WfsEndpoint, WmsEndpoint, WmsLayerSummary, setFetchOptions as ogcClientSetFetchOptions } from "@camptocamp/ogc-client";
 import { ServiceType } from "../Interfaces/WebLayerServiceDefinition";
-export class Metadata {
-  /*TODO - Make all the metadata fetchers use this generic function*/
-  static async getCapabilities(
-    baseUrl: string,
-    serviceType: ServiceType = ServiceType.WMS,
-    version: string = "1.1.0",
-    proxyEndpoint: string = "",
-    httpHeaders: Headers = new Headers(),
-  ) {
-    let fetchUrl = this.constructGetCapabilitiesURL(baseUrl, serviceType, version);
-    if (proxyEndpoint !== "") {
-      fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
-    }
-    const response = await fetch(fetchUrl, { headers: httpHeaders });
-    return response;
+
+export async function getCapabilities(
+  baseUrl: string,
+  serviceType: ServiceType = ServiceType.WMS,
+  version: string = "1.1.0",
+  proxyEndpoint: string = "",
+  httpHeaders: Headers = new Headers(),
+) {
+  let fetchUrl = constructGetCapabilitiesURL(baseUrl, serviceType, version);
+  if (proxyEndpoint !== "") {
+    fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
+  }
+  const response = await fetch(fetchUrl, { headers: httpHeaders });
+  return response;
+}
+
+export async function getDescribeFeatureType(
+  baseUrl: string,
+  featureTypeName: string,
+  httpMethod: string,
+  outputFormat: string = "application/json",
+  proxyEndpoint: string = "",
+  additionalUrlParams: object = {},
+  httpHeaders: Headers = new Headers(),
+): Promise<DescribeFeatureType> {
+  const describeFeatureURLParams = new URLSearchParams({
+    service: "WFS",
+    version: "1.1.0",
+    request: "DescribeFeatureType",
+    typeName: featureTypeName,
+    outputFormat: outputFormat,
+    ...additionalUrlParams,
+  });
+
+  const baseURLasURL = new URL(baseUrl);
+  const baseURLParams = baseURLasURL.searchParams;
+  const combinedURLParams = combineURLSearchParams(
+    baseURLParams,
+    describeFeatureURLParams,
+    true,
+  );
+  let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
+  if (proxyEndpoint !== "") {
+    fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
   }
 
-  static async getDescribeFeatureType(
-    baseUrl: string,
-    featureTypeName: string,
-    httpMethod: string,
-    outputFormat: string = "application/json",
-    proxyEndpoint: string = "",
-    additionalUrlParams: object = {},
-    httpHeaders: Headers = new Headers(),
-  ): Promise<DescribeFeatureType> {
-    const describeFeatureURLParams = new URLSearchParams({
-      service: "WFS",
-      version: "1.1.0",
-      request: "DescribeFeatureType",
-      typeName: featureTypeName,
-      outputFormat: outputFormat,
-      ...additionalUrlParams,
+  try {
+    const response = await fetch(fetchUrl, {
+      method: httpMethod,
+      headers: httpHeaders,
     });
-
-    const baseURLasURL = new URL(baseUrl);
-    const baseURLParams = baseURLasURL.searchParams;
-    const combinedURLParams = BrowserUtil.combineURLSearchParams(
-      baseURLParams,
-      describeFeatureURLParams,
-      true,
-    );
-    let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
-    if (proxyEndpoint !== "") {
-      fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
     }
 
-    try {
-      const response = await fetch(fetchUrl, {
-        method: httpMethod,
-        headers: httpHeaders,
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
-      }
+    const json: DescribeFeatureType = await response.json();
+    return json;
+  } catch (error) {
+    console.error(`Could not get feature description: ${error}`);
+}
+}
 
-      const json: DescribeFeatureType = await response.json();
-      return json;
-    } catch (error) {
-      console.error(`Could not get feature description: ${error}`);
+/**
+  * Sends a WFS 1.1.0 GetCapabilities request to the baseUrl and returns
+  * a stripped down set of basic capabilities.
+  * @param baseUrl - The base URL of the OGC server you want to query
+  */
+export async function getBasicCapabilities(
+  baseUrl: string,
+  additionalUrlParams: object = {},
+  proxyEndpoint: string = "",
+  httpHeaders: Headers = new Headers(),
+): Promise<BasicServerCapabilities> {
+  let fetchUrl = constructGetCapabilitiesURL(
+    baseUrl,
+    ServiceType.WFS,
+    "1.1.0",
+    additionalUrlParams,
+  );
+  if (proxyEndpoint !== "") {
+    fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
   }
-  }
-
-  /**
-   * Sends a WFS 1.1.0 GetCapabilities request to the baseUrl and returns
-   * a stripped down set of basic capabilities.
-   * @param baseUrl - The base URL of the OGC server you want to query
-   */
-  static async getBasicCapabilities(
-    baseUrl: string,
-    additionalUrlParams: object = {},
-    proxyEndpoint: string = "",
-    httpHeaders: Headers = new Headers(),
-  ): Promise<BasicServerCapabilities> {
-    let fetchUrl = this.constructGetCapabilitiesURL(
-      baseUrl,
-      ServiceType.WFS,
-      "1.1.0",
-      additionalUrlParams,
-    );
-    if (proxyEndpoint !== "") {
-      fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
+  try {
+    const response = await fetch(fetchUrl, { headers: httpHeaders });
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
     }
-    try {
-      const response = await fetch(fetchUrl, { headers: httpHeaders });
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
-      }
 
-      /*TODO - Make this use jsonix and the ogc-schemas libraries to more effectively and robustly parse the response*/
-      const capabilitiesDoc = await response.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(capabilitiesDoc, "application/xml");
+    /*TODO - Make this use jsonix and the ogc-schemas libraries to more effectively and robustly parse the response*/
+    const capabilitiesDoc = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(capabilitiesDoc, "application/xml");
 
-      let describeFeatureTypeNode = evaluateXPathToFirstNode(
-        `*/*:OperationsMetadata/*:Operation[@name="DescribeFeatureType"]/*:DCP/*:HTTP/*:Get`,
+    let describeFeatureTypeNode = evaluateXPathToFirstNode(
+      `*/*:OperationsMetadata/*:Operation[@name="DescribeFeatureType"]/*:DCP/*:HTTP/*:Get`,
+      doc,
+      null,
+      null,
+      {
+        language: evaluateXPath.XQUERY_3_1_LANGUAGE,
+      },
+    ) as Node;
+    let describeFeatureTypeURL = (
+      describeFeatureTypeNode as any
+    ).attributes.getNamedItem("xlink:href").value;
+
+    let describeFeatureMethod: string = "GET";
+    if (!describeFeatureTypeURL) {
+      describeFeatureTypeNode = evaluateXPathToFirstNode(
+        `*/*:OperationsMetadata/*:Operation[@name="DescribeFeatureType"]/*:DCP/*:HTTP/*:Post`,
         doc,
         null,
         null,
@@ -116,44 +130,44 @@ export class Metadata {
           language: evaluateXPath.XQUERY_3_1_LANGUAGE,
         },
       ) as Node;
-      let describeFeatureTypeURL = (
+      describeFeatureTypeURL = (
         describeFeatureTypeNode as any
       ).attributes.getNamedItem("xlink:href").value;
+      describeFeatureMethod = "POST";
+    }
 
-      let describeFeatureMethod: string = "GET";
-      if (!describeFeatureTypeURL) {
-        describeFeatureTypeNode = evaluateXPathToFirstNode(
-          `*/*:OperationsMetadata/*:Operation[@name="DescribeFeatureType"]/*:DCP/*:HTTP/*:Post`,
-          doc,
-          null,
-          null,
-          {
-            language: evaluateXPath.XQUERY_3_1_LANGUAGE,
-          },
-        ) as Node;
-        describeFeatureTypeURL = (
-          describeFeatureTypeNode as any
-        ).attributes.getNamedItem("xlink:href").value;
-        describeFeatureMethod = "POST";
-      }
+    //if describe feature URLs are http, but the site is running on https,
+    //we must try and upgrade the URL, otherwise it just won't work
+    if (document.location.protocol.startsWith("https")) {
+      describeFeatureTypeURL = describeFeatureTypeURL.replace(
+        "http://",
+        "https://",
+      );
+    }
 
-      //if describe feature URLs are http, but the site is running on https,
-      //we must try and upgrade the URL, otherwise it just won't work
-      if (document.location.protocol.startsWith("https")) {
-        describeFeatureTypeURL = describeFeatureTypeURL.replace(
-          "http://",
-          "https://",
-        );
-      }
+    const describeFeatureTypeCapability: Capability = {
+      url: describeFeatureTypeURL,
+      type: CapabilityType.DescribeFeatureType,
+      method: describeFeatureMethod,
+    };
 
-      const describeFeatureTypeCapability: Capability = {
-        url: describeFeatureTypeURL,
-        type: CapabilityType.DescribeFeatureType,
-        method: describeFeatureMethod,
-      };
+    let getFeatureNode = evaluateXPathToFirstNode(
+      `*/*:OperationsMetadata/*:Operation[@name="GetFeature"]/*:DCP/*:HTTP/*:Post`,
+      doc,
+      null,
+      null,
+      {
+        language: evaluateXPath.XQUERY_3_1_LANGUAGE,
+      },
+    ) as Node;
+    let getFeatureURL = (getFeatureNode as any).attributes.getNamedItem(
+      "xlink:href",
+    ).value;
 
-      let getFeatureNode = evaluateXPathToFirstNode(
-        `*/*:OperationsMetadata/*:Operation[@name="GetFeature"]/*:DCP/*:HTTP/*:Post`,
+    let getFeatureMethod = "POST";
+    if (!getFeatureURL) {
+      getFeatureNode = evaluateXPathToFirstNode(
+        `*/*:OperationsMetadata/*:Operation[@name="GetFeature"]/*:DCP/*:HTTP/*:Get`,
         doc,
         null,
         null,
@@ -161,216 +175,83 @@ export class Metadata {
           language: evaluateXPath.XQUERY_3_1_LANGUAGE,
         },
       ) as Node;
-      let getFeatureURL = (getFeatureNode as any).attributes.getNamedItem(
+      getFeatureURL = (getFeatureNode as any).attributes.getNamedItem(
         "xlink:href",
       ).value;
-
-      let getFeatureMethod = "POST";
-      if (!getFeatureURL) {
-        getFeatureNode = evaluateXPathToFirstNode(
-          `*/*:OperationsMetadata/*:Operation[@name="GetFeature"]/*:DCP/*:HTTP/*:Get`,
-          doc,
-          null,
-          null,
-          {
-            language: evaluateXPath.XQUERY_3_1_LANGUAGE,
-          },
-        ) as Node;
-        getFeatureURL = (getFeatureNode as any).attributes.getNamedItem(
-          "xlink:href",
-        ).value;
-        getFeatureMethod = "GET";
-      }
-
-      //if feature URLs are http, but the site is running on https,
-      //we must try and upgrade the URL, otherwise it just won't work
-      if (document.location.protocol.startsWith("https")) {
-        getFeatureURL = getFeatureURL.replace("http://", "https://");
-      }
-      const getFeatureCapability: Capability = {
-        url: getFeatureURL,
-        type: CapabilityType.WFS_GetFeature,
-        method: getFeatureMethod,
-      };
-
-      const basicServerCapabilities: BasicServerCapabilities = {
-        capabilities: [describeFeatureTypeCapability, getFeatureCapability],
-      };
-
-      return basicServerCapabilities;
-    } catch (error) {
-      console.error(`Could not get capabilities doc: ${error}`);
+      getFeatureMethod = "GET";
     }
+
+    //if feature URLs are http, but the site is running on https,
+    //we must try and upgrade the URL, otherwise it just won't work
+    if (document.location.protocol.startsWith("https")) {
+      getFeatureURL = getFeatureURL.replace("http://", "https://");
+    }
+    const getFeatureCapability: Capability = {
+      url: getFeatureURL,
+      type: CapabilityType.WFS_GetFeature,
+      method: getFeatureMethod,
+    };
+
+    const basicServerCapabilities: BasicServerCapabilities = {
+      capabilities: [describeFeatureTypeCapability, getFeatureCapability],
+    };
+
+    return basicServerCapabilities;
+  } catch (error) {
+    console.error(`Could not get capabilities doc: ${error}`);
   }
+}
 
-  /**
-   * Sends a GetCapabilities request to the baseUrl and returns
-   * a list of styles allowed for that layer.
-   * @param baseUrl - The base URL of the OGC server you want to query
-   * @param layerName - The name of the layer to find in the list
-   */
-  static async getStylesForLayer(
-    baseUrl: string,
-    layerName: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    proxyEndpoint: string = "",
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    additionalUrlParams: object = {},
-    httpHeaders: Headers = new Headers(),
-  ) {
+/**
+  * Sends a GetCapabilities request to the baseUrl and returns
+  * a list of styles allowed for that layer.
+  * @param baseUrl - The base URL of the OGC server you want to query
+  * @param layerName - The name of the layer to find in the list
+  */
+export async function getStylesForLayer(
+  baseUrl: string,
+  layerName: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  proxyEndpoint: string = "",
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  additionalUrlParams: object = {},
+  httpHeaders: Headers = new Headers(),
+) {
 
-    ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
+  ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
 
+  const endpoint = await new WmsEndpoint(baseUrl).isReady();
+  const layer = endpoint.getLayerByName(layerName);
+  return layer.styles;
+    
+}
+
+export async function getLayerMetadataFromCapabilities(
+  baseUrl: string,
+  layerName: string,
+  type: ServiceType,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  version: string = "1.1.0",
+  proxyEndpoint: string = "",
+  httpHeaders: Headers = new Headers()
+) {
+  ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
+  if (type === ServiceType.WMS) {
+      
     const endpoint = await new WmsEndpoint(baseUrl).isReady();
     const layer = endpoint.getLayerByName(layerName);
-    return layer.styles;
-    
-  }
+    const serviceInfo = endpoint.getServiceInfo();
 
-  static async getLayerMetadataFromCapabilities(
-    baseUrl: string,
-    layerName: string,
-    type: ServiceType,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    version: string = "1.1.0",
-    proxyEndpoint: string = "",
-    httpHeaders: Headers = new Headers()
-  ) {
-    ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
-    if (type === ServiceType.WMS) {
-      
-      const endpoint = await new WmsEndpoint(baseUrl).isReady();
-      const layer = endpoint.getLayerByName(layerName);
-      const serviceInfo = endpoint.getServiceInfo();
+    const bboxKey = Object.keys(layer.boundingBoxes).find(k => k === "EPSG:4326") || Object.keys(layer.boundingBoxes)[0];
 
-      const bboxKey = Object.keys(layer.boundingBoxes).find(k => k === "EPSG:4326") || Object.keys(layer.boundingBoxes)[0];
-
-      let attributionHTML = ""
-      if (layer.attribution) {
-        attributionHTML = layer.attribution.title.replaceAll('{{CURRENT_YEAR}}',new Date().getFullYear().toString());
-        if (layer.attribution.url) {
-          attributionHTML = `<a href="${layer.attribution.url}" target="_blank" rel="noopener">${attributionHTML}</a>`;
-        }
-      }
-
-      const layerResource: LayerResource = {
-        name: layer.name,
-        title: layer.title,
-        abstract: layer.abstract,
-        attribution: attributionHTML,
-        formats: serviceInfo.outputFormats,
-        baseUrl: baseUrl,
-        projections: layer.availableCrs,
-        extent: layer.boundingBoxes[bboxKey], //TODO
-        queryable: layer.queryable,
-        opaque: layer.opaque,
-        version: endpoint.getVersion(),
-        proxyMetaRequests: proxyEndpoint !== "" ? true : false,
-        proxyMapRequests: proxyEndpoint !== "" ? true : false,
-        keywords: layer.keywords,
-        properties: null
-      };
-      return layerResource;
-    } else if(type === ServiceType.WFS) {
-      const endpoint = await new WfsEndpoint(baseUrl).isReady();
-      const layer = await endpoint.getFeatureTypeFull(layerName);
-      const serviceInfo = endpoint.getServiceInfo();
-      const layerResource: LayerResource = {
-        name: layer.name,
-        title: layer.title,
-        abstract: layer.abstract,
-        attribution: "", //TODO?
-        formats: serviceInfo.outputFormats,
-        baseUrl: baseUrl,
-        projections: layer.otherCrs,
-        extent: layer.boundingBox,
-        queryable: true, //vectors are by definition queryable
-        opaque: false, //vectors are by definition, not opaque
-        version: endpoint.getVersion(),
-        proxyMetaRequests: proxyEndpoint !== "" ? true : false,
-        proxyMapRequests: proxyEndpoint !== "" ? true : false,
-        keywords: layer.keywords,
-        properties: layer.properties
-      };
-      return layerResource; 
-    }
-  }
-
-  static async getLayersFromCapabilities(
-    baseUrl: string,
-    serviceType: ServiceType,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    version: string = "1.1.0",
-    proxyEndpoint: string = "",
-    httpHeaders: Headers = new Headers(),
-  ) {
-    try {
-      const availableLayers: LayerResource[] = [];
-
-      ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
-      if (serviceType === ServiceType.WMS) {
-        const endpoint = await new WmsEndpoint(baseUrl).isReady();
-        const serviceInfo = endpoint.getServiceInfo();
-        const layers = endpoint.getLayers();
-        layers.forEach(layer => {
-          availableLayers.push(...this.createLayerResourcesFromWMSLayer(endpoint, layer, serviceInfo, baseUrl, proxyEndpoint))
-        })
-      } else {
-        const endpoint = await new WfsEndpoint(baseUrl).isReady();
-        const layers = endpoint.getFeatureTypes();
-        const serviceInfo = endpoint.getServiceInfo();
-
-        for (const layer of layers) {
-          const layerDetails = await endpoint.getFeatureTypeFull(layer.name);
-          const layerResource: LayerResource = {
-            name: layer.name,
-            title: layer.title,
-            abstract: layer.abstract,
-            attribution: "",
-            formats: serviceInfo.outputFormats,
-            baseUrl: baseUrl,
-            projections: [layerDetails.defaultCrs, ...layerDetails.otherCrs],
-            extent: layerDetails.boundingBox,
-            queryable: true,
-            opaque: false,
-            version: endpoint.getVersion(),
-            proxyMetaRequests: proxyEndpoint !== "" ? true : false,
-            proxyMapRequests: proxyEndpoint !== "" ? true : false,
-            keywords: [],
-            properties: layerDetails.properties
-          };
-          
-          availableLayers.push(layerResource);
-        }
-      }
-      
-      return availableLayers;
-    } catch (error) {
-      console.error(`Could not get capabilities doc: ${error}`);
-    }
-  }
-
-  static createLayerResourcesFromWMSLayer(endpoint: WmsEndpoint, layer: WmsLayerSummary, serviceInfo: GenericEndpointInfo, baseUrl: string, proxyEndpoint?: string) {
-    const layers: LayerResource[] = [];
-    if (layer.children && layer.children.length !== 0) {
-      layer.children.forEach(child => layers.push(...this.createLayerResourcesFromWMSLayer(endpoint, child, serviceInfo, baseUrl, proxyEndpoint)));
-    } else {
-      const layerResource = this.createLayerResourceFromWMSLayer(endpoint, layer, serviceInfo, baseUrl, proxyEndpoint);
-      layers.push(layerResource);
-    }
-    return layers;
-  }
-
-  static createLayerResourceFromWMSLayer(endpoint: WmsEndpoint, layer: WmsLayerSummary, serviceInfo: GenericEndpointInfo, baseUrl: string, proxyEndpoint?: string) {
-    const layerDetails = endpoint.getLayerByName(layer.name);
-    const bboxKey = Object.keys(layerDetails.boundingBoxes).find(k => k === "EPSG:4326") || Object.keys(layerDetails.boundingBoxes)[0];
     let attributionHTML = ""
-    if (layerDetails.attribution) {
-      attributionHTML = layerDetails.attribution.title.replaceAll('{{CURRENT_YEAR}}', new Date().getFullYear().toString());
-      if (layerDetails.attribution.url) {
-        attributionHTML = `<a href="${layerDetails.attribution.url}" target="_blank" rel="noopener">${attributionHTML}</a>`;
+    if (layer.attribution) {
+      attributionHTML = layer.attribution.title.replaceAll('{{CURRENT_YEAR}}',new Date().getFullYear().toString());
+      if (layer.attribution.url) {
+        attributionHTML = `<a href="${layer.attribution.url}" target="_blank" rel="noopener">${attributionHTML}</a>`;
       }
     }
+
     const layerResource: LayerResource = {
       name: layer.name,
       title: layer.title,
@@ -378,212 +259,330 @@ export class Metadata {
       attribution: attributionHTML,
       formats: serviceInfo.outputFormats,
       baseUrl: baseUrl,
-      projections: layerDetails.availableCrs,
-      extent: layerDetails.boundingBoxes[bboxKey],
-      queryable: layerDetails.queryable,
-      opaque: layerDetails.opaque,
+      projections: layer.availableCrs,
+      extent: layer.boundingBoxes[bboxKey], //TODO
+      queryable: layer.queryable,
+      opaque: layer.opaque,
       version: endpoint.getVersion(),
       proxyMetaRequests: proxyEndpoint !== "" ? true : false,
       proxyMapRequests: proxyEndpoint !== "" ? true : false,
-      keywords: layerDetails.keywords,
+      keywords: layer.keywords,
       properties: null
     };
     return layerResource;
-  }
-
-  /**
-   * Sends a WPS 1.1.0 GetCapabilities request to the baseUrl and returns
-   * a stripped down set of basic capabilities.
-   * @param baseUrl - The base URL of the OGC server you want to query
-   */
-  static async getWPSCapabilities(
-    baseUrl: string,
-    proxyEndpoint: string = "",
-    additionalUrlParams: object = {},
-    httpHeaders: Headers = new Headers(),
-  ): Promise<BasicServerCapabilities> {
-    let fetchUrl = this.constructGetCapabilitiesURL(
-      baseUrl,
-      ServiceType.WPS,
-      "1.1.0",
-      additionalUrlParams,
-    );
-    if (proxyEndpoint !== "") {
-      fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
-    }
-    try {
-      const response = await fetch(fetchUrl, { headers: httpHeaders });
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
-      }
-
-      /*TODO - Make this use jsonix and the ogc-schemas libraries to more effectively and robustly parse the response*/
-      const capabilitiesDoc = await response.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(capabilitiesDoc, "application/xml");
-
-      const executeURLNode = evaluateXPathToFirstNode(
-        `*/*:OperationsMetadata/*:Operation[@name="Execute"]/*:DCP/*:HTTP/*:Post`,
-        doc,
-        null,
-        null,
-        {
-          language: evaluateXPath.XQUERY_3_1_LANGUAGE,
-        },
-      ) as Node;
-      let executeURL = (executeURLNode as any).attributes.getNamedItem(
-        "xlink:href",
-      ).value;
-      const executeMethod: string = "POST";
-
-      //if describe feature URLs are http, but the site is running on https,
-      //we must try and upgrade the URL, otherwise it just won't work
-      /*TODO - If we implement a local YARP proxy, use this*/
-      if (document.location.protocol.startsWith("https")) {
-        executeURL = executeURL.replace("http://", "https://");
-      }
-
-      const executeCapability: Capability = {
-        url: executeURL,
-        type: CapabilityType.WPS_Execute,
-        method: executeMethod,
-      };
-
-      let decribeProcessNode = evaluateXPathToFirstNode(
-        `*/*:OperationsMetadata/*:Operation[@name="DescribeProcess"]/*:DCP/*:HTTP/*:Get`,
-        doc,
-        null,
-        null,
-        {
-          language: evaluateXPath.XQUERY_3_1_LANGUAGE,
-        },
-      ) as Node;
-      let decribeProcessURL = (
-        decribeProcessNode as any
-      ).attributes.getNamedItem("xlink:href").value;
-      let decribeProcessMethod: string = "GET";
-      if (!decribeProcessURL) {
-        decribeProcessNode = evaluateXPathToFirstNode(
-          `*/*:OperationsMetadata/*:Operation[@name="DescribeProcess"]/*:DCP/*:HTTP/*:Post`,
-          doc,
-          null,
-          null,
-          {
-            language: evaluateXPath.XQUERY_3_1_LANGUAGE,
-          },
-        ) as Node;
-        decribeProcessURL = (decribeProcessNode as any).attributes.getNamedItem(
-          "xlink:href",
-        ).value;
-
-        decribeProcessMethod = "POST";
-      }
-
-      //if describe feature URLs are http, but the site is running on https,
-      //we must try and upgrade the URL, otherwise it just won't work
-      /*TODO - If we implement a local YARP proxy, use this*/
-      if (document.location.protocol.startsWith("https")) {
-        decribeProcessURL = decribeProcessURL.replace("http://", "https://");
-      }
-
-      const describeProcessCapability: Capability = {
-        url: decribeProcessURL,
-        type: CapabilityType.WPS_DescribeProcess,
-        method: decribeProcessMethod,
-      };
-
-      const basicServerCapabilities: BasicServerCapabilities = {
-        capabilities: [executeCapability, describeProcessCapability],
-      };
-
-      return basicServerCapabilities;
-    } catch (error) {
-      console.error(`Could not get capabilities doc: ${error}`);
-    }
-  }
-
-  static async hasWPSProcess(
-    baseUrl: string,
-    httpMethod: string,
-    processName: string,
-    proxyEndpoint: string = "",
-    additionalUrlParams: object = {},
-    httpHeaders: Headers = new Headers(),
-  ): Promise<boolean> {
-    const describeProcessURLParams = new URLSearchParams({
-      service: "WPS",
-      version: "1.1.0",
-      request: "DescribeProcess",
-      identifier: processName,
-      ...additionalUrlParams,
-    });
-    const baseURLasURL = new URL(baseUrl);
-    const baseURLParams = new URL(baseUrl).searchParams;
-    const combinedURLParams = BrowserUtil.combineURLSearchParams(
-      baseURLParams,
-      describeProcessURLParams,
-      true,
-    );
-
-    let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
-    if (proxyEndpoint !== "") {
-      fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
-    }
-    try {
-      const response = await fetch(fetchUrl, {
-        method: httpMethod,
-        headers: httpHeaders,
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
-      }
-
-      const describeProcessDoc = await response.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(describeProcessDoc, "application/xml");
-
-      const processName = (
-        evaluateXPathToFirstNode(
-          `*/*:ProcessDescription/*:Identifier`,
-          doc,
-          null,
-          null,
-          {
-            language: evaluateXPath.XQUERY_3_1_LANGUAGE,
-          },
-        ) as Node
-      ).textContent;
-
-      if (processName) {
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error(`Could not get process description: ${error}`);
-    }
-  }
-
-  static constructGetCapabilitiesURL(
-    baseUrl: string,
-    serviceType: ServiceType = ServiceType.WMS,
-    version: string = "1.1.0",
-    additionalUrlParams: object = {},
-  ) {
-    const getCapabilitiesURLParams = new URLSearchParams({
-      service: ServiceType[serviceType],
-      version: version,
-      request: "GetCapabilities",
-      ...additionalUrlParams,
-    });
-    const baseURLasURL = new URL(baseUrl);
-    const baseURLParams = new URL(baseUrl).searchParams;
-    const combinedURLParams = BrowserUtil.combineURLSearchParams(
-      baseURLParams,
-      getCapabilitiesURLParams,
-      true,
-    );
-
-    const fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
-    return fetchUrl;
+  } else if(type === ServiceType.WFS) {
+    const endpoint = await new WfsEndpoint(baseUrl).isReady();
+    const layer = await endpoint.getFeatureTypeFull(layerName);
+    const serviceInfo = endpoint.getServiceInfo();
+    const layerResource: LayerResource = {
+      name: layer.name,
+      title: layer.title,
+      abstract: layer.abstract,
+      attribution: "", //TODO?
+      formats: serviceInfo.outputFormats,
+      baseUrl: baseUrl,
+      projections: layer.otherCrs,
+      extent: layer.boundingBox,
+      queryable: true, //vectors are by definition queryable
+      opaque: false, //vectors are by definition, not opaque
+      version: endpoint.getVersion(),
+      proxyMetaRequests: proxyEndpoint !== "" ? true : false,
+      proxyMapRequests: proxyEndpoint !== "" ? true : false,
+      keywords: layer.keywords,
+      properties: layer.properties
+    };
+    return layerResource; 
   }
 }
+
+export async function getLayersFromCapabilities(
+  baseUrl: string,
+  serviceType: ServiceType,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  version: string = "1.1.0",
+  proxyEndpoint: string = "",
+  httpHeaders: Headers = new Headers(),
+) {
+  try {
+    const availableLayers: LayerResource[] = [];
+
+    ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
+    if (serviceType === ServiceType.WMS) {
+      const endpoint = await new WmsEndpoint(baseUrl).isReady();
+      const serviceInfo = endpoint.getServiceInfo();
+      const layers = endpoint.getLayers();
+      layers.forEach(layer => {
+        availableLayers.push(...createLayerResourcesFromWMSLayer(endpoint, layer, serviceInfo, baseUrl, proxyEndpoint))
+      })
+    } else {
+      const endpoint = await new WfsEndpoint(baseUrl).isReady();
+      const layers = endpoint.getFeatureTypes();
+      const serviceInfo = endpoint.getServiceInfo();
+
+      for (const layer of layers) {
+        const layerDetails = await endpoint.getFeatureTypeFull(layer.name);
+        const layerResource: LayerResource = {
+          name: layer.name,
+          title: layer.title,
+          abstract: layer.abstract,
+          attribution: "",
+          formats: serviceInfo.outputFormats,
+          baseUrl: baseUrl,
+          projections: [layerDetails.defaultCrs, ...layerDetails.otherCrs],
+          extent: layerDetails.boundingBox,
+          queryable: true,
+          opaque: false,
+          version: endpoint.getVersion(),
+          proxyMetaRequests: proxyEndpoint !== "" ? true : false,
+          proxyMapRequests: proxyEndpoint !== "" ? true : false,
+          keywords: [],
+          properties: layerDetails.properties
+        };
+          
+        availableLayers.push(layerResource);
+      }
+    }
+      
+    return availableLayers;
+  } catch (error) {
+    console.error(`Could not get capabilities doc: ${error}`);
+  }
+}
+
+export function createLayerResourcesFromWMSLayer(endpoint: WmsEndpoint, layer: WmsLayerSummary, serviceInfo: GenericEndpointInfo, baseUrl: string, proxyEndpoint?: string) {
+  const layers: LayerResource[] = [];
+  if (layer.children && layer.children.length !== 0) {
+    layer.children.forEach(child => layers.push(...createLayerResourcesFromWMSLayer(endpoint, child, serviceInfo, baseUrl, proxyEndpoint)));
+  } else {
+    const layerResource = createLayerResourceFromWMSLayer(endpoint, layer, serviceInfo, baseUrl, proxyEndpoint);
+    layers.push(layerResource);
+  }
+  return layers;
+}
+
+export function createLayerResourceFromWMSLayer(endpoint: WmsEndpoint, layer: WmsLayerSummary, serviceInfo: GenericEndpointInfo, baseUrl: string, proxyEndpoint?: string) {
+  const layerDetails = endpoint.getLayerByName(layer.name);
+  const bboxKey = Object.keys(layerDetails.boundingBoxes).find(k => k === "EPSG:4326") || Object.keys(layerDetails.boundingBoxes)[0];
+  let attributionHTML = ""
+  if (layerDetails.attribution) {
+    attributionHTML = layerDetails.attribution.title.replaceAll('{{CURRENT_YEAR}}', new Date().getFullYear().toString());
+    if (layerDetails.attribution.url) {
+      attributionHTML = `<a href="${layerDetails.attribution.url}" target="_blank" rel="noopener">${attributionHTML}</a>`;
+    }
+  }
+  const layerResource: LayerResource = {
+    name: layer.name,
+    title: layer.title,
+    abstract: layer.abstract,
+    attribution: attributionHTML,
+    formats: serviceInfo.outputFormats,
+    baseUrl: baseUrl,
+    projections: layerDetails.availableCrs,
+    extent: layerDetails.boundingBoxes[bboxKey],
+    queryable: layerDetails.queryable,
+    opaque: layerDetails.opaque,
+    version: endpoint.getVersion(),
+    proxyMetaRequests: proxyEndpoint !== "" ? true : false,
+    proxyMapRequests: proxyEndpoint !== "" ? true : false,
+    keywords: layerDetails.keywords,
+    properties: null
+  };
+  return layerResource;
+}
+
+/**
+  * Sends a WPS 1.1.0 GetCapabilities request to the baseUrl and returns
+  * a stripped down set of basic capabilities.
+  * @param baseUrl - The base URL of the OGC server you want to query
+  */
+export async function getWPSCapabilities(
+  baseUrl: string,
+  proxyEndpoint: string = "",
+  additionalUrlParams: object = {},
+  httpHeaders: Headers = new Headers(),
+): Promise<BasicServerCapabilities> {
+  let fetchUrl = constructGetCapabilitiesURL(
+    baseUrl,
+    ServiceType.WPS,
+    "1.1.0",
+    additionalUrlParams,
+  );
+  if (proxyEndpoint !== "") {
+    fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
+  }
+  try {
+    const response = await fetch(fetchUrl, { headers: httpHeaders });
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+
+    /*TODO - Make this use jsonix and the ogc-schemas libraries to more effectively and robustly parse the response*/
+    const capabilitiesDoc = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(capabilitiesDoc, "application/xml");
+
+    const executeURLNode = evaluateXPathToFirstNode(
+      `*/*:OperationsMetadata/*:Operation[@name="Execute"]/*:DCP/*:HTTP/*:Post`,
+      doc,
+      null,
+      null,
+      {
+        language: evaluateXPath.XQUERY_3_1_LANGUAGE,
+      },
+    ) as Node;
+    let executeURL = (executeURLNode as any).attributes.getNamedItem(
+      "xlink:href",
+    ).value;
+    const executeMethod: string = "POST";
+
+    //if describe feature URLs are http, but the site is running on https,
+    //we must try and upgrade the URL, otherwise it just won't work
+    /*TODO - If we implement a local YARP proxy, use this*/
+    if (document.location.protocol.startsWith("https")) {
+      executeURL = executeURL.replace("http://", "https://");
+    }
+
+    const executeCapability: Capability = {
+      url: executeURL,
+      type: CapabilityType.WPS_Execute,
+      method: executeMethod,
+    };
+
+    let decribeProcessNode = evaluateXPathToFirstNode(
+      `*/*:OperationsMetadata/*:Operation[@name="DescribeProcess"]/*:DCP/*:HTTP/*:Get`,
+      doc,
+      null,
+      null,
+      {
+        language: evaluateXPath.XQUERY_3_1_LANGUAGE,
+      },
+    ) as Node;
+    let decribeProcessURL = (
+      decribeProcessNode as any
+    ).attributes.getNamedItem("xlink:href").value;
+    let decribeProcessMethod: string = "GET";
+    if (!decribeProcessURL) {
+      decribeProcessNode = evaluateXPathToFirstNode(
+        `*/*:OperationsMetadata/*:Operation[@name="DescribeProcess"]/*:DCP/*:HTTP/*:Post`,
+        doc,
+        null,
+        null,
+        {
+          language: evaluateXPath.XQUERY_3_1_LANGUAGE,
+        },
+      ) as Node;
+      decribeProcessURL = (decribeProcessNode as any).attributes.getNamedItem(
+        "xlink:href",
+      ).value;
+
+      decribeProcessMethod = "POST";
+    }
+
+    //if describe feature URLs are http, but the site is running on https,
+    //we must try and upgrade the URL, otherwise it just won't work
+    /*TODO - If we implement a local YARP proxy, use this*/
+    if (document.location.protocol.startsWith("https")) {
+      decribeProcessURL = decribeProcessURL.replace("http://", "https://");
+    }
+
+    const describeProcessCapability: Capability = {
+      url: decribeProcessURL,
+      type: CapabilityType.WPS_DescribeProcess,
+      method: decribeProcessMethod,
+    };
+
+    const basicServerCapabilities: BasicServerCapabilities = {
+      capabilities: [executeCapability, describeProcessCapability],
+    };
+
+    return basicServerCapabilities;
+  } catch (error) {
+    console.error(`Could not get capabilities doc: ${error}`);
+  }
+}
+
+export async function hasWPSProcess(
+  baseUrl: string,
+  httpMethod: string,
+  processName: string,
+  proxyEndpoint: string = "",
+  additionalUrlParams: object = {},
+  httpHeaders: Headers = new Headers(),
+): Promise<boolean> {
+  const describeProcessURLParams = new URLSearchParams({
+    service: "WPS",
+    version: "1.1.0",
+    request: "DescribeProcess",
+    identifier: processName,
+    ...additionalUrlParams,
+  });
+  const baseURLasURL = new URL(baseUrl);
+  const baseURLParams = new URL(baseUrl).searchParams;
+  const combinedURLParams = combineURLSearchParams(
+    baseURLParams,
+    describeProcessURLParams,
+    true,
+  );
+
+  let fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
+  if (proxyEndpoint !== "") {
+    fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
+  }
+  try {
+    const response = await fetch(fetchUrl, {
+      method: httpMethod,
+      headers: httpHeaders,
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+
+    const describeProcessDoc = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(describeProcessDoc, "application/xml");
+
+    const processName = (
+      evaluateXPathToFirstNode(
+        `*/*:ProcessDescription/*:Identifier`,
+        doc,
+        null,
+        null,
+        {
+          language: evaluateXPath.XQUERY_3_1_LANGUAGE,
+        },
+      ) as Node
+    ).textContent;
+
+    if (processName) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error(`Could not get process description: ${error}`);
+  }
+}
+
+export function constructGetCapabilitiesURL(
+  baseUrl: string,
+  serviceType: ServiceType = ServiceType.WMS,
+  version: string = "1.1.0",
+  additionalUrlParams: object = {},
+) {
+  const getCapabilitiesURLParams = new URLSearchParams({
+    service: ServiceType[serviceType],
+    version: version,
+    request: "GetCapabilities",
+    ...additionalUrlParams,
+  });
+  const baseURLasURL = new URL(baseUrl);
+  const baseURLParams = new URL(baseUrl).searchParams;
+  const combinedURLParams = combineURLSearchParams(
+    baseURLParams,
+    getCapabilitiesURLParams,
+    true,
+  );
+
+  const fetchUrl = `${baseURLasURL.origin}${baseURLasURL.pathname}?${combinedURLParams}`;
+  return fetchUrl;
+}
+

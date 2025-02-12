@@ -1,15 +1,15 @@
-﻿import { SidebarPanel } from "../Interfaces/SidebarPanel";
-import { Sidebar } from "../Sidebar";
-import { GIFWMap } from "../Map";
-import { LayerGroupType } from "../Interfaces/LayerGroupType";
-import { Layer as olLayer } from "ol/layer";
-import { Basemap } from "../Interfaces/Basemap";
-import { MetadataViewer } from "../Metadata/MetadataViewer";
-import { Layer } from "../Interfaces/Layer";
+﻿import { Layer as olLayer } from "ol/layer";
 import { Projection } from "ol/proj";
-import { Source } from "ol/source";
 import LayerRenderer from "ol/renderer/Layer";
-import { PanelHelper } from "./PanelHelper";
+import { Source } from "ol/source";
+import { Basemap } from "../Interfaces/Basemap";
+import { Layer } from "../Interfaces/Layer";
+import { LayerGroupType } from "../Interfaces/LayerGroupType";
+import { SidebarPanel } from "../Interfaces/SidebarPanel";
+import { GIFWMap } from "../Map";
+import { showMetadataModal } from "../Metadata/MetadataViewer";
+import { Sidebar } from "../Sidebar";
+import { renderSliderControl } from "./PanelHelper";
 
 export class BasemapsPanel implements SidebarPanel {
   container: string;
@@ -122,7 +122,7 @@ export class BasemapsPanel implements SidebarPanel {
     }`;
     meta.id = `basemaps-meta-${basemapConfiguration.id}`;
 
-    const opacityControls = PanelHelper.renderSliderControl(
+    const opacityControls = renderSliderControl(
       basemapConfiguration.id,
       basemap.getOpacity() * 100,
       5,
@@ -131,7 +131,7 @@ export class BasemapsPanel implements SidebarPanel {
       this.gifwMapInstance,
     );
 
-    const saturationControls = PanelHelper.renderSliderControl(
+    const saturationControls = renderSliderControl(
       basemapConfiguration.id,
       basemap.get("saturation"),
       5,
@@ -185,7 +185,7 @@ export class BasemapsPanel implements SidebarPanel {
       );
       if (layerConfig && layerConfig.length === 1) {
         const olLayer = this.gifwMapInstance.getActiveBasemap();
-        MetadataViewer.showMetadataModal(
+        showMetadataModal(
           layerConfig[0],
           olLayer,
           this.gifwMapInstance,

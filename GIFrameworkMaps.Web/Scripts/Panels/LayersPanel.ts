@@ -10,7 +10,7 @@ import ImageSource from "ol/source/Image";
 import TileSource from "ol/source/Tile";
 import VectorSource from "ol/source/Vector";
 import Sortable from "sortablejs";
-import Badge from "../Badge";
+import { createErrorBadge, createInvisibleBadge, createOutOfRangeBadge} from "../Badge";
 import { Category } from "../Interfaces/Category";
 import { Layer } from "../Interfaces/Layer";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
@@ -19,12 +19,12 @@ import { SidebarPanel } from "../Interfaces/SidebarPanel";
 import { LayerFilter } from "../LayerFilter";
 import { LayerUpload } from "../LayerUpload";
 import { GIFWMap } from "../Map";
-import { Metadata } from "../Metadata/Metadata";
+import { getStylesForLayer } from "../Metadata/Metadata";
 import { Sidebar } from "../Sidebar";
-import Spinner from "../Spinner";
-import { UserSettings } from "../UserSettings";
-import { PanelHelper } from "./PanelHelper";
-import { Alert, AlertSeverity, Helper, Mapping as MappingUtil } from "../Util";
+import { createSmallSpinner } from "../Spinner";
+import { getItem as getSetting, setItem as setSetting } from "../UserSettings";
+import { renderSliderControl } from "./PanelHelper";
+import { Alert, AlertSeverity, getAllParentElements, getValueFromObjectByKey, extractCustomHeadersFromLayerSource } from "../Util";
 import { LayerList } from "./LayerList";
 import { LayerStyle } from "@camptocamp/ogc-client";
 
@@ -34,25 +34,20 @@ export class LayersPanel implements SidebarPanel {
   listSortOrder: LayerListSortingOption = LayerListSortingOption.Default;
   _fuseInstance: Fuse<Category | Layer>;
   private previousZoom: number;
-  private loadingLayers: {
-    [name: string]: {
-      count: number;
-      timeout?: ReturnType<typeof setTimeout>;
-    };
-  };
+  private loadingLayers: Map<string, { count: number; timeout?: ReturnType<typeof setTimeout> }>;
   private erroredLayers: BaseLayer[];
 
   constructor(container: string) {
     this.container = container;
     this.erroredLayers = [];
-    this.loadingLayers = {};
+    this.loadingLayers = new Map();
   }
   init() {
     this.previousZoom = Math.ceil(
       this.gifwMapInstance.olMap.getView().getZoom(),
     );
     /*validate user sort order to make sure its not invalid, revert to default if it is*/
-    let userSortOrder = UserSettings.getItem(
+    let userSortOrder = getSetting(
       "LayerControlSortOrderPreference",
     ) as LayerListSortingOption;
     if (
@@ -230,7 +225,7 @@ export class LayersPanel implements SidebarPanel {
     const accordionBodyContainer = document.createElement("div");
     accordionBodyContainer.className = "accordion accordion-flush";
     accordionBodyContainer.appendChild(
-      PanelHelper.renderSliderControl(
+      renderSliderControl(
         layerId,
         layer.getOpacity() * 100,
         5,
@@ -240,7 +235,7 @@ export class LayersPanel implements SidebarPanel {
       ),
     );
     accordionBodyContainer.appendChild(
-      PanelHelper.renderSliderControl(
+      renderSliderControl(
         layerId,
         layer.get("saturation") !== undefined ? layer.get("saturation") : 100,
         5,
@@ -547,95 +542,93 @@ export class LayersPanel implements SidebarPanel {
   }
 
   private loadStartEvent(source: Source, l: olLayer, layerName: string) {
-      const checkbox = this.getLayerCheckbox(l);
-      if (checkbox !== null) {
-        let spinner =
-          checkbox.parentElement.querySelector<HTMLDivElement>(".spinner");
-        if (!spinner) {
-          const errorBadge =
-            checkbox.parentElement.querySelector(".badge-error");
-          if (errorBadge) {
-            errorBadge.remove();
-          }
-          spinner = checkbox.parentElement.appendChild(Spinner.Small());
+    const checkbox = this.getLayerCheckbox(l);
+    if (checkbox !== null) {
+      let spinner = checkbox.parentElement.querySelector<HTMLDivElement>(".spinner");
+      if (!spinner) {
+        const errorBadge = checkbox.parentElement.querySelector(".badge-error");
+        if (errorBadge) {
+          errorBadge.remove();
         }
-        if (!(layerName in this.loadingLayers)) {
-          this.loadingLayers[layerName] = {
-            count: 1,
-          };
-        } else {
-          this.loadingLayers[layerName].count += 1;
-          if (this.loadingLayers[layerName].timeout) {
-            clearTimeout(this.loadingLayers[layerName].timeout);
-          }
-        }
-        this.loadingLayers[layerName].timeout = setTimeout(() => {
-          if (!(layerName in this.loadingLayers)) {
-            spinner.remove();
-            if (!checkbox.parentElement.querySelector(".badge-error")) {
-              checkbox.parentElement.append(Badge.Error());
-            }
-            new Alert(
-              1,
-              AlertSeverity.Danger,
-              "Layer error",
-              `The layer, ${layerName}, took too long to load. Something may have gone wrong.`,
-              "#gifw-error-toast",
-            ).show();
-          }
-        }, 30000);
+        spinner = checkbox.parentElement.appendChild(createSmallSpinner());
       }
-    
+      if (!this.loadingLayers.has(layerName)) {
+        this.loadingLayers.set(layerName, { count: 1 });
+      } else {
+        const layerInfo = this.loadingLayers.get(layerName);
+        layerInfo.count += 1;
+        if (layerInfo.timeout) {
+          clearTimeout(layerInfo.timeout);
+        }
+      }
+      const layerInfo = this.loadingLayers.get(layerName);
+      layerInfo.timeout = setTimeout(() => {
+        if (!this.loadingLayers.has(layerName)) {
+          spinner.remove();
+          if (!checkbox.parentElement.querySelector(".badge-error")) {
+            checkbox.parentElement.append(createErrorBadge());
+          }
+          new Alert(
+            1,
+            AlertSeverity.Danger,
+            "Layer error",
+            `The layer, ${layerName}, took too long to load. Something may have gone wrong.`,
+            "#gifw-error-toast",
+          ).show();
+        }
+      }, 30000);
+    }
   }
+
   private loadEndEvent(l: olLayer, layerName: string) {
     setTimeout(() => {
-      if (layerName in this.loadingLayers) {
-        this.loadingLayers[layerName].count -= 1;
-        if (this.loadingLayers[layerName].count === 0) {
-          if (this.loadingLayers[layerName].timeout) {
-            clearTimeout(this.loadingLayers[layerName].timeout);
+      if (this.loadingLayers.has(layerName)) {
+        const layerInfo = this.loadingLayers.get(layerName);
+        layerInfo.count -= 1;
+        if (layerInfo.count === 0) {
+          if (layerInfo.timeout) {
+            clearTimeout(layerInfo.timeout);
           }
-          delete this.loadingLayers[layerName];
+          this.loadingLayers.delete(layerName);
         }
       }
       const checkbox = this.getLayerCheckbox(l);
       if (checkbox !== null) {
-        const spinner =
-          checkbox.parentElement.querySelector<HTMLDivElement>(".spinner");
+        const spinner = checkbox.parentElement.querySelector<HTMLDivElement>(".spinner");
         if (spinner) {
-          if (!(layerName in this.loadingLayers)) {
+          if (!this.loadingLayers.has(layerName)) {
             spinner.remove();
           }
         }
       }
     }, 500);
   }
+
   private loadErrorEvent(l: olLayer, layerName: string) {
     setTimeout(() => {
-      if (layerName in this.loadingLayers) {
-        this.loadingLayers[layerName].count -= 1;
-        if (this.loadingLayers[layerName].count === 0) {
-          if (this.loadingLayers[layerName].timeout) {
-            clearTimeout(this.loadingLayers[layerName].timeout);
+      if (this.loadingLayers.has(layerName)) {
+        const layerInfo = this.loadingLayers.get(layerName);
+        layerInfo.count -= 1;
+        if (layerInfo.count === 0) {
+          if (layerInfo.timeout) {
+            clearTimeout(layerInfo.timeout);
           }
-          delete this.loadingLayers[layerName];
+          this.loadingLayers.delete(layerName);
         }
       }
       const checkbox = this.getLayerCheckbox(l);
       if (checkbox !== null) {
-        const spinner =
-          checkbox.parentElement.querySelector<HTMLDivElement>(".spinner");
+        const spinner = checkbox.parentElement.querySelector<HTMLDivElement>(".spinner");
         if (spinner) {
-          if (!(layerName in this.loadingLayers)) {
+          if (!this.loadingLayers.has(layerName)) {
             spinner.remove();
-            // If all layers are loaded before this one errored, there won't be another render complete event, and so we trigger a check for errored layers here
             if (Object.keys(this.loadingLayers).length === 0) {
               this.raiseAlertForErrors();
             }
           }
         }
         if (!checkbox.parentElement.querySelector(".badge-error")) {
-          checkbox.parentElement.append(Badge.Error());
+          checkbox.parentElement.append(createErrorBadge());
         }
       }
     }, 500);
@@ -787,7 +780,7 @@ export class LayersPanel implements SidebarPanel {
         const invisibilityBadge =
           checkbox.parentElement.querySelector(".badge-invisible");
         if (l.getOpacity() === 0 && !invisibilityBadge) {
-          checkbox.parentElement.append(Badge.Invisible());
+          checkbox.parentElement.append(createInvisibleBadge());
         } else if (l.getOpacity() > 0 && invisibilityBadge) {
           invisibilityBadge.remove();
         }
@@ -825,7 +818,7 @@ export class LayersPanel implements SidebarPanel {
       const checkbox = this.getLayerCheckbox(l);
       if (checkbox !== null) {
         if (!checkbox.parentElement.querySelector(".badge-out-of-range")) {
-          checkbox.parentElement.append(Badge.OutOfRange());
+          checkbox.parentElement.append(createOutOfRangeBadge());
         }
       }
       const activeLayerItem = this.getActiveLayerItem(l);
@@ -833,7 +826,7 @@ export class LayersPanel implements SidebarPanel {
         if (!activeLayerItem.querySelector(".badge-out-of-range")) {
           activeLayerItem.insertAdjacentElement(
             "beforeend",
-            Badge.OutOfRange(),
+            createOutOfRangeBadge(),
           );
         }
       }
@@ -990,7 +983,7 @@ export class LayersPanel implements SidebarPanel {
           layersListContainer.querySelectorAll("input[type=checkbox]");
         layerSwitcherCheckboxes.forEach((c) => {
           c.closest("li").style.display = "none";
-          const parentFolders = Helper.getAllParentElements(
+          const parentFolders = getAllParentElements(
             c as HTMLElement,
             ".accordion-collapse",
           );
@@ -1036,7 +1029,7 @@ export class LayersPanel implements SidebarPanel {
               "input[type=checkbox]",
             ) as NodeListOf<HTMLInputElement>),
           );
-          const parentFolders = Helper.getAllParentElements(
+          const parentFolders = getAllParentElements(
             layerFolder as HTMLElement,
             ".accordion-collapse",
           );
@@ -1088,7 +1081,7 @@ export class LayersPanel implements SidebarPanel {
             `#layer-switcher-${layerResult.item.id}`,
           );
           layerCheckbox.closest("li").style.display = "block";
-          const parentFolders = Helper.getAllParentElements(
+          const parentFolders = getAllParentElements(
             layerCheckbox as HTMLElement,
             ".accordion-collapse",
           );
@@ -1126,7 +1119,7 @@ export class LayersPanel implements SidebarPanel {
     const layerSwitcherButtons =
       container.querySelectorAll(".accordion-button");
     layerSwitcherCheckboxes.forEach((c) => {
-      Helper.getAllParentElements(c, ".accordion-item").forEach((ai) => {
+      getAllParentElements(c, ".accordion-item").forEach((ai) => {
         ai.classList.remove("border-0");
       });
       c.closest("li").style.display = "block";
@@ -1243,7 +1236,7 @@ export class LayersPanel implements SidebarPanel {
           baseUrl = layerSource.getUrl();
         }
 
-        const authKey = Helper.getValueFromObjectByKey(sourceParams, "authkey");
+        const authKey = getValueFromObjectByKey(sourceParams, "authkey");
         let additionalParams = {};
         if (authKey) {
           additionalParams = { authkey: authKey };
@@ -1257,10 +1250,10 @@ export class LayersPanel implements SidebarPanel {
         if (gifwLayer.proxyMetaRequests) {
           proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
         }
-        const httpHeaders = MappingUtil.extractCustomHeadersFromLayerSource(
+        const httpHeaders = extractCustomHeadersFromLayerSource(
           gifwLayer.layerSource,
         );
-        const styles = await Metadata.getStylesForLayer(
+        const styles = await getStylesForLayer(
           baseUrl,
           featureTypeName,
           proxyEndpoint,
@@ -1424,6 +1417,6 @@ export class LayersPanel implements SidebarPanel {
   }
 
   private updateSortOrderPreference() {
-    UserSettings.setItem("LayerControlSortOrderPreference", this.listSortOrder);
+    setSetting("LayerControlSortOrderPreference", this.listSortOrder);
   }
 }

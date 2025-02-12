@@ -9,7 +9,7 @@ import { PrintConfiguration } from "../Interfaces/Print/PrintConfiguration";
 import { SidebarPanel } from "../Interfaces/SidebarPanel";
 import { GIFWMap } from "../Map";
 import { Sidebar } from "../Sidebar";
-import { Alert, AlertSeverity, AlertType, CustomError, Helper } from "../Util";
+import { Alert, AlertSeverity, AlertType, CustomError, addFullScreenLoader, removeFullScreenLoader } from "../Util";
 
 export class PrintPanel implements SidebarPanel {
   container: string;
@@ -359,7 +359,7 @@ export class PrintPanel implements SidebarPanel {
       "#gifw-print-do-print",
     );
     printButton.disabled = true;
-    Helper.addFullScreenLoader(
+    addFullScreenLoader(
       this.gifwMapInstance.id,
       "Generating your print. Please wait a sec.",
       true,
@@ -382,7 +382,7 @@ export class PrintPanel implements SidebarPanel {
       "#gifw-print-do-print",
     );
     printButton.disabled = false;
-    Helper.removeFullScreenLoader(this.gifwMapInstance.id);
+    removeFullScreenLoader(this.gifwMapInstance.id);
   }
 
   private cancelExport() {

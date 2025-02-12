@@ -20,7 +20,7 @@ export class GIFWPopupOverlay {
     this.overlay = overlay;
     closerEle.addEventListener("click", () => {
       overlay.setPosition(undefined);
-      closerEle.blur;
+      closerEle.blur();
       return false;
     });
   }

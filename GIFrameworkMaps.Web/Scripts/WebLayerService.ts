@@ -8,15 +8,15 @@ import { Options as TileWMSOptions } from "ol/source/TileWMS";
 import { LayerResource } from "./Interfaces/OGCMetadata/LayerResource";
 import { WebLayerServiceDefinition } from "./Interfaces/WebLayerServiceDefinition";
 import { GIFWMap } from "./Map";
-import { Metadata } from "./Metadata/Metadata";
-import Spinner from "./Spinner";
+import { getLayersFromCapabilities } from "./Metadata/Metadata";
+import { createSpinner } from "./Spinner";
 import {
   Alert,
   CustomError,
-  Helper,
-  Browser as BrowserUtil,
   AlertType,
   AlertSeverity,
+  PrefersReducedMotion,
+  groupBy
 } from "./Util";
 import { ImageTile, ImageWrapper } from "ol";
 export class WebLayerService {
@@ -67,7 +67,7 @@ export class WebLayerService {
       connectBtn.disabled = true;
       connectBtn.insertAdjacentElement(
         "afterbegin",
-        Spinner.create(["spinner-border-sm", "me-2"]),
+        createSpinner(["spinner-border-sm", "me-2"]),
       );
 
       const serviceId = (
@@ -86,7 +86,7 @@ export class WebLayerService {
       if (proxyMetaRequests) {
         proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
       }
-      const availableLayers = await Metadata.getLayersFromCapabilities(
+      const availableLayers = await getLayersFromCapabilities(
         serviceDefinition.url,
         serviceDefinition.type,
         version,
@@ -134,7 +134,7 @@ export class WebLayerService {
     );
     selectEle.innerHTML = "";
     this.serviceDefinitions.sort((a, b) => a.name.localeCompare(b.name));
-    const groupedDefs = Helper.groupBy(
+    const groupedDefs = groupBy(
       this.serviceDefinitions,
       (defs) => defs.category,
     );
@@ -291,7 +291,7 @@ export class WebLayerService {
               )
             ) {
               if (
-                !BrowserUtil.PrefersReducedMotion() &&
+                !PrefersReducedMotion() &&
                 containsExtent(curExtent, reprojectedExtent)
               ) {
                 this.gifwMapInstance.olMap.getView().fit(reprojectedExtent, {

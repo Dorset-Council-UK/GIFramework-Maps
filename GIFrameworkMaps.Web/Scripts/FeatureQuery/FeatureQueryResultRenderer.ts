@@ -10,12 +10,12 @@ import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { GIFWMap } from "../Map";
 import { GIFWPopupAction } from "../Popups/PopupAction";
 import { GIFWPopupOptions } from "../Popups/PopupOptions";
-import { Helper } from "../Util";
-import { FeaturePropertiesHelper } from "./FeaturePropertiesHelper";
-import { FeatureQueryTemplateHelper } from "./FeatureQueryTemplateHelper";
+import { getKeysFromObject, getValueFromObjectByKey } from "../Util";
+import { isUserDisplayablePropertyAndValue, getMostAppropriateTitleFromProperties, getFirstAllowedPropertyFromProperties } from "./FeaturePropertiesHelper";
+import { configureNunjucks, renderTemplate } from "./FeatureQueryTemplateHelper";
 import { Source } from "ol/source";
 import LayerRenderer from "ol/renderer/Layer";
-import { MetadataViewer } from "../Metadata/MetadataViewer";
+import { showMetadataModal } from "../Metadata/MetadataViewer";
 
 export class FeatureQueryResultRenderer {
   _gifwMapInstance: GIFWMap;
@@ -25,7 +25,7 @@ export class FeatureQueryResultRenderer {
 
   constructor(gifwMapInstance: GIFWMap) {
     this._gifwMapInstance = gifwMapInstance;
-    FeatureQueryTemplateHelper.configureNunjucks();
+    configureNunjucks();
 
     //add highlighted features layer
     this._highlightStyle = new Style({
@@ -101,7 +101,7 @@ export class FeatureQueryResultRenderer {
     if (gifwLayer) {
       //this indicates that it must be an overlay and will have the about this layer available
       popupActions.push(new GIFWPopupAction("About this layer", () => {
-        MetadataViewer.showMetadataModal(gifwLayer, layer, this._gifwMapInstance)
+        showMetadataModal(gifwLayer, layer, this._gifwMapInstance)
       }, false, false))
     }
 
@@ -124,12 +124,12 @@ export class FeatureQueryResultRenderer {
       if (!popupContent) {
         //use generic template
         let genericTemplate = "";
-        const keys = Helper.getKeysFromObject(props);
+        const keys = getKeysFromObject(props);
 
         keys.forEach((k) => {
-          const value = Helper.getValueFromObjectByKey(props, k);
+          const value = getValueFromObjectByKey(props, k);
           if (
-            FeaturePropertiesHelper.isUserDisplayablePropertyAndValue(
+            isUserDisplayablePropertyAndValue(
               k,
               value,
             )
@@ -140,7 +140,7 @@ export class FeatureQueryResultRenderer {
         if (genericTemplate !== "") {
           genericTemplate = `<table class="table table-sm"><tbody>${genericTemplate}</tbody></table>`;
           const titleProperty =
-            FeaturePropertiesHelper.getMostAppropriateTitleFromProperties(
+            getMostAppropriateTitleFromProperties(
               props,
             );
           if (titleProperty) {
@@ -157,14 +157,14 @@ export class FeatureQueryResultRenderer {
             "Template could not be determined or automatically setup",
           );
         }
-        popupContent = FeatureQueryTemplateHelper.renderTemplate(
+        popupContent = renderTemplate(
           gifwLayer.infoTemplate,
           props,
         );
       }
     } else {
       //has template
-      popupContent = FeatureQueryTemplateHelper.renderTemplate(
+      popupContent = renderTemplate(
         gifwLayer.infoTemplate,
         props,
       );
@@ -218,7 +218,7 @@ export class FeatureQueryResultRenderer {
           //attempt to get a suitable title for this vector feature
           listItemContent = f.get("gifw-popup-title");
         } else if (gifwLayer) {
-          listItemContent = FeatureQueryTemplateHelper.renderTemplate(
+          listItemContent = renderTemplate(
             gifwLayer.infoListTitleTemplate,
             f.getProperties(),
           );
@@ -226,18 +226,18 @@ export class FeatureQueryResultRenderer {
 
         if (listItemContent === "") {
           const titleProperty =
-            FeaturePropertiesHelper.getMostAppropriateTitleFromProperties(
+            getMostAppropriateTitleFromProperties(
               f.getProperties(),
             );
           if (titleProperty) {
-            listItemContent = Helper.getValueFromObjectByKey(
+            listItemContent = getValueFromObjectByKey(
               f.getProperties(),
               titleProperty,
             ) as string;
           } else {
             //fall back to first property
             const firstProp =
-              FeaturePropertiesHelper.getFirstAllowedPropertyFromProperties(
+              getFirstAllowedPropertyFromProperties(
                 f.getProperties() as object[],
               );
             if (firstProp !== undefined) {

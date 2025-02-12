@@ -4,7 +4,6 @@ import { Snap } from "ol/interaction";
 import AnnotationActivateEvent from "./AnnotationActivateEvent";
 import AnnotationDraw from "./AnnotationDraw";
 import AnnotationExport from "./AnnotationExport";
-import AnnotationLayer from "./AnnotationLayer";
 import AnnotationSelect from "./AnnotationSelect";
 import AnnotationSource from "./AnnotationSource";
 import AnnotationStyle from "./AnnotationStyle";
@@ -20,11 +19,12 @@ import {
 } from "./AnnotationTool";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { GIFWMap } from "../Map";
+import VectorLayer from "ol/layer/Vector";
 
 export default class Annotate extends olControl {
   gifwMapInstance: GIFWMap;
   activeStyle: AnnotationStyle;
-  annotationLayer: AnnotationLayer;
+  annotationLayer: VectorLayer;
   annotationTools: AnnotationTool[];
   drawInteraction: AnnotationDraw;
   exporter: AnnotationExport;

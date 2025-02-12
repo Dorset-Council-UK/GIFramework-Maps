@@ -18,14 +18,16 @@ import { GIFWPopupAction } from "./Popups/PopupAction";
 import { SearchQuery } from "./Interfaces/Search/SearchQuery";
 import { RequiredSearch } from "./Interfaces/Search/RequiredSearch";
 import { LayerGroupType } from "./Interfaces/LayerGroupType";
-import { UserSettings } from "./UserSettings";
+import { getItem as getSetting, setItem as setSetting } from "./UserSettings";
 import {
   AlertSeverity,
   AlertType,
-  Color,
   CustomError,
-  Helper,
-  Mapping as MappingHelper,
+  UnicodeDecodeB64,
+  calculateAnimationSpeed,
+  addLoadingOverlayToElement,
+  removeLoadingOverlayFromElement,
+  hexToRgb
 } from "./Util";
 
 export class Search {
@@ -142,7 +144,7 @@ export class Search {
       });
     }
     //get multiple search results preference
-    if (UserSettings.getItem(this._localStorageKey) === "true") {
+    if (getSetting(this._localStorageKey) === "true") {
       this.enableMultipleSearchResultsOnMap = true;
     }
 
@@ -184,7 +186,7 @@ export class Search {
     //add the permalink provided search results pin if provided
     if (permalinkParams && permalinkParams.sr && permalinkParams.srdata) {
       try {
-        const decodedSearchResultData = Helper.UnicodeDecodeB64(
+        const decodedSearchResultData = UnicodeDecodeB64(
           permalinkParams.srdata,
         );
         const searchResultData = JSON.parse(decodedSearchResultData);
@@ -482,7 +484,7 @@ export class Search {
         Math.max(result.zoom, curZoom) - Math.min(result.zoom, curZoom);
 
       zoomToExtent = point.getExtent();
-      animationSpeed = MappingHelper.calculateAnimationSpeed(zoomDiff);
+      animationSpeed = calculateAnimationSpeed(zoomDiff);
       maxZoom = result.zoom;
     }
 
@@ -645,7 +647,7 @@ export class Search {
     (
       document.querySelector("#gifw-search-results-count") as HTMLHeadElement
     ).innerText = "";
-    Helper.addLoadingOverlayToElement(searchResults, "afterbegin", "Searching");
+    addLoadingOverlayToElement(searchResults, "afterbegin", "Searching");
     (
       document.getElementById("gifw-search-button") as HTMLButtonElement
     ).disabled = true;
@@ -662,7 +664,7 @@ export class Search {
    */
   private hideLoading() {
     const searchResults = document.getElementById("gifw-search-results-list");
-    Helper.removeLoadingOverlayFromElement(searchResults);
+    removeLoadingOverlayFromElement(searchResults);
     (
       document.getElementById("gifw-search-button") as HTMLButtonElement
     ).disabled = false;
@@ -787,7 +789,7 @@ export class Search {
 
     this.enableMultipleSearchResultsOnMap =
       enableMultipleSearchResultsCheckbox.checked;
-    UserSettings.setItem(
+    setSetting(
       this._localStorageKey,
       this.enableMultipleSearchResultsOnMap ? "true" : "false",
     );
@@ -832,7 +834,7 @@ export class Search {
       }),
     });
 
-    const rgbColor = Color.hexToRgb(color);
+    const rgbColor = hexToRgb(color);
     let strokeColor = "rgb(0,0,0)";
     let fillColor = "rgba(255, 255, 255, 0.2)";
     if (rgbColor) {

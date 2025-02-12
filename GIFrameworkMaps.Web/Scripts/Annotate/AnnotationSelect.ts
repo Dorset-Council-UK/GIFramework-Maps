@@ -345,7 +345,7 @@ export default class AnnotationSelect extends Select {
             const multiPolygon = new MultiPolygon(geometries);
             extentPolygon = olPolygon.fromExtent(multiPolygon.getExtent());
             extentPolygon.transform("EPSG:3857", "EPSG:4326");
-          } catch (e) {
+          } catch {
             // Errors may occur if the polygon has multiple vertices at the same coordinate, in which case they cannot and should not be unkinked.
             extentPolygon = olPolygon.fromExtent(featureGeom.getExtent());
           }

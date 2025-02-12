@@ -1,7 +1,7 @@
 ﻿import { Modal } from "bootstrap";
 import { DateTime } from "luxon";
 import { WelcomeMessage } from "./Interfaces/WelcomeMessage";
-import { UserSettings } from "./UserSettings";
+import { getItem as getSetting, setItem as setSetting, removeItem as removeSetting } from "./UserSettings";
 
 export class Welcome {
   config: WelcomeMessage;
@@ -51,7 +51,7 @@ export class Welcome {
   }
 
   private getLastViewedTime(): Date {
-    const lastViewedTimeSetting = UserSettings.getItem(
+    const lastViewedTimeSetting = getSetting(
       this._localStorageKey,
       this._versionId,
     );
@@ -62,14 +62,14 @@ export class Welcome {
         return lastViewedTime.toJSDate();
       } else {
         //delete the invalid iteam
-        UserSettings.removeItem(this._localStorageKey, this._versionId);
+        removeSetting(this._localStorageKey, this._versionId);
       }
     }
     return null;
   }
 
   private setLastViewedTime(dateToSet: Date = new Date()): void {
-    UserSettings.setItem(
+    setSetting(
       this._localStorageKey,
       dateToSet.toISOString(),
       this._versionId,

@@ -8,20 +8,21 @@ export default [
   {
     rules: {
       "no-var": "error",
-      "@typescript-eslint/no-extraneous-class": "warn",
       "no-console": [
         "error",
         { "allow": ["warn", "error"] }
       ],
       "prefer-template": "warn",
-      "prefer-arrow-callback": "warn"
-      /*"no-magic-numbers": [
-        "warn",
-        {
-          "ignore": [ 1, -1, 0 ],
-          "ignoreArrayIndexes":  true
-        }
-      ]*/ //<- This is a fun one, and should be encouraged, but currently causes over 300 warningss!
+      "prefer-arrow-callback": "warn",
+      //// Note: you must disable the base rule as it can report incorrect errors
+      //"no-magic-numbers": "off",
+      //"@typescript-eslint/no-magic-numbers":  [
+      //  "warn",
+      //  {
+      //    "ignore": [ 1, -1, 0 ],
+      //    "ignoreArrayIndexes":  true
+      //  }
+      //] //<- This is a fun one, and should be encouraged, but currently causes over 400 warnings!
     },
   },
 ];

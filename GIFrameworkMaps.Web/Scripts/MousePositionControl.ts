@@ -2,9 +2,9 @@
 import * as olProj from "ol/proj";
 import { toStringHDMS } from "ol/coordinate";
 import { Modal } from "bootstrap";
-import { UserSettings } from "./UserSettings";
+import { getItem as getSetting, setItem as setSetting, removeItem as removeSetting } from "./UserSettings";
 import { Projection } from "./Interfaces/Projection";
-import { Projection as utilProjection } from "./Util";
+import { convertBNGEastingNorthingToAlpha } from "./Util";
 /**
  * A customised mouse position control that handles BNG Alphanumeric and setting decimal places
  *
@@ -35,7 +35,7 @@ export class GIFWMousePositionControl extends olControl.Control {
     let mousePositionProjection = olProj.get(
       this.getProjectionString(this.projection),
     );
-    const preferredProjectionEPSG = UserSettings.getItem(
+    const preferredProjectionEPSG = getSetting(
       "MousePositionProjection-Code",
     );
     if (preferredProjectionEPSG) {
@@ -45,7 +45,7 @@ export class GIFWMousePositionControl extends olControl.Control {
       if (preferredProjection) {
         mousePositionProjection = preferredProjection;
         this.projection = preferredProjectionEPSG;
-        const preferredProjectionDecimals = UserSettings.getItem(
+        const preferredProjectionDecimals = getSetting(
           "MousePositionProjection-Decimals",
         );
         if (
@@ -54,10 +54,10 @@ export class GIFWMousePositionControl extends olControl.Control {
         ) {
           this.decimals = parseInt(preferredProjectionDecimals);
         } else {
-          UserSettings.removeItem("MousePositionProjection-Decimals");
+          removeSetting("MousePositionProjection-Decimals");
         }
       } else {
-        UserSettings.removeItem("MousePositionProjection-Code");
+        removeSetting("MousePositionProjection-Code");
       }
     }
     const mousePosition = new olControl.MousePosition({
@@ -172,8 +172,8 @@ export class GIFWMousePositionControl extends olControl.Control {
     });
     this.projection = code;
     this.decimals = decimals;
-    UserSettings.setItem("MousePositionProjection-Code", code);
-    UserSettings.setItem(
+    setSetting("MousePositionProjection-Code", code);
+    setSetting(
       "MousePositionProjection-Decimals",
       decimals.toString(),
     );
@@ -200,7 +200,7 @@ export class GIFWMousePositionControl extends olControl.Control {
     if (code === "277001") {
       //this is a funny one that requires specific handling, hence the fake EPSG Code
       //do coord conversion
-      return utilProjection.convertBNGEastingNorthingToAlpha(x, y, true);
+      return convertBNGEastingNorthingToAlpha(x, y, true);
     } else if (code === "43261") {
       //this is a funny one that requires specific handling, hence the fake EPSG Code
       //do coord conversion
@@ -228,7 +228,7 @@ export class GIFWMousePositionControl extends olControl.Control {
     if (code === "277001") {
       //this is a funny one that requires specific handling, hence the fake EPSG Code
       //do coord conversion
-      return [utilProjection.convertBNGEastingNorthingToAlpha(x, y, true)];
+      return [convertBNGEastingNorthingToAlpha(x, y, true)];
     } else if (code === "43261") {
       //this is a funny one that requires specific handling, hence the fake EPSG Code
       //do coord conversion

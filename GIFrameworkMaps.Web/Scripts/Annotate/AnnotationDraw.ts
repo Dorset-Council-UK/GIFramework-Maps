@@ -7,17 +7,17 @@ import { Fill, Style, Text } from "ol/style";
 import { GIFWPopupAction } from "../Popups/PopupAction";
 import { GIFWPopupOptions } from "../Popups/PopupOptions";
 import Geometry, { Type as olGeomType } from "ol/geom/Geometry";
-import AnnotationLayer from "./AnnotationLayer";
 import AnnotationStyle from "./AnnotationStyle";
 import { Point, Polygon } from "ol/geom";
 import { GeoJSON } from "ol/format";
+import VectorLayer from "ol/layer/Vector";
 
 export default class AnnotationDraw extends Draw {
   tip: string;
 
   constructor(
     type: olGeomType,
-    annotationLayer: AnnotationLayer,
+    annotationLayer: VectorLayer,
     annotationStyle: AnnotationStyle,
   ) {
     const tip = (annotationStyle.activeTool.name === "Buffer" 
@@ -153,7 +153,7 @@ export default class AnnotationDraw extends Draw {
 
   private addPopupOptionsToFeature(
     feature: Feature<Geometry>,
-    annotationLayer: AnnotationLayer,
+    annotationLayer: VectorLayer,
     popupContent: string,
   ) {
     const removeAction = new GIFWPopupAction(

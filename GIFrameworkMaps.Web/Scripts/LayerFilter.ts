@@ -1,4 +1,5 @@
-﻿import { Modal, Tooltip } from "bootstrap";
+﻿import { WfsEndpoint } from "@camptocamp/ogc-client";
+import { Modal, Tooltip } from "bootstrap";
 import And from "ol/format/filter/And";
 import EqualTo from "ol/format/filter/EqualTo";
 import Filter from "ol/format/filter/Filter";
@@ -14,22 +15,21 @@ import NotEqualTo from "ol/format/filter/NotEqualTo";
 import Or from "ol/format/filter/Or";
 import { VectorImage, Layer as olLayer } from "ol/layer";
 import BaseLayer from "ol/layer/Base";
+import { transformExtent } from "ol/proj";
 import { ImageWMS, TileWMS, Vector } from "ol/source";
 import { v4 as uuidv4 } from "uuid";
 import { Layer } from "./Interfaces/Layer";
 import {
-  Capability,
-  CapabilityType,
+    Capability,
+    CapabilityType,
 } from "./Interfaces/OGCMetadata/BasicServerCapabilities";
 import { Property } from "./Interfaces/OGCMetadata/DescribeFeatureType";
 import { PagedUniqueResponse } from "./Interfaces/OGCMetadata/PagedUniqueResponse";
 import { GIFWMap } from "./Map";
-import { Metadata } from "./Metadata/Metadata";
+import { getBasicCapabilities, getDescribeFeatureType, getWPSCapabilities, hasWPSProcess } from "./Metadata/Metadata";
 import CQL, { FilterType, PropertyTypes } from "./OL Extensions/CQL";
 import { LayersPanel } from "./Panels/LayersPanel";
-import { Alert, Helper, Mapping as MappingHelper } from "./Util";
-import { transformExtent } from "ol/proj";
-import { WfsEndpoint } from "@camptocamp/ogc-client";
+import { Alert, createWFSFeatureRequestFromLayer, extractCustomHeadersFromLayerSource, getLayerSourceOptionValueByName, getValueFromObjectByKey } from "./Util";
 
 export class LayerFilter {
   gifwMapInstance: GIFWMap;
@@ -1293,7 +1293,7 @@ export class LayerFilter {
           //url.searchParams.set('CQL_FILTER', cqlFilter);
           //vectorSourceUrl = url.toString();
 
-          let projection = MappingHelper.getLayerSourceOptionValueByName(
+          let projection = getLayerSourceOptionValueByName(
             this.layerConfig.layerSource.layerSourceOptions,
             "projection",
           );
@@ -1306,7 +1306,7 @@ export class LayerFilter {
             projection = viewProj;
           }
 
-          const url = MappingHelper.createWFSFeatureRequestFromLayer(
+          const url = createWFSFeatureRequestFromLayer(
             this.layerConfig,
           );
           vectorSourceUrl = (extent) => {
@@ -1346,7 +1346,7 @@ export class LayerFilter {
       }
       if (source instanceof Vector || source instanceof VectorImage) {
         let vectorSourceUrl = source.getUrl();
-        let projection = MappingHelper.getLayerSourceOptionValueByName(
+        let projection = getLayerSourceOptionValueByName(
           this.layerConfig.layerSource.layerSourceOptions,
           "projection",
         );
@@ -1359,7 +1359,7 @@ export class LayerFilter {
           projection = viewProj;
         }
 
-        const url = MappingHelper.createWFSFeatureRequestFromLayer(
+        const url = createWFSFeatureRequestFromLayer(
           this.layerConfig,
         );
         vectorSourceUrl = (extent) => {
@@ -1553,17 +1553,17 @@ export class LayerFilter {
         baseUrl = (source as ImageWMS).getUrl();
       }
 
-      const authKey = Helper.getValueFromObjectByKey(sourceParams, "authkey");
+      const authKey = getValueFromObjectByKey(sourceParams, "authkey");
       if (authKey) {
         additionalParams = { authkey: authKey };
       }
     } else if (source instanceof Vector || source instanceof VectorImage) {
       //vector
-      baseUrl = MappingHelper.getLayerSourceOptionValueByName(
+      baseUrl = getLayerSourceOptionValueByName(
         this.layerConfig.layerSource.layerSourceOptions,
         "url",
       );
-      featureTypeName = MappingHelper.getLayerSourceOptionValueByName(
+      featureTypeName = getLayerSourceOptionValueByName(
         this.layerConfig.layerSource.layerSourceOptions,
         "typename",
       );
@@ -1571,10 +1571,10 @@ export class LayerFilter {
     if (this.layerConfig.proxyMetaRequests) {
       proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
     }
-    const layerHeaders = MappingHelper.extractCustomHeadersFromLayerSource(
+    const layerHeaders = extractCustomHeadersFromLayerSource(
       this.layerConfig.layerSource,
     );
-    const serverCapabilities = await Metadata.getBasicCapabilities(
+    const serverCapabilities = await getBasicCapabilities(
       baseUrl,
       additionalParams,
       proxyEndpoint,
@@ -1594,7 +1594,7 @@ export class LayerFilter {
       const describeFeatureCapability = serverCapabilities.capabilities.filter(
         (c) => c.type === CapabilityType.DescribeFeatureType,
       )[0];
-      const featureDescription = await Metadata.getDescribeFeatureType(
+      const featureDescription = await getDescribeFeatureType(
         describeFeatureCapability.url,
         featureTypeName,
         describeFeatureCapability.method,
@@ -1639,7 +1639,7 @@ export class LayerFilter {
         );
         const baseUrl = this.wpsExecuteCapability.url;
         let searchParams = new URLSearchParams();
-        const authKey = Helper.getValueFromObjectByKey(
+        const authKey = getValueFromObjectByKey(
           sourceParams,
           "authkey",
         ) as string;
@@ -1654,7 +1654,7 @@ export class LayerFilter {
         if (this.layerConfig.proxyMetaRequests) {
           url = this.gifwMapInstance.createProxyURL(url);
         }
-        const httpHeaders = MappingHelper.extractCustomHeadersFromLayerSource(
+        const httpHeaders = extractCustomHeadersFromLayerSource(
           this.layerConfig.layerSource,
         );
         const response = await fetch(url, {
@@ -1726,10 +1726,10 @@ export class LayerFilter {
       if (this.layerConfig.proxyMetaRequests) {
         proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
       }
-      const httpHeaders = MappingHelper.extractCustomHeadersFromLayerSource(
+      const httpHeaders = extractCustomHeadersFromLayerSource(
         this.layerConfig.layerSource,
       );
-      const serverCapabilities = await Metadata.getWPSCapabilities(
+      const serverCapabilities = await getWPSCapabilities(
         baseUrl,
         proxyEndpoint,
         {},
@@ -1751,7 +1751,7 @@ export class LayerFilter {
             (c) => c.type === CapabilityType.WPS_DescribeProcess,
           )[0];
 
-        const hasPagedUniqueProcess = await Metadata.hasWPSProcess(
+        const hasPagedUniqueProcess = await hasWPSProcess(
           describeProcessCapability.url,
           describeProcessCapability.method,
           "gs:PagedUnique",
@@ -1774,16 +1774,16 @@ export class LayerFilter {
         this.layer.get("layerId"),
       );
       const urlType =
-        MappingHelper.getLayerSourceOptionValueByName(
+        getLayerSourceOptionValueByName(
           layerConfig.layerSource.layerSourceOptions,
           "type",
         ) || "wfs"; //default to WFS unless overriden
       if (urlType === "wfs") {
-        const baseUrl = MappingHelper.getLayerSourceOptionValueByName(
+        const baseUrl = getLayerSourceOptionValueByName(
           layerConfig.layerSource.layerSourceOptions,
           "url",
         );
-        const typeName = MappingHelper.getLayerSourceOptionValueByName(
+        const typeName = getLayerSourceOptionValueByName(
           layerConfig.layerSource.layerSourceOptions,
           "typename",
         );

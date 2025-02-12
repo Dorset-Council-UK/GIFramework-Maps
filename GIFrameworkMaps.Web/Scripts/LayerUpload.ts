@@ -9,8 +9,9 @@ import {
   AlertSeverity,
   AlertType,
   CustomError,
-  File as FileHelper,
-  Browser as BrowserHelper,
+  getFileNameWithoutExtension,
+  getExtension,
+  PrefersReducedMotion
 } from "./Util";
 import DOMPurify from 'dompurify';
 
@@ -158,7 +159,7 @@ export class LayerUpload {
                   const added_layer = this.createAndAddLayerFromFile(
                     result,
                     format,
-                    FileHelper.getFileNameWithoutExtension(f.name),
+                    getFileNameWithoutExtension(f.name),
                   );
                   if (this.validateAddedLayer(added_layer)) {
                     resolve(added_layer);
@@ -167,7 +168,7 @@ export class LayerUpload {
                       added_layer.get("layerId"),
                     );
                     reject(
-                      `Couldn't add file ${FileHelper.getFileNameWithoutExtension(
+                      `Couldn't add file ${getFileNameWithoutExtension(
                         f.name,
                       )} because it appears to be invalid`,
                     );
@@ -175,7 +176,7 @@ export class LayerUpload {
                 } catch (ex) {
                   console.error(ex);
                   reject(
-                    `There was an unexpected problem processing file ${FileHelper.getFileNameWithoutExtension(
+                    `There was an unexpected problem processing file ${getFileNameWithoutExtension(
                       f.name,
                     )}`,
                   );
@@ -193,7 +194,7 @@ export class LayerUpload {
           if (!this.validateFileSize(f)) {
             failures.push(
               DOMPurify.sanitize(
-                `Couldn't add file ${FileHelper.getFileNameWithoutExtension(
+                `Couldn't add file ${getFileNameWithoutExtension(
                   f.name,
                 )} because it's too big (Max: ${
                   this.maxFileSize
@@ -203,9 +204,9 @@ export class LayerUpload {
           } else {
             failures.push(
               DOMPurify.sanitize(
-                `Couldn't add file ${FileHelper.getFileNameWithoutExtension(
+                `Couldn't add file ${getFileNameWithoutExtension(
                   f.name,
-                )} because we don't know how to process ${FileHelper.getExtension(
+                )} because we don't know how to process ${getExtension(
                   f.name,
                 )} files`,
               ),
@@ -280,7 +281,7 @@ export class LayerUpload {
               this.gifwMapInstance.isExtentAvailableInCurrentMap(totalNewExtent)
             ) {
               if (
-                !BrowserHelper.PrefersReducedMotion() &&
+                !PrefersReducedMotion() &&
                 containsExtent(curExtent, totalNewExtent)
               ) {
                 this.gifwMapInstance.olMap.getView().fit(totalNewExtent, {
@@ -407,7 +408,7 @@ export class LayerUpload {
   }
 
   private getFormatFromFile(file: File) {
-    const fileType = FileHelper.getExtension(file.name);
+    const fileType = getExtension(file.name);
     let format: KML | GPX | GeoJSON | TopoJSON | IGC;
     switch (fileType) {
       case "kml":

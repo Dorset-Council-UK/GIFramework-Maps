@@ -22,12 +22,12 @@ import { GIFWPopupAction } from "./Popups/PopupAction";
 import { GIFWPopupOptions } from "./Popups/PopupOptions";
 import { MeasurementResult } from "./Interfaces/MeasurementResult";
 import { Control as olControl } from "ol/control";
-import { Color, Alert, AlertType, AlertSeverity } from "./Util";
+import { Alert, AlertType, AlertSeverity, hexToRgb } from "./Util";
 import { FeatureLike } from "ol/Feature";
 import { Coordinate } from "ol/coordinate";
 import { Polygon } from "ol/geom";
 import { Modal } from "bootstrap";
-import { UserSettings } from "./UserSettings";
+import { getItem as getSetting, setItem as setSetting } from "./UserSettings";
 
 type UnitType = "metric" | "imperial";
 export class Measure extends olControl {
@@ -343,12 +343,12 @@ export class Measure extends olControl {
   }
 
   private getMeasurementPreferences() {
-    const measureShowSegmentsUserPref = UserSettings.getItem(
+    const measureShowSegmentsUserPref = getSetting(
       "measureShowSegments",
       undefined,
       ["true", "false"],
     );
-    const measureShowTotalsUserPref = UserSettings.getItem(
+    const measureShowTotalsUserPref = getSetting(
       "measureShowTotals",
       undefined,
       ["true", "false"],
@@ -362,7 +362,7 @@ export class Measure extends olControl {
         ? true
         : measureShowTotalsUserPref === "true";
     this.preferredUnits =
-      (UserSettings.getItem("measurePreferredUnits", undefined, [
+      (getSetting("measurePreferredUnits", undefined, [
         "metric",
         "imperial",
       ]) as UnitType) || "metric";
@@ -376,12 +376,12 @@ export class Measure extends olControl {
     this.preferredUnits = newUnits;
     this.showSegmentLengths = showSegments;
     this.showTotals = showTotals;
-    UserSettings.setItem("measurePreferredUnits", newUnits);
-    UserSettings.setItem(
+    setSetting("measurePreferredUnits", newUnits);
+    setSetting(
       "measureShowSegments",
       showSegments === true ? "true" : "false",
     );
-    UserSettings.setItem(
+    setSetting(
       "measureShowTotals",
       showTotals === true ? "true" : "false",
     );
@@ -702,7 +702,7 @@ export class Measure extends olControl {
   }
 
   private getBasicStyle(): Style {
-    const rgbColor = Color.hexToRgb(
+    const rgbColor = hexToRgb(
       this.gifwMapInstance.config.theme.primaryColour,
     );
     return new Style({
