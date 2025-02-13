@@ -3,11 +3,11 @@ import { Point } from "ol/geom";
 import { Bookmark } from "./Interfaces/Bookmark";
 import { GIFWMap } from "./Map";
 import {
-  Alert,
-  AlertSeverity,
-  AlertType,
-  CustomError,
-  Mapping as MappingUtil,
+    Alert,
+    AlertSeverity,
+    AlertType,
+    CustomError,
+    calculateAnimationSpeed
 } from "./Util";
 
 export class BookmarkMenu {
@@ -233,7 +233,7 @@ export class BookmarkMenu {
       Math.max(bookmark.zoom, curZoom) - Math.min(bookmark.zoom, curZoom);
 
     const zoomToExtent = point.getExtent();
-    const animationSpeed = MappingUtil.calculateAnimationSpeed(zoomDiff);
+    const animationSpeed = calculateAnimationSpeed(zoomDiff);
     const maxZoom = bookmark.zoom;
 
     if (this.gifwMapInstance.isExtentAvailableInCurrentMap(zoomToExtent)) {

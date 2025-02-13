@@ -1,18 +1,20 @@
-﻿import Buffer from "@turf/buffer";
+﻿import booleanIntersects from "@turf/boolean-intersects";
+import Buffer from "@turf/buffer";
 import { point as turfPoint, Units as turfUnits } from "@turf/helpers";
-import booleanIntersects from "@turf/boolean-intersects";
 import { Feature, VectorTile } from "ol";
 import { Coordinate } from "ol/coordinate";
 import { never as olConditionNever } from "ol/events/condition";
 import { GeoJSON, WFS, WMSGetFeatureInfo } from "ol/format";
 import GML3 from "ol/format/GML3";
 import {
-  and as andFilter,
-  between as betweenFilter,
-  equalTo as equalToFilter,
-  intersects as intersectsFilter,
+    and as andFilter,
+    between as betweenFilter,
+    equalTo as equalToFilter,
+    intersects as intersectsFilter,
 } from "ol/format/filter";
+import EqualTo from "ol/format/filter/EqualTo";
 import Filter from "ol/format/filter/Filter";
+import IsBetween from "ol/format/filter/IsBetween";
 import { Geometry, Point as olPoint, Polygon as olPolygon } from "ol/geom";
 import Draw, { DrawEvent } from "ol/interaction/Draw";
 import { Layer } from "ol/layer";
@@ -29,20 +31,18 @@ import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { CapabilityType } from "../Interfaces/OGCMetadata/BasicServerCapabilities";
 import { DescribeFeatureType } from "../Interfaces/OGCMetadata/DescribeFeatureType";
 import { GIFWMap } from "../Map";
-import { Metadata } from "../Metadata/Metadata";
+import { getBasicCapabilities, getDescribeFeatureType } from "../Metadata/Metadata";
 import CQL from "../OL Extensions/CQL";
 import { GIFWPopupAction } from "../Popups/PopupAction";
 import { GIFWPopupOptions } from "../Popups/PopupOptions";
 import {
-  AlertSeverity,
-  AlertType,
-  CustomError,
-  Helper,
-  Mapping as MappingUtil,
+    AlertSeverity,
+    AlertType,
+    CustomError,
+    extractCustomHeadersFromLayerSource,
+    getValueFromObjectByKey,
 } from "../Util";
 import { FeatureQueryResultRenderer } from "./FeatureQueryResultRenderer";
-import IsBetween from "ol/format/filter/IsBetween";
-import EqualTo from "ol/format/filter/EqualTo";
 
 export class FeatureQuerySearch {
   _gifwMapInstance: GIFWMap;
@@ -422,7 +422,7 @@ export class FeatureQuerySearch {
           baseUrl = source.getUrl();
         }
 
-        const authKey = Helper.getValueFromObjectByKey(sourceParams, "authkey");
+        const authKey = getValueFromObjectByKey(sourceParams, "authkey");
         let additionalParams = {};
         if (authKey) {
           additionalParams = { authkey: authKey };
@@ -430,10 +430,10 @@ export class FeatureQuerySearch {
         const gifwLayer = this._gifwMapInstance.getLayerConfigById(
           layer.get("layerId"),
         );
-        const layerHeaders = MappingUtil.extractCustomHeadersFromLayerSource(
+        const layerHeaders = extractCustomHeadersFromLayerSource(
           gifwLayer.layerSource,
         );
-        const serverCapabilities = await Metadata.getBasicCapabilities(
+        const serverCapabilities = await getBasicCapabilities(
           baseUrl,
           additionalParams,
           undefined,
@@ -461,10 +461,10 @@ export class FeatureQuerySearch {
           if (layer.get("gifw-proxy-meta-requests") === "true") {
             proxyEndpoint = `${document.location.protocol}//${this._gifwMapInstance.config.appRoot}proxy`;
           }
-          const httpHeaders = MappingUtil.extractCustomHeadersFromLayerSource(
+          const httpHeaders = extractCustomHeadersFromLayerSource(
             gifwLayer.layerSource,
           );
-          const featureDescription = await Metadata.getDescribeFeatureType(
+          const featureDescription = await getDescribeFeatureType(
             describeFeatureCapability.url,
             featureTypeName,
             describeFeatureCapability.method,
@@ -607,7 +607,7 @@ export class FeatureQuerySearch {
         request.layer.get("layerId"),
         [LayerGroupType.Overlay],
       );
-      const layerHeaders = MappingUtil.extractCustomHeadersFromLayerSource(
+      const layerHeaders = extractCustomHeadersFromLayerSource(
         gifwLayer.layerSource,
       );
       layerHeaders.append("Content-Type", "application/vnd.ogc.gml");

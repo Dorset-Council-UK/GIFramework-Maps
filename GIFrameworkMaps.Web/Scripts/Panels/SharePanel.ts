@@ -2,13 +2,13 @@
 import { Sidebar } from "../Sidebar";
 import { GIFWMap } from "../Map";
 import { Modal, Tooltip } from "bootstrap";
-import Spinner from "../Spinner";
+import { createSpinner } from "../Spinner";
 import {
   Alert,
   AlertSeverity,
   AlertType,
   CustomError,
-  Mapping as MappingUtil,
+  generatePermalinkForMap
 } from "../Util";
 
 export class SharePanel implements SidebarPanel {
@@ -56,7 +56,7 @@ export class SharePanel implements SidebarPanel {
   }
 
   private updatePermalink(): void {
-    const permalink = MappingUtil.generatePermalinkForMap(this.gifwMapInstance);
+    const permalink = generatePermalinkForMap(this.gifwMapInstance);
     const container = document.querySelector(this.container);
     const directLinkInput: HTMLInputElement =
       container.querySelector("#gifw-share-link");
@@ -144,7 +144,7 @@ export class SharePanel implements SidebarPanel {
     shortLinkButton.addEventListener("click", async () => {
       shortLinkButton.insertAdjacentElement(
         "afterbegin",
-        Spinner.create(["spinner-border-sm", "me-2"]),
+        createSpinner(["spinner-border-sm", "me-2"]),
       );
       shortLinkButton.disabled = true;
       const shortLink = await this.generateShortLink();
@@ -161,7 +161,7 @@ export class SharePanel implements SidebarPanel {
 
   private async generateShortLink() {
     const permalink = encodeURIComponent(
-      MappingUtil.generatePermalinkForMap(this.gifwMapInstance),
+      generatePermalinkForMap(this.gifwMapInstance),
     );
     const fetchUrl = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}api/GenerateShortUrl?url=${permalink}`;
     const response = await fetch(fetchUrl, {

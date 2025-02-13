@@ -1,7 +1,7 @@
 ﻿import * as GIFWMaps from "./Map";
 import * as GIFWSidebar from "./Sidebar";
 import { Tooltip } from "bootstrap";
-import { BroadcastReceiver } from "./BroadcastReceiver";
+import { init as initBroadcastReceiver} from "./BroadcastReceiver";
 import { BasemapsPanel } from "./Panels/BasemapsPanel";
 import { LayersPanel } from "./Panels/LayersPanel";
 import { PrintPanel } from "./Panels/PrintPanel";
@@ -14,10 +14,7 @@ import { SharePanel } from "./Panels/SharePanel";
 import { Welcome } from "./Welcome";
 import { VersionViewModel } from "./Interfaces/VersionViewModel";
 import { Tour } from "./Tour";
-import { Alert, AlertSeverity, AlertType, Helper } from "./Util";
-import {
-  Browser as BrowserHelper,
-} from "./Util";
+import { Alert, AlertSeverity, AlertType, extractParamFromHash, addFullScreenLoader, removeFullScreenLoader } from "./Util";
 import { SidebarPanel } from "./Interfaces/SidebarPanel";
 
 /*variables passed from index.cshtml. Use sparingly*/
@@ -53,14 +50,14 @@ document.addEventListener("DOMContentLoaded", () => {
       document
           .getElementById("CookieControlLink")
           .addEventListener("click", (e) => {
-              CookieControl.open;
+              CookieControl.open();
               e.preventDefault();
           });
   }
 
   const mapId = "giframeworkMap";
 
-  Helper.addFullScreenLoader(mapId, "Loading your map");
+  addFullScreenLoader(mapId, "Loading your map");
 
   fetch(gifw_version_config_url)
     .then((response) => {
@@ -82,10 +79,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        BroadcastReceiver.init(config.slug, config.appRoot);
+        initBroadcastReceiver(config.slug, config.appRoot);
         let mode: 'full' | 'embed' = 'full';
         if (window.location.hash !== "") {
-          if (BrowserHelper.extractParamFromHash(window.location.hash, 'embed') !== null) {
+          if (extractParamFromHash(window.location.hash, 'embed') !== null) {
             mode = 'embed';
           }
         }
@@ -196,7 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
           console.error('There was an error creating the map');
           throw ex; // Throw the error to preserve the stack trace
       } finally {
-        Helper.removeFullScreenLoader(mapId);
+        removeFullScreenLoader(mapId);
       }
     })
     .catch((error) => {

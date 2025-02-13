@@ -146,7 +146,7 @@ export class ThemeSwitcher {
         }
         localStorage.setItem(key, item);
         return true;
-      } catch (ex) {
+      } catch {
         return false;
       }
     }

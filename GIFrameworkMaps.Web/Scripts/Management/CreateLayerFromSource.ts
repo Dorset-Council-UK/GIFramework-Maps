@@ -1,11 +1,11 @@
 import GML3 from "ol/format/GML3";
 import WFS from "ol/format/WFS";
-import { FeaturePropertiesHelper } from "../FeatureQuery/FeaturePropertiesHelper";
+import { isUserDisplayableProperty, getMostAppropriateTitleFromProperties, getFirstAllowedPropertyFromProperties } from "../FeatureQuery/FeaturePropertiesHelper";
 import { FeatureQueryRequest } from "../Interfaces/FeatureQuery/FeatureQueryRequest";
 import { FeatureQueryResponse } from "../Interfaces/FeatureQuery/FeatureQueryResponse";
 import { CapabilityType } from "../Interfaces/OGCMetadata/BasicServerCapabilities";
-import { Metadata } from "../Metadata/Metadata";
-import { FeatureQueryTemplateHelper } from "../FeatureQuery/FeatureQueryTemplateHelper";
+import { getBasicCapabilities, getLayersFromCapabilities,getDescribeFeatureType } from "../Metadata/Metadata";
+import { configureNunjucks, renderTemplate } from "../FeatureQuery/FeatureQueryTemplateHelper";
 import { ServiceType } from "../Interfaces/WebLayerServiceDefinition";
 //global var defined in view. Replace me with another method :)
 declare let proxyEndpoint: string;
@@ -56,7 +56,7 @@ export class CreateLayerFromSource {
       document.getElementById("layer-source-type") as HTMLInputElement
     ).value as ServiceType;
     this.proxyEndpoint = proxyEndpoint;
-    FeatureQueryTemplateHelper.configureNunjucks();
+    configureNunjucks();
   }
 
   public async init() {
@@ -148,7 +148,7 @@ export class CreateLayerFromSource {
   private async getPropertySuggestions() {
     if (this.layerSourceURL !== "" && this.layerSourceName !== "") {
 
-      const availableLayers = await Metadata.getLayersFromCapabilities(
+      const availableLayers = await getLayersFromCapabilities(
         this.layerSourceURL,
         this.layerSourceType,
         this.getProxyEndpoint(),
@@ -177,7 +177,7 @@ export class CreateLayerFromSource {
 
   private async getAttributesForLayer() {
     if (this.layerSourceURL !== "" && this.layerSourceName !== "") {
-      const serverCapabilities = await Metadata.getBasicCapabilities(
+      const serverCapabilities = await getBasicCapabilities(
         this.layerSourceURL,
         {},
         this.getProxyEndpoint(),
@@ -194,7 +194,7 @@ export class CreateLayerFromSource {
           serverCapabilities.capabilities.filter(
             (c) => c.type === CapabilityType.DescribeFeatureType,
           )[0];
-        const featureDescription = await Metadata.getDescribeFeatureType(
+        const featureDescription = await getDescribeFeatureType(
           describeFeatureCapability.url,
           this.layerSourceName,
           describeFeatureCapability.method,
@@ -208,7 +208,7 @@ export class CreateLayerFromSource {
           return featureDescription.featureTypes[0].properties.filter(
             (f) =>
               f.type.indexOf("gml:") === -1 &&
-              FeaturePropertiesHelper.isUserDisplayableProperty(f.name),
+              isUserDisplayableProperty(f.name),
           );
         }
       }
@@ -327,7 +327,7 @@ export class CreateLayerFromSource {
     let template = "";
     //try and find a suitable name column
     const titleProperty =
-      FeaturePropertiesHelper.getMostAppropriateTitleFromProperties(attributes);
+      getMostAppropriateTitleFromProperties(attributes);
     if (titleProperty) {
       template = `<h1>{{${titleProperty}}}</h1>\r`;
       //remove attribute from list
@@ -335,7 +335,7 @@ export class CreateLayerFromSource {
     } else {
       //fall back to first property
       const firstProp =
-        FeaturePropertiesHelper.getFirstAllowedPropertyFromProperties(
+        getFirstAllowedPropertyFromProperties(
           attributes as unknown as object[],
         );
       template = `<h1>{{${firstProp[1].toString()}}}</h1>\r`;
@@ -364,7 +364,7 @@ export class CreateLayerFromSource {
       try {
         const props = (await this.getExampleFeature()) as object;
         if (props !== null) {
-          const renderedTemplate = FeatureQueryTemplateHelper.renderTemplate(
+          const renderedTemplate = renderTemplate(
             template,
             props,
           );
@@ -373,7 +373,7 @@ export class CreateLayerFromSource {
           previewContainer.innerHTML =
             '<div class="alert alert-warning p-2 my-1">We couldn\'t get an example feature from the feature server</div>';
         }
-      } catch (e) {
+      } catch {
         previewContainer.innerHTML =
           '<div class="alert alert-warning p-2 my-1">Something went wrong! Check your template</div>';
       }
@@ -388,7 +388,7 @@ export class CreateLayerFromSource {
       if (this._cachedExampleFeature) {
         return this._cachedExampleFeature;
       }
-      const serverCapabilities = await Metadata.getBasicCapabilities(
+      const serverCapabilities = await getBasicCapabilities(
         this.layerSourceURL,
         {},
         this.getProxyEndpoint(),
@@ -407,7 +407,7 @@ export class CreateLayerFromSource {
         const describeFeatureCapability = serverCapabilities.capabilities.filter(
           (c) => c.type === CapabilityType.DescribeFeatureType,
         )[0];
-        const featureDescription = await Metadata.getDescribeFeatureType(
+        const featureDescription = await getDescribeFeatureType(
           describeFeatureCapability.url,
           this.layerSourceName,
           describeFeatureCapability.method,
@@ -440,7 +440,7 @@ export class CreateLayerFromSource {
         }
         return props;
       }
-    } catch (e) {
+    } catch {
       return null;
     }
   }

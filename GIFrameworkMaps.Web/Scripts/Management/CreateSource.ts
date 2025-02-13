@@ -39,7 +39,7 @@ export class CreateSource {
       );
       const renderedAttribution = await response.text();
       return renderedAttribution;
-    } catch (e) {
+    } catch {
       return "An error occurred fetching the attribution";
     }
   }

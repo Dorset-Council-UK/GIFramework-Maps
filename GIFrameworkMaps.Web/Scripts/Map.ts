@@ -36,14 +36,15 @@ import { BookmarkMenu } from "./BookmarkMenu";
 import { LegendURLs } from "./Interfaces/LegendURLs";
 import { DebouncedFunc, debounce } from "lodash";
 import {
-  Browser as BrowserHelper,
-  Style,
-  Mapping as MappingHelper,
+  getDefaultStyleByGeomType,
+  extractParamsFromHash,
+  generatePermalinkForMap,
+  PrefersReducedMotion
 } from "./Util";
 import LayerRenderer from "ol/renderer/Layer";
 import { Projection } from "./Interfaces/Projection";
 import { VersionToggler } from "./VersionToggler";
-import { UserSettings } from "./UserSettings";
+import { getItem as getSetting, setItem as setSetting } from "./UserSettings";
 
 export class GIFWMap {
   id: string;
@@ -103,7 +104,7 @@ export class GIFWMap {
     let permalinkParams: Record<string, string> = {};
     if (window.location.hash !== "") {
       // try to restore center, zoom-level and rotation from the URL
-      permalinkParams = BrowserHelper.extractParamsFromHash(
+      permalinkParams = extractParamsFromHash(
         window.location.hash,
       );
     }
@@ -114,7 +115,7 @@ export class GIFWMap {
       collapsed: this.mode === 'embed',
       attributions: this.config.attribution?.renderedAttributionHTML,
     });
-    const scalelineType = UserSettings.getItem("prefersScaleBar") === "true" ? 'bar' : 'line';
+    const scalelineType = getSetting("prefersScaleBar") === "true" ? 'bar' : 'line';
     const scaleline = this.createScaleLineControl(scalelineType)
     const rotateControl = new olControl.Rotate({
       autoHide: false,
@@ -526,8 +527,8 @@ export class GIFWMap {
    * Updates the permalink in the browser URL bar and pushes it into the history
    * */
   private updatePermalinkInURL() {
-    const permalink = MappingHelper.generatePermalinkForMap(this);
-    const hashParams = BrowserHelper.extractParamsFromHash(
+    const permalink = generatePermalinkForMap(this);
+    const hashParams = extractParamsFromHash(
       permalink.substring(permalink.indexOf("#")),
     );
 
@@ -535,7 +536,7 @@ export class GIFWMap {
   }
 
   private updatePermalinkInLinks() {
-    const permalink = MappingHelper.generatePermalinkForMap(this);
+    const permalink = generatePermalinkForMap(this);
     document
       .querySelectorAll("a[data-gifw-permalink-update-uri-param]")
       .forEach((link) => {
@@ -581,7 +582,7 @@ export class GIFWMap {
     /* eslint-enable @typescript-eslint/no-explicit-any */
 
     let styleFunc = (feature: Feature<Geometry>) => {
-      return Style.getDefaultStyleByGeomType(
+      return getDefaultStyleByGeomType(
         feature.getGeometry().getType(),
         this.config.theme,
       );
@@ -868,7 +869,7 @@ export class GIFWMap {
       //move the element back into position so the tab order isn't messed up
       const newScaleBarEle = document.querySelector(`.ol-scale-${newType}`);
       currentSiblingElement.insertAdjacentElement('afterend', newScaleBarEle);
-      UserSettings.setItem("prefersScaleBar", (newType === 'bar').toString());
+      setSetting("prefersScaleBar", (newType === 'bar').toString());
       //attach new event listener
       this.attachScaleBarSwitcherListener(newType);
     }
@@ -1127,7 +1128,7 @@ export class GIFWMap {
       maxZoom = 50;
     }
     if (
-      !BrowserHelper.PrefersReducedMotion() &&
+      !PrefersReducedMotion() &&
       containsExtent(curExtent, extent)
     ) {
       this.olMap.getView().fit(extent, {

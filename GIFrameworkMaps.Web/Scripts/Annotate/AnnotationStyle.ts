@@ -2,7 +2,7 @@
 import AnnotationStyleEvent from "./AnnotationStyleEvent";
 import { AnnotationTool } from "./AnnotationTool";
 import { GIFWMap } from "../Map";
-import { Color } from "../Util";
+import { hexToRgb } from "../Util";
 
 export default class AnnotationStyle extends Style {
   activeTool: AnnotationTool;
@@ -40,7 +40,7 @@ export default class AnnotationStyle extends Style {
     this.fillColourHex = gifwMap.config.theme.primaryColour;
     this.fontColourHex = gifwMap.config.theme.primaryColour;
     this.strokeColourHex = gifwMap.config.theme.primaryColour;
-    const rgbColor = Color.hexToRgb(this.fillColourHex);
+    const rgbColor = hexToRgb(this.fillColourHex);
     this.opacity = 0.2;
     this.fillColour = `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, ${this.opacity})`;
     this.fontColour = `rgb(${rgbColor.r},${rgbColor.g},${rgbColor.b})`;
@@ -314,8 +314,6 @@ export default class AnnotationStyle extends Style {
     this.labelText = e.detail.style.labelText || this.labelText;
     if (e.detail.style.opacity != undefined && e.detail.style.opacity != null) {
       this.opacity = e.detail.style.opacity;
-    } else {
-      this.opacity;
     }
     this.pointType = e.detail.style.pointType || this.pointType;
     this.size = e.detail.style.size || this.size;
@@ -325,11 +323,11 @@ export default class AnnotationStyle extends Style {
       e.detail.style.strokeColourHex || this.strokeColourHex;
     this.strokeStyle = e.detail.style.strokeStyle || this.strokeStyle;
     this.strokeWidth = e.detail.style.strokeWidth || this.strokeWidth;
-    const rgbFillColour = Color.hexToRgb(this.fillColourHex);
+    const rgbFillColour = hexToRgb(this.fillColourHex);
     this.fillColour = `rgba(${rgbFillColour.r}, ${rgbFillColour.g}, ${rgbFillColour.b}, ${this.opacity})`;
-    const rgbFontColour = Color.hexToRgb(this.fontColourHex);
+    const rgbFontColour = hexToRgb(this.fontColourHex);
     this.fontColour = `rgb(${rgbFontColour.r}, ${rgbFontColour.g}, ${rgbFontColour.b})`;
-    const rgbStrokeColour = Color.hexToRgb(this.strokeColourHex);
+    const rgbStrokeColour = hexToRgb(this.strokeColourHex);
     this.strokeColour = `rgb(${rgbStrokeColour.r}, ${rgbStrokeColour.g}, ${rgbStrokeColour.b})`;
     if (
       e.detail.style.pointHasBorder != undefined &&
@@ -337,7 +335,7 @@ export default class AnnotationStyle extends Style {
     ) {
       this.pointHasBorder = e.detail.style.pointHasBorder;
     }
-    const rgbBorderColour = Color.hexToRgb(this.borderColourHex);
+    const rgbBorderColour = hexToRgb(this.borderColourHex);
     this.borderColour = `rgb(${rgbBorderColour.r}, ${rgbBorderColour.g}, ${rgbBorderColour.b})`;
     this.borderColourHex =
       e.detail.style.borderColourHex || this.borderColourHex;

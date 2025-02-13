@@ -18,9 +18,9 @@ import { LayerGroupType } from "./Interfaces/LayerGroupType";
 import { GIFWMap } from "./Map";
 import { GIFWPopupAction } from "./Popups/PopupAction";
 import { GIFWPopupOptions } from "./Popups/PopupOptions";
-import Spinner from "./Spinner";
-import { UserSettings } from "./UserSettings";
-import { Alert, AlertSeverity, Browser as BrowserHelper, Color } from "./Util";
+import { createSpinner } from "./Spinner";
+import { getItem as getSetting, setItem as setSetting } from "./UserSettings";
+import { Alert, AlertSeverity, PrefersReducedMotion, hexToRgb } from "./Util";
 
 export class GIFWGeolocation extends olControl {
   gifwMapInstance: GIFWMap;
@@ -64,7 +64,7 @@ export class GIFWGeolocation extends olControl {
     /*We only want the values 10,20 and 50 to be acceptable. Default to 20*/
     this.minAccuracyThreshold =
       parseInt(
-        UserSettings.getItem("geolocationMinAccuracyThreshold", undefined, [
+        getSetting("geolocationMinAccuracyThreshold", undefined, [
           "10",
           "20",
           "50",
@@ -72,19 +72,19 @@ export class GIFWGeolocation extends olControl {
       ) || 20;
 
     this.drawPath =
-      UserSettings.getItem("geolocationDrawPath", undefined, [
+      getSetting("geolocationDrawPath", undefined, [
         "true",
         "false",
       ]) === null
         ? true
-        : UserSettings.getItem("geolocationDrawPath") === "true";
+      : getSetting("geolocationDrawPath") === "true";
     this.useWakeLock =
-      UserSettings.getItem("geolocationUseWakeLock", undefined, [
+      getSetting("geolocationUseWakeLock", undefined, [
         "true",
         "false",
       ]) === null
         ? true
-        : UserSettings.getItem("geolocationUseWakeLock") === "true";
+      : getSetting("geolocationUseWakeLock") === "true";
 
     if ("wakeLock" in navigator) {
       this.wakeLockAvailable = true;
@@ -245,12 +245,12 @@ export class GIFWGeolocation extends olControl {
             ) as HTMLSelectElement
           ).selectedOptions[0].value,
         );
-        UserSettings.setItem(
+        setSetting(
           "geolocationMinAccuracyThreshold",
           this.minAccuracyThreshold.toString(),
         );
-        UserSettings.setItem("geolocationDrawPath", this.drawPath.toString());
-        UserSettings.setItem(
+        setSetting("geolocationDrawPath", this.drawPath.toString());
+        setSetting(
           "geolocationUseWakeLock",
           this.useWakeLock.toString(),
         );
@@ -379,7 +379,7 @@ export class GIFWGeolocation extends olControl {
       "bi bi-cursor-fill d-none";
     this._trackControlElement
       .querySelector("button")
-      .append(Spinner.create(["spinner-border-sm", "text-white"]));
+      .append(createSpinner(["spinner-border-sm", "text-white"]));
     document
       .getElementById(this.gifwMapInstance.id)
       .dispatchEvent(new Event("gifw-geolocation-start"));
@@ -477,7 +477,7 @@ export class GIFWGeolocation extends olControl {
     const position = this.olGeolocation.getPosition();
     const curExtent = this.gifwMapInstance.olMap.getView().calculateExtent();
     if (
-      !BrowserHelper.PrefersReducedMotion() &&
+      !PrefersReducedMotion() &&
       containsCoordinate(curExtent, position)
     ) {
       const opts: AnimationOptions = {
@@ -604,7 +604,7 @@ export class GIFWGeolocation extends olControl {
    * @returns Style[] Array of OpenLayers Style objects
    */
   private getStyleForGeolocationFeature(feature: Feature<Geometry>) {
-    const rgbColor = Color.hexToRgb(
+    const rgbColor = hexToRgb(
       this.gifwMapInstance.config.theme.primaryColour,
     );
 

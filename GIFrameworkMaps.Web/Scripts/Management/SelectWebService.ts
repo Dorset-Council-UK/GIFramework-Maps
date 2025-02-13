@@ -1,13 +1,11 @@
 import Fuse from "fuse.js";
 import { LayerResource } from "../Interfaces/OGCMetadata/LayerResource";
-import { Metadata } from "../Metadata/Metadata";
+import { getLayersFromCapabilities } from "../Metadata/Metadata";
 import { ServiceType } from "../Interfaces/WebLayerServiceDefinition";
 
 export class SelectWebService {
   preferredProjections: string[] = [];
   _fuseInstance: Fuse<LayerResource>;
-
-  constructor() {}
 
   public init() {
     //set preferred projections
@@ -62,7 +60,7 @@ export class SelectWebService {
   ) {
     const loadingSpinner = document.getElementById("layers-loading-spinner");
     loadingSpinner.style.display = "block";
-    const availableLayers = await Metadata.getLayersFromCapabilities(
+    const availableLayers = await getLayersFromCapabilities(
       url,
       type,
       version,

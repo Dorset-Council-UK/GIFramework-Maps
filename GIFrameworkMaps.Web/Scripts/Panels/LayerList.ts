@@ -5,10 +5,10 @@ import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { LayerListSortingOption } from "../Interfaces/LayerPanel/LayerListSortingOption";
 import { LayerFilter } from "../LayerFilter";
 import { GIFWMap } from "../Map";
-import { MetadataViewer } from "../Metadata/MetadataViewer";
+import { showMetadataModal } from "../Metadata/MetadataViewer";
 import { LayersPanel } from "./LayersPanel";
 import { Alert, AlertSeverity, AlertType } from "../Util";
-import { UserSettings } from "../UserSettings";
+import { getItem as getSetting, setItem as setSetting, getSessionItem as getSessionSetting, setSessionItem as setSessionSetting, removeItem as removeSetting } from "../UserSettings";
 import { DateTime } from "luxon";
 
 export class LayerList {
@@ -196,7 +196,7 @@ export class LayerList {
           (l) => l.id == eTarget.dataset.gifwAboutLayer,
         );
         if (layerConfig && layerConfig.length === 1) {
-          MetadataViewer.showMetadataModal(
+          showMetadataModal(
             layerConfig[0],
             olLayer as olLayer,
             this.gifwMapInstance
@@ -283,12 +283,12 @@ export class LayerList {
 
   private showLayerDisclaimerIfAppropriate(disclaimer: LayerDisclaimer) {
     //check sessionStorage to see if this disclaimer has been shown in this session
-    const lastViewedSession = UserSettings.getSessionItem(`DisclaimerViewed-${disclaimer.id}`);
+    const lastViewedSession = getSessionSetting(`DisclaimerViewed-${disclaimer.id}`);
     if (lastViewedSession !== null) {
       return;
     }
     //check localstorage to see if this dislaimer has been shown recently
-    const lastViewedTimeSetting = UserSettings.getItem(`DisclaimerLastViewed-${disclaimer.id}`);
+    const lastViewedTimeSetting = getSetting(`DisclaimerLastViewed-${disclaimer.id}`);
     
     let lastViewed = null;
     if (lastViewedTimeSetting) {
@@ -298,7 +298,7 @@ export class LayerList {
         lastViewed = lastViewedTime.toJSDate();
       } else {
         //delete the invalid iteam
-        UserSettings.removeItem(`DisclaimerLastViewed-${disclaimer.id}`);
+        removeSetting(`DisclaimerLastViewed-${disclaimer.id}`);
       }
     }
 
@@ -317,8 +317,8 @@ export class LayerList {
         document.querySelector('#layer-disclaimer-modal button').textContent = 'Close';
       }
       disclaimerModal.show();
-      UserSettings.setItem(`DisclaimerLastViewed-${disclaimer.id}`, new Date().toISOString());
-      UserSettings.setSessionItem(`DisclaimerViewed-${disclaimer.id}`, "true")
+      setSetting(`DisclaimerLastViewed-${disclaimer.id}`, new Date().toISOString());
+      setSessionSetting(`DisclaimerViewed-${disclaimer.id}`, "true")
     }
   }
   private showDisclaimer(frequency: number, lastViewed: Date): boolean {

@@ -1,6 +1,6 @@
 ﻿import { RecentOrFeaturedVersion, VersionListType } from "./Interfaces/RecentOrFeaturedVersion";
 import { GIFWMap } from "./Map";
-import { UserSettings } from "./UserSettings";
+import { getItem as getSetting, setItem as setSetting } from "./UserSettings";
 
 export class VersionToggler {
   gifwMapInstance: GIFWMap;
@@ -64,7 +64,7 @@ export class VersionToggler {
                 );
               });
             const headerHtml = `<li><h6 class="dropdown-header">Recent</h6></li>`;
-            versionTogglerContainer.insertAdjacentHTML("afterbegin", headerHtml);
+            versionTogglerContainer.insertAdjacentHTML("afterbegin", headerHtml); 
           }
         }
       }
@@ -74,7 +74,7 @@ export class VersionToggler {
   }
 
   private getRecentVersions(excludeCurrentVersion = false) {
-    const recentVersionsSetting = UserSettings.getItem("RecentVersions");
+    const recentVersionsSetting = getSetting("RecentVersions");
     if (recentVersionsSetting === null) {
       return [];
     }
@@ -104,6 +104,6 @@ export class VersionToggler {
     while (currentVersionsList.length > 5) {
       currentVersionsList.pop();
     }
-    UserSettings.setItem("RecentVersions", currentVersionsList.join(","));
+    setSetting("RecentVersions", currentVersionsList.join(","));
   }
 }
