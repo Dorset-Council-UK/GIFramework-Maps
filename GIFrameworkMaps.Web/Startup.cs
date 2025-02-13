@@ -192,8 +192,9 @@ namespace GIFrameworkMaps.Web
                     }
                 });
 				endpoints.MapStaticAssets();
-                endpoints.MapHub<BroadcastHub>("/broadcasthub");
-                endpoints.MapRazorPages();
+                endpoints.MapHub<BroadcastHub>("/broadcasthub").DisableHttpMetrics();
+				endpoints.MapHealthChecks("/monitor/health").DisableHttpMetrics();
+				endpoints.MapRazorPages();
             });
         }
 
