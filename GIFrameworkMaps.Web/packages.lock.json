@@ -2155,6 +2155,7 @@
           "Microsoft.EntityFrameworkCore": "[9.0.2, )",
           "Microsoft.Extensions.Http": "[9.0.2, )",
           "Microsoft.Graph.Beta": "[5.58.0-preview, )",
+          "Microsoft.IdentityModel.JsonWebTokens": "[8.4.0, )",
           "Newtonsoft.Json": "[13.0.3, )",
           "Npgsql": "[9.0.2, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[9.0.3, )",
@@ -2162,6 +2163,7 @@
           "Npgsql.NodaTime": "[9.0.2, )",
           "OpenLocationCode": "[2.1.1, )",
           "System.Data.SqlClient": "[4.9.0, )",
+          "System.IdentityModel.Tokens.Jwt": "[8.4.0, )",
           "System.Text.Json": "[9.0.2, )",
           "shortid": "[4.0.0, )"
         }
