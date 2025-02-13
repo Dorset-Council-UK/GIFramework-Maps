@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
 	  <Nullable>enable</Nullable>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
@@ -9,21 +9,22 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="Azure.Identity" Version="1.13.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.13" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.13">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.2">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.2" />
     <PackageReference Include="Microsoft.Graph.Beta" Version="5.58.0-preview" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Npgsql" Version="8.0.6" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="8.0.11" />
-    <PackageReference Include="Npgsql.NodaTime" Version="8.0.6" />
+    <PackageReference Include="Npgsql" Version="9.0.2" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="9.0.3" />
+    <PackageReference Include="Npgsql.NodaTime" Version="9.0.2" />
     <PackageReference Include="OpenLocationCode" Version="2.1.1" />
     <PackageReference Include="shortid" Version="4.0.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
+    <PackageReference Include="System.Text.Json" Version="9.0.2" />
   </ItemGroup>
 	
     <ItemGroup>

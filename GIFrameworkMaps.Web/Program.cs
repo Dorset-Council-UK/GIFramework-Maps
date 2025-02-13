@@ -20,6 +20,7 @@ using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using Npgsql;
 using System;
+using System.Configuration;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
@@ -93,11 +94,15 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddSignalR();
     services.AddHttpClient();
     services.AddHttpContextAccessor();
-
-    // Configure the database context
-    services.AddDbContextPool<ApplicationDbContext>(options =>
+	var connectionString = configuration.GetConnectionString("GIFrameworkMaps");
+	if (string.IsNullOrEmpty(connectionString))
+	{
+		throw new ConfigurationErrorsException("Connection string was empty");
+	}
+	// Configure the database context
+	services.AddDbContextPool<ApplicationDbContext>(options =>
     {
-        options.UseNpgsql("name=ConnectionStrings:GIFrameworkMaps", x =>
+        options.UseNpgsql(connectionString, x =>
         {
             x.MigrationsHistoryTable("__EFMigrationsHistory", "giframeworkmaps");
             x.UseNodaTime();
