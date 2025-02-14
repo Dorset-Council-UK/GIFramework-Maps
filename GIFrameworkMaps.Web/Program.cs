@@ -13,13 +13,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using Npgsql;
 using System;
+using System.Configuration;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
@@ -93,11 +93,18 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddSignalR();
     services.AddHttpClient();
     services.AddHttpContextAccessor();
+	services.AddHealthChecks()
+		.AddDbContextCheck<ApplicationDbContext>();
 
-    // Configure the database context
-    services.AddDbContextPool<ApplicationDbContext>(options =>
+	var connectionString = configuration.GetConnectionString("GIFrameworkMaps");
+	if (string.IsNullOrEmpty(connectionString))
+	{
+		throw new ConfigurationErrorsException("Connection string was empty");
+	}
+	// Configure the database context
+	services.AddDbContextPool<ApplicationDbContext>(options =>
     {
-        options.UseNpgsql("name=ConnectionStrings:GIFrameworkMaps", x =>
+        options.UseNpgsql(connectionString, x =>
         {
             x.MigrationsHistoryTable("__EFMigrationsHistory", "giframeworkmaps");
             x.UseNodaTime();
@@ -132,10 +139,10 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     }
 
     // Add custom authorization handlers and policies
-    builder.Services.AddTransient<IAuthorizationHandler, HasAccessToVersionAuthorizationHandler>();
-    builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformer>();
+    services.AddTransient<IAuthorizationHandler, HasAccessToVersionAuthorizationHandler>();
+    services.AddTransient<IClaimsTransformation, ClaimsTransformer>();
 
-    builder.Services.AddAuthorizationBuilder()
+    services.AddAuthorizationBuilder()
         .AddPolicy("CanAccessVersion", policy => policy.AddRequirements(new HasAccessToVersionRequirement()));
 
     // Add scoped repositories

@@ -46,9 +46,7 @@ namespace GIFrameworkMaps.Web
                 app.UseHttpsRedirection();
             }
 
-            app.UseStaticFiles();
-
-            app.UseRouting();
+			app.UseRouting();
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -193,9 +191,10 @@ namespace GIFrameworkMaps.Web
                         }
                     }
                 });
-
-                endpoints.MapHub<BroadcastHub>("/broadcasthub");
-                endpoints.MapRazorPages();
+				endpoints.MapStaticAssets();
+                endpoints.MapHub<BroadcastHub>("/broadcasthub").DisableHttpMetrics();
+				endpoints.MapHealthChecks("/monitor/health").DisableHttpMetrics();
+				endpoints.MapRazorPages();
             });
         }
 
