@@ -659,9 +659,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         {
             if (selectedCategories.Length == 0)
             {
-                return;
+				//get rid of all categories in the version early and exit
+				_context.RemoveRange(versionToUpdate.VersionCategories);
+				return;
             }
-
+			//figure out what to add and remove
             var selectedCategoriesHS = new HashSet<int>(selectedCategories);
             var versionCategories = new HashSet<int>();
             if (versionToUpdate.VersionCategories.Count != 0)

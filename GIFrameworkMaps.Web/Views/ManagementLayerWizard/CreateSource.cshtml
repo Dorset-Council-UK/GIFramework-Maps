@@ -102,7 +102,7 @@
         <h2>Help</h2>
         <p>Most of this information has been pulled from the data provider. The two to check properly are 'Layer Type' and 'Attribution'.</p>
         <p><strong>Layer Type</strong>: This identifies the type of layer source this is. Read our <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/db/layers/#layersourcetype" target="_blank">help documentation on Layer Types</a> to learn more.</p>
-        @if (string.IsNullOrEmpty(Model.ServiceAttribution.ToString()))
+        @if (string.IsNullOrEmpty(Model.ServiceAttribution?.ToString()))
         {
             <p><strong>Attribution</strong>: The service has not provided an attribution. You will need to select the correct one, or create a new one and come back and select it. </p>
         }
