@@ -159,11 +159,14 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         private void UpdateCategoryLayers(int[] selectedLayers, Category categoryToUpdate)
         {
-            if (selectedLayers.Length == 0)
-            {
-                return;
-            }
-
+			if(selectedLayers.Length == 0)
+			{
+				//get rid of all layers in the category early and exit
+				var categoryLayersToRemove = _context.CategoryLayers.Where(cl => cl.CategoryId == categoryToUpdate.Id);
+				_context.RemoveRange(categoryLayersToRemove);
+				return;
+			}
+			//figure out what to add and what to remove
             var selectedCategoriesHS = new HashSet<int>(selectedLayers);
             var versionCategories = new HashSet<int>();
             if (categoryToUpdate.Layers.Count != 0)

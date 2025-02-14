@@ -194,17 +194,21 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         }
         private void UpdateVersionAnalytics(AnalyticsEditViewModel editModel, AnalyticsDefinition _contextRecord)
         {
-            //Update the versions this analytic will apply to
-            if (!editModel.SelectedVersions.Any())
+			var currentDefinition = _context.AnalyticsDefinitions.Include(ad => ad.VersionAnalytics).FirstOrDefault(a => a.Id == editModel.AnalyticDefinition.Id);
+
+			//Update the versions this analytic will apply to
+			if (editModel.SelectedVersions.Count == 0)
             {
-                return;
+				//get rid of all versions in the analytics definition
+				var versionAnalyticsToRemove = currentDefinition.VersionAnalytics.Where(i => i.AnalyticsDefinitionId == editModel.AnalyticDefinition.Id);
+				_context.RemoveRange(versionAnalyticsToRemove);
+				return;
             }
 
             //Create a HashSet of all the selected integers
             var selectedVersionsHS = new HashSet<int>(editModel.SelectedVersions);
             //Create a HashSet of the existing list from the database
             var analyticVersions = new HashSet<int>();
-            var currentDefinition = _context.AnalyticsDefinitions.Include(ad => ad.VersionAnalytics).FirstOrDefault(a => a.Id == editModel.AnalyticDefinition.Id);
             if (currentDefinition.VersionAnalytics.Count != 0)
             {
                 analyticVersions = new HashSet<int>(currentDefinition.VersionAnalytics.Select(c => c.VersionId));
