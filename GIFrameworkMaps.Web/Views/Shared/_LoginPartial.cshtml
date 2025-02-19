@@ -6,7 +6,7 @@
     @if (User.Identity.IsAuthenticated)
     {
         <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#"><i class="bi-person-circle"></i> @User.Identity.Name</a>
+            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#"><i class="bi-person-circle"></i> @User.Claims.FirstOrDefault(c => c.Type.Equals("name")).Value</a>
             <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" id="my-account" asp-area="" asp-controller="Account" asp-action="Index">My account</a></li>
                 @if (User.IsInRole("GIFWAdmin"))

@@ -21,8 +21,10 @@ using Npgsql;
 using System;
 using System.Configuration;
 using System.Linq;
+using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using Yarp.ReverseProxy.Forwarder;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -124,14 +126,32 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
         services.AddRazorPages().AddMicrosoftIdentityUI();
 
-        services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+		//reduce size of cookies
+		services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
         {
             //options.ResponseType = OpenIdConnectResponseType.CodeToken;
             options.UsePkce = true;
             options.SaveTokens = true;
             options.Scope.Add("openid");
             options.Scope.Add(options.ClientId);
-        });
+			// Limit the claims stored in the cookie
+			options.Events = new OpenIdConnectEvents
+			{
+				OnTokenValidated = context =>
+				{
+					var claimsToKeep = new[] { "idp_access_token", "name", "email", "emails", System.Security.Claims.ClaimTypes.NameIdentifier };
+					var claims = context.Principal.Claims
+						.Where(claim => claimsToKeep.Contains(claim.Type))
+						.ToList();
+
+					var identity = new ClaimsIdentity(claims, context.Principal.Identity.AuthenticationType);
+					
+					context.Principal = new ClaimsPrincipal(identity);
+
+					return Task.CompletedTask;
+				}
+			};
+		});
     }
     else
     {
