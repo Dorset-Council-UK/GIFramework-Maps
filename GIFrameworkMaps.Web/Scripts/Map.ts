@@ -45,6 +45,7 @@ import LayerRenderer from "ol/renderer/Layer";
 import { Projection } from "./Interfaces/Projection";
 import { VersionToggler } from "./VersionToggler";
 import { getItem as getSetting, setItem as setSetting } from "./UserSettings";
+import { AuthManager } from "./AuthManager";
 
 export class GIFWMap {
   id: string;
@@ -54,6 +55,7 @@ export class GIFWMap {
   popupOverlay: GIFWPopupOverlay;
   mode: 'full' | 'embed' = 'full';
   olMap: olMap;
+  authManager: AuthManager;
   customControls: (
     | GIFWMousePositionControl
     | GIFWContextMenu
@@ -67,7 +69,8 @@ export class GIFWMap {
     id: string,
     config: VersionViewModel,
     sidebars: gifwSidebar.Sidebar[],
-    mode: 'full' | 'embed'
+    mode: 'full' | 'embed',
+    accessToken: string
   ) {
     this.id = id;
     this.config = config;
@@ -78,6 +81,9 @@ export class GIFWMap {
         .getElementById(this.id)
         .dispatchEvent(new CustomEvent("gifw-update-permalink"));
     }, 500);
+    if (accessToken) {
+      this.authManager = new AuthManager(accessToken);
+    }
   }
 
   /**

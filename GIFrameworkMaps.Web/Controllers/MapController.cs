@@ -70,16 +70,12 @@ namespace GIFrameworkMaps.Web.Controllers
                     var host = Request.Host.ToUriComponent();
                     var pathBase = Request.PathBase.ToUriComponent();
                     viewModel.AppRoot = $"{host}{pathBase}/";
-                    if (bool.TryParse(_configuration["GIFrameworkMaps:AuthenticateWithMapServices"], out bool authWithMapServices))
-                    {
-                        if (authWithMapServices && !string.IsNullOrEmpty(_configuration["GIFrameworkMaps:MapServicesAccessURL"]))
-                        {
+
                             /*NOTE - This requires using 'SaveTokens = true' in the auth setup*/
-                            var idToken = await HttpContext.GetTokenAsync("id_token");
-                            ViewData["MapServicesAccessURL"] = _configuration["GIFrameworkMaps:MapServicesAccessURL"];
-                            ViewData["MapServicesAccessToken"] = idToken;
-                        }
-                    }
+                    var idToken = await HttpContext.GetTokenAsync("id_token");
+                    ViewData["MapServicesAccessURL"] = _configuration["GIFrameworkMaps:MapServicesAccessURL"];
+                    ViewData["MapServicesAccessToken"] = idToken;
+
 
                     return View(viewModel);
                 }
