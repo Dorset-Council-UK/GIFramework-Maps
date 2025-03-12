@@ -72,7 +72,7 @@ export async function getDescribeFeatureType(
     return json;
   } catch (error) {
     console.error(`Could not get feature description: ${error}`);
-}
+  }
 }
 
 /**
@@ -226,6 +226,24 @@ export async function getStylesForLayer(
     
 }
 
+export async function isLayerGroup(baseUrl: string,
+  layerName: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  version: string = "1.1.0",
+  proxyEndpoint: string = "",
+  httpHeaders: Headers = new Headers()) {
+  ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
+  if (proxyEndpoint !== "") {
+    baseUrl = `${proxyEndpoint}?url=${encodeURIComponent(baseUrl)}`;
+  }
+  const endpoint = await new WmsEndpoint(baseUrl).isReady();
+  const layer = endpoint.getLayerByName(layerName);
+  if (layer.children) {
+    return layer.children.length !== 0;
+  }
+  return false;
+}
+
 export async function getLayerMetadataFromCapabilities(
   baseUrl: string,
   layerName: string,
@@ -347,6 +365,19 @@ export async function getLayersFromCapabilities(
   } catch (error) {
     console.error(`Could not get capabilities doc: ${error}`);
   }
+}
+
+export async function getChildrenOfLayerGroup(baseUrl: string,
+  layerGroupName: string,
+  proxyEndpoint: string = "",
+  httpHeaders: Headers = new Headers()) {
+  ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
+  if (proxyEndpoint !== "") {
+    baseUrl = `${proxyEndpoint}?url=${encodeURIComponent(baseUrl)}`;
+  }
+  const endpoint = await new WmsEndpoint(baseUrl).isReady();
+  const layers = endpoint.getLayerByName(layerGroupName);
+  return layers.children;
 }
 
 export function createLayerResourcesFromWMSLayer(endpoint: WmsEndpoint, layer: WmsLayerSummary, serviceInfo: GenericEndpointInfo, baseUrl: string, proxyEndpoint?: string) {
