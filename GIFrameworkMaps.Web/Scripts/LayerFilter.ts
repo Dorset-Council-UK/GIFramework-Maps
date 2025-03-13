@@ -26,7 +26,7 @@ import {
 import { Property } from "./Interfaces/OGCMetadata/DescribeFeatureType";
 import { PagedUniqueResponse } from "./Interfaces/OGCMetadata/PagedUniqueResponse";
 import { GIFWMap } from "./Map";
-import { getBasicCapabilities, getDescribeFeatureType, getWPSCapabilities, hasWPSProcess } from "./Metadata/Metadata";
+import { getBasicCapabilities, getChildrenOfLayerGroup, getDescribeFeatureType, getWPSCapabilities, hasWPSProcess, isLayerGroup } from "./Metadata/Metadata";
 import CQL, { FilterType, PropertyTypes } from "./OL Extensions/CQL";
 import { LayersPanel } from "./Panels/LayersPanel";
 import { Alert, createWFSFeatureRequestFromLayer, extractCustomHeadersFromLayerSource, getLayerSourceOptionValueByName, getValueFromObjectByKey } from "./Util";
@@ -1591,6 +1591,15 @@ export class LayerFilter {
       ).length !== 0
     ) {
       //has all relevant capabilities
+      if (source instanceof TileWMS || source instanceof ImageWMS) {
+        if (await isLayerGroup(baseUrl, featureTypeName, undefined, proxyEndpoint, layerHeaders)) {
+          //get a layer from the group to use as a canary. Not ideal but functional
+          const layerGroupLayers = await getChildrenOfLayerGroup(baseUrl, featureTypeName);
+          if (layerGroupLayers?.length !== 0) {
+            featureTypeName = layerGroupLayers[0].name;
+          }
+        }
+      }
       const describeFeatureCapability = serverCapabilities.capabilities.filter(
         (c) => c.type === CapabilityType.DescribeFeatureType,
       )[0];
@@ -1631,25 +1640,44 @@ export class LayerFilter {
       if (source instanceof TileWMS || source instanceof ImageWMS) {
         //get feature type description and capabilities from server
         const sourceParams = source.getParams();
-        const featureTypeName = sourceParams.LAYERS;
+        let featureTypeName = sourceParams.LAYERS;
+        let sourceBaseUrl;
+        if (source instanceof TileWMS) {
+          sourceBaseUrl = source.getUrls()[0];
+        } else {
+          sourceBaseUrl = (source as ImageWMS).getUrl();
+        }
 
+        const authKey = getValueFromObjectByKey(sourceParams, "authkey");
+        let additionalParams = new URLSearchParams();
+        if (authKey) {
+          additionalParams = new URLSearchParams({ authkey: authKey });
+        }
+        sourceBaseUrl = `${sourceBaseUrl}${sourceBaseUrl.indexOf("?") === -1 ? "?" : "&"}${additionalParams}`;
+        let proxyEndpoint = "";
+        if (this.layerConfig.proxyMetaRequests) {
+          proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
+        }
+        const layerHeaders = extractCustomHeadersFromLayerSource(
+          this.layerConfig.layerSource,
+        );
+
+        if (await isLayerGroup(sourceBaseUrl, featureTypeName, undefined, proxyEndpoint,layerHeaders)) {
+          //get a layer from the group to use as a canary. Not ideal but functional
+          const layerGroupLayers = await getChildrenOfLayerGroup(sourceBaseUrl, featureTypeName);
+          if (layerGroupLayers.length !== 0) {
+            featureTypeName = layerGroupLayers[0].name;
+          }
+        }
         const xmlPayload = this.getWPSPagedUniquePayload(
           featureTypeName,
           propertyName,
         );
         const baseUrl = this.wpsExecuteCapability.url;
-        let searchParams = new URLSearchParams();
-        const authKey = getValueFromObjectByKey(
-          sourceParams,
-          "authkey",
-        ) as string;
-        if (authKey) {
-          searchParams = new URLSearchParams({ authkey: authKey });
-        }
 
         let url = `${baseUrl}${
           baseUrl.indexOf("?") === -1 ? "?" : "&"
-        }${searchParams}`;
+        }${additionalParams}`;
 
         if (this.layerConfig.proxyMetaRequests) {
           url = this.gifwMapInstance.createProxyURL(url);
