@@ -41,6 +41,7 @@ export class LayerFilter {
   cqlFormatter: CQL;
   defaultFilter: string;
   useWPSSearchSuggestions: boolean = false;
+  maxSearchSuggestions = 200;
   wpsExecuteCapability: Capability;
   _uniquePropValuesCache: PropertyValuesCache[] = [];
   constructor(layersPanelInstance: LayersPanel, layerConfig: Layer) {
@@ -1633,14 +1634,17 @@ export class LayerFilter {
         (c) => c.propertyName === propertyName,
       );
       if (cachedValues.length !== 0) {
-        return cachedValues[0].values;
+        if (cachedValues.values.length <= this.maxSearchSuggestions) {
+          return cachedValues[0].values;
+        }
+        return null;
       }
-
+      
       const source = (this.layer as olLayer).getSource();
       if (source instanceof TileWMS || source instanceof ImageWMS) {
         //get feature type description and capabilities from server
         const sourceParams = source.getParams();
-        let featureTypeName = sourceParams.LAYERS;
+        const featureTypeName = sourceParams.LAYERS;
         let sourceBaseUrl;
         if (source instanceof TileWMS) {
           sourceBaseUrl = source.getUrls()[0];
@@ -1661,50 +1665,72 @@ export class LayerFilter {
         const layerHeaders = extractCustomHeadersFromLayerSource(
           this.layerConfig.layerSource,
         );
-
-        if (await isLayerGroup(sourceBaseUrl, featureTypeName, undefined, proxyEndpoint,layerHeaders)) {
-          //get a layer from the group to use as a canary. Not ideal but functional
+        let uniqueValues:string[] = [];
+        if (await isLayerGroup(sourceBaseUrl, featureTypeName, undefined, proxyEndpoint, layerHeaders)) {
+          
           const layerGroupLayers = await getChildrenOfLayerGroup(sourceBaseUrl, featureTypeName);
+          let totalCount = 0;
           if (layerGroupLayers.length !== 0) {
-            featureTypeName = layerGroupLayers[0].name;
+            //loop through feature types and get list for all
+            for await (const layer of layerGroupLayers) {
+              const resp = await this.getUniqueValuesForProperty(layer.name, propertyName, additionalParams);
+              totalCount += resp.size;
+              if (totalCount > this.maxSearchSuggestions) {
+                break;
+              }
+              uniqueValues = uniqueValues.concat(resp.values.sort());
+            }
+            if (totalCount > this.maxSearchSuggestions) {
+              uniqueValues = [];
+            }
           }
+        } else {
+          //get the single feature type
+          const resp = await this.getUniqueValuesForProperty(featureTypeName, propertyName, additionalParams);
+          if (resp.size <= this.maxSearchSuggestions) {
+            uniqueValues = resp.values.sort();
+          }
+          
         }
-        const xmlPayload = this.getWPSPagedUniquePayload(
-          featureTypeName,
-          propertyName,
-        );
-        const baseUrl = this.wpsExecuteCapability.url;
-
-        let url = `${baseUrl}${
-          baseUrl.indexOf("?") === -1 ? "?" : "&"
-        }${additionalParams}`;
-
-        if (this.layerConfig.proxyMetaRequests) {
-          url = this.gifwMapInstance.createProxyURL(url);
-        }
-        const httpHeaders = extractCustomHeadersFromLayerSource(
-          this.layerConfig.layerSource,
-        );
-        const response = await fetch(url, {
-          method: this.wpsExecuteCapability.method,
-          body: xmlPayload,
-          headers: httpHeaders,
+        const dedupedUniqueValues = [...new Set(uniqueValues)];
+        this._uniquePropValuesCache.push({
+          propertyName: propertyName,
+          values: dedupedUniqueValues.sort(),
         });
-        if (!response.ok) {
-          throw new Error(`HTTP error: ${response.status}`);
-        }
-        const uniqueValues: PagedUniqueResponse = await response.json();
-        if (uniqueValues.size <= 100) {
-          //add to cache
-          this._uniquePropValuesCache.push({
-            propertyName: propertyName,
-            values: uniqueValues.values.sort(),
-          });
-          return uniqueValues.values.sort();
+        if (dedupedUniqueValues.length <= this.maxSearchSuggestions) {
+          return dedupedUniqueValues;
         }
       }
       return null;
     }
+  }
+
+  private async getUniqueValuesForProperty(featureTypeName: string, propertyName: string, additionalParams: URLSearchParams) {
+    const xmlPayload = this.getWPSPagedUniquePayload(
+      featureTypeName,
+      propertyName,
+    );
+    const baseUrl = this.wpsExecuteCapability.url;
+
+    let url = `${baseUrl}${baseUrl.indexOf("?") === -1 ? "?" : "&"
+      }${additionalParams}`;
+
+    if (this.layerConfig.proxyMetaRequests) {
+      url = this.gifwMapInstance.createProxyURL(url);
+    }
+    const httpHeaders = extractCustomHeadersFromLayerSource(
+      this.layerConfig.layerSource,
+    );
+    const response = await fetch(url, {
+      method: this.wpsExecuteCapability.method,
+      body: xmlPayload,
+      headers: httpHeaders,
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+    const uniqueValues: PagedUniqueResponse = await response.json();
+    return uniqueValues;
   }
 
   /**
@@ -1856,7 +1882,7 @@ export class LayerFilter {
     <wps:Input>
       <ows:Identifier>maxFeatures</ows:Identifier>
       <wps:Data>
-        <wps:LiteralData>100</wps:LiteralData>
+        <wps:LiteralData>${this.maxSearchSuggestions}</wps:LiteralData>
       </wps:Data>
     </wps:Input>
   </wps:DataInputs>
