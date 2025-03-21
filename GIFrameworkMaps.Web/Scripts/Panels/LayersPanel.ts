@@ -417,6 +417,7 @@ export class LayersPanel implements SidebarPanel {
       includeMatches: true,
       threshold: 0.2,
       keys: ["name"],
+      ignoreLocation: true,
     };
     const allLayers: Layer[] = [];
     const allCategories: Category[] = [];
