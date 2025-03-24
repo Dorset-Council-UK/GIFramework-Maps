@@ -1,5 +1,6 @@
 using Azure.Identity;
 using GIFrameworkMaps.Data;
+using GIFrameworkMaps.Data.Models.Authorization;
 using GIFrameworkMaps.Web;
 using GIFrameworkMaps.Web.Authorization;
 using GIFrameworkMaps.Web.Filters;
@@ -108,7 +109,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         {
             x.MigrationsHistoryTable("__EFMigrationsHistory", "giframeworkmaps");
             x.UseNodaTime();
-        });
+			x.MapEnum<AuthorizationType>("authorization_type");
+		});
         options.EnableSensitiveDataLogging(environment.IsDevelopment());
         // Uncomment the following line for logging EF Core queries
         // options.LogTo(Console.WriteLine, minimumLevel: Microsoft.Extensions.Logging.LogLevel.Information);

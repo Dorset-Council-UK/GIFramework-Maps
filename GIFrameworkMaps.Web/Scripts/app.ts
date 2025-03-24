@@ -66,7 +66,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return response.json() as Promise<VersionViewModel>;
     })
     .then(async (config) => {
-
       // To refresh the access token
       //authManager.refreshAccessToken().then(() => {
       //  console.warn('Access token refreshed:', authManager.getAccessToken());

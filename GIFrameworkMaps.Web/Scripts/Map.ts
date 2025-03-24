@@ -82,7 +82,10 @@ export class GIFWMap {
         .dispatchEvent(new CustomEvent("gifw-update-permalink"));
     }, 500);
     if (accessToken) {
-      this.authManager = new AuthManager(accessToken);
+      //const authRules: AuthRule[] = [{ regex: new RegExp("https://gi(-staging)?.dorsetcouncil.gov.uk/geoserver.+"), authType: AuthType.Bearer}];
+      // eslint-disable-next-line no-console
+      console.debug(this.config);
+      this.authManager = new AuthManager(accessToken, this.config.urlAuthorizationRules);
     }
   }
 

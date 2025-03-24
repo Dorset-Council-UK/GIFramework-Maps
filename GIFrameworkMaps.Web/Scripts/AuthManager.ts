@@ -1,8 +1,13 @@
+import { AuthType } from "./Interfaces/Authorization/AuthType";
+import { UrlAuthorizationRules } from "./Interfaces/Authorization/UrlAuthorizationRules";
+
 export class AuthManager {
   private accessToken: string | null = null;
+  private authRules: UrlAuthorizationRules[] = [];
 
-  constructor(accessToken: string) {
+  constructor(accessToken: string, authRules: UrlAuthorizationRules[]) {
     this.accessToken = accessToken;
+    this.authRules = authRules;
   }
 
   public getAccessToken(): string | null {
@@ -13,11 +18,12 @@ export class AuthManager {
     //TODO - refresh the access token
   }
 
-  public addAuthToLayer(url: string): boolean {
-    //TODO - Check configurable regex of url -> auth_type
-    if (url.indexOf('gi.dorsetcouncil.gov.uk') !== -1 || url.indexOf('gi-staging.dorsetcouncil.gov.uk') !== -1){
-      return true;
+  public getAuthenticationType(url: string): AuthType {
+    for (const rule of this.authRules.sort((a,b) => a.priority - b.priority)) {
+      if (new RegExp(rule.url).test(url)) {
+        return rule.authorizationType;
+      }
     }
-    return false;
+    return AuthType.None;
   }
 }

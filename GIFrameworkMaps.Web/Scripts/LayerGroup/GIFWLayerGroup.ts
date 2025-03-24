@@ -25,6 +25,7 @@ import { TileMatrixSet } from "../Interfaces/OGCMetadata/TileMatrixSet";
 import { GIFWMap } from "../Map";
 import { createWFSFeatureRequestFromLayer, extractCustomHeadersFromLayerSource, getLayerSourceOptionValueByName, getOpenLayersFormatFromOGCFormat } from "../Util";
 import { LayerGroup } from "./LayerGroup";
+import { AuthType } from "../Interfaces/Authorization/AuthType";
 
 export class GIFWLayerGroup implements LayerGroup {
   layers: Layer[];
@@ -167,10 +168,10 @@ export class GIFWLayerGroup implements LayerGroup {
     imageTile: ImageTile,
     src: string,
     layerHeaders: Headers,
-    withAuth: boolean
+    authType: AuthType
   ) {
     try {
-      if (withAuth && !layerHeaders.has('Authorization')) {
+      if (authType === AuthType.Bearer && !layerHeaders.has('Authorization')) {
         layerHeaders.append('Authorization', `Bearer ${this.gifwMapInstance.authManager.getAccessToken()}`);
       }
       const resp = await fetch(src, {
@@ -292,11 +293,8 @@ export class GIFWLayerGroup implements LayerGroup {
         if (layer.proxyMapRequests) {
           src = this.gifwMapInstance.createProxyURL(src);
         }
-        let withAuth = false;
-        if (this.gifwMapInstance.authManager && this.gifwMapInstance.authManager.addAuthToLayer(url)) {
-          withAuth = true;
-        }
-        this.customTileLoader(imageTile, src, layerHeaders, withAuth);
+        const authType = this.gifwMapInstance.authManager.getAuthenticationType(url);
+        this.customTileLoader(imageTile, src, layerHeaders, authType);
       };
     }
     const ol_layer = new olLayer.Tile({
@@ -352,11 +350,8 @@ export class GIFWLayerGroup implements LayerGroup {
         if (layer.proxyMapRequests) {
           src = this.gifwMapInstance.createProxyURL(src);
         }
-        let withAuth = false;
-        if (this.gifwMapInstance.authManager && this.gifwMapInstance.authManager.addAuthToLayer(url)) {
-          withAuth = true;
-        }
-        this.customTileLoader(imageTile, src, layerHeaders, withAuth);
+        const authType = this.gifwMapInstance.authManager.getAuthenticationType(url);
+        this.customTileLoader(imageTile, src, layerHeaders, authType);
       };
     }
 
@@ -411,11 +406,8 @@ export class GIFWLayerGroup implements LayerGroup {
         if (layer.proxyMapRequests) {
           src = this.gifwMapInstance.createProxyURL(src);
         }
-        let withAuth = false;
-        if (this.gifwMapInstance.authManager && this.gifwMapInstance.authManager.addAuthToLayer(url)) {
-          withAuth = true;
-        }
-        this.customTileLoader(imageTile, src, layerHeaders, withAuth);
+        const authType = this.gifwMapInstance.authManager.getAuthenticationType(url);
+        this.customTileLoader(imageTile, src, layerHeaders, authType);
       };
       /* eslint-enable @typescript-eslint/no-explicit-any */
     }

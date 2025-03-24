@@ -64,18 +64,17 @@ namespace GIFrameworkMaps.Web.Controllers
                 {
 					//now we get the full details
 					var fullVersionDetails = await _repository.GetVersion(version.Id);
-					var viewModel = _repository.GetVersionViewModel(fullVersionDetails);
+					var viewModel = await _repository.GetVersionViewModel(fullVersionDetails);
                     ViewData["AnalyticsModel"] = await _adminRepository.GetAnalyticsModel();
 
                     var host = Request.Host.ToUriComponent();
                     var pathBase = Request.PathBase.ToUriComponent();
                     viewModel.AppRoot = $"{host}{pathBase}/";
 
-                            /*NOTE - This requires using 'SaveTokens = true' in the auth setup*/
+                    /*NOTE - This requires using 'SaveTokens = true' in the auth setup*/
                     var idToken = await HttpContext.GetTokenAsync("id_token");
                     ViewData["MapServicesAccessURL"] = _configuration["GIFrameworkMaps:MapServicesAccessURL"];
                     ViewData["MapServicesAccessToken"] = idToken;
-
 
                     return View(viewModel);
                 }

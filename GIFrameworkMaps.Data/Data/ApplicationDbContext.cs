@@ -14,7 +14,8 @@ namespace GIFrameworkMaps.Data
         public DbSet<APISearchDefinition> APISearchDefinitions { get; set; }
         public DbSet<ApplicationRole> ApplicationRoles { get; set; }
         public DbSet<ApplicationUserRole> ApplicationUserRoles { get; set; }
-        public DbSet<Attribution> Attributions { get; set; }
+		public DbSet<URLAuthorizationRule> URLAuthorizationRules { get; set; }
+		public DbSet<Attribution> Attributions { get; set; }
         public DbSet<Basemap> Basemaps { get; set; }
         public DbSet<Bookmark> Bookmarks { get; set; }
         public DbSet<Bound> Bounds { get; set; }

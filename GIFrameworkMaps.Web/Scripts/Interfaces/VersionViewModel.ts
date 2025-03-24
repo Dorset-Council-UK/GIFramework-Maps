@@ -6,6 +6,8 @@ import { TourDetails } from "./Tour/TourDetails";
 import { WelcomeMessage } from "./WelcomeMessage";
 import { Projection } from "./Projection";
 import { Attribution } from "./Attribution";
+import { UrlAuthorizationRules } from "./Authorization/UrlAuthorizationRules";
+
 
 export interface VersionViewModel {
   id: number;
@@ -27,4 +29,5 @@ export interface VersionViewModel {
   appInsightsKey: string;
   googleMapsAPIKey: string;
   isLoggedIn: boolean;
+  urlAuthorizationRules: UrlAuthorizationRules[];
 }
