@@ -125,7 +125,12 @@ export class LayerList {
     listContainer.className = `list-unstyled`;
 
     category.layers
-      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .sort((a, b) => {
+        if (a.sortOrder === b.sortOrder) {
+          return a.name.localeCompare(b.name);
+        }
+        return a.sortOrder - b.sortOrder;
+      })
       .forEach((layer) => {
         const listItem = this.createLayerListItem(layer);
         listContainer.appendChild(listItem);

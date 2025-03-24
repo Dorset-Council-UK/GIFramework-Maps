@@ -26,7 +26,7 @@ import {
 import { Property } from "./Interfaces/OGCMetadata/DescribeFeatureType";
 import { PagedUniqueResponse } from "./Interfaces/OGCMetadata/PagedUniqueResponse";
 import { GIFWMap } from "./Map";
-import { getBasicCapabilities, getDescribeFeatureType, getWPSCapabilities, hasWPSProcess } from "./Metadata/Metadata";
+import { getBasicCapabilities, getChildrenOfLayerGroup, getDescribeFeatureType, getWPSCapabilities, hasWPSProcess, isLayerGroup } from "./Metadata/Metadata";
 import CQL, { FilterType, PropertyTypes } from "./OL Extensions/CQL";
 import { LayersPanel } from "./Panels/LayersPanel";
 import { Alert, createWFSFeatureRequestFromLayer, extractCustomHeadersFromLayerSource, getLayerSourceOptionValueByName, getValueFromObjectByKey } from "./Util";
@@ -41,6 +41,7 @@ export class LayerFilter {
   cqlFormatter: CQL;
   defaultFilter: string;
   useWPSSearchSuggestions: boolean = false;
+  maxSearchSuggestions = 200;
   wpsExecuteCapability: Capability;
   _uniquePropValuesCache: PropertyValuesCache[] = [];
   constructor(layersPanelInstance: LayersPanel, layerConfig: Layer) {
@@ -1591,6 +1592,15 @@ export class LayerFilter {
       ).length !== 0
     ) {
       //has all relevant capabilities
+      if (source instanceof TileWMS || source instanceof ImageWMS) {
+        if (await isLayerGroup(baseUrl, featureTypeName, undefined, proxyEndpoint, layerHeaders)) {
+          //get a layer from the group to use as a canary. Not ideal but functional
+          const layerGroupLayers = await getChildrenOfLayerGroup(baseUrl, featureTypeName);
+          if (layerGroupLayers?.length !== 0) {
+            featureTypeName = layerGroupLayers[0].name;
+          }
+        }
+      }
       const describeFeatureCapability = serverCapabilities.capabilities.filter(
         (c) => c.type === CapabilityType.DescribeFeatureType,
       )[0];
@@ -1624,59 +1634,103 @@ export class LayerFilter {
         (c) => c.propertyName === propertyName,
       );
       if (cachedValues.length !== 0) {
-        return cachedValues[0].values;
+        if (cachedValues.values.length <= this.maxSearchSuggestions) {
+          return cachedValues[0].values;
+        }
+        return null;
       }
-
+      
       const source = (this.layer as olLayer).getSource();
       if (source instanceof TileWMS || source instanceof ImageWMS) {
         //get feature type description and capabilities from server
         const sourceParams = source.getParams();
         const featureTypeName = sourceParams.LAYERS;
+        let sourceBaseUrl;
+        if (source instanceof TileWMS) {
+          sourceBaseUrl = source.getUrls()[0];
+        } else {
+          sourceBaseUrl = (source as ImageWMS).getUrl();
+        }
 
-        const xmlPayload = this.getWPSPagedUniquePayload(
-          featureTypeName,
-          propertyName,
-        );
-        const baseUrl = this.wpsExecuteCapability.url;
-        let searchParams = new URLSearchParams();
-        const authKey = getValueFromObjectByKey(
-          sourceParams,
-          "authkey",
-        ) as string;
+        const authKey = getValueFromObjectByKey(sourceParams, "authkey");
+        let additionalParams = new URLSearchParams();
         if (authKey) {
-          searchParams = new URLSearchParams({ authkey: authKey });
+          additionalParams = new URLSearchParams({ authkey: authKey });
         }
-
-        let url = `${baseUrl}${
-          baseUrl.indexOf("?") === -1 ? "?" : "&"
-        }${searchParams}`;
-
+        sourceBaseUrl = `${sourceBaseUrl}${sourceBaseUrl.indexOf("?") === -1 ? "?" : "&"}${additionalParams}`;
+        let proxyEndpoint = "";
         if (this.layerConfig.proxyMetaRequests) {
-          url = this.gifwMapInstance.createProxyURL(url);
+          proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
         }
-        const httpHeaders = extractCustomHeadersFromLayerSource(
+        const layerHeaders = extractCustomHeadersFromLayerSource(
           this.layerConfig.layerSource,
         );
-        const response = await fetch(url, {
-          method: this.wpsExecuteCapability.method,
-          body: xmlPayload,
-          headers: httpHeaders,
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error: ${response.status}`);
+        let uniqueValues:string[] = [];
+        if (await isLayerGroup(sourceBaseUrl, featureTypeName, undefined, proxyEndpoint, layerHeaders)) {
+          
+          const layerGroupLayers = await getChildrenOfLayerGroup(sourceBaseUrl, featureTypeName);
+          let totalCount = 0;
+          if (layerGroupLayers.length !== 0) {
+            //loop through feature types and get list for all
+            for await (const layer of layerGroupLayers) {
+              const resp = await this.getUniqueValuesForProperty(layer.name, propertyName, additionalParams);
+              totalCount += resp.size;
+              if (totalCount > this.maxSearchSuggestions) {
+                break;
+              }
+              uniqueValues = uniqueValues.concat(resp.values.sort());
+            }
+            if (totalCount > this.maxSearchSuggestions) {
+              uniqueValues = [];
+            }
+          }
+        } else {
+          //get the single feature type
+          const resp = await this.getUniqueValuesForProperty(featureTypeName, propertyName, additionalParams);
+          if (resp.size <= this.maxSearchSuggestions) {
+            uniqueValues = resp.values.sort();
+          }
+          
         }
-        const uniqueValues: PagedUniqueResponse = await response.json();
-        if (uniqueValues.size <= 100) {
-          //add to cache
-          this._uniquePropValuesCache.push({
-            propertyName: propertyName,
-            values: uniqueValues.values.sort(),
-          });
-          return uniqueValues.values.sort();
+        const dedupedUniqueValues = [...new Set(uniqueValues)];
+        this._uniquePropValuesCache.push({
+          propertyName: propertyName,
+          values: dedupedUniqueValues.sort(),
+        });
+        if (dedupedUniqueValues.length <= this.maxSearchSuggestions) {
+          return dedupedUniqueValues;
         }
       }
       return null;
     }
+  }
+
+  private async getUniqueValuesForProperty(featureTypeName: string, propertyName: string, additionalParams: URLSearchParams) {
+    const xmlPayload = this.getWPSPagedUniquePayload(
+      featureTypeName,
+      propertyName,
+    );
+    const baseUrl = this.wpsExecuteCapability.url;
+
+    let url = `${baseUrl}${baseUrl.indexOf("?") === -1 ? "?" : "&"
+      }${additionalParams}`;
+
+    if (this.layerConfig.proxyMetaRequests) {
+      url = this.gifwMapInstance.createProxyURL(url);
+    }
+    const httpHeaders = extractCustomHeadersFromLayerSource(
+      this.layerConfig.layerSource,
+    );
+    const response = await fetch(url, {
+      method: this.wpsExecuteCapability.method,
+      body: xmlPayload,
+      headers: httpHeaders,
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+    const uniqueValues: PagedUniqueResponse = await response.json();
+    return uniqueValues;
   }
 
   /**
@@ -1828,7 +1882,7 @@ export class LayerFilter {
     <wps:Input>
       <ows:Identifier>maxFeatures</ows:Identifier>
       <wps:Data>
-        <wps:LiteralData>100</wps:LiteralData>
+        <wps:LiteralData>${this.maxSearchSuggestions}</wps:LiteralData>
       </wps:Data>
     </wps:Input>
   </wps:DataInputs>
