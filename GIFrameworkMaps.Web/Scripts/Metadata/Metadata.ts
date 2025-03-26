@@ -25,6 +25,7 @@ export async function getCapabilities(
   if (proxyEndpoint !== "") {
     fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
   }
+  this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(fetchUrl, httpHeaders);
   const response = await fetch(fetchUrl, { headers: httpHeaders });
   return response;
 }
@@ -60,6 +61,7 @@ export async function getDescribeFeatureType(
   }
 
   try {
+    this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(fetchUrl, httpHeaders);
     const response = await fetch(fetchUrl, {
       method: httpMethod,
       headers: httpHeaders,
@@ -96,6 +98,7 @@ export async function getBasicCapabilities(
     fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
   }
   try {
+    this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(fetchUrl, httpHeaders);
     const response = await fetch(fetchUrl, { headers: httpHeaders });
     if (!response.ok) {
       throw new Error(`HTTP error: ${response.status}`);
@@ -217,7 +220,6 @@ export async function getStylesForLayer(
   additionalUrlParams: object = {},
   httpHeaders: Headers = new Headers(),
 ) {
-
   ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
 
   const endpoint = await new WmsEndpoint(baseUrl).isReady();
@@ -232,6 +234,7 @@ export async function isLayerGroup(baseUrl: string,
   version: string = "1.1.0",
   proxyEndpoint: string = "",
   httpHeaders: Headers = new Headers()) {
+
   ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
   if (proxyEndpoint !== "") {
     baseUrl = `${proxyEndpoint}?url=${encodeURIComponent(baseUrl)}`;
@@ -253,6 +256,7 @@ export async function getLayerMetadataFromCapabilities(
   proxyEndpoint: string = "",
   httpHeaders: Headers = new Headers()
 ) {
+  httpHeaders.set('test', '123');
   ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
   if (type === ServiceType.WMS) {
       
@@ -442,6 +446,7 @@ export async function getWPSCapabilities(
     fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
   }
   try {
+    this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(fetchUrl, httpHeaders);
     const response = await fetch(fetchUrl, { headers: httpHeaders });
     if (!response.ok) {
       throw new Error(`HTTP error: ${response.status}`);
@@ -560,6 +565,7 @@ export async function hasWPSProcess(
     fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
   }
   try {
+    this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(fetchUrl, httpHeaders);
     const response = await fetch(fetchUrl, {
       method: httpMethod,
       headers: httpHeaders,

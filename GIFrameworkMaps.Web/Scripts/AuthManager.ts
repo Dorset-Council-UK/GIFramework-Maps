@@ -26,4 +26,14 @@ export class AuthManager {
     }
     return AuthType.None;
   }
+
+  public applyAuthenticationToRequestHeaders(url: string, headers: Headers): void {
+    const authType = this.getAuthenticationType(url);
+    if (authType === AuthType.Bearer) {
+      const accessToken = this.getAccessToken();
+      if (accessToken) {
+        headers.set("Authorization", `Bearer ${accessToken}`);
+      }
+    }
+  }
 }

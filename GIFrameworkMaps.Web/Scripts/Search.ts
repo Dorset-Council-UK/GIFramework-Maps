@@ -312,10 +312,11 @@ export class Search {
         () => this.abortController.abort(),
         this.timeLimit,
       );
-
+      const httpHeaders = new Headers({ "Content-Type": "application/json" });
+      this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(this.searchEndpointURL, httpHeaders);
       fetch(`${this.searchEndpointURL}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: httpHeaders,
         body: JSON.stringify(searchQuery),
         signal: this.abortController.signal,
       })

@@ -25,7 +25,6 @@ import { TileMatrixSet } from "../Interfaces/OGCMetadata/TileMatrixSet";
 import { GIFWMap } from "../Map";
 import { createWFSFeatureRequestFromLayer, extractCustomHeadersFromLayerSource, getLayerSourceOptionValueByName, getOpenLayersFormatFromOGCFormat } from "../Util";
 import { LayerGroup } from "./LayerGroup";
-import { AuthType } from "../Interfaces/Authorization/AuthType";
 
 export class GIFWLayerGroup implements LayerGroup {
   layers: Layer[];
@@ -167,13 +166,10 @@ export class GIFWLayerGroup implements LayerGroup {
   async customTileLoader(
     imageTile: ImageTile,
     src: string,
-    layerHeaders: Headers,
-    authType: AuthType
+    layerHeaders: Headers
   ) {
     try {
-      if (authType === AuthType.Bearer && !layerHeaders.has('Authorization')) {
-        layerHeaders.append('Authorization', `Bearer ${this.gifwMapInstance.authManager.getAccessToken()}`);
-      }
+      this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(src, layerHeaders);
       const resp = await fetch(src, {
         headers: layerHeaders,
         mode: "cors",
@@ -293,8 +289,7 @@ export class GIFWLayerGroup implements LayerGroup {
         if (layer.proxyMapRequests) {
           src = this.gifwMapInstance.createProxyURL(src);
         }
-        const authType = this.gifwMapInstance.authManager.getAuthenticationType(url);
-        this.customTileLoader(imageTile, src, layerHeaders, authType);
+        this.customTileLoader(imageTile, src, layerHeaders);
       };
     }
     const ol_layer = new olLayer.Tile({
@@ -350,8 +345,7 @@ export class GIFWLayerGroup implements LayerGroup {
         if (layer.proxyMapRequests) {
           src = this.gifwMapInstance.createProxyURL(src);
         }
-        const authType = this.gifwMapInstance.authManager.getAuthenticationType(url);
-        this.customTileLoader(imageTile, src, layerHeaders, authType);
+        this.customTileLoader(imageTile, src, layerHeaders);
       };
     }
 
@@ -406,8 +400,7 @@ export class GIFWLayerGroup implements LayerGroup {
         if (layer.proxyMapRequests) {
           src = this.gifwMapInstance.createProxyURL(src);
         }
-        const authType = this.gifwMapInstance.authManager.getAuthenticationType(url);
-        this.customTileLoader(imageTile, src, layerHeaders, authType);
+        this.customTileLoader(imageTile, src, layerHeaders);
       };
       /* eslint-enable @typescript-eslint/no-explicit-any */
     }

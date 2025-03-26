@@ -86,11 +86,14 @@ export class WebLayerService {
       if (proxyMetaRequests) {
         proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
       }
+      const httpHeaders = new Headers();
+      this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(serviceDefinition.url, httpHeaders);
       const availableLayers = await getLayersFromCapabilities(
         serviceDefinition.url,
         serviceDefinition.type,
         version,
         proxyEndpoint,
+        httpHeaders
       );
       const layersListContainer = document.getElementById(
         "gifw-add-web-layer-list",
