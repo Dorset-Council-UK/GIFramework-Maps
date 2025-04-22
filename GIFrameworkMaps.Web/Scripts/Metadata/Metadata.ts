@@ -11,7 +11,7 @@ import {
 } from "fontoxpath";
 import { LayerResource } from "../Interfaces/OGCMetadata/LayerResource";
 import { combineURLSearchParams } from "../Util";
-import { GenericEndpointInfo, WfsEndpoint, WmsEndpoint, WmsLayerSummary, setFetchOptions as ogcClientSetFetchOptions } from "@camptocamp/ogc-client";
+import { GenericEndpointInfo, WfsEndpoint, WmsEndpoint, WmsLayerSummary, setFetchOptions as ogcClientSetFetchOptions, enableFallbackWithoutWorker as ogcClientEnableFallbackWithoutWorker } from "@camptocamp/ogc-client";
 import { ServiceType } from "../Interfaces/WebLayerServiceDefinition";
 
 export async function getCapabilities(
@@ -25,7 +25,6 @@ export async function getCapabilities(
   if (proxyEndpoint !== "") {
     fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
   }
-  this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(fetchUrl, httpHeaders);
   const response = await fetch(fetchUrl, { headers: httpHeaders });
   return response;
 }
@@ -61,7 +60,6 @@ export async function getDescribeFeatureType(
   }
 
   try {
-    this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(fetchUrl, httpHeaders);
     const response = await fetch(fetchUrl, {
       method: httpMethod,
       headers: httpHeaders,
@@ -98,7 +96,6 @@ export async function getBasicCapabilities(
     fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
   }
   try {
-    this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(fetchUrl, httpHeaders);
     const response = await fetch(fetchUrl, { headers: httpHeaders });
     if (!response.ok) {
       throw new Error(`HTTP error: ${response.status}`);
@@ -218,10 +215,14 @@ export async function getStylesForLayer(
   proxyEndpoint: string = "",
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   additionalUrlParams: object = {},
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   httpHeaders: Headers = new Headers(),
 ) {
+  ogcClientEnableFallbackWithoutWorker();
   ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
-
+  if (proxyEndpoint !== "") {
+    baseUrl = `${proxyEndpoint}?url=${encodeURIComponent(baseUrl)}`;
+  }
   const endpoint = await new WmsEndpoint(baseUrl).isReady();
   const layer = endpoint.getLayerByName(layerName);
   return layer.styles;
@@ -234,7 +235,7 @@ export async function isLayerGroup(baseUrl: string,
   version: string = "1.1.0",
   proxyEndpoint: string = "",
   httpHeaders: Headers = new Headers()) {
-
+  ogcClientEnableFallbackWithoutWorker();
   ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
   if (proxyEndpoint !== "") {
     baseUrl = `${proxyEndpoint}?url=${encodeURIComponent(baseUrl)}`;
@@ -256,7 +257,7 @@ export async function getLayerMetadataFromCapabilities(
   proxyEndpoint: string = "",
   httpHeaders: Headers = new Headers()
 ) {
-  httpHeaders.set('test', '123');
+  ogcClientEnableFallbackWithoutWorker();
   ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
   if (type === ServiceType.WMS) {
       
@@ -327,7 +328,7 @@ export async function getLayersFromCapabilities(
 ) {
   try {
     const availableLayers: LayerResource[] = [];
-
+    ogcClientEnableFallbackWithoutWorker();
     ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
     if (serviceType === ServiceType.WMS) {
       const endpoint = await new WmsEndpoint(baseUrl).isReady();
@@ -446,7 +447,6 @@ export async function getWPSCapabilities(
     fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
   }
   try {
-    this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(fetchUrl, httpHeaders);
     const response = await fetch(fetchUrl, { headers: httpHeaders });
     if (!response.ok) {
       throw new Error(`HTTP error: ${response.status}`);
@@ -565,7 +565,6 @@ export async function hasWPSProcess(
     fetchUrl = `${proxyEndpoint}?url=${encodeURIComponent(fetchUrl)}`;
   }
   try {
-    this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(fetchUrl, httpHeaders);
     const response = await fetch(fetchUrl, {
       method: httpMethod,
       headers: httpHeaders,

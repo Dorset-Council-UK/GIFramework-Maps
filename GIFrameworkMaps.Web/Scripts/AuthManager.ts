@@ -5,7 +5,7 @@ export class AuthManager {
   private accessToken: string | null = null;
   private authRules: UrlAuthorizationRules[] = [];
 
-  constructor(accessToken: string, authRules: UrlAuthorizationRules[]) {
+  constructor(accessToken: string | null, authRules: UrlAuthorizationRules[]) {
     this.accessToken = accessToken;
     this.authRules = authRules;
   }
@@ -28,6 +28,9 @@ export class AuthManager {
   }
 
   public applyAuthenticationToRequestHeaders(url: string, headers: Headers): void {
+    if (this.accessToken === null) {
+      return;
+    }
     const authType = this.getAuthenticationType(url);
     if (authType === AuthType.Bearer) {
       const accessToken = this.getAccessToken();

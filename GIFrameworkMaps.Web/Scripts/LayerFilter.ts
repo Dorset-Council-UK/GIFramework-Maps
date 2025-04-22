@@ -1785,6 +1785,7 @@ export class LayerFilter {
       const httpHeaders = extractCustomHeadersFromLayerSource(
         this.layerConfig.layerSource,
       );
+      this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(baseUrl, httpHeaders);
       const serverCapabilities = await getWPSCapabilities(
         baseUrl,
         proxyEndpoint,
