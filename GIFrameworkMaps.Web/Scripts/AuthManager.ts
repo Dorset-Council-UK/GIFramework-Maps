@@ -4,18 +4,36 @@ import { UrlAuthorizationRules } from "./Interfaces/Authorization/UrlAuthorizati
 export class AuthManager {
   private accessToken: string | null = null;
   private authRules: UrlAuthorizationRules[] = [];
+  private authURL: string;
 
-  constructor(accessToken: string | null, authRules: UrlAuthorizationRules[]) {
+  constructor(accessToken: string | null, authRules: UrlAuthorizationRules[], authURL: string) {
     this.accessToken = accessToken;
     this.authRules = authRules;
+    this.authURL = authURL;
   }
 
-  public getAccessToken(): string | null {
+   public getAccessToken(): string | null {
+       //ajax call to get this from the server, refresh is also handled by the server side
+       fetch(this.authURL)
+           .then((response) => {
+               if (!response.ok) {
+                   throw new Error("Network response was not ok");
+               }
+               return response.json() as Promise<string>;
+           })
+           .then((data) => {
+               this.accessToken = data;
+           })
+           .catch((error) => {
+               console.error("Failed to use SSO", error);
+           });
+
     return this.accessToken;
   }
 
   public async refreshAccessToken(): Promise<void> {
-    //TODO - refresh the access token
+    //TODO - refresh the access token 
+    //Not implemented
   }
 
   public getAuthenticationType(url: string): AuthType {

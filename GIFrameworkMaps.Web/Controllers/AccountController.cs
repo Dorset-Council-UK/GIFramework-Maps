@@ -1,5 +1,6 @@
 ﻿using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -55,6 +56,24 @@ namespace GIFrameworkMaps.Web.Controllers
 				return RedirectToAction("SignIn", "Account", new { area = "MicrosoftIdentity" });
 
 			}
+		}
+
+		[AllowAnonymous]
+		//[ResponseCache(Duration = 300, VaryByQueryKeys = ["id"])]
+		public async Task<JsonResult> TokenEndpoint()
+		{
+			string? idToken;
+			if (User.Identity.IsAuthenticated)
+			{
+				idToken = await HttpContext.GetTokenAsync("id_token");
+			} else
+			{
+				//Ensure we return a blank if not logged in
+				idToken = "";
+			}
+			string userToken = idToken.ToString();
+
+			return Json(userToken);
 		}
 	}
 }

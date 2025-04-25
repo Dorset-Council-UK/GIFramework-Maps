@@ -81,7 +81,7 @@ export class GIFWMap {
         .getElementById(this.id)
         .dispatchEvent(new CustomEvent("gifw-update-permalink"));
     }, 500);
-    this.authManager = new AuthManager(accessToken, this.config.urlAuthorizationRules);
+      this.authManager = new AuthManager(accessToken, this.config.urlAuthorizationRules, `${document.location.protocol}//${this.config.appRoot}account/TokenEndpoint`);
   }
 
   /**

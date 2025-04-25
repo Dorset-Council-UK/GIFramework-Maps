@@ -72,9 +72,9 @@ namespace GIFrameworkMaps.Web.Controllers
                     viewModel.AppRoot = $"{host}{pathBase}/";
 
                     /*NOTE - This requires using 'SaveTokens = true' in the auth setup*/
-                    var idToken = await HttpContext.GetTokenAsync("id_token");
+                    //var idToken = await HttpContext.GetTokenAsync("id_token");
                     ViewData["MapServicesAccessURL"] = _configuration["GIFrameworkMaps:MapServicesAccessURL"];
-                    ViewData["MapServicesAccessToken"] = idToken;
+                    //ViewData["MapServicesAccessToken"] = idToken;
 
                     return View(viewModel);
                 }
