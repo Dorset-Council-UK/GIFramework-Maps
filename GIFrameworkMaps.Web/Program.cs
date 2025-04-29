@@ -6,11 +6,12 @@ using GIFrameworkMaps.Web.Authorization;
 using GIFrameworkMaps.Web.Filters;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -25,6 +26,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 using Yarp.ReverseProxy.Forwarder;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +34,7 @@ ConfigureKeyVault(builder);
 
 builder.Services.Configure<GIFrameworkMapsOptions>(builder.Configuration.GetSection(GIFrameworkMapsOptions.GIFrameworkMaps));
 builder.Services.Configure<ApiKeyOptions>(builder.Configuration.GetSection(ApiKeyOptions.ApiKeys));
+
 var options = builder.Configuration.GetSection(GIFrameworkMapsOptions.GIFrameworkMaps).Get<GIFrameworkMapsOptions>();
 
 ConfigureServices(builder.Services, builder.Configuration, builder.Environment, options);
@@ -118,23 +121,46 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.AddAutoMapper(typeof(ApplicationDbContext));
 
-    // Configure authentication and authorization if Azure AD ClientId is provided
-    if (!string.IsNullOrEmpty(configuration.GetSection("AzureAd")["ClientId"]))
-    {
-        services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-            .AddMicrosoftIdentityWebApp(configuration.GetSection("AzureAd"));
+	// Configure authentication and authorization if Azure AD ClientId is provided
+	if (!string.IsNullOrEmpty(configuration.GetSection("AzureAd")["ClientId"]))
+	{
+		services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+			.AddMicrosoftIdentityWebApp(configuration.GetSection("AzureAd"), OpenIdConnectDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme, true);
 
-        services.AddRazorPages().AddMicrosoftIdentityUI();
+		services.AddSingleton<ITicketStore, UserTicketStore>();
+		services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme)
+		   .Configure<ITicketStore>((o, ticketStore) => o.SessionStore = ticketStore);
 
-        services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
-        {
-            //options.ResponseType = OpenIdConnectResponseType.CodeToken;
-            options.UsePkce = true;
-            options.SaveTokens = true;
-            options.Scope.Add("openid");
-            options.Scope.Add(options.ClientId);
-        });
-    }
+		services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+		{
+			options.ClientId = configuration.GetSection("AzureAd")["ClientId"];
+			options.ClientSecret = configuration.GetSection("AzureAd")["ClientSecret"];
+			options.Authority = configuration.GetSection("AzureAd")["Authority"] + "v2.0/";
+
+			options.UsePkce = true;
+			options.ResponseType = "code";
+			options.ResponseMode = "form_post";
+
+			options.Scope.Clear();
+			options.Scope.Add("openid");
+			options.Scope.Add("offline_access");
+			options.Scope.Add(options.ClientId);
+
+			options.GetClaimsFromUserInfoEndpoint = true;
+			options.UseTokenLifetime = false;
+			options.SaveTokens = true;
+
+			options.Events = new OpenIdConnectEvents()
+			{
+				//OnRedirectToIdentityProvider =
+				//{
+				//	//Use this to insert a login hint if required
+				//}
+			};
+		});
+
+		services.AddRazorPages().AddMicrosoftIdentityUI();
+	}
     else
     {
         services.AddRazorPages();
