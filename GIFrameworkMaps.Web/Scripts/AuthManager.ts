@@ -13,27 +13,19 @@ export class AuthManager {
   }
 
    public getAccessToken(): string | null {
-       //ajax call to get this from the server, refresh is also handled by the server side
-       fetch(this.authURL)
-           .then((response) => {
-               if (!response.ok) {
-                   throw new Error("Network response was not ok");
-               }
-               return response.json() as Promise<string>;
-           })
-           .then((data) => {
-               this.accessToken = data;
-           })
-           .catch((error) => {
-               console.error("Failed to use SSO", error);
-           });
-
     return this.accessToken;
   }
 
   public async refreshAccessToken(): Promise<void> {
-    //TODO - refresh the access token 
-    //Not implemented
+    try {
+      const resp = await fetch(this.authURL);
+      if (!resp.ok) {
+        throw new Error("Network response was not ok");
+      }
+      this.accessToken = await resp.json();
+    } catch (e) {
+      console.error("Failed to fetch access token",e);
+    }
   }
 
   public getAuthenticationType(url: string): AuthType {
