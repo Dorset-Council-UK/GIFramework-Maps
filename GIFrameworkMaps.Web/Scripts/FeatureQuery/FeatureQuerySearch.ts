@@ -433,6 +433,7 @@ export class FeatureQuerySearch {
         const layerHeaders = extractCustomHeadersFromLayerSource(
           gifwLayer.layerSource,
         );
+        this._gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(baseUrl, layerHeaders);
         const serverCapabilities = await getBasicCapabilities(
           baseUrl,
           additionalParams,
@@ -464,6 +465,7 @@ export class FeatureQuerySearch {
           const httpHeaders = extractCustomHeadersFromLayerSource(
             gifwLayer.layerSource,
           );
+          this._gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(describeFeatureCapability.url, httpHeaders);
           const featureDescription = await getDescribeFeatureType(
             describeFeatureCapability.url,
             featureTypeName,
