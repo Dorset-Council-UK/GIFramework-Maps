@@ -81,7 +81,7 @@ export class GIFWMap {
         .getElementById(this.id)
         .dispatchEvent(new CustomEvent("gifw-update-permalink"));
     }, 500);
-    this.authManager = new AuthManager(accessToken, this.config.urlAuthorizationRules, `${document.location.protocol}//${this.config.appRoot}account/TokenEndpoint`);
+    this.authManager = new AuthManager(accessToken, this.config.urlAuthorizationRules, `${document.location.protocol}//${this.config.appRoot}account/token`);
   }
 
   /**
@@ -91,11 +91,15 @@ export class GIFWMap {
   public async initMap(): Promise<olMap> {
     /*TODO - THIS IS A NASTY MEGA FUNCTION OF ALMOST 300 LINES OF CODE. SIMPLIFY!!!*/
     //get an access token if required
-    await this.authManager.refreshAccessToken();
-    //set up refresh TODO make this smarter
-    window.setInterval(async () => {
+    if (this.config.isLoggedIn) {
       await this.authManager.refreshAccessToken();
-    }, 60000);
+      //check for new token every 2 minutes
+      //TODO - make this smarter or at least configurable
+      window.setInterval(async () => {
+        await this.authManager.refreshAccessToken();
+      }, 120000);
+    }
+    
     //register projections
     this.registerProjections(this.config.availableProjections);
     const defaultMapProjection = this.config.availableProjections.filter(

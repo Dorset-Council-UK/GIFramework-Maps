@@ -35,9 +35,8 @@ namespace GIFrameworkMaps.Web.Filters
 
 		public Task<AuthenticationTicket> RetrieveAsync(string key)
 		{
-			if (mytickets.ContainsKey(key))
+			if (mytickets.TryGetValue(key, out AuthenticationTicket ticket))
 			{
-				var ticket = mytickets[key];
 				return Task.FromResult(ticket);
 			}
 			else

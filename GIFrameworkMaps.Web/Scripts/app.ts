@@ -66,22 +66,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return response.json() as Promise<VersionViewModel>;
     })
     .then(async (config) => {
-      // To refresh the access token
-      //authManager.refreshAccessToken().then(() => {
-      //  console.warn('Access token refreshed:', authManager.getAccessToken());
-      //}).catch(error => {
-      //  console.error('Failed to refresh access token:', error);
-      //});
-      //if (gifw_map_services_access_token && gifw_map_services_access_url) {
-      //  await fetch(`${gifw_map_services_access_url}`, {
-      //    method: "GET",
-      //    cache: "no-store",
-      //    mode: "cors",
-      //    headers: {
-      //      Authorization: `Bearer ${gifw_map_services_access_token}`,
-      //    },
-      //  });
-      //}
 
       try {
         initBroadcastReceiver(config.slug, config.appRoot);

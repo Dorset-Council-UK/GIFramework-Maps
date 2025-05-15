@@ -22,7 +22,7 @@ export class AuthManager {
       if (!resp.ok) {
         throw new Error("Network response was not ok");
       }
-      this.accessToken = await resp.json();
+      this.accessToken = await resp.text();
     } catch (e) {
       console.error("Failed to fetch access token",e);
     }
