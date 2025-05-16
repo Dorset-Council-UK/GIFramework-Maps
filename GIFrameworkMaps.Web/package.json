@@ -19,6 +19,7 @@
     "watch:prettier": "npx onchange \"Scripts/*.ts\" \"wwwroot/css/*.css\" -- prettier --write --ignore-unknown {{changed}}"
   },
   "dependencies": {
+    "@azure/msal-browser": "4.5.0",
     "@camptocamp/ogc-client": "1.2.0",
     "@microsoft/applicationinsights-web": "3.3.5",
     "@microsoft/signalr": "8.0.7",

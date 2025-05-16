@@ -147,7 +147,7 @@ export class CreateLayerFromSource {
 
   private async getPropertySuggestions() {
     if (this.layerSourceURL !== "" && this.layerSourceName !== "") {
-
+      /*TODO - Add auth headers*/
       const availableLayers = await getLayersFromCapabilities(
         this.layerSourceURL,
         this.layerSourceType,

@@ -8,7 +8,7 @@ import {
     MetadataLinks,
 } from "../Interfaces/OGCMetadata/SimpleMetadata";
 import { GIFWMap } from "../Map";
-import { getValueFromObjectByKey, extractCustomHeadersFromLayerSource, getLayerSourceOptionValueByName  } from "../Util";
+import { getValueFromObjectByKey, getLayerSourceOptionValueByName, extractCustomHeadersFromLayerSource  } from "../Util";
 import { constructGetCapabilitiesURL, getLayerMetadataFromCapabilities } from "./Metadata";
 import { ServiceType } from "../Interfaces/WebLayerServiceDefinition";
 
@@ -16,6 +16,7 @@ export async function getMetadataForLayer(
   layer: Layer,
   olLayer: olLayer,
   proxyEndpoint: string = "",
+  httpHeaders: Headers = new Headers()
 ) {
   /*get metadata from sources in priority order*/
   /*     1: Metadata from GetCapabilities document
@@ -26,6 +27,7 @@ export async function getMetadataForLayer(
     layer,
     olLayer,
     proxyEndpoint,
+    httpHeaders
   );
   if (metadata) {
     return metadata;
@@ -42,6 +44,7 @@ export async function getMetadataFromGetCapabilities(
   layer: Layer,
   olLayer: olLayer,
   proxyEndpoint?: string,
+  httpHeaders? :Headers
 ) {
   try {
     const source = olLayer.getSource();
@@ -77,10 +80,7 @@ export async function getMetadataFromGetCapabilities(
       const version =
         (getValueFromObjectByKey(params, "version") as string) ||
         "1.1.0";
-      const httpHeaders = extractCustomHeadersFromLayerSource(
-        layer.layerSource,
-      );
-
+      
       const layerMetadata = await getLayerMetadataFromCapabilities(baseUrl, layerName, serviceType, version, proxyEndpoint, httpHeaders);
         
       if (layerMetadata) {
@@ -274,10 +274,14 @@ export async function showMetadataModal(
       proxyEndpoint = `${document.location.protocol}//${gifwMapInstance.config.appRoot}proxy`;
     }
     const isFiltered = gifwMapInstance.getLayerFilteredStatus(layerConfig, olLayer, false);
+    const httpHeaders = extractCustomHeadersFromLayerSource(layerConfig.layerSource);
+    const url = getLayerSourceOptionValueByName(layerConfig.layerSource.layerSourceOptions, "url");
+    gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(url, httpHeaders);
     const metadata = await getMetadataForLayer(
       layerConfig,
       olLayer,
       proxyEndpoint,
+      httpHeaders
     );
     if (metadata) {
       metaModalContent.innerHTML = createMetadataHTML(

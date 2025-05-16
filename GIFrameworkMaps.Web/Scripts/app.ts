@@ -21,7 +21,6 @@ import { SidebarPanel } from "./Interfaces/SidebarPanel";
 declare let gifw_appinsights_key: string;
 declare let gifw_version_config_url: string;
 declare let gifw_map_services_access_token: string;
-declare let gifw_map_services_access_url: string;
 
 if (gifw_appinsights_key != "") {
   const appInsights = new ApplicationInsights({
@@ -67,16 +66,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return response.json() as Promise<VersionViewModel>;
     })
     .then(async (config) => {
-      if (gifw_map_services_access_token && gifw_map_services_access_url) {
-        await fetch(`${gifw_map_services_access_url}`, {
-          method: "GET",
-          cache: "no-store",
-          mode: "cors",
-          headers: {
-            Authorization: `Bearer ${gifw_map_services_access_token}`,
-          },
-        });
-      }
 
       try {
         initBroadcastReceiver(config.slug, config.appRoot);
@@ -156,7 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
           sidebars.push(printSidebar);
         }
 
-        const map = new GIFWMaps.GIFWMap(mapId, config, sidebars, mode);
+        const map = new GIFWMaps.GIFWMap(mapId, config, sidebars, mode, gifw_map_services_access_token);
 
         map.initMap();
 

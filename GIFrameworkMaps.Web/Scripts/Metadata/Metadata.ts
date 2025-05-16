@@ -11,7 +11,7 @@ import {
 } from "fontoxpath";
 import { LayerResource } from "../Interfaces/OGCMetadata/LayerResource";
 import { combineURLSearchParams } from "../Util";
-import { GenericEndpointInfo, WfsEndpoint, WmsEndpoint, WmsLayerSummary, setFetchOptions as ogcClientSetFetchOptions } from "@camptocamp/ogc-client";
+import { GenericEndpointInfo, WfsEndpoint, WmsEndpoint, WmsLayerSummary, setFetchOptions as ogcClientSetFetchOptions, enableFallbackWithoutWorker as ogcClientEnableFallbackWithoutWorker } from "@camptocamp/ogc-client";
 import { ServiceType } from "../Interfaces/WebLayerServiceDefinition";
 
 export async function getCapabilities(
@@ -215,11 +215,14 @@ export async function getStylesForLayer(
   proxyEndpoint: string = "",
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   additionalUrlParams: object = {},
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   httpHeaders: Headers = new Headers(),
 ) {
-
+  ogcClientEnableFallbackWithoutWorker();
   ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
-
+  if (proxyEndpoint !== "") {
+    baseUrl = `${proxyEndpoint}?url=${encodeURIComponent(baseUrl)}`;
+  }
   const endpoint = await new WmsEndpoint(baseUrl).isReady();
   const layer = endpoint.getLayerByName(layerName);
   return layer.styles;
@@ -232,6 +235,7 @@ export async function isLayerGroup(baseUrl: string,
   version: string = "1.1.0",
   proxyEndpoint: string = "",
   httpHeaders: Headers = new Headers()) {
+  ogcClientEnableFallbackWithoutWorker();
   ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
   if (proxyEndpoint !== "") {
     baseUrl = `${proxyEndpoint}?url=${encodeURIComponent(baseUrl)}`;
@@ -253,6 +257,7 @@ export async function getLayerMetadataFromCapabilities(
   proxyEndpoint: string = "",
   httpHeaders: Headers = new Headers()
 ) {
+  ogcClientEnableFallbackWithoutWorker();
   ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
   if (type === ServiceType.WMS) {
       
@@ -323,7 +328,7 @@ export async function getLayersFromCapabilities(
 ) {
   try {
     const availableLayers: LayerResource[] = [];
-
+    ogcClientEnableFallbackWithoutWorker();
     ogcClientSetFetchOptions({ headers: Object.fromEntries(httpHeaders) });
     if (serviceType === ServiceType.WMS) {
       const endpoint = await new WmsEndpoint(baseUrl).isReady();

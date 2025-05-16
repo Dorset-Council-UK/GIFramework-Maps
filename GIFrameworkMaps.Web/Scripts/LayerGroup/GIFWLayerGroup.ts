@@ -107,7 +107,6 @@ export class GIFWLayerGroup implements LayerGroup {
             extent = transformExtent(extent, 'EPSG:3857', `EPSG:${defaultMapProjection.epsgCode ?? '3857'}`);
           }
         }
-
         if (layer.layerSource.layerSourceType.name === 'XYZ') {
           ol_layer = this.createXYZLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
         } else if (layer.layerSource.layerSourceType.name === 'TileWMS') {
@@ -167,9 +166,10 @@ export class GIFWLayerGroup implements LayerGroup {
   async customTileLoader(
     imageTile: ImageTile,
     src: string,
-    layerHeaders: Headers,
+    layerHeaders: Headers
   ) {
     try {
+      this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(src, layerHeaders);
       const resp = await fetch(src, {
         headers: layerHeaders,
         mode: "cors",
@@ -268,8 +268,9 @@ export class GIFWLayerGroup implements LayerGroup {
     layerHeaders: Headers,
     hasCustomHeaders: boolean,
     projection: string) {
+    const url = getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
     const xyzOpts: XYZOptions = {
-      url: getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url"),
+      url: url,
       attributions: layer.layerSource.attribution.renderedAttributionHTML,
       crossOrigin: "anonymous",
       projection: projection,
@@ -280,7 +281,7 @@ export class GIFWLayerGroup implements LayerGroup {
       xyzOpts.tileGrid = new TileGrid(JSON.parse(tileGrid));
     }
 
-    if (layer.proxyMapRequests || hasCustomHeaders) {
+    if (layer.proxyMapRequests || hasCustomHeaders || this.gifwMapInstance.authManager) {
       xyzOpts.tileLoadFunction = (
         imageTile: ImageTile,
         src: string,
@@ -320,8 +321,9 @@ export class GIFWLayerGroup implements LayerGroup {
     layerHeaders: Headers,
     hasCustomHeaders: boolean,
     projection: string) {
+    const url = getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
     const tileWMSOpts: TileWMSOptions = {
-      url: getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url"),
+      url: url,
       attributions:
         layer.layerSource.attribution.renderedAttributionHTML,
       params: layer.layerSource.layerSourceOptions
@@ -335,7 +337,7 @@ export class GIFWLayerGroup implements LayerGroup {
       projection: projection,
     };
 
-    if (layer.proxyMapRequests || hasCustomHeaders) {
+    if (layer.proxyMapRequests || hasCustomHeaders || this.gifwMapInstance.authManager) {
       tileWMSOpts.tileLoadFunction = async (
         imageTile: ImageTile,
         src: string,
@@ -376,9 +378,9 @@ export class GIFWLayerGroup implements LayerGroup {
     layerHeaders: Headers,
     hasCustomHeaders: boolean,
     projection: string) {
-
+    const url = getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
     const imageWMSOpts: ImageWMSOptions = {
-      url: getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url"),
+      url: url,
       attributions: layer.layerSource.attribution.renderedAttributionHTML,
       params: layer.layerSource.layerSourceOptions
         .filter((o) => {
@@ -389,7 +391,7 @@ export class GIFWLayerGroup implements LayerGroup {
         })[0],
       projection: projection,
     };
-    if (layer.proxyMapRequests || hasCustomHeaders) {
+    if (layer.proxyMapRequests || hasCustomHeaders || this.gifwMapInstance.authManager) {
       /* eslint-disable @typescript-eslint/no-explicit-any -- Cannot find suitable type that can be used as is for imageTile */
       imageWMSOpts.imageLoadFunction = (
         imageTile: any,

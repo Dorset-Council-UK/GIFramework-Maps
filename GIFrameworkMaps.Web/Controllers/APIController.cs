@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Svg;
@@ -178,7 +177,7 @@ namespace GIFrameworkMaps.Web.Controllers
 
                 if (authResult.Succeeded)
                 {
-                    var versionViewModel = _repository.GetVersionViewModel(version);
+                    var versionViewModel = await _repository.GetVersionViewModel(version);
 
                     var host = Request.Host.ToUriComponent();
                     var pathBase = Request.PathBase.ToUriComponent();

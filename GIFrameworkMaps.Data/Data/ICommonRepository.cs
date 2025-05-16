@@ -12,7 +12,7 @@ namespace GIFrameworkMaps.Data
         Task<bool> CanUserAccessVersion(string userId, int id);
         Task<List<Version>> GetVersionsListForUser(string? userId);
         Task<Version?> GetVersion(int id);
-		VersionViewModel GetVersionViewModel(Version version);
+		Task<VersionViewModel> GetVersionViewModel(Version version);
         Task<List<Version>> GetVersions();
 		List<ApplicationUserRole> GetUserRoles(string userId);
         List<WebLayerServiceDefinition> GetWebLayerServiceDefinitions();

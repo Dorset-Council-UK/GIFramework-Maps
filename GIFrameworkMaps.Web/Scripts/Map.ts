@@ -45,6 +45,7 @@ import LayerRenderer from "ol/renderer/Layer";
 import { Projection } from "./Interfaces/Projection";
 import { VersionToggler } from "./VersionToggler";
 import { getItem as getSetting, setItem as setSetting } from "./UserSettings";
+import { AuthManager } from "./AuthManager";
 
 export class GIFWMap {
   id: string;
@@ -54,6 +55,7 @@ export class GIFWMap {
   popupOverlay: GIFWPopupOverlay;
   mode: 'full' | 'embed' = 'full';
   olMap: olMap;
+  authManager: AuthManager;
   customControls: (
     | GIFWMousePositionControl
     | GIFWContextMenu
@@ -67,7 +69,8 @@ export class GIFWMap {
     id: string,
     config: VersionViewModel,
     sidebars: gifwSidebar.Sidebar[],
-    mode: 'full' | 'embed'
+    mode: 'full' | 'embed',
+    accessToken: string
   ) {
     this.id = id;
     this.config = config;
@@ -78,6 +81,7 @@ export class GIFWMap {
         .getElementById(this.id)
         .dispatchEvent(new CustomEvent("gifw-update-permalink"));
     }, 500);
+    this.authManager = new AuthManager(accessToken, this.config.urlAuthorizationRules, `${document.location.protocol}//${this.config.appRoot}account/token`);
   }
 
   /**
@@ -86,7 +90,16 @@ export class GIFWMap {
    * */
   public async initMap(): Promise<olMap> {
     /*TODO - THIS IS A NASTY MEGA FUNCTION OF ALMOST 300 LINES OF CODE. SIMPLIFY!!!*/
-
+    //get an access token if required
+    if (this.config.isLoggedIn) {
+      await this.authManager.refreshAccessToken();
+      //check for new token every 2 minutes
+      //TODO - make this smarter or at least configurable
+      window.setInterval(async () => {
+        await this.authManager.refreshAccessToken();
+      }, 120000);
+    }
+    
     //register projections
     this.registerProjections(this.config.availableProjections);
     const defaultMapProjection = this.config.availableProjections.filter(

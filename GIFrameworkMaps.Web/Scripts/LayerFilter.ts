@@ -1575,6 +1575,7 @@ export class LayerFilter {
     const layerHeaders = extractCustomHeadersFromLayerSource(
       this.layerConfig.layerSource,
     );
+    this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(baseUrl, layerHeaders);
     const serverCapabilities = await getBasicCapabilities(
       baseUrl,
       additionalParams,
@@ -1595,7 +1596,7 @@ export class LayerFilter {
       if (source instanceof TileWMS || source instanceof ImageWMS) {
         if (await isLayerGroup(baseUrl, featureTypeName, undefined, proxyEndpoint, layerHeaders)) {
           //get a layer from the group to use as a canary. Not ideal but functional
-          const layerGroupLayers = await getChildrenOfLayerGroup(baseUrl, featureTypeName);
+          const layerGroupLayers = await getChildrenOfLayerGroup(baseUrl, featureTypeName, proxyEndpoint, layerHeaders);
           if (layerGroupLayers?.length !== 0) {
             featureTypeName = layerGroupLayers[0].name;
           }
@@ -1665,10 +1666,10 @@ export class LayerFilter {
         const layerHeaders = extractCustomHeadersFromLayerSource(
           this.layerConfig.layerSource,
         );
+        this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(sourceBaseUrl, layerHeaders);
         let uniqueValues:string[] = [];
         if (await isLayerGroup(sourceBaseUrl, featureTypeName, undefined, proxyEndpoint, layerHeaders)) {
-          
-          const layerGroupLayers = await getChildrenOfLayerGroup(sourceBaseUrl, featureTypeName);
+          const layerGroupLayers = await getChildrenOfLayerGroup(sourceBaseUrl, featureTypeName, proxyEndpoint, layerHeaders);
           let totalCount = 0;
           if (layerGroupLayers.length !== 0) {
             //loop through feature types and get list for all
@@ -1721,6 +1722,7 @@ export class LayerFilter {
     const httpHeaders = extractCustomHeadersFromLayerSource(
       this.layerConfig.layerSource,
     );
+    this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(url, httpHeaders);
     const response = await fetch(url, {
       method: this.wpsExecuteCapability.method,
       body: xmlPayload,
@@ -1783,6 +1785,7 @@ export class LayerFilter {
       const httpHeaders = extractCustomHeadersFromLayerSource(
         this.layerConfig.layerSource,
       );
+      this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(baseUrl, httpHeaders);
       const serverCapabilities = await getWPSCapabilities(
         baseUrl,
         proxyEndpoint,

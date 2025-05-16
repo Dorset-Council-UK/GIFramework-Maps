@@ -1254,6 +1254,7 @@ export class LayersPanel implements SidebarPanel {
         const httpHeaders = extractCustomHeadersFromLayerSource(
           gifwLayer.layerSource,
         );
+        this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(baseUrl, httpHeaders);
         const styles = await getStylesForLayer(
           baseUrl,
           featureTypeName,

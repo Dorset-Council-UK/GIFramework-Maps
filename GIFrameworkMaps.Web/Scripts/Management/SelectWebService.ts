@@ -60,6 +60,7 @@ export class SelectWebService {
   ) {
     const loadingSpinner = document.getElementById("layers-loading-spinner");
     loadingSpinner.style.display = "block";
+    /*TODO - Add auth headers*/
     const availableLayers = await getLayersFromCapabilities(
       url,
       type,

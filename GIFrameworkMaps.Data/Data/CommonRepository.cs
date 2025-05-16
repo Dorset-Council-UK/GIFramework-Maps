@@ -97,7 +97,7 @@ namespace GIFrameworkMaps.Data
 			return version;
 		}
 
-		public VersionViewModel GetVersionViewModel(Models.Version version)
+		public async Task<VersionViewModel> GetVersionViewModel(Models.Version version)
         {
 
             List<BasemapViewModel> basemaps = _mapper.Map<List<VersionBasemap>, List<BasemapViewModel>>(version.VersionBasemaps);
@@ -150,9 +150,17 @@ namespace GIFrameworkMaps.Data
             viewModel.Categories = categories;
             viewModel.Basemaps = basemaps;
 			viewModel.AvailableProjections = projections;
+			viewModel.URLAuthorizationRules = await GetURLAuthorizationRules();
 
             return viewModel;
         }
+
+		private async Task<List<URLAuthorizationRule>> GetURLAuthorizationRules()
+		{
+			return await _context.URLAuthorizationRules
+			.AsNoTracking()
+			.ToListAsync();
+		}
 
 		public async Task<List<Models.Version>> GetVersions()
         {
