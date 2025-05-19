@@ -1,4 +1,4 @@
-interface LegendURL {
+export interface LegendURL {
   name: string;
   legendUrl: string;
 }

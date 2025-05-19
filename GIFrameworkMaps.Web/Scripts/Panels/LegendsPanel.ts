@@ -2,6 +2,7 @@
 import { Sidebar } from "../Sidebar";
 import { GIFWMap } from "../Map";
 import { getCurrentTheme } from "../ThemeSwitcher";
+import { LegendURL } from "../Interfaces/LegendURLs";
 
 export class LegendsPanel implements SidebarPanel {
   container: string;
@@ -39,67 +40,146 @@ export class LegendsPanel implements SidebarPanel {
       });
     }
   }
+  // Mark updateLegend as async
+  private async updateLegend(): Promise<void> {
+    const legendsContainer = document
+      .querySelector(this.container)
+      .querySelector("#gifw-legends-container") as HTMLDivElement;
+    legendsContainer.innerHTML = "";
 
-  private updateLegend(): void {
-    (
-      document
-        .querySelector(this.container)
-        .querySelector("#gifw-legends-container") as HTMLDivElement
-    ).innerHTML = "";
-    let colorOpts = "";
-    if (getCurrentTheme() === "dark") {
-      colorOpts = "bgColor:0x212529;fontColor:0xFFFFFF"
-    }
+    const colorOpts = getCurrentTheme() === "dark"
+      ? "bgColor:0x212529;fontColor:0xFFFFFF"
+      : "";
+
     const legends = this.gifwMapInstance.getLegendURLs(
       `fontAntiAliasing:true;forceLabels:on;countMatched:true;hideEmptyRules:true;${colorOpts}`,
     );
 
-    if (legends.availableLegends.length !== 0) {
-      legends.availableLegends.forEach((legend, index) => {
-        const legendContainer: HTMLElement = document
-          .querySelector(this.container)
-          .querySelector("#gifw-legends-container");
-
-        const headerNode = document.createElement("h6");
-        headerNode.textContent = legend.name;
-
-        legendContainer.appendChild(headerNode);
-        const loadingNode = document.createElement("div");
-        loadingNode.className = "legend-loading mb-2";
-        loadingNode.setAttribute("data-legend-name", legend.name);
-        loadingNode.innerHTML = `<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>`;
-
-        const imgNode = new Image();
-        imgNode.id = `legend-image-${index}`;
-        imgNode.className = "legend-image mb-4";
-        imgNode.setAttribute("data-legend-name", legend.name);
-        imgNode.src = legend.legendUrl;
-        legendContainer.appendChild(loadingNode);
-        legendContainer.appendChild(imgNode);
-        imgNode.addEventListener(
-          "error",
-          () => {
-            this.hideLoadingForLegend(legend.name);
-            this.showErrorForLegend(legend.name);
-          },
-          { once: true },
-        );
-        imgNode.addEventListener(
-          "load",
-          () => {
-            this.hideLoadingForLegend(legend.name);
-            if (imgNode.width < 5) {
-              this.showNoFeaturesMessageForLegend(legend.name);
-            }
-          },
-          { once: true },
-        );
-      });
-      this.updateNoLegendsList(legends.nonLegendableLayers, true);
-    } else {
+    if (legends.availableLegends.length === 0) {
       this.updateNoLegendsList(legends.nonLegendableLayers, false);
+      return;
+    }
+
+    // Use for...of with await to ensure sequential rendering
+    for (let index = 0; index < legends.availableLegends.length; index++) {
+      const legend = legends.availableLegends[index];
+      this.appendLegendHeader(legendsContainer, legend.name);
+
+      const headers = new Headers();
+      this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(legend.legendUrl, headers);
+
+      if (headers.has("Authorization")) {
+        await this.fetchAndAppendLegendImage(legendsContainer, legend, index, headers);
+      } else {
+        this.appendLegendImage(legendsContainer, legend, index);
+        // Wait for the image to load or error before continuing
+        await this.waitForImageLoadOrError(legendsContainer, legend.name);
+      }
+    }
+
+    this.updateNoLegendsList(legends.nonLegendableLayers, true);
+  }
+
+  // Make fetchAndAppendLegendImage async and return a Promise
+  private async fetchAndAppendLegendImage(
+    container: HTMLElement,
+    legend: LegendURL,
+    index: number,
+    headers: Headers
+  ): Promise<void> {
+    const loadingNode = this.createLoadingNode(legend.name);
+    container.appendChild(loadingNode);
+
+    try {
+      const response = await fetch(legend.legendUrl, { method: "GET", headers });
+      if (response.status !== 200) throw new Error("Failed to load image");
+      const blob = await response.blob();
+      const imgNode = this.createLegendImageNode(legend, index, URL.createObjectURL(blob));
+      container.appendChild(imgNode);
+      // Wait for the image to load or error before continuing
+      await this.waitForImageLoadOrError(container, legend.name);
+    } catch {
+      this.hideLoadingForLegend(legend.name);
+      this.showErrorForLegend(legend.name);
     }
   }
+
+  // Helper to wait for image load or error
+  private waitForImageLoadOrError(container: HTMLElement, legendName: string): Promise<void> {
+    return new Promise((resolve) => {
+      const imgNode = container.querySelector(`img.legend-image[data-legend-name="${legendName}"]`) as HTMLImageElement;
+      if (!imgNode) {
+        resolve();
+        return;
+      }
+      const cleanup = () => {
+        imgNode.removeEventListener("load", onLoad);
+        imgNode.removeEventListener("error", onError);
+      };
+      const onLoad = () => {
+        this.hideLoadingForLegend(legendName);
+        if (imgNode.width < 5) {
+          this.showNoFeaturesMessageForLegend(legendName);
+        }
+        cleanup();
+        resolve();
+      };
+      const onError = () => {
+        this.hideLoadingForLegend(legendName);
+        this.showErrorForLegend(legendName);
+        cleanup();
+        resolve();
+      };
+      imgNode.addEventListener("load", onLoad, { once: true });
+      imgNode.addEventListener("error", onError, { once: true });
+    });
+  }
+
+
+  private appendLegendHeader(container: HTMLElement, name: string) {
+    const headerNode = document.createElement("h6");
+    headerNode.textContent = name;
+    container.appendChild(headerNode);
+  }
+
+  private appendLegendImage(container: HTMLElement, legend: LegendURL, index: number) {
+    const loadingNode = this.createLoadingNode(legend.name);
+    const imgNode = this.createLegendImageNode(legend, index, legend.legendUrl);
+
+    container.appendChild(loadingNode);
+    container.appendChild(imgNode);
+
+    imgNode.addEventListener("error", () => {
+      this.hideLoadingForLegend(legend.name);
+      this.showErrorForLegend(legend.name);
+    }, { once: true });
+
+    imgNode.addEventListener("load", () => {
+      this.hideLoadingForLegend(legend.name);
+      if (imgNode.width < 5) {
+        this.showNoFeaturesMessageForLegend(legend.name);
+      }
+    }, { once: true });
+  }
+
+  private createLoadingNode(name: string): HTMLDivElement {
+    const loadingNode = document.createElement("div");
+    loadingNode.className = "legend-loading mb-2";
+    loadingNode.setAttribute("data-legend-name", name);
+    loadingNode.innerHTML = `<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>`;
+    return loadingNode;
+  }
+
+  private createLegendImageNode(legend: LegendURL, index: number, src: string): HTMLImageElement {
+    const imgNode = new Image();
+    imgNode.id = `legend-image-${index}`;
+    imgNode.className = "legend-image mb-4";
+    imgNode.setAttribute("data-legend-name", legend.name);
+    imgNode.src = src;
+    return imgNode;
+  }
+
+  
   private showErrorForLegend(layerName: string) {
     const legendImage = document
       .querySelector(this.container)
