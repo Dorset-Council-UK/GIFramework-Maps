@@ -3,7 +3,7 @@ import { Map } from "ol";
 import * as olProj from "ol/proj";
 import { Size } from "ol/size";
 import * as olControl from "ol/control";
-import { LegendURLs } from "./Interfaces/LegendURLs";
+import { LegendURL, LegendURLs } from "./Interfaces/LegendURLs";
 import {
   PDFPageSetting,
   PDFPageSettings,
@@ -795,7 +795,7 @@ export class Export {
     let maxWidth = 0;
     let rectangleWidth = 0;
     let rectangleHeight = 0;
-    const legends = await this.getLegendImages(legendUrls, map);
+    const legends = await this.getLegendImages(legendUrls);
     const requiredTitleBoxDims = this.getTitleBoxRequiredDimensions(
       pdf,
       pageMargin,
@@ -967,11 +967,11 @@ export class Export {
     }
   }
 
-  private async getLegendImages(legendUrls: LegendURLs, map:GIFWMap): Promise<[string, HTMLImageElement][]> {
+  private async getLegendImages(legendUrls: LegendURLs): Promise<[string, HTMLImageElement][]> {
     const results: [string, HTMLImageElement][] = [];
     for (const legend of legendUrls.availableLegends) {
       try {
-        const img = await this.loadLegendImage(legend.legendUrl, map);
+        const img = await this.loadLegendImage(legend);
         if (img.width < 5) {
           // Optionally skip or handle "no legend" case
           continue;
@@ -985,11 +985,10 @@ export class Export {
     return results;
   }
 
-  private async loadLegendImage(url: string, map: GIFWMap): Promise<HTMLImageElement> {
-    const headers = new Headers();
-    map.authManager.applyAuthenticationToRequestHeaders(url, headers);
-    if (headers.has('Authorization')) {
-      const response = await fetch(url, { method: "GET", headers });
+  private async loadLegendImage(legend: LegendURL): Promise<HTMLImageElement> {
+
+    if (legend.headers != null) {
+      const response = await fetch(legend.legendUrl, { method: "GET", headers: legend.headers });
       if (response.status !== 200) throw new Error("Failed to load image");
       const blob = await response.blob();
       return new Promise((resolve, reject) => {
@@ -1003,7 +1002,7 @@ export class Export {
         const img = new Image();
         img.onload = () => resolve(img);
         img.onerror = () => reject("Image load failed");
-        img.src = url;
+        img.src = legend.legendUrl;
       });
     }
     
@@ -1066,7 +1065,7 @@ export class Export {
             : pageSettings.portraitKeyWrapLimit
         };`,
       );
-      const legends = await this.getLegendImages(legendUrls, map);
+      const legends = await this.getLegendImages(legendUrls);
       
       //calculate width and height required
       pdf.setFontSize(pageSettings.titleFontSize);

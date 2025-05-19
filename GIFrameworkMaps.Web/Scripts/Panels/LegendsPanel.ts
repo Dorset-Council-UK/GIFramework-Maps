@@ -65,11 +65,8 @@ export class LegendsPanel implements SidebarPanel {
       const legend = legends.availableLegends[index];
       this.appendLegendHeader(legendsContainer, legend.name);
 
-      const headers = new Headers();
-      this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(legend.legendUrl, headers);
-
-      if (headers.has("Authorization")) {
-        await this.fetchAndAppendLegendImage(legendsContainer, legend, index, headers);
+      if (legend.headers != null && legend.headers.has("Authorization")) {
+        await this.fetchAndAppendLegendImage(legendsContainer, legend, index, legend.headers);
       } else {
         this.appendLegendImage(legendsContainer, legend, index);
         // Wait for the image to load or error before continuing
