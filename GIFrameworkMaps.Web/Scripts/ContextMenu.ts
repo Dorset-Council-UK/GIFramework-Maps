@@ -1,6 +1,7 @@
 ﻿import ContextMenu, { CallbackObject, Item, SingleItem } from "ol-contextmenu";
 import * as olProj from "ol/proj";
 import { GIFWMousePositionControl } from "../Scripts/MousePositionControl";
+import { PrefersReducedMotion } from "./Util";
 
 export interface ContextMenuDataObject {
   mousePosition: GIFWMousePositionControl;
@@ -29,6 +30,23 @@ export class GIFWContextMenu {
           navigator.clipboard.writeText(
             (obj.data as ContextMenuDataObject).coord,
           );
+        },
+      },
+      {
+        text: `Centre map here`,
+        classname: "context-menu-item",
+        data: {
+          mousePosition: mousePosition,
+        } as ContextMenuDataObject,
+        callback: function (obj: CallbackObject) {
+          if (PrefersReducedMotion()) {
+            mousePosition.control.getMap().getView().setCenter(obj.coordinate);
+          } else {
+            mousePosition.control
+              .getMap()
+              .getView()
+              .animate({ center: obj.coordinate, duration: 500 });
+          }
         },
       },
     ];
