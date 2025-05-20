@@ -39,7 +39,8 @@ import {
   getDefaultStyleByGeomType,
   extractParamsFromHash,
   generatePermalinkForMap,
-  PrefersReducedMotion
+  PrefersReducedMotion,
+  extractCustomHeadersFromLayerSource
 } from "./Util";
 import LayerRenderer from "ol/renderer/Layer";
 import { Projection } from "./Interfaces/Projection";
@@ -1356,11 +1357,16 @@ export class GIFWMap {
             }
             params = { ...params, ...additionalParams };
 
-            const legendUrl = {
+            const legendUrl = source.getLegendUrl(resolution, params)
+            const layerConfig = this.getLayerConfigById(l.get("layerId"));
+            const headers = extractCustomHeadersFromLayerSource(layerConfig.layerSource);
+            this.authManager.applyAuthenticationToRequestHeaders(legendUrl, headers);
+            const legendInfo = {
               name: (l.get("name") as string).trim(),
-              legendUrl: source.getLegendUrl(resolution, params),
+              legendUrl: legendUrl,
+              headers: headers,
             };
-            legends.availableLegends.push(legendUrl);
+            legends.availableLegends.push(legendInfo);
           } else {
             legends.nonLegendableLayers.push((l.get("name") as string).trim());
           }

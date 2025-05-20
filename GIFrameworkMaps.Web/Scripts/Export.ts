@@ -3,7 +3,7 @@ import { Map } from "ol";
 import * as olProj from "ol/proj";
 import { Size } from "ol/size";
 import * as olControl from "ol/control";
-import { LegendURLs } from "./Interfaces/LegendURLs";
+import { LegendURL, LegendURLs } from "./Interfaces/LegendURLs";
 import {
   PDFPageSetting,
   PDFPageSettings,
@@ -294,7 +294,7 @@ export class Export {
         try {
           const scaleImg = await this.getScaleLine();
           const imgData = scaleImg;
-          await this.createScalebarBox(pdf, pageMargin, imgData, this.startingAttrYPosition);
+          this.createScalebarBox(pdf, pageMargin, imgData, this.startingAttrYPosition);
         } catch (ex) {
           console.warn(`Getting the scaleline for a print failed.`);
           console.error(ex);
@@ -795,8 +795,7 @@ export class Export {
     let maxWidth = 0;
     let rectangleWidth = 0;
     let rectangleHeight = 0;
-    const legendPromises = this.getLegendImages(legendUrls);
-    const allResolvedLegends = await Promise.allSettled(legendPromises);
+    const legends = await this.getLegendImages(legendUrls);
     const requiredTitleBoxDims = this.getTitleBoxRequiredDimensions(
       pdf,
       pageMargin,
@@ -829,11 +828,10 @@ export class Export {
         currentX = startingX;
         currentY = startingY;
         pdf.setFontSize(pageSettings.subtitleFontSize);
-        allResolvedLegends.forEach((p) => {
-          if (p.status === "fulfilled") {
-            const layerName = p.value[0];
+        legends.forEach((legend) => {
+            const layerName = legend[0];
             const layerNameWidth = pdf.getTextDimensions(layerName).w;
-            const img = p.value[1];
+            const img = legend[1];
             const imgProps = pdf.getImageProperties(img);
             const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
             const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
@@ -843,7 +841,6 @@ export class Export {
             if (widthInMM > maxWidth) maxWidth = widthInMM;
             if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
             currentY += heightInMM + 7.5;
-          }
         });
         break;
       case "float-left":
@@ -851,20 +848,18 @@ export class Export {
         rectangleHeight = pdf.getTextDimensions("Map key").h;
 
         /*get max width required*/
-        allResolvedLegends.forEach((p) => {
-          if (p.status === "fulfilled") {
-            const layerName = p.value[0];
-            const layerNameWidth = pdf.getTextDimensions(layerName).w;
-            const layerNameHeight = pdf.getTextDimensions(layerName).h;
-            const img = p.value[1];
-            const imgProps = pdf.getImageProperties(img);
-            const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
-            const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
-            rectangleHeight += layerNameHeight + heightInMM + 8;
-            if (widthInMM > rectangleWidth) rectangleWidth = widthInMM + 3;
-            if (layerNameWidth > rectangleWidth)
-              rectangleWidth = layerNameWidth + 3;
-          }
+        legends.forEach((legend) => {
+          const layerName = legend[0];
+          const layerNameWidth = pdf.getTextDimensions(layerName).w;
+          const layerNameHeight = pdf.getTextDimensions(layerName).h;
+          const img = legend[1];
+          const imgProps = pdf.getImageProperties(img);
+          const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+          const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+          rectangleHeight += layerNameHeight + heightInMM + 8;
+          if (widthInMM > rectangleWidth) rectangleWidth = widthInMM + 3;
+          if (layerNameWidth > rectangleWidth)
+            rectangleWidth = layerNameWidth + 3;
         });
         pdf.setFillColor(255, 255, 255);
         pdf.setDrawColor(0, 0, 0);
@@ -892,21 +887,19 @@ export class Export {
         currentX = startingX;
         currentY = startingY;
         pdf.setFontSize(pageSettings.subtitleFontSize);
-        allResolvedLegends.forEach((p) => {
-          if (p.status === "fulfilled") {
-            const layerName = p.value[0];
-            const layerNameWidth = pdf.getTextDimensions(layerName).w;
-            const img = p.value[1];
-            const imgProps = pdf.getImageProperties(img);
-            const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
-            const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
-            pdf.text(layerName, currentX + 2, currentY);
-            currentY += pdf.getTextDimensions(layerName).h;
-            pdf.addImage(img, currentX + 2, currentY, widthInMM, heightInMM);
-            if (widthInMM > maxWidth) maxWidth = widthInMM;
-            if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
-            currentY += heightInMM + 7.5;
-          }
+        legends.forEach((legend) => {
+          const layerName = legend[0];
+          const layerNameWidth = pdf.getTextDimensions(layerName).w;
+          const img = legend[1];
+          const imgProps = pdf.getImageProperties(img);
+          const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+          const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+          pdf.text(layerName, currentX + 2, currentY);
+          currentY += pdf.getTextDimensions(layerName).h;
+          pdf.addImage(img, currentX + 2, currentY, widthInMM, heightInMM);
+          if (widthInMM > maxWidth) maxWidth = widthInMM;
+          if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
+          currentY += heightInMM + 7.5;
         });
 
         break;
@@ -919,81 +912,100 @@ export class Export {
         currentX = startingX;
         currentY = startingY;
         pdf.setFontSize(pageSettings.titleFontSize);
-        allResolvedLegends.forEach((p) => {
-          if (p.status === "fulfilled") {
-            const layerName = p.value[0];
-            const layerNameWidth = pdf.getTextDimensions(layerName).w;
-            const img = p.value[1];
-            const imgProps = pdf.getImageProperties(img);
-            let widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
-            let heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
-            if (
-              currentY + heightInMM + pdf.getTextDimensions(layerName).h >=
-              pageHeight - pageMargin
-            ) {
-              currentX = pageMargin / 2 + maxWidth + 7.5;
-              currentY = startingY;
-            }
-
-            if (widthInMM > pageWidth - pageMargin) {
-              //key is wider than page.
-              const originalWidth = widthInMM;
-              widthInMM = pageWidth - pageMargin - startingX;
-              const scaleRatio = widthInMM / originalWidth;
-              heightInMM = heightInMM * scaleRatio;
-            }
-            if (heightInMM > pageHeight - pageMargin) {
-              //key is taller than page
-              const originalHeight = heightInMM;
-              heightInMM = pageHeight - pageMargin - startingY;
-              const scaleRatio = heightInMM / originalHeight;
-              widthInMM = widthInMM * scaleRatio;
-            }
-
-            if (
-              widthInMM + currentX > pageWidth - pageMargin ||
-              layerNameWidth + currentX > pageWidth - pageMargin
-            ) {
-              //key or title would overflow page edge
-              //add to new page
-              pdf.addPage(pageSize, pageOrientation);
-              pdf.setFontSize(pageSettings.standaloneLegendTitleFontSize);
-              pdf.text("Map Key (cont.)", pageMargin / 2, pageMargin / 2 + 3);
-              pdf.setFontSize(pageSettings.titleFontSize);
-              currentX = startingX;
-              currentY = startingY;
-              maxWidth = 0;
-            }
-            pdf.text(layerName, currentX, currentY);
-            currentY += pdf.getTextDimensions(layerName).h;
-            pdf.addImage(img, currentX, currentY, widthInMM, heightInMM);
-            if (widthInMM > maxWidth) maxWidth = widthInMM;
-            if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
-            currentY += heightInMM + 7.5;
+        legends.forEach((legend) => {
+          const layerName = legend[0];
+          const layerNameWidth = pdf.getTextDimensions(layerName).w;
+          const img = legend[1];
+          const imgProps = pdf.getImageProperties(img);
+          let widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+          let heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+          if (
+            currentY + heightInMM + pdf.getTextDimensions(layerName).h >=
+            pageHeight - pageMargin
+          ) {
+            currentX = pageMargin / 2 + maxWidth + 7.5;
+            currentY = startingY;
           }
+
+          if (widthInMM > pageWidth - pageMargin) {
+            //key is wider than page.
+            const originalWidth = widthInMM;
+            widthInMM = pageWidth - pageMargin - startingX;
+            const scaleRatio = widthInMM / originalWidth;
+            heightInMM = heightInMM * scaleRatio;
+          }
+          if (heightInMM > pageHeight - pageMargin) {
+            //key is taller than page
+            const originalHeight = heightInMM;
+            heightInMM = pageHeight - pageMargin - startingY;
+            const scaleRatio = heightInMM / originalHeight;
+            widthInMM = widthInMM * scaleRatio;
+          }
+
+          if (
+            widthInMM + currentX > pageWidth - pageMargin ||
+            layerNameWidth + currentX > pageWidth - pageMargin
+          ) {
+            //key or title would overflow page edge
+            //add to new page
+            pdf.addPage(pageSize, pageOrientation);
+            pdf.setFontSize(pageSettings.standaloneLegendTitleFontSize);
+            pdf.text("Map Key (cont.)", pageMargin / 2, pageMargin / 2 + 3);
+            pdf.setFontSize(pageSettings.titleFontSize);
+            currentX = startingX;
+            currentY = startingY;
+            maxWidth = 0;
+          }
+          pdf.text(layerName, currentX, currentY);
+          currentY += pdf.getTextDimensions(layerName).h;
+          pdf.addImage(img, currentX, currentY, widthInMM, heightInMM);
+          if (widthInMM > maxWidth) maxWidth = widthInMM;
+          if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
+          currentY += heightInMM + 7.5;
         });
         break;
     }
   }
 
-  private getLegendImages(legendUrls: LegendURLs) {
-    const promises: Promise<[string, HTMLImageElement]>[] = [];
-    legendUrls.availableLegends.forEach((legend) => {
-      promises.push(
-        new Promise<[string, HTMLImageElement]>((resolve, reject) => {
-          const img = new Image();
-          img.onload = () => {
-            if (img.width < 5) {
-              reject(`No legend available for ${legend.name}`);
-            }
-            resolve([legend.name, img]);
-          };
-          img.onerror = () => reject("Image load failed");
-          img.src = legend.legendUrl;
-        }),
-      );
-    });
-    return promises;
+  private async getLegendImages(legendUrls: LegendURLs): Promise<[string, HTMLImageElement][]> {
+    const results: [string, HTMLImageElement][] = [];
+    for (const legend of legendUrls.availableLegends) {
+      try {
+        const img = await this.loadLegendImage(legend);
+        if (img.width < 5) {
+          // Optionally skip or handle "no legend" case
+          continue;
+        }
+        results.push([legend.name, img]);
+      } catch (ex) {
+        console.warn(`Getting a legend image failed.`);
+        console.error(ex);
+      }
+    }
+    return results;
+  }
+
+  private async loadLegendImage(legend: LegendURL): Promise<HTMLImageElement> {
+
+    if (legend.headers != null) {
+      const response = await fetch(legend.legendUrl, { method: "GET", headers: legend.headers });
+      if (response.status !== 200) throw new Error("Failed to load image");
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject("Image load failed");
+        img.src = URL.createObjectURL(blob);
+      });
+    } else {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject("Image load failed");
+        img.src = legend.legendUrl;
+      });
+    }
+    
   }
 
   /**
@@ -1053,31 +1065,30 @@ export class Export {
             : pageSettings.portraitKeyWrapLimit
         };`,
       );
-      const legendPromises = this.getLegendImages(legendUrls);
-      const promises = await Promise.allSettled(legendPromises);
+      const legends = await this.getLegendImages(legendUrls);
+      
       //calculate width and height required
       pdf.setFontSize(pageSettings.titleFontSize);
       let totalRequiredHeight = pdf.getTextDimensions("Map key").h;
       let totalRequiredWidth = pdf.getTextDimensions("Map key").w;
       pdf.setFontSize(pageSettings.subtitleFontSize);
-      promises.forEach((p) => {
-        if (p.status === "fulfilled") {
-          const layerName = p.value[0];
-          const layerNameWidth = pdf.getTextDimensions(layerName).w;
-          const layerNameHeight = pdf.getTextDimensions(layerName).h;
-          totalRequiredHeight += layerNameHeight;
-          if (totalRequiredWidth < layerNameWidth)
-            totalRequiredWidth = layerNameWidth;
+      legends.forEach((legend) => {
+        const layerName = legend[0];
+        const layerNameWidth = pdf.getTextDimensions(layerName).w;
+        const layerNameHeight = pdf.getTextDimensions(layerName).h;
+        totalRequiredHeight += layerNameHeight;
+        if (totalRequiredWidth < layerNameWidth)
+          totalRequiredWidth = layerNameWidth;
 
-          const img = p.value[1];
-          const imgProps = pdf.getImageProperties(img);
-          const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
-          const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+        const img = legend[1];
+        const imgProps = pdf.getImageProperties(img);
+        const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+        const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
 
-          totalRequiredHeight += heightInMM;
-          if (totalRequiredWidth < widthInMM) totalRequiredWidth = widthInMM;
-        }
+        totalRequiredHeight += heightInMM;
+        if (totalRequiredWidth < widthInMM) totalRequiredWidth = widthInMM;
       });
+
       const requiredTitleBoxDims = this.getTitleBoxRequiredDimensions(
         pdf,
         pageMargin,
