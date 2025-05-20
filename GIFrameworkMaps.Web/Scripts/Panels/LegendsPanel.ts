@@ -65,7 +65,7 @@ export class LegendsPanel implements SidebarPanel {
       const legend = legends.availableLegends[index];
       this.appendLegendHeader(legendsContainer, legend.name);
 
-      if (legend.headers != null && legend.headers.has("Authorization")) {
+      if (legend.headers != null) {
         await this.fetchAndAppendLegendImage(legendsContainer, legend, index, legend.headers);
       } else {
         this.appendLegendImage(legendsContainer, legend, index);

@@ -294,7 +294,7 @@ export class Export {
         try {
           const scaleImg = await this.getScaleLine();
           const imgData = scaleImg;
-          await this.createScalebarBox(pdf, pageMargin, imgData, this.startingAttrYPosition);
+          this.createScalebarBox(pdf, pageMargin, imgData, this.startingAttrYPosition);
         } catch (ex) {
           console.warn(`Getting the scaleline for a print failed.`);
           console.error(ex);
