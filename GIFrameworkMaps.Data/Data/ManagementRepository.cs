@@ -350,5 +350,15 @@ namespace GIFrameworkMaps.Data
 				.AsNoTracking()
 				.ToListAsync();
 		}
+
+		public async Task<IList<Version>> GetVersionsLayerCategoriesAppearIn(IList<int> CategoryIds)
+		{
+			var versions = await _context.Versions
+				.AsNoTracking()
+				.Include(v => v.VersionCategories)
+				.Where(v => v.VersionCategories.Any(cl => CategoryIds.Contains(cl.CategoryId)))
+				.ToListAsync();
+			return versions;
+		}
 	}
 }
