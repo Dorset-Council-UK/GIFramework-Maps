@@ -47,13 +47,41 @@
             <a asp-action="Delete" asp-route-id="@Model.Category.Id" class="btn btn-danger">Delete</a>
 
         </div>
+
         <div class="col-md-6">
-            <div class="card mb-2">
-                <div class="card-header">
-                    Layers
-                </div>
-                <div class="card-body">
+            <ul class="nav nav-underline mb-2" role="tablist">
+                <li class="nav-item active" role="presentation">
+                    <button class="nav-link active" id="layers-tab" data-bs-toggle="tab" data-bs-target="#layers-tab-pane" type="button" role="tab" aria-controls="layers-tab-pane" aria-selected="true">Layers</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="versions-tab" data-bs-toggle="tab" data-bs-target="#versions-tab-pane" type="button" role="tab" aria-controls="versions-tab-pane" aria-selected="false">Appears in versions</button>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="layers-tab-pane" role="tabpanel" aria-labelledby="layers-tab" tabindex="0">
                     <partial name="ManagementPartials/CategoryLayerList" model="Model" view-data="ViewData" />
+                </div>
+                <div class="tab-pane fade" id="versions-tab-pane" role="tabpanel" aria-labelledby="versions-tab" tabindex="0">
+                    @if (Model.VersionsCategoryAppearsIn is null || Model.VersionsCategoryAppearsIn.Count == 0)
+                    {
+                        <div class="alert alert-info">This layer doesn't appear in any versions at the moment</div>
+                    }
+                    else
+                    {
+                        <ul class="list-group">
+                            @foreach (var version in Model.VersionsCategoryAppearsIn.OrderBy(v => v.Name))
+                            {
+                                <li class="list-group-item">
+                                    <a asp-action="Edit" asp-controller="ManagementVersion" asp-route-id="@version.Id">@version.Name</a>
+                                    <span class="text-muted fst-italic">/@version.Slug</span>
+                                    @if (version.RequireLogin)
+                                    {
+                                        <span class="bi bi-lock" title="This version requires a login"></span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    }
                 </div>
             </div>
         </div>

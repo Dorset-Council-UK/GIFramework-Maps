@@ -1,4 +1,5 @@
-﻿using GIFrameworkMaps.Data;
+﻿using AspNetCoreGeneratedDocument;
+using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.ViewModels.Management;
 using Microsoft.AspNetCore.Authorization;
@@ -246,9 +247,12 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 				.AsNoTracking()
 				.OrderBy(b => b.Name);
 
+			var versions = await _repository.GetVersionsLayerCategoriesAppearIn(model.SelectedCategories);
+
 			model.AvailableBounds = new SelectList(bounds, "Id", "Name", layer.BoundId);
 			model.AvailableDisclaimers = new SelectList(disclaimers, "Id", "Name", layer.LayerDisclaimerId);
 			model.AvailableCategories = await categories.ToListAsync();
+			model.VersionsLayerAppearsIn = versions;
             ViewData["SelectedCategories"] = model.SelectedCategories;
             ViewData["AllCategories"] = model.AvailableCategories;
         }

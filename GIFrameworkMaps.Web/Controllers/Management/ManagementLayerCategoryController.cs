@@ -230,6 +230,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 			model.AvailableParentCategories = new SelectList(parentCategories, "Id", "Name", category.ParentCategoryId);
 			model.AvailableLayers = availableLayers;
 			model.SelectedLayers = selectedLayerIds.ToList();
+			model.VersionsCategoryAppearsIn = await _repository.GetVersionsLayerCategoriesAppearIn([model.Category.Id]);
+
 			ViewData["SelectedLayers"] = model.SelectedLayers;
 		}
     }

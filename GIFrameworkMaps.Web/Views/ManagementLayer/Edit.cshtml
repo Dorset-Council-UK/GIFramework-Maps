@@ -11,7 +11,7 @@
 
 <div>
     <a href="https://dorset-council-uk.github.io/GIFramework-Maps-Admin-Guide/gui/layers/" class="btn btn-outline-primary" target="_blank"
-       role="button">Stuck? Read the help documentation</a>
+    role="button">Stuck? Read the help documentation</a>
 </div>
 
 <form asp-action="Edit">
@@ -27,13 +27,16 @@
             <div>
                 <a asp-action="Delete" asp-route-id="@Model.Layer.Id" class="btn btn-danger">Delete</a>
             </div>
-        
+
         </div>
         <div class="col-md-4 col-lg-6">
 
             <ul class="nav nav-underline mb-2" role="tablist">
                 <li class="nav-item active" role="presentation">
                     <button class="nav-link active" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories-tab-pane" type="button" role="tab" aria-controls="categories-tab-pane" aria-selected="true">Layer Categories</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="versions-tab" data-bs-toggle="tab" data-bs-target="#versions-tab-pane" type="button" role="tab" aria-controls="versions-tab-pane" aria-selected="false">Appears in versions</button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="details-tab" data-bs-toggle="tab" data-bs-target="#details-tab-pane" type="button" role="tab" aria-controls="details-tab-pane" aria-selected="false">Source details</button>
@@ -43,6 +46,30 @@
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="categories-tab-pane" role="tabpanel" aria-labelledby="categories-tab" tabindex="0">
                     <partial name="ManagementPartials/VersionCategoryList" model="Model.AvailableCategories.Where(c => c.ParentCategoryId == null).ToList()" view-data="ViewData" />
+                </div>
+                <div class="tab-pane fade" id="versions-tab-pane" role="tabpanel" aria-labelledby="versions-tab" tabindex="0">
+                    @if(Model.VersionsLayerAppearsIn is null || Model.VersionsLayerAppearsIn.Count == 0)
+                    {
+                        <div class="alert alert-info">This layer doesn't appear in any versions at the moment</div>
+                    }
+                    else
+                    {
+                        <ul class="list-group">
+                            @foreach (var version in Model.VersionsLayerAppearsIn.OrderBy(v => v.Name))
+                            {
+                                <li class="list-group-item">
+                                    <a asp-action="Edit" asp-controller="ManagementVersion" asp-route-id="@version.Id">@version.Name</a>
+                                    <span class="text-muted fst-italic">/@version.Slug</span>
+                                    @if (version.RequireLogin)
+                                    {
+                                        <span class="bi bi-lock" title="This version requires a login"></span>
+                                    }
+                                </li>
+
+
+                        }
+                        </ul>
+                    }
                 </div>
                 <div class="tab-pane fade" id="details-tab-pane" role="tabpanel" aria-labelledby="details-tab" tabindex="0">
                     <table class="table table-sm table-striped">

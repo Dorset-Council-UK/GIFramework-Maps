@@ -48,5 +48,6 @@ namespace GIFrameworkMaps.Data
 		Task<AnalyticsViewModel> GetAnalyticsModel();
 		Task<List<Basemap>> GetBasemaps();
 		Task<Basemap?> GetBasemap(int id);
+		Task<IList<Version>> GetVersionsLayerCategoriesAppearIn(IList<int> CategoryIds);
 	}
 }

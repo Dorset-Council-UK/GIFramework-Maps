@@ -11,5 +11,6 @@ namespace GIFrameworkMaps.Data.ViewModels.Management
 		public SelectList? AvailableDisclaimers { get; set; }
 		public IList<int> SelectedCategories { get; set; } = [];
 		public IList<Category> AvailableCategories { get; set; } = [];
+		public IList<Version> VersionsLayerAppearsIn { get; set; } = [];
 	}
 }
