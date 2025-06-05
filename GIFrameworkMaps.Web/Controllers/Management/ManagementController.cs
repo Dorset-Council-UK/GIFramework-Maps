@@ -29,7 +29,15 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             
         }
 
-        public async Task<IActionResult> BroadcastMessage()
+		public async Task<JsonResult> URLAuthorizationRules()
+		{
+			var rules = await _repository.GetURLAuthorizationRules();
+			return Json(rules);
+		}
+
+
+
+		public async Task<IActionResult> BroadcastMessage()
         {
             var versions = await _repository.GetVersions();
             return View(versions);

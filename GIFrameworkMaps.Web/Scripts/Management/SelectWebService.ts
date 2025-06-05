@@ -10,12 +10,29 @@ export class SelectWebService {
   _fuseInstance: Fuse<LayerResource>;
   _authManager: AuthManager | null = null;
 
-  public async init(urlAuthorizationRules: UrlAuthorizationRules[], appRoot:string) {
+  public async init(appRoot: string, authRulesEndpoint:string) {
+    //set up auth manager
+    let urlAuthorizationRules: UrlAuthorizationRules[] = [];
+    try {
+      const response = await fetch(authRulesEndpoint, {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      });
+      if (response.ok) {
+        urlAuthorizationRules = await response.json();
+      } else {
+        console.warn(`Failed to fetch authorization rules: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error fetching authorization rules:", error);
+    }
+    this._authManager = new AuthManager(null, urlAuthorizationRules, `${document.location.protocol}//${appRoot}account/token`);
+    await this._authManager.refreshAccessToken();
+
     //set preferred projections
     const preferredProjectionsInput = (document.getElementById('preferred-projections-list') as HTMLInputElement);
     this.preferredProjections = preferredProjectionsInput.value.split(",");
-    this._authManager = new AuthManager(null, urlAuthorizationRules, `${document.location.protocol}//${appRoot}account/token`);
-    await this._authManager.refreshAccessToken();
+
     //hook up connect buttons
     const listConnectBtn = document.getElementById("web-service-list-connect");
     const urlConnectBtn = document.getElementById("web-service-text-connect");

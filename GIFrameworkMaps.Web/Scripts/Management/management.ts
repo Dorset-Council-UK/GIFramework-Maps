@@ -5,10 +5,9 @@ import { CreateLayerFromSource } from "./CreateLayerFromSource";
 import { CreateSource } from "./CreateSource";
 import accessibleAutocomplete from "accessible-autocomplete";
 import { Tooltip } from "bootstrap";
-import { UrlAuthorizationRules } from "../Interfaces/Authorization/UrlAuthorizationRules";
 
 declare let appRoot: string;
-declare let authRules: UrlAuthorizationRules[];
+declare let authRulesEndpoint: string;
 
 addEventListener("DOMContentLoaded", () => {
   //attach collapse caret changer
@@ -56,14 +55,14 @@ addEventListener("DOMContentLoaded", () => {
 
 //TODO - This method of initializing stuff is HORRIBLE. Replace with something better
 document.addEventListener("CreateLayerFromSourceInit", () => {
-  new CreateLayerFromSource().init();
+  new CreateLayerFromSource().init(appRoot, authRulesEndpoint);
 });
 document.addEventListener("BroadcastInit", () => {
   new Broadcast().init();
 });
 document.addEventListener("SelectWebServiceInit", () => {
   /*variables passed from index.cshtml. Use sparingly*/
-  new SelectWebService().init(authRules, appRoot);
+  new SelectWebService().init(appRoot, authRulesEndpoint);
 });
 document.addEventListener("CreateSourceInit", () => {
   new CreateSource().init();

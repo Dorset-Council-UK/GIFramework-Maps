@@ -135,12 +135,15 @@
         }
     </style>
 }
-<script>
-    var proxyEndpoint = '@proxyEndpoint';
-</script>
+@{
+    var host = Context.Request.Host.ToUriComponent();
+    var pathBase = Context.Request.PathBase.ToUriComponent();
+}
 @section Scripts{
     <script>
-        
+        var proxyEndpoint = '@proxyEndpoint';
+        var authRulesEndpoint = '@Url.Action("URLAuthorizationRules", "Management")';
+        var appRoot = '@host@pathBase/';
         document.addEventListener("DOMContentLoaded", (event) => {
             const ev = new Event("CreateLayerFromSourceInit")
             document.dispatchEvent(ev);
