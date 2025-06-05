@@ -49,4 +49,5 @@ export interface Layer {
   removable: boolean;
   proxyMetaRequests: boolean;
   proxyMapRequests: boolean;
+  refreshInterval: number;
 }

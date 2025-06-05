@@ -152,6 +152,10 @@ export class GIFWLayerGroup implements LayerGroup {
           }
         }
         ol_layers.push(ol_layer);
+        if (layer.refreshInterval && layer.refreshInterval > 0) {
+          this.setAutoRefreshInterval(ol_layer, layer.refreshInterval); //set a default auto refresh interval of 10 seconds
+        }
+        
       }
     }
 
@@ -161,6 +165,12 @@ export class GIFWLayerGroup implements LayerGroup {
     layerGroup.setProperties({ type: this.layerGroupType });
 
     return layerGroup;
+  }
+
+  private setAutoRefreshInterval(layer: olLayer.Layer<olSource.Source, LayerRenderer<olLayer.Layer>>, interval: number) {
+    setInterval(() => {
+      layer.getSource().refresh();
+    }, interval * 1000)
   }
 
   async customTileLoader(

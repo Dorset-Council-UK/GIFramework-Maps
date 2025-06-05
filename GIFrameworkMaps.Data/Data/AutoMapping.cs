@@ -48,7 +48,8 @@ namespace GIFrameworkMaps.Data
 				.ForMember(cl => cl.DefaultFilterEditable, lvm => lvm.MapFrom(s => s.Layer!.DefaultFilterEditable))
 				.ForMember(cl => cl.InfoListTitleTemplate, lvm => lvm.MapFrom(s => s.Layer!.InfoListTitleTemplate))
 				.ForMember(cl => cl.ProxyMapRequests, lvm => lvm.MapFrom(s => s.Layer!.ProxyMapRequests))
-				.ForMember(cl => cl.ProxyMetaRequests, lvm => lvm.MapFrom(s => s.Layer!.ProxyMetaRequests));
+				.ForMember(cl => cl.ProxyMetaRequests, lvm => lvm.MapFrom(s => s.Layer!.ProxyMetaRequests))
+				.ForMember(cl => cl.RefreshInterval, lvm => lvm.MapFrom(s => s.Layer!.RefreshInterval));
 
 			CreateMap<VersionProjection, ProjectionViewModel>()
 				.ForMember(vp => vp.EPSGCode, pvm => pvm.MapFrom(s => s.Projection!.EPSGCode))
