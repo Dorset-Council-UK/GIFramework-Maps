@@ -351,12 +351,25 @@ namespace GIFrameworkMaps.Data
 				.ToListAsync();
 		}
 
+		/// <summary>
+		/// <para>Gets a list of versions that the given categories appear in.</para>
+		/// <para>This only returns the ID, Name, Slug and RequireLogin properties</para>
+		/// </summary>
+		/// <param name="CategoryIds"></param>
+		/// <returns></returns>
 		public async Task<IList<Version>> GetVersionsLayerCategoriesAppearIn(IList<int> CategoryIds)
 		{
 			var versions = await _context.Versions
+				.IgnoreAutoIncludes()
 				.AsNoTracking()
-				.Include(v => v.VersionCategories)
 				.Where(v => v.VersionCategories.Any(cl => CategoryIds.Contains(cl.CategoryId)))
+				.Select(v => new Version
+				{
+					Id = v.Id,
+					Name = v.Name,
+					Slug = v.Slug,
+					RequireLogin = v.RequireLogin
+				})
 				.ToListAsync();
 			return versions;
 		}
