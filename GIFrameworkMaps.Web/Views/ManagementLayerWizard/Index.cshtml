@@ -146,9 +146,21 @@
 
     </div>
 </template>
+@{
+    var host = Context.Request.Host.ToUriComponent();
+    var pathBase = Context.Request.PathBase.ToUriComponent();
+    var jsonOptions = new System.Text.Json.JsonSerializerOptions
+    {
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+    };
+    jsonOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 
+}
 @section Scripts{
     <script>
+        var authRules = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewData["UrlAuthorizationRules"], jsonOptions));
+
+        var appRoot = '@host@pathBase/';
         document.addEventListener("DOMContentLoaded", (event) => {
             const ev = new Event("SelectWebServiceInit")
             document.dispatchEvent(ev);

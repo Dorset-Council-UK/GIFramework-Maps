@@ -2,16 +2,20 @@ import Fuse from "fuse.js";
 import { LayerResource } from "../Interfaces/OGCMetadata/LayerResource";
 import { getLayersFromCapabilities } from "../Metadata/Metadata";
 import { ServiceType } from "../Interfaces/WebLayerServiceDefinition";
+import { AuthManager } from "../AuthManager";
+import { UrlAuthorizationRules } from "../Interfaces/Authorization/UrlAuthorizationRules";
 
 export class SelectWebService {
   preferredProjections: string[] = [];
   _fuseInstance: Fuse<LayerResource>;
+  _authManager: AuthManager | null = null;
 
-  public init() {
+  public async init(urlAuthorizationRules: UrlAuthorizationRules[], appRoot:string) {
     //set preferred projections
     const preferredProjectionsInput = (document.getElementById('preferred-projections-list') as HTMLInputElement);
     this.preferredProjections = preferredProjectionsInput.value.split(",");
-
+    this._authManager = new AuthManager(null, urlAuthorizationRules, `${document.location.protocol}//${appRoot}account/token`);
+    await this._authManager.refreshAccessToken();
     //hook up connect buttons
     const listConnectBtn = document.getElementById("web-service-list-connect");
     const urlConnectBtn = document.getElementById("web-service-text-connect");
@@ -39,7 +43,7 @@ export class SelectWebService {
       this.renderLayersListFromService(
         url,
         type as ServiceType,
-        webServiceUseProxy.checked ? webServiceUseProxy.value : "",
+        webServiceUseProxy.checked ? webServiceUseProxy.value : ""
       );
     });
 
@@ -60,12 +64,15 @@ export class SelectWebService {
   ) {
     const loadingSpinner = document.getElementById("layers-loading-spinner");
     loadingSpinner.style.display = "block";
-    /*TODO - Add auth headers*/
+
+    const headers: Headers = new Headers;
+    this._authManager.applyAuthenticationToRequestHeaders(url,headers)
     const availableLayers = await getLayersFromCapabilities(
       url,
       type,
       version,
       proxyEndpoint,
+      headers
     );
 
     const layersListContainer = document.getElementById("layer-list-container");

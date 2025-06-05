@@ -1,4 +1,5 @@
 ﻿@using GIFrameworkMaps.Data.ViewModels.Management
+@using Microsoft.AspNetCore.Http
 @model LayerWizardCreateSourceViewModel
 
 @{
@@ -124,10 +125,11 @@
 </div>
 
 <script>
-    var attributionRendererEndpoint = '@Url.Action("RenderAttributionString","Management")';
+    var attributionRendererEndpoint = '@Url.Action("RenderAttributionString", "Management")';
 </script>
 @section Scripts{
     <script>
+
         document.addEventListener("DOMContentLoaded", (event) => {
             const ev = new Event("CreateSourceInit")
             document.dispatchEvent(ev);
