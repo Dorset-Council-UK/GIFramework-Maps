@@ -1,7 +1,7 @@
 ﻿@using GIFrameworkMaps.Data.ViewModels.Management
 @model LayerEditViewModel
 
-<div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+<div asp-validation-summary="All" class="text-danger my-2"></div>
 <input type="hidden" asp-for="Layer.Id" />
 <div class="mb-3">
     <label asp-for="Layer.Name" class="control-label"></label>
@@ -135,6 +135,17 @@
         <input asp-for="Layer.ProxyMetaRequests" class="form-check-input" data-proxy-meta="true" />
         <label asp-for="Layer.ProxyMetaRequests" class="form-check-label"></label>
         <span asp-validation-for="Layer.ProxyMetaRequests" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Layer.RefreshInterval" class="control-label"></label>
+        <div class="row">
+            <div class="col-lg-3 col-md-4 col-6">
+                <input asp-for="Layer.RefreshInterval" class="form-control" />
+            </div>
+        </div>
+        <div class="form-text">Recommend no less than 30, and no more than 3600 (1 hour)</div>
+        <span asp-validation-for="Layer.RefreshInterval" class="text-danger"></span>
     </div>
 
 </div>
