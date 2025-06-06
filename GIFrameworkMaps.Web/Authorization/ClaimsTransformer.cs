@@ -20,9 +20,12 @@ namespace GIFrameworkMaps.Web.Authorization
             
             foreach(var role in roles)
             {
-                Claim customRoleClaim = new(claimsIdentity.RoleClaimType, role.Role.RoleName);
-                claimsIdentity.AddClaim(customRoleClaim);
-            }
+				if (!claimsIdentity.HasClaim(claimsIdentity.RoleClaimType, role.Role.RoleName))
+				{
+					Claim customRoleClaim = new(claimsIdentity.RoleClaimType, role.Role.RoleName);
+					claimsIdentity.AddClaim(customRoleClaim);
+				}
+			}
             //fetch roles from extension_roles claim
             //Removed as not currently needed, but may be added/changed in future
             //var extensionRolesClaim = claimsIdentity.FindFirst("extension_roles");
