@@ -21,6 +21,8 @@ namespace GIFrameworkMaps.Data
         Task<List<Bookmark>> GetBookmarksForUserAsync(string userId);
         Task<string> GenerateShortId(string url);
         Task<string> GetFullUrlFromShortId(string shortId);
-        bool IsURLCurrentApplication(string url);
+		Task<List<URLAuthorizationRule>> GetURLAuthorizationRules();
+
+		bool IsURLCurrentApplication(string url);
     }
 }

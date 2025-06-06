@@ -24,10 +24,12 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         private readonly ICommonRepository _commonRepository = commonRepository;
         private readonly ApplicationDbContext _context = context;
 
-		public IActionResult Index() {
+		public async Task<IActionResult> Index() {
             //get list of services
             var definitions = _commonRepository.GetWebLayerServiceDefinitions();
-            return View(definitions);
+			var authRules = await _commonRepository.GetURLAuthorizationRules();
+			ViewData["UrlAuthorizationRules"] = authRules;
+			return View(definitions);
         }
 
         [HttpPost]

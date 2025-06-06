@@ -7,6 +7,8 @@ import { CapabilityType } from "../Interfaces/OGCMetadata/BasicServerCapabilitie
 import { getBasicCapabilities, getLayersFromCapabilities,getDescribeFeatureType } from "../Metadata/Metadata";
 import { configureNunjucks, renderTemplate } from "../FeatureQuery/FeatureQueryTemplateHelper";
 import { ServiceType } from "../Interfaces/WebLayerServiceDefinition";
+import { UrlAuthorizationRules } from "../Interfaces/Authorization/UrlAuthorizationRules";
+import { AuthManager } from "../AuthManager";
 //global var defined in view. Replace me with another method :)
 declare let proxyEndpoint: string;
 export class CreateLayerFromSource {
@@ -39,6 +41,8 @@ export class CreateLayerFromSource {
   layerSourceType: ServiceType;
   proxyEndpoint: string;
   _cachedExampleFeature: unknown;
+  _authManager: AuthManager | null = null;
+
   constructor() {
     this.templateInput = document.querySelector(
       "textarea[data-template-target]",
@@ -59,7 +63,24 @@ export class CreateLayerFromSource {
     configureNunjucks();
   }
 
-  public async init() {
+  public async init(appRoot: string, authRulesEndpoint: string) {
+    let urlAuthorizationRules: UrlAuthorizationRules[] = [];
+    try {
+      const response = await fetch(authRulesEndpoint, {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      });
+      if (response.ok) {
+        urlAuthorizationRules = await response.json();
+      } else {
+        console.warn(`Failed to fetch authorization rules: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error fetching authorization rules:", error);
+    }
+
+    this._authManager = new AuthManager(null, urlAuthorizationRules, `${document.location.protocol}//${appRoot}account/token`);
+    await this._authManager.refreshAccessToken();
     await this.renderAttributeLists();
     await this.getPropertySuggestions();
     //attach HTML tag buttons
@@ -147,11 +168,14 @@ export class CreateLayerFromSource {
 
   private async getPropertySuggestions() {
     if (this.layerSourceURL !== "" && this.layerSourceName !== "") {
-      /*TODO - Add auth headers*/
+      const headers = new Headers();
+      this._authManager.applyAuthenticationToRequestHeaders(this.layerSourceURL, headers);
       const availableLayers = await getLayersFromCapabilities(
         this.layerSourceURL,
         this.layerSourceType,
+        undefined,
         this.getProxyEndpoint(),
+        headers,
       );
       if (availableLayers && availableLayers.length !== 0) {
         const curLayer = availableLayers.filter(
@@ -177,10 +201,13 @@ export class CreateLayerFromSource {
 
   private async getAttributesForLayer() {
     if (this.layerSourceURL !== "" && this.layerSourceName !== "") {
+      const headers = new Headers();
+      this._authManager.applyAuthenticationToRequestHeaders(this.layerSourceURL, headers);
       const serverCapabilities = await getBasicCapabilities(
         this.layerSourceURL,
         {},
         this.getProxyEndpoint(),
+        headers
       );
 
       if (
@@ -200,6 +227,8 @@ export class CreateLayerFromSource {
           describeFeatureCapability.method,
           undefined,
           "",
+          undefined,
+          headers,
         );
         if (
           featureDescription &&
@@ -388,10 +417,13 @@ export class CreateLayerFromSource {
       if (this._cachedExampleFeature) {
         return this._cachedExampleFeature;
       }
+      const headers = new Headers();
+      this._authManager.applyAuthenticationToRequestHeaders(this.layerSourceURL, headers);
       const serverCapabilities = await getBasicCapabilities(
         this.layerSourceURL,
         {},
         this.getProxyEndpoint(),
+        headers,
       );
 
       if (
@@ -413,6 +445,8 @@ export class CreateLayerFromSource {
           describeFeatureCapability.method,
           undefined,
           "",
+          undefined,
+          headers,
         );
         /*TODO - Make this work with other projections*/
         const wfsFeatureInfoRequest = new WFS().writeGetFeature({
@@ -452,11 +486,12 @@ export class CreateLayerFromSource {
     const timer = window.setTimeout(() => abortController.abort(), 10000);
     const promise = new Promise<FeatureQueryResponse>((resolve, reject) => {
       const fetchUrl = request.searchUrl;
-
+      const headers = new Headers({ "Content-Type": "application/vnd.ogc.gml" });
+      this._authManager.applyAuthenticationToRequestHeaders(this.layerSourceURL, headers);
       fetch(fetchUrl, {
         method: request.wfsRequest ? "POST" : "GET",
         mode: "cors",
-        headers: { "Content-Type": "application/vnd.ogc.gml" },
+        headers: headers,
         body: request.wfsRequest
           ? new XMLSerializer().serializeToString(request.wfsRequest)
           : null,

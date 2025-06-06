@@ -2,12 +2,33 @@ import Fuse from "fuse.js";
 import { LayerResource } from "../Interfaces/OGCMetadata/LayerResource";
 import { getLayersFromCapabilities } from "../Metadata/Metadata";
 import { ServiceType } from "../Interfaces/WebLayerServiceDefinition";
+import { AuthManager } from "../AuthManager";
+import { UrlAuthorizationRules } from "../Interfaces/Authorization/UrlAuthorizationRules";
 
 export class SelectWebService {
   preferredProjections: string[] = [];
   _fuseInstance: Fuse<LayerResource>;
+  _authManager: AuthManager | null = null;
 
-  public init() {
+  public async init(appRoot: string, authRulesEndpoint:string) {
+    //set up auth manager
+    let urlAuthorizationRules: UrlAuthorizationRules[] = [];
+    try {
+      const response = await fetch(authRulesEndpoint, {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      });
+      if (response.ok) {
+        urlAuthorizationRules = await response.json();
+      } else {
+        console.warn(`Failed to fetch authorization rules: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error fetching authorization rules:", error);
+    }
+    this._authManager = new AuthManager(null, urlAuthorizationRules, `${document.location.protocol}//${appRoot}account/token`);
+    await this._authManager.refreshAccessToken();
+
     //set preferred projections
     const preferredProjectionsInput = (document.getElementById('preferred-projections-list') as HTMLInputElement);
     this.preferredProjections = preferredProjectionsInput.value.split(",");
@@ -39,7 +60,7 @@ export class SelectWebService {
       this.renderLayersListFromService(
         url,
         type as ServiceType,
-        webServiceUseProxy.checked ? webServiceUseProxy.value : "",
+        webServiceUseProxy.checked ? webServiceUseProxy.value : ""
       );
     });
 
@@ -60,12 +81,15 @@ export class SelectWebService {
   ) {
     const loadingSpinner = document.getElementById("layers-loading-spinner");
     loadingSpinner.style.display = "block";
-    /*TODO - Add auth headers*/
+
+    const headers: Headers = new Headers;
+    this._authManager.applyAuthenticationToRequestHeaders(url,headers)
     const availableLayers = await getLayersFromCapabilities(
       url,
       type,
       version,
       proxyEndpoint,
+      headers
     );
 
     const layersListContainer = document.getElementById("layer-list-container");

@@ -146,9 +146,14 @@
 
     </div>
 </template>
-
+@{
+    var host = Context.Request.Host.ToUriComponent();
+    var pathBase = Context.Request.PathBase.ToUriComponent();
+}
 @section Scripts{
     <script>
+        var authRulesEndpoint = '@Url.Action("URLAuthorizationRules", "Management")';
+        var appRoot = '@host@pathBase/';
         document.addEventListener("DOMContentLoaded", (event) => {
             const ev = new Event("SelectWebServiceInit")
             document.dispatchEvent(ev);

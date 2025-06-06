@@ -155,7 +155,7 @@ namespace GIFrameworkMaps.Data
             return viewModel;
         }
 
-		private async Task<List<URLAuthorizationRule>> GetURLAuthorizationRules()
+		public async Task<List<URLAuthorizationRule>> GetURLAuthorizationRules()
 		{
 			return await _context.URLAuthorizationRules
 			.AsNoTracking()
