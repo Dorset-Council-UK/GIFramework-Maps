@@ -153,9 +153,8 @@ export class GIFWLayerGroup implements LayerGroup {
         }
         ol_layers.push(ol_layer);
         if (layer.refreshInterval && layer.refreshInterval > 0) {
-          this.setAutoRefreshInterval(ol_layer, layer.refreshInterval); //set a default auto refresh interval of 10 seconds
+          this.setAutoRefreshInterval(ol_layer, layer.refreshInterval);
         }
-        
       }
     }
 
@@ -165,12 +164,6 @@ export class GIFWLayerGroup implements LayerGroup {
     layerGroup.setProperties({ type: this.layerGroupType });
 
     return layerGroup;
-  }
-
-  private setAutoRefreshInterval(layer: olLayer.Layer<olSource.Source, LayerRenderer<olLayer.Layer>>, interval: number) {
-    setInterval(() => {
-      layer.getSource().refresh();
-    }, interval * 1000)
   }
 
   async customTileLoader(
@@ -256,6 +249,14 @@ export class GIFWLayerGroup implements LayerGroup {
     });
   }
 
+  private setAutoRefreshInterval(layer: olLayer.Layer<olSource.Source, LayerRenderer<olLayer.Layer>>, interval: number) {
+    setInterval(() => {
+      if (layer.isVisible()) {
+        layer.getSource().refresh();
+      }
+    }, interval * 1000)
+  }
+
   addLayerToGroup(
     layer: Layer,
     ol_layer: olLayer.Layer<olSource.Source, LayerRenderer<olLayer.Layer>>,
@@ -265,6 +266,9 @@ export class GIFWLayerGroup implements LayerGroup {
     newLayerGroup.push(ol_layer);
     this.olLayerGroup.setLayers(newLayerGroup);
     this.addChangeEventsForLayer(ol_layer);
+    if (layer.refreshInterval && layer.refreshInterval > 0) {
+      this.setAutoRefreshInterval(ol_layer, layer.refreshInterval);
+    }
   }
 
   private createXYZLayer(
