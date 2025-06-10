@@ -1,5 +1,15 @@
 ﻿@{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Sorry, we can't log you in right now";
 }
 
 <h1>@ViewData["Title"]</h1>
+
+<p class="lead">Something has gone wrong and we can't log you in. Register with us or choose a different version.</p>
+
+<div class="mb-3">
+    <a href="" class="btn btn-outline-primary" target="_blank"
+       role="button">Register with us</a>
+
+    <a class="btn btn-outline-primary" asp-area="" asp-controller="Version" asp-action="Index">
+        Choose a different version</a>
+</div>
