@@ -21,6 +21,7 @@ namespace GIFrameworkMaps.Data.ViewModels
 		public bool DefaultFilterEditable { get; set; }
 		public bool ProxyMetaRequests { get; set; }
 		public bool ProxyMapRequests { get; set; }
+		public int? RefreshInterval { get; set; }
 		public LayerSource? LayerSource { get; set; }
 		public LayerDisclaimer? LayerDisclaimer { get; set; }
 	}
