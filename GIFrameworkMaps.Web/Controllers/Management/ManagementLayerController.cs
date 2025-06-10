@@ -142,7 +142,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.Filterable,
                 a => a.ProxyMapRequests,
                 a => a.ProxyMetaRequests,
-				a => a.LayerDisclaimerId))
+				a => a.LayerDisclaimerId,
+				a => a.RefreshInterval))
             {
 
                 try

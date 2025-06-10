@@ -35,7 +35,10 @@ namespace GIFrameworkMaps.Data.Models
         public bool ProxyMetaRequests { get; set; }
         [Display(Name = "Proxy Map Requests")]
         public bool ProxyMapRequests { get; set; }
-        public int LayerSourceId { get; set; }
+		[Display(Name = "Refresh Interval (seconds)")]
+		[Range(0, 3600, ErrorMessage = "Refresh interval must be between 0 and 3600 seconds. A value of 0 means no refresh.")]
+		public int? RefreshInterval { get; set; } // in seconds, null or 0 means no refresh
+		public int LayerSourceId { get; set; }
 		[Display(Name="Disclaimer (optional)")]
 		public int? LayerDisclaimerId { get; set; }
 		public LayerSource? LayerSource { get; set; }

@@ -647,6 +647,7 @@ export class GIFWMap {
       removable: type === LayerGroupType.UserNative,
       proxyMetaRequests: false,
       proxyMapRequests: false,
+      refreshInterval: 0,
     };
 
     const layerGroup = this.getLayerGroupOfType(type);
@@ -747,6 +748,7 @@ export class GIFWMap {
       removable: true,
       proxyMetaRequests: proxyMetaRequests,
       proxyMapRequests: proxyMapRequests,
+      refreshInterval: 0,
     };
 
     let layerGroup = this.getLayerGroupOfType(type);
