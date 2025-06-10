@@ -27,6 +27,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 using Yarp.ReverseProxy.Forwarder;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using System.Threading.Tasks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -150,12 +151,37 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 			options.UseTokenLifetime = false;
 			options.SaveTokens = true;
 
+			//options.RemoteAuthenticationOptions.CallbackPath
+
 			options.Events = new OpenIdConnectEvents()
 			{
 				//OnRedirectToIdentityProvider =
 				//{
 				//	//Use this to insert a login hint if required
 				//}
+				OnAuthenticationFailed = ctx =>
+				{
+					ctx.Response.Redirect("/Account/LoginHandler");
+					ctx.HandleResponse();
+					return Task.CompletedTask;
+				},
+				OnAccessDenied = ctx =>
+				{
+					ctx.Response.Redirect("/Account/LoginHandler");
+					ctx.HandleResponse();
+					return Task.CompletedTask;
+				},
+				OnRemoteFailure = ctx =>
+				{
+					if (string.IsNullOrEmpty(ctx.Failure.Message)){
+						return Task.CompletedTask;
+					} else
+					{
+						ctx.Response.Redirect("/Account/LoginHandler");
+						ctx.HandleResponse();
+						return Task.CompletedTask;
+					}
+				}
 			};
 		});
 

@@ -33,6 +33,12 @@ public class AccountController(ICommonRepository repository,
 	}
 
 	[AllowAnonymous]
+	public IActionResult LoginHandler()
+	{
+		return View();
+	}
+
+	[AllowAnonymous]
 	public async Task<IActionResult> SignInWithRedirect(string redirectUri)
 	{
 		StringWriter decodedStringWriter = new();
