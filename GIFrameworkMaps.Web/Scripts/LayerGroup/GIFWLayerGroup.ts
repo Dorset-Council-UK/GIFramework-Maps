@@ -447,6 +447,12 @@ export class GIFWLayerGroup implements LayerGroup {
     extent: Extent,
     projection: string) {
 
+    // Extract headers and check if we need custom loading
+    const layerHeaders = extractCustomHeadersFromLayerSource(layer.layerSource);
+    let hasCustomHeaders = false;
+    layerHeaders.forEach(() => {
+      hasCustomHeaders = true;
+    });
 
     let tileGrid;
     const tileGridOpt = getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "tilegrid");
@@ -467,13 +473,22 @@ export class GIFWLayerGroup implements LayerGroup {
     const formatMvt = new MVT();
     formatMvt.supportedMediaTypes.push('application/octet-stream');
 
+    const vectorSource = new olSource.OGCVectorTile({
+      url: getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url"),
+      format: formatMvt,
+      projection: projection,
+      attributions: layer.layerSource.attribution.renderedAttributionHTML,
+    });
+
+    // Add custom tile load function if needed
+    if (layer.proxyMapRequests || hasCustomHeaders || this.gifwMapInstance.authManager) {
+      vectorSource.setTileLoadFunction((tile, url) => {
+        this.customVectorTileLoader(tile, url, layer, layerHeaders);
+      });
+    }
+
     const vectorTileLayer = new olLayer.VectorTile({
-      source: new olSource.OGCVectorTile({
-        url: getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url"),
-        format: formatMvt,
-        projection: projection,
-        attributions: layer.layerSource.attribution.renderedAttributionHTML,
-      }),
+      source: vectorSource,
       declutter: true,
       visible: visible,
       className: className,
@@ -488,7 +503,8 @@ export class GIFWLayerGroup implements LayerGroup {
             ? -999
             : layer.zIndex,
     });
-    //get style from options
+
+    // Apply style from options
     const styleOpts = getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "style");
     if (styleOpts !== null) {
       olMapboxApplyStyle(
@@ -499,7 +515,7 @@ export class GIFWLayerGroup implements LayerGroup {
         tileGrid?.getResolutions()
       );
     }
-    
+
     return vectorTileLayer;
   }
 
@@ -519,11 +535,25 @@ export class GIFWLayerGroup implements LayerGroup {
       attributions: layer.layerSource.attribution.renderedAttributionHTML,
     }
 
+    const layerHeaders = extractCustomHeadersFromLayerSource(layer.layerSource);
+    let hasCustomHeaders = false;
+    layerHeaders.forEach(() => {
+      hasCustomHeaders = true;
+    });
+
     const serviceUrl = getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "url");
     const tmsRegexMatch = new RegExp("{(z|-?y|x)}");
     if (serviceUrl.match(tmsRegexMatch) !== null) {
       //we have a tile URL
       vectorTileSourceOpts.url = serviceUrl;
+
+      // Add custom tile load function if needed
+      if (layer.proxyMapRequests || hasCustomHeaders || this.gifwMapInstance.authManager) {
+        vectorTileSourceOpts.tileLoadFunction = (tile, url) => {
+          this.customVectorTileLoader(tile, url, layer, layerHeaders);
+        };
+      }
+
       let tileGrid;
       const tileGridOpt = getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "tilegrid");
       if (tileGridOpt !== null) {
@@ -631,22 +661,54 @@ export class GIFWLayerGroup implements LayerGroup {
       baseUrl = createWFSFeatureRequestFromLayer(layer);
     }
     url = baseUrl;
-    if (loadingStrategy === bboxStrategy) {
-      url = (extent) => {
-        if (projection !== `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`) {
-          extent = transformExtent(extent, this.gifwMapInstance.olMap.getView().getProjection(), projection);
-        }
-        return (
-          `${baseUrl}&srsname=${projection}&` +
-          `bbox=${extent.join(',')},${projection}`
-        );
-      }
-    }
+
+    const layerHeaders = extractCustomHeadersFromLayerSource(layer.layerSource);
+    let hasCustomHeaders = false;
+    layerHeaders.forEach(() => {
+      hasCustomHeaders = true;
+    });
+
     const vectorSource = new olSource.Vector({
       format: format,
       url: url,
       strategy: loadingStrategy,
     });
+
+    // Custom loader if we need authentication or custom headers
+    if (layer.proxyMapRequests || hasCustomHeaders || this.gifwMapInstance.authManager) {
+      vectorSource.setLoader((extent, resolution, proj) => {
+        let url = baseUrl;
+        if (loadingStrategy === bboxStrategy) {
+          const projCode = typeof proj === 'string' ? proj : proj.getCode();
+          url = `${baseUrl}&srsname=${projCode}&bbox=${extent.join(',')},${projCode}`;
+        }
+
+        this.customVectorLoader(
+          url,
+          format,
+          extent,
+          resolution,
+          proj,
+          features => vectorSource.addFeatures(features),
+          () => vectorSource.removeLoadedExtent(extent),
+          layer,
+          layerHeaders
+        );
+      });
+    } else {
+      // Standard loader
+      let url: string | FeatureUrlFunction = baseUrl;
+      if (loadingStrategy === bboxStrategy) {
+        url = (extent) => {
+          if (projection !== `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`) {
+            extent = transformExtent(extent, this.gifwMapInstance.olMap.getView().getProjection(), projection);
+          }
+          return `${baseUrl}&srsname=${projection}&bbox=${extent.join(',')},${projection}`;
+        }
+      }
+      vectorSource.setUrl(url);
+    }
+
     vector.setProperties({
       source: vectorSource,
       visible: visible,
@@ -680,4 +742,127 @@ export class GIFWLayerGroup implements LayerGroup {
 
     return vector;
   }
+
+  async customVectorLoader(
+    url: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    format: any,
+    extent: Extent | undefined,
+    resolution: number | undefined,
+    projection: string | olProj.Projection,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    success: (features: any[]) => void,
+    failure: () => void,
+    layer: Layer,
+    layerHeaders: Headers
+  ) {
+    try {
+      if (layer.proxyMapRequests) {
+        url = this.gifwMapInstance.createProxyURL(url);
+      }
+      this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(url, layerHeaders);
+
+      const response = await fetch(url, {
+        headers: layerHeaders,
+        mode: "cors",
+      });
+
+      if (response.ok) {
+        let features = [];
+        let data;
+        const type = format.getType();
+        if (type == 'text' || type == 'json' || type =='xml') {
+          data = await response.text();
+        } else if (type == 'arraybuffer') {
+          data = await response.arrayBuffer();
+        }
+
+        if (data) {
+          features = format.readFeatures(data, {
+            extent: extent,
+            featureProjection: typeof projection === 'string' ? projection : projection.getCode()
+          })
+          success(features);
+        } else {
+          failure();
+        }
+      } else {
+        console.warn(`Vector request failed with status: ${response.status}`);
+        failure();
+      }
+    } catch (error) {
+      console.error("Error loading vector data:", error);
+      failure();
+    }
+  }
+
+  async customVectorTileLoader(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tile: any,  // Using any as the exact VectorTile type is not imported
+    src: string,
+    layer: Layer,
+    layerHeaders: Headers
+  ) {
+    try {
+      if (layer.proxyMapRequests) {
+        src = this.gifwMapInstance.createProxyURL(src);
+      }
+      this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(src, layerHeaders);
+
+      const response = await fetch(src, {
+        headers: layerHeaders,
+        mode: "cors",
+      });
+
+      if (response.ok) {
+        const contentType = response.headers.get('content-type');
+
+        // Handle loading based on content type
+        if (contentType && contentType.includes('json') && !contentType.includes('octet-stream')) {
+          // Handle JSON response (some vector tile services return GeoJSON)
+          const json = await response.json();
+          tile.setLoader((extent: Extent, resolution: number, projection: olProj.Projection) => {
+            const format = tile.getFormat();
+            try {
+              const features = format.readFeatures(json, {
+                extent: extent,
+                featureProjection: projection
+              });
+              tile.setFeatures(features);
+            } catch (error) {
+              console.error("Error parsing JSON vector tile:", error);
+              tile.setState(3); // Error state
+            }
+          });
+        } else {
+          // Handle binary response (typical MVT)
+          const data = await response.arrayBuffer();
+          tile.setLoader((extent: Extent, resolution: number, projection: olProj.Projection) => {
+            const format = tile.getFormat();
+            try {
+              // For MVT format, we don't need dataProjection as it's in tile coordinates
+              const features = format.readFeatures(data, {
+                extent: extent,
+                featureProjection: projection
+              });
+              tile.setFeatures(features);
+            } catch (error) {
+              console.error("Error parsing vector tile data:", error);
+              tile.setState(3); // Error state
+            }
+          });
+        }
+
+        // The tile is now loaded
+        tile.setState(2); // Loaded state
+      } else {
+        console.warn(`Vector tile request failed with status: ${response.status}`);
+        tile.setState(3); // Error state
+      }
+    } catch (error) {
+      console.error("Error loading vector tile:", error);
+      tile.setState(3); // Error state
+    }
+  }
+
 }
