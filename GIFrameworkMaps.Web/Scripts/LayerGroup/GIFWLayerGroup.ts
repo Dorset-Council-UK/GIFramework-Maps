@@ -591,6 +591,12 @@ export class GIFWLayerGroup implements LayerGroup {
       });
       vectorTileSourceOpts.tileGrid = tileGrid;
       vectorTileSourceOpts.url = tiles;
+      // Add custom tile load function if needed
+      if (layer.proxyMapRequests || hasCustomHeaders || this.gifwMapInstance.authManager) {
+        vectorTileSourceOpts.tileLoadFunction = (tile, url) => {
+          this.customVectorTileLoader(tile, url, layer, layerHeaders);
+        };
+      }
     }
     
 
@@ -815,46 +821,41 @@ export class GIFWLayerGroup implements LayerGroup {
       });
 
       if (response.ok) {
-        const contentType = response.headers.get('content-type');
-
-        // Handle loading based on content type
-        if (contentType && contentType.includes('json') && !contentType.includes('octet-stream')) {
-          // Handle JSON response (some vector tile services return GeoJSON)
-          const json = await response.json();
-          tile.setLoader((extent: Extent, resolution: number, projection: olProj.Projection) => {
-            const format = tile.getFormat();
-            try {
-              const features = format.readFeatures(json, {
-                extent: extent,
-                featureProjection: projection
-              });
-              tile.setFeatures(features);
-            } catch (error) {
-              console.error("Error parsing JSON vector tile:", error);
-              tile.setState(3); // Error state
-            }
-          });
-        } else {
-          // Handle binary response (typical MVT)
-          const data = await response.arrayBuffer();
-          tile.setLoader((extent: Extent, resolution: number, projection: olProj.Projection) => {
-            const format = tile.getFormat();
-            try {
-              // For MVT format, we don't need dataProjection as it's in tile coordinates
-              const features = format.readFeatures(data, {
-                extent: extent,
-                featureProjection: projection
-              });
-              tile.setFeatures(features);
-            } catch (error) {
-              console.error("Error parsing vector tile data:", error);
-              tile.setState(3); // Error state
-            }
-          });
+        // Get the tile's format
+        const format = tile.getFormat();
+        if (!format) {
+          console.error("Vector tile format is null");
+          tile.setState(3); // Error state
+          return;
         }
 
-        // The tile is now loaded
-        tile.setState(2); // Loaded state
+        // Process the response based on content type
+        const contentType = response.headers.get('content-type');
+        try {
+          let data;
+          if (contentType && contentType.includes('json') && !contentType.includes('octet-stream')) {
+            data = await response.json();
+          } else {
+            data = await response.arrayBuffer();
+          }
+
+          // Important: Don't use setLoader again, just process directly
+          const extent = tile.extent;
+          const projection = tile.projection;
+
+          // Read the features
+          const features = format.readFeatures(data, {
+            extent: extent,
+            featureProjection: projection
+          });
+
+          // Set features on the tile
+          tile.setFeatures(features || []);
+          tile.setState(2); // Loaded state
+        } catch (parseError) {
+          console.error("Error parsing vector tile:", parseError, "Content-Type:", contentType);
+          tile.setState(3); // Error state
+        }
       } else {
         console.warn(`Vector tile request failed with status: ${response.status}`);
         tile.setState(3); // Error state
