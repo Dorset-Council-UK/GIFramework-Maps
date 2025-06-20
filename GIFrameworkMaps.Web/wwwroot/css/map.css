@@ -640,7 +640,6 @@
   bottom: 12px;
   left: -50px;
   min-width: 260px;
-  /* max-height: 80vh;*/
 }
 @media (min-width: 768px) {
   .giframeworkMapContainer .ol-popup {
