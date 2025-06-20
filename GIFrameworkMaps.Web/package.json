@@ -41,6 +41,7 @@
     "ol": "10.4.0",
     "ol-contextmenu": "5.5.0",
     "ol-mapbox-style": "12.4.1",
+    "olcs": "2.22.1",
     "proj4": "2.15.0",
     "shepherd.js": "13.0.3",
     "sortablejs": "1.15.6",

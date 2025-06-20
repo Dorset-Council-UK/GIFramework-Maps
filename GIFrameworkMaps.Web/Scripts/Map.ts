@@ -47,6 +47,10 @@ import { Projection } from "./Interfaces/Projection";
 import { VersionToggler } from "./VersionToggler";
 import { getItem as getSetting, setItem as setSetting } from "./UserSettings";
 import { AuthManager } from "./AuthManager";
+import OLCesium from 'olcs';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const Cesium: any;
 
 export class GIFWMap {
   id: string;
@@ -502,6 +506,26 @@ export class GIFWMap {
         this.updatePermalinkInURL();
         this.updatePermalinkInLinks();
       });
+
+    Cesium.Ion.defaultAccessToken = '{{insert_access_token}}';
+    const ol3d = new OLCesium({ map: map });
+    const scene = ol3d.getCesiumScene();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Cesium.createWorldTerrainAsync().then((tp: any) => scene.terrainProvider = tp);
+
+    const button = document.createElement('button');
+    button.textContent = "Toggle 3D";
+    button.style.position = 'absolute';
+    button.style.top = '10px'
+    button.style.left = '50%';
+    button.style.zIndex = '9999999';
+    button.addEventListener('click', () => {
+      ol3d.setEnabled(!ol3d.getEnabled());
+    });
+
+    document.querySelector('.giframeworkMapContainer').insertAdjacentElement('afterend', button);
+
+    
 
     return map;
   }
