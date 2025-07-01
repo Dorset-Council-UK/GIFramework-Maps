@@ -1,0 +1,73 @@
+name: Build GIFrameworkMaps
+description: |
+  This workflow builds the GIFrameworkMaps project, runs npm and webpack, and uploads the artifact.
+inputs:
+  environment:
+    description: 'The environment to build for (dev or prod).'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+      shell: bash
+
+    - name: npm install
+      run: npm install --force
+      working-directory: 'GIFrameworkMaps.Web'
+      shell: bash
+
+    - name: Install webpack
+      run: npm i -g webpack webpack-cli
+      working-directory: 'GIFrameworkMaps.Web'
+      shell: bash
+
+    - name: webpack dev
+      if: ${{ inputs.environment == 'dev' }}
+      run: webpack --config webpack.dev.js
+      working-directory: 'GIFrameworkMaps.Web'
+      shell: bash
+    
+    - name: webpack prod
+      if: ${{ inputs.environment == 'prod' }}
+      run: webpack --config webpack.prod.js
+      working-directory: 'GIFrameworkMaps.Web'
+      shell: bash
+
+    - name: Build
+      run: dotnet build --no-restore
+      shell: bash
+
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+      shell: bash
+
+    - name: Publish
+      run: dotnet publish -o '../release'
+      working-directory: 'GIFrameworkMaps.Web'
+      shell: bash
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        path: 'release'
