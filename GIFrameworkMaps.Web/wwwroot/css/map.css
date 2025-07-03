@@ -8,12 +8,17 @@
   --embed-vertical-shift: 2em;
 }
 
+[data-bs-theme="dark"] a {
+  color: #1d70b8;
+}
+
 .giframeworkMap header {
   z-index: 500;
-  backdrop-filter: blur(2px);
 }
+
 .giframeworkMap header .navbar {
   background-color: var(--primary-color-transparent-90);
+  backdrop-filter: blur(2px);
   padding: 0.25rem 0.5rem;
 }
 .giframeworkMap.embed .navbar {
@@ -40,7 +45,7 @@
 }
 .giframeworkMap.embed .gifw-measure-control {
   /*top: calc(13em - var(--embed-vertical-shift));*/
-  display:none;
+  display: none;
 }
 .giframeworkMap .gifw-measure-control.ol-hidden {
   opacity: 0;
@@ -68,7 +73,7 @@
 }
 .giframeworkMap.embed .gifw-annotation-control {
   /*top: calc(15.5em - var(--embed-vertical-shift));*/
-  display:none;
+  display: none;
 }
 .giframeworkMap .gifw-annotation-control.ol-hidden {
   opacity: 0;
@@ -111,7 +116,7 @@
 }
 .giframeworkMap.embed .gifw-info-control {
   /*top: calc(18em - var(--embed-vertical-shift));*/
-  display:none;
+  display: none;
 }
 .giframeworkMap .gifw-info-control.ol-hidden {
   opacity: 0;
@@ -140,7 +145,7 @@
 }
 .giframeworkMap.embed .gifw-geolocation-control {
   /*top: calc(20.5em - var(--embed-vertical-shift));*/
-  display:none;
+  display: none;
 }
 .giframeworkMap .gifw-geolocation-control.gifw-geolocation-recentre-control {
   left: 2.75rem;
@@ -171,14 +176,14 @@
 .giframeworkMap .ol-touch .ol-control button {
   font-size: 1rem;
 }
-.giframeworkMap .ol-scale-line, .giframeworkMap .ol-scale-bar {
+.giframeworkMap .ol-scale-line,
+.giframeworkMap .ol-scale-bar {
   bottom: 2rem;
   pointer-events: auto !important;
   cursor: pointer;
 }
 .giframeworkMap .ol-scale-line {
   background-color: var(--primary-color-transparent-50);
-
 }
 .giframeworkMap .ol-scale-line-inner {
   color: white;
@@ -199,16 +204,16 @@
   backdrop-filter: blur(2px);
   font-size: 0.8rem;
   background: rgba(var(--bs-body-bg-rgb), 0.8);
-  bottom:0;
-  right:0;
+  bottom: 0;
+  right: 0;
 }
 .giframeworkMap .ol-attribution ul {
   text-shadow: none;
   color: var(--bs-body-color);
 }
-.giframeworkMap .ol-attribution button{
-  width:1.7rem;
-  height:1.7rem;
+.giframeworkMap .ol-attribution button {
+  width: 1.7rem;
+  height: 1.7rem;
 }
 [data-bs-theme="dark"] .giframeworkMap .ol-attribution a {
   color: var(--bs-body-color);
@@ -405,7 +410,7 @@
   background-color: #e0e0e0;
   background-repeat: no-repeat;
   background-size: cover;
-  background-position:center;
+  background-position: center;
   margin-top: 0.5rem;
   border-color: #e0e0e0;
 }
@@ -491,8 +496,8 @@
   z-index: 101;
   top: 3.5rem;
 }
-.giframeworkMap.embed .gifw-search-control{
-  top: .5rem;
+.giframeworkMap.embed .gifw-search-control {
+  top: 0.5rem;
 }
 /*Medium devices (tablets, 768px and up)*/
 @media (min-width: 768px) {
@@ -841,13 +846,26 @@
   white-space: pre-line;
 }
 
+[data-bs-theme="dark"] .shepherd-element {
+  background-color: var(--bs-body-bg);
+  border: 1px solid #343a40;
+}
+
 .shepherd-title {
   font-size: 1.25rem;
   font-weight: 500;
 }
 
+[data-bs-theme="dark"] .shepherd-title {
+  color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] .shepherd-text {
+  color: var(--bs-body-color);
+}
+
 .space-center {
   justify-content: space-between;
   align-items: center;
-  font-size: .875rem;
+  font-size: 0.875rem;
 }
