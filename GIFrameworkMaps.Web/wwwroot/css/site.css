@@ -22,7 +22,7 @@ a {
   color: #1d70b8;
 }
 [data-bs-theme="dark"] a {
-  color: rgba(255, 255, 255, 0.85);
+  color: #72b7df;
 }
 a:hover,
 a:focus {

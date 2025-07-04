@@ -8,10 +8,6 @@
   --embed-vertical-shift: 2em;
 }
 
-[data-bs-theme="dark"] a {
-  color: #1d70b8;
-}
-
 .giframeworkMap header {
   z-index: 500;
 }
