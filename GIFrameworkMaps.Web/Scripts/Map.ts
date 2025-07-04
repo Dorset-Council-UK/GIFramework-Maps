@@ -50,6 +50,7 @@ import {
   permaLinkDelayedUpdate,
   updatePermalinkInURL,
   updatePermalinkInLinks,
+  updateBaseMapFromLinkParams,
 } from "./PermalinkUtils";
 
 export class GIFWMap {
@@ -185,32 +186,10 @@ export class GIFWMap {
 
     //define layer groups
 
-    //first, check the permalink and update the default basemap if the
-    //permalink dervied one is different from the server provided one
-    if (permalinkParams.basemap) {
-      const basemapParamParts = permalinkParams.basemap.split("/");
-      const overriddenBasemapId = basemapParamParts[0];
-      if (
-        (this.config.basemaps.filter((b) => b.id == overriddenBasemapId)
-          .length !== 0 &&
-          basemapParamParts.length === 3) ||
-        this.config.basemaps.filter(
-          (b) => b.id == overriddenBasemapId && !b.isDefault
-        ).length !== 0
-      ) {
-        this.config.basemaps.forEach((b) => {
-          if (b.id != overriddenBasemapId) {
-            b.isDefault = false;
-          } else {
-            b.isDefault = true;
-            if (basemapParamParts.length === 3) {
-              b.defaultOpacity = parseInt(basemapParamParts[1]);
-              b.defaultSaturation = parseInt(basemapParamParts[2]);
-            }
-          }
-        });
-      }
-    }
+    //parse the permalink basemap parameters and display the correct basemap
+    //with relevant opacity and saturation
+    updateBaseMapFromLinkParams(this, permalinkParams);
+
     this.layerGroups = [];
     const basemapGroup = await new GIFWLayerGroup(
       this.config.basemaps,
