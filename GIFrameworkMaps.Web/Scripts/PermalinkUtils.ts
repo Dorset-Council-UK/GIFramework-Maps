@@ -11,6 +11,7 @@ import LayerRenderer from "ol/renderer/Layer";
 import { b64EncodeUnicode } from "./Util";
 import { extractParamsFromHash } from "./Util";
 import { debounce, DebouncedFunc } from "lodash";
+import { Basemap } from "./Interfaces/Basemap";
 
 /**
  * Generates a permalink (or 'share link') based on the current map
@@ -147,4 +148,60 @@ export function permaLinkDelayedUpdate(
       .getElementById(map.id)
       .dispatchEvent(new CustomEvent("gifw-update-permalink"));
   }, 500);
+}
+
+/**
+ * Updates the base map using link parameters.
+ * @param map The GIFramework Map object
+ * @param params The full link parameters (whole fragment)
+ * @returns void
+ */
+export function updateBaseMapFromLinkParams(
+  map: GIFWMap,
+  params: Record<string, string>
+): void {
+  // If no basemap parameters are provided, exit
+  if (!params.basemap) {
+    return;
+  }
+
+  // Pull apart the basemap parameters
+  const baseMapParams = params.basemap.split("/").map((x) => Number(x.trim()));
+
+  // No basemap ID provided
+  if (!baseMapParams[0]) {
+    return;
+  }
+
+  // Set Layer ID if layer exists
+  let activeBasemap: Basemap | undefined;
+  for (const basemap of map.config.basemaps) {
+    if (basemap.id == String(baseMapParams[0])) {
+      // If the basemap is found, set it as the active basemap
+      activeBasemap = basemap;
+    } else {
+      basemap.isDefault = false;
+    }
+  }
+
+  if (!activeBasemap) {
+    // If no matching basemap is found use the first as the default basemap
+    activeBasemap = map.config.basemaps[0];
+  }
+
+  activeBasemap.isDefault = true;
+
+  // Set Opacity
+  if (baseMapParams[1] < 100 && baseMapParams[1] >= 0) {
+    activeBasemap.defaultOpacity = baseMapParams[1];
+  } else {
+    activeBasemap.defaultOpacity = 100;
+  }
+
+  // Set Saturation
+  if (baseMapParams[2] < 100 && baseMapParams[2] >= 0) {
+    activeBasemap.defaultSaturation = baseMapParams[2];
+  } else {
+    activeBasemap.defaultSaturation = 100;
+  }
 }
