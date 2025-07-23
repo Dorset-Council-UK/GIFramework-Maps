@@ -1038,8 +1038,7 @@ export class LayerFilter {
         invalidFeedbackEle.remove();
       }
       filterRow
-        .querySelector(".valuesEditor input")
-        .classList.remove("is-invalid");
+        .querySelector(".valuesEditor input")?.classList.remove("is-invalid");
 
       switch (filterType.type) {
         case "singleValue": {
@@ -1744,11 +1743,13 @@ export class LayerFilter {
     const propertyName = this.getSelectedPropertyNameForRow(filterRow);
     const suggestions = await this.getValueSuggestionsForProperty(propertyName);
     const datalist = filterRow.querySelector("datalist");
+    if (datalist) {
     let opts = "";
     suggestions?.forEach((suggestion) => {
       opts += `<option value="${suggestion}"></option>`;
     });
     datalist.innerHTML = opts;
+  }
   }
 
   /**
