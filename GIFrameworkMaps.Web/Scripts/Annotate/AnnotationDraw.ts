@@ -11,8 +11,8 @@ import AnnotationStyle from "./AnnotationStyle";
 import { Circle, Point, Polygon, SimpleGeometry } from "ol/geom";
 import { GeoJSON } from "ol/format";
 import VectorLayer from "ol/layer/Vector";
-import { getArea, getLength } from 'ol/sphere.js';
-import { MeasurementResult } from "../Interfaces/MeasurementResult";
+import { getLength } from 'ol/sphere.js';
+import { Measure } from "../Measure";
 
 export default class AnnotationDraw extends Draw {
   tip: string;
@@ -131,7 +131,7 @@ export default class AnnotationDraw extends Draw {
       }
       let firstCoordinate = coordinates[0] as number;
       let secondCoordinate = coordinates[1] as number;
-      const measurements = this.getMeasurementFromGeometry(feature.getGeometry());
+      const measurements = Measure.getMeasurementFromGeometry(feature.getGeometry());
       feature.set("gifw-popup-title", `${type} added at ${timestamp}`);
         feature.set("gifw-geometry-type", type);
         let popupText;
@@ -232,68 +232,4 @@ export default class AnnotationDraw extends Draw {
     ]);
     feature.set("gifw-popup-opts", popupOpts);
   }
-
-  private getMeasurementFromGeometry(geom: Geometry): MeasurementResult {
-    const type = geom.getType();
-    let metric, imperial, metricOutput, imperialOutput: number;
-    let metricUnit, imperialUnit, measurementName: string;
-    if (type === "LineString") {
-      metric = getLength(geom); //metres
-      metricUnit = "m";
-
-      imperial = metric * 1.0936132983; //yards
-      imperialUnit = "yards";
-      metricOutput = metric;
-      imperialOutput = imperial;
-
-      if (metric >= 1000) {
-        metricOutput = Math.round((metric / 1000) * 100) / 100;
-        metricUnit = "km";
-      } else {
-        metricOutput = Math.round(metric * 100) / 100;
-      }
-      if (imperial > 880) {
-        imperialOutput = Math.round(metric * 0.000621371192 * 1000) / 1000;
-        imperialUnit = "mi";
-      } else {
-        imperialOutput = Math.round(imperial * 100) / 100;
-      }
-      measurementName = "Length";
-    } else if (type === "Polygon") {
-      metric = getArea(geom); //square metres
-      metricUnit = "m\xB2";
-
-      imperial = metric * 1.196; //square yards
-      imperialUnit = "yards\xB2";
-      metricOutput = metric;
-      imperialOutput = imperial;
-
-      if (metric > 100000) {
-        metricOutput = Math.round((metric / 1000000) * 100) / 100;
-        metricUnit = "km\xB2";
-      } else if (metric > 10000) {
-        metricOutput = Math.round((metric / 10000) * 100) / 100;
-        metricUnit = "Hectares";
-      } else {
-        metricOutput = Math.round(metric * 100) / 100;
-      }
-      if (imperial < 4840) {
-        imperialOutput = Math.round(imperial * 100) / 100;
-      } else {
-        imperialOutput = Math.round(metric * 0.000247105381 * 1000) / 1000;
-        imperialUnit = "Acres";
-      }
-      measurementName = "Area";
-    }
-
-    const areaResult: MeasurementResult = {
-      metric: metricOutput,
-      imperial: imperialOutput,
-      name: measurementName,
-      metricUnit: metricUnit,
-      imperialUnit: imperialUnit,
-    };
-    return areaResult;
-  }
-
 }
