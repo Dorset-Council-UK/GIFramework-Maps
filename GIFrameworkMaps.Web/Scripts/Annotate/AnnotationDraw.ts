@@ -8,9 +8,11 @@ import { GIFWPopupAction } from "../Popups/PopupAction";
 import { GIFWPopupOptions } from "../Popups/PopupOptions";
 import Geometry, { Type as olGeomType } from "ol/geom/Geometry";
 import AnnotationStyle from "./AnnotationStyle";
-import { Point, Polygon } from "ol/geom";
+import { Circle, Point, Polygon, SimpleGeometry } from "ol/geom";
 import { GeoJSON } from "ol/format";
 import VectorLayer from "ol/layer/Vector";
+import { getArea, getLength } from 'ol/sphere.js';
+import { MeasurementResult } from "../Interfaces/MeasurementResult";
 
 export default class AnnotationDraw extends Draw {
   tip: string;
@@ -120,11 +122,59 @@ export default class AnnotationDraw extends Draw {
 
       feature.setStyle(annotationStyle);
       const timestamp = new Date().toLocaleString("en-GB", { timeZone: "UTC" });
+      const geometry = feature.getGeometry();
+      let coordinates;
+      if (annotationStyle.activeTool.name === "Circle") {
+        coordinates = (geometry as Circle).getCenter();
+      } else {
+        coordinates = (geometry as SimpleGeometry).getCoordinates();
+      }
+      let firstCoordinate = coordinates[0] as number;
+      let secondCoordinate = coordinates[1] as number;
+      const measurements = this.getMeasurementFromGeometry(feature.getGeometry());
       feature.set("gifw-popup-title", `${type} added at ${timestamp}`);
         feature.set("gifw-geometry-type", type);
-        const popupText = (annotationStyle.activeTool.name === "Buffer"
-            ? `<h1>Annotation</h1><p>Buffer of ${bufferDistance} ${bufferUnit} added at ${timestamp}</p>`
-            : `<h1>Annotation</h1><p>${type} added at ${timestamp}</p>`);
+        let popupText;
+        switch (annotationStyle.activeTool.name) {
+          case "Buffer": {
+            popupText = `<h1>Annotation</h1><p><strong>Buffer:</strong> ${bufferDistance} ${bufferUnit}</p><p>Buffer added at ${timestamp}</p>`
+            break;
+          }
+          case "Point":{
+            popupText = `<h1>Annotation</h1><p><strong>Coordinates:</strong> ${firstCoordinate.toFixed()}, ${secondCoordinate.toFixed()}</p><p>${type} added at ${timestamp}</p>`
+            break;
+          }
+          case "Line": {
+            popupText = `<h1>Annotation</h1>
+                         <p><strong>Length (Metric): </strong>${measurements.metric} ${measurements.metricUnit}</p>
+                         <p><strong>Length (Imperial): </strong>${measurements.imperial} ${measurements.imperialUnit}</p>
+                         <p>${type} added at ${timestamp}</p>`
+            break;
+          }
+          case "Polygon": {
+            let perimeter = getLength(geometry);
+            popupText = `<h1>Annotation</h1>
+                         <p><strong>Area (Metric): </strong>${measurements.metric} ${measurements.metricUnit}</p>
+                         <p><strong>Area (Imperial): </strong>${measurements.imperial} ${measurements.imperialUnit}</p>
+                         <p><strong>Perimeter:</strong> ${perimeter.toFixed()} metres</p><p>${type} added at ${timestamp}</p>`
+            break;
+          }
+          case "Circle": {
+            let radius = (geometry as Circle).getRadius();
+            popupText = `<h1>Annotation</h1><p><strong>Centre coordinates:</strong> ${firstCoordinate.toFixed()}, ${secondCoordinate.toFixed()}</p>
+                         <p><strong>Radius:</strong> ${radius.toFixed()} metres</p><p>${type} added at ${timestamp}</p>`
+            break;
+          }
+          case "Text": {
+            const text = annotationStyle.labelText || "";
+            popupText = `<h1>Annotation</h1><p><strong>Text:</strong> ${text}</p><p>${type} added at ${timestamp}</p>`;
+            break;
+          }
+          default:{
+            popupText = `<h1>Annotation</h1><p>${type} added at ${timestamp}</p>`
+            break;
+          }
+        }
       this.addPopupOptionsToFeature(
         feature,
         annotationLayer,
@@ -182,4 +232,68 @@ export default class AnnotationDraw extends Draw {
     ]);
     feature.set("gifw-popup-opts", popupOpts);
   }
+
+  private getMeasurementFromGeometry(geom: Geometry): MeasurementResult {
+    const type = geom.getType();
+    let metric, imperial, metricOutput, imperialOutput: number;
+    let metricUnit, imperialUnit, measurementName: string;
+    if (type === "LineString") {
+      metric = getLength(geom); //metres
+      metricUnit = "m";
+
+      imperial = metric * 1.0936132983; //yards
+      imperialUnit = "yards";
+      metricOutput = metric;
+      imperialOutput = imperial;
+
+      if (metric >= 1000) {
+        metricOutput = Math.round((metric / 1000) * 100) / 100;
+        metricUnit = "km";
+      } else {
+        metricOutput = Math.round(metric * 100) / 100;
+      }
+      if (imperial > 880) {
+        imperialOutput = Math.round(metric * 0.000621371192 * 1000) / 1000;
+        imperialUnit = "mi";
+      } else {
+        imperialOutput = Math.round(imperial * 100) / 100;
+      }
+      measurementName = "Length";
+    } else if (type === "Polygon") {
+      metric = getArea(geom); //square metres
+      metricUnit = "m\xB2";
+
+      imperial = metric * 1.196; //square yards
+      imperialUnit = "yards\xB2";
+      metricOutput = metric;
+      imperialOutput = imperial;
+
+      if (metric > 100000) {
+        metricOutput = Math.round((metric / 1000000) * 100) / 100;
+        metricUnit = "km\xB2";
+      } else if (metric > 10000) {
+        metricOutput = Math.round((metric / 10000) * 100) / 100;
+        metricUnit = "Hectares";
+      } else {
+        metricOutput = Math.round(metric * 100) / 100;
+      }
+      if (imperial < 4840) {
+        imperialOutput = Math.round(imperial * 100) / 100;
+      } else {
+        imperialOutput = Math.round(metric * 0.000247105381 * 1000) / 1000;
+        imperialUnit = "Acres";
+      }
+      measurementName = "Area";
+    }
+
+    const areaResult: MeasurementResult = {
+      metric: metricOutput,
+      imperial: imperialOutput,
+      name: measurementName,
+      metricUnit: metricUnit,
+      imperialUnit: imperialUnit,
+    };
+    return areaResult;
+  }
+
 }
