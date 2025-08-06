@@ -27,6 +27,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 using Yarp.ReverseProxy.Forwarder;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,13 +75,32 @@ void ConfigureKeyVault(WebApplicationBuilder builder)
 void ConfigureServices(IServiceCollection services, IConfiguration configuration, IHostEnvironment environment, GIFrameworkMapsOptions options)
 {
 	// Configure forwarded headers options
-	services.Configure<ForwardedHeadersOptions>(options =>
-	{
-		options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
-	});
+	var networkingOptions = options.Networking;
 
-    // Suppress X-Frame-Options header if specified in the configuration
-    if (options.SuppressXFrameOptions)
+	if (networkingOptions is not null && networkingOptions.UseForwardedHeadersMiddleware)
+	{
+		services.Configure<ForwardedHeadersOptions>(options =>
+		{
+			options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+
+			if (networkingOptions.KnownProxies is not null)
+			{
+				foreach (var proxy in networkingOptions.KnownProxies)
+				{
+					if (IPAddress.TryParse(proxy, out var ipAddress))
+					{
+						options.KnownProxies.Add(ipAddress);
+					}
+				}
+			}
+		});
+		// Add custom middleware to log unknown proxies
+		services.AddSingleton<UnknownProxyLoggingMiddleware>();
+	}
+
+
+	// Suppress X-Frame-Options header if specified in the configuration
+	if (options.SuppressXFrameOptions)
     {
         services.AddAntiforgery(x => x.SuppressXFrameOptionsHeader = true);
     }

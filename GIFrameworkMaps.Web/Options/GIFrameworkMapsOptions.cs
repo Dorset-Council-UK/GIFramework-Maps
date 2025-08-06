@@ -14,5 +14,6 @@
 		public bool HideEmbedOption { get; set; }
 		public bool SuppressXFrameOptions { get; set; }
 		public string AppAccessRequestLink { get; set; }
+		public NetworkingOptions Networking { get; set; }
 	}
 }
