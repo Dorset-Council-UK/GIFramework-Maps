@@ -90,15 +90,15 @@ namespace GIFrameworkMaps.Tests
 				new() {Version = searchDefVersion, SearchDefinition = apiSearchDef, Enabled = true, VersionId = searchDefVersion.Id},
 			};
 
-			var versionsMockSet = versions.AsQueryable().BuildMockDbSet();
-			var printConfigMockSet = printConfigs.AsQueryable().BuildMockDbSet();
-			var printVersionConfigsMockSet = printVersionConfigs.AsQueryable().BuildMockDbSet();
-			var versionUsersMockSet = users.AsQueryable().BuildMockDbSet();
-			var rolesMockSet = roles.AsQueryable().BuildMockDbSet();
-			var userRolesMockSet = userRoles.AsQueryable().BuildMockDbSet();
-			var bookmarksMockSet = bookmarks.AsQueryable().BuildMockDbSet();
-			var searchDefsMockSet = searchDefs.AsQueryable().BuildMockDbSet();
-			var versionSearchDefsMockSet = versionSearchDefs.AsQueryable().BuildMockDbSet();
+			var versionsMockSet = versions.BuildMockDbSet();
+			var printConfigMockSet = printConfigs.BuildMockDbSet();
+			var printVersionConfigsMockSet = printVersionConfigs.BuildMockDbSet();
+			var versionUsersMockSet = users.BuildMockDbSet();
+			var rolesMockSet = roles.BuildMockDbSet();
+			var userRolesMockSet =	userRoles.BuildMockDbSet();
+			var bookmarksMockSet = bookmarks.BuildMockDbSet();
+			var searchDefsMockSet = searchDefs.BuildMockDbSet();
+			var versionSearchDefsMockSet = versionSearchDefs.BuildMockDbSet();
 
 			// Mocking the Find method
 			versionsMockSet.Setup(o => o.Find(It.IsAny<object[]>())).Returns((object[] ids) =>
