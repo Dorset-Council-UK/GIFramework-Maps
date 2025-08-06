@@ -93,8 +93,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 				}
 			}
 		});
-		// Add custom middleware to log unknown proxies
-		services.AddSingleton<UnknownProxyLoggingMiddleware>();
 	}
 
 
