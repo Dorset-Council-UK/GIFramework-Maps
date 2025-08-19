@@ -89,10 +89,10 @@ export default class AnnotationDraw extends Draw {
       if (!annotationLayer.getVisible()) {
         annotationLayer.setVisible(true);
       }
-        let feature = e.feature;
+      let feature = e.feature;
 
-    const bufferDistance = annotationStyle.radiusNumber;
-    const bufferUnit = annotationStyle.radiusUnit;
+      const bufferDistance = annotationStyle.radiusNumber;
+      const bufferUnit = annotationStyle.radiusUnit;
       if (annotationStyle.activeTool.name === "Buffer") {
         //create the buffer feature
 
@@ -121,59 +121,9 @@ export default class AnnotationDraw extends Draw {
       }
 
       feature.setStyle(annotationStyle);
-      const timestamp = new Date().toLocaleString("en-GB", { timeZone: "UTC" });
-      const geometry = feature.getGeometry();
-      let coordinates;
-      if (annotationStyle.activeTool.name === "Circle") {
-        coordinates = (geometry as Circle).getCenter();
-      } else {
-        coordinates = (geometry as SimpleGeometry).getCoordinates();
-      }
-      let firstCoordinate = coordinates[0] as number;
-      let secondCoordinate = coordinates[1] as number;
-      const measurements = Measure.getMeasurementFromGeometry(feature.getGeometry());
-      feature.set("gifw-popup-title", `${type} added at ${timestamp}`);
-        feature.set("gifw-geometry-type", type);
-      let popupText = `<h1>Annotation</h1>`;
-        switch (annotationStyle.activeTool.name) {
-          case "Buffer": {
-            popupText += `<p><strong>Buffer:</strong> ${bufferDistance} ${bufferUnit}</p><p>Buffer added at ${timestamp}</p>`
-            break;
-          }
-          case "Point":{
-            popupText += `<p><strong>Coordinates:</strong> ${firstCoordinate.toFixed()}, ${secondCoordinate.toFixed()}</p><p>${type} added at ${timestamp}</p>`
-            break;
-          }
-          case "Line": {
-            popupText += `<p><strong>Length (Metric): </strong>${measurements.metric} ${measurements.metricUnit}</p>
-                         <p><strong>Length (Imperial): </strong>${measurements.imperial} ${measurements.imperialUnit}</p>
-                         <p>${type} added at ${timestamp}</p>`
-            break;
-          }
-          case "Polygon": {
-            let perimeter = getLength(geometry);
-            popupText += `<p><strong>Area (Metric): </strong>${measurements.metric} ${measurements.metricUnit}</p>
-                         <p><strong>Area (Imperial): </strong>${measurements.imperial} ${measurements.imperialUnit}</p>
-                         <p><strong>Perimeter:</strong> ${perimeter.toFixed()} metres</p><p>${type} added at ${timestamp}</p>`
-            break;
-          }
-          case "Circle": {
-            let radius = (geometry as Circle).getRadius();
-            popupText += `<p><strong>Centre coordinates:</strong> ${firstCoordinate.toFixed()}, ${secondCoordinate.toFixed()}</p>
-                         <p><strong>Radius:</strong> ${radius.toFixed()} metres</p><p>${type} added at ${timestamp}</p>`
-            break;
-          }
-          case "Text": {
-            const text = annotationStyle.labelText || "";
-            popupText += `<p><strong>Text:</strong> ${text}</p><p>${type} added at ${timestamp}</p>`;
-            break;
-          }
-          default:{
-            popupText += `<p>${type} added at ${timestamp}</p>`
-            break;
-          }
-        }
-      this.addPopupOptionsToFeature(
+      
+      const popupText = AnnotationDraw.getPopupTextForFeature(annotationStyle.activeTool.name, type, annotationStyle, feature);
+      AnnotationDraw.addPopupOptionsToFeature(
         feature,
         annotationLayer,
         popupText,
@@ -199,7 +149,7 @@ export default class AnnotationDraw extends Draw {
     });
   }
 
-  private addPopupOptionsToFeature(
+  private static addPopupOptionsToFeature(
     feature: Feature<Geometry>,
     annotationLayer: VectorLayer,
     popupContent: string,
@@ -229,5 +179,64 @@ export default class AnnotationDraw extends Draw {
       removeAllAction,
     ]);
     feature.set("gifw-popup-opts", popupOpts);
+  }
+
+  public static getPopupTextForFeature(activeToolName: string, type: olGeomType, annotationStyle: AnnotationStyle, feature: Feature) {
+    const timestamp = new Date().toLocaleString("en-GB", { timeZone: "UTC" });
+    const geometry = feature.getGeometry();
+    const bufferDistance = annotationStyle.radiusNumber;
+    const bufferUnit = annotationStyle.radiusUnit;
+    let coordinates;
+    if (activeToolName === "Circle") {
+      coordinates = (geometry as Circle).getCenter();
+    } else {
+      coordinates = (geometry as SimpleGeometry).getCoordinates();
+    }
+    let firstCoordinate = coordinates[0] as number;
+    let secondCoordinate = coordinates[1] as number;
+    const measurements = Measure.getMeasurementFromGeometry(feature.getGeometry());
+    feature.set("gifw-popup-title", `${type} added at ${timestamp}`);
+    feature.set("gifw-geometry-type", type);
+
+    let popupText = `<h1>Annotation</h1>`;
+    switch (activeToolName) {
+      case "Buffer": {
+        popupText += `<p><strong>Buffer:</strong> ${bufferDistance} ${bufferUnit}</p><p>Buffer added at ${timestamp}</p>`
+        break;
+      }
+      case "Point": {
+        popupText += `<p><strong>Coordinates:</strong> ${firstCoordinate.toFixed()}, ${secondCoordinate.toFixed()}</p><p>${type} added at ${timestamp}</p>`
+        break;
+      }
+      case "Line": {
+        popupText += `<p><strong>Length (Metric): </strong>${measurements.metric} ${measurements.metricUnit}</p>
+                         <p><strong>Length (Imperial): </strong>${measurements.imperial} ${measurements.imperialUnit}</p>
+                         <p>${type} added at ${timestamp}</p>`
+        break;
+      }
+      case "Polygon": {
+        let perimeter = getLength(geometry);
+        popupText += `<p><strong>Area (Metric): </strong>${measurements.metric} ${measurements.metricUnit}</p>
+                         <p><strong>Area (Imperial): </strong>${measurements.imperial} ${measurements.imperialUnit}</p>
+                         <p><strong>Perimeter:</strong> ${perimeter.toFixed()} metres</p><p>${type} added at ${timestamp}</p>`
+        break;
+      }
+      case "Circle": {
+        let radius = (geometry as Circle).getRadius();
+        popupText += `<p><strong>Centre coordinates:</strong> ${firstCoordinate.toFixed()}, ${secondCoordinate.toFixed()}</p>
+                         <p><strong>Radius:</strong> ${radius.toFixed()} metres</p><p>${type} added at ${timestamp}</p>`
+        break;
+      }
+      case "Text": {
+        const text = annotationStyle.labelText || "";
+        popupText += `<p><strong>Text:</strong> ${text}</p><p>${type} added at ${timestamp}</p>`;
+        break;
+      }
+      default: {
+        popupText += `<p>${type} added at ${timestamp}</p>`
+        break;
+      }
+    }
+    return popupText;
   }
 }
