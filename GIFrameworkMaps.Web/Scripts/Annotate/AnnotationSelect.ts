@@ -27,6 +27,7 @@ import AnnotationStyleEvent from "./AnnotationStyleEvent";
 import { Coordinate } from "ol/coordinate";
 import CircleStyle from "ol/style/Circle";
 import { StyleFunction } from "ol/style/Style";
+import Annotate from "./Annotate";
 
 export default class AnnotationSelect extends Select {
   gifwMapInstance: GIFWMap;
@@ -35,11 +36,13 @@ export default class AnnotationSelect extends Select {
   selectedFeatures: Collection<Feature>; // Required to store features upon forcing dispatch of a select event outside of standard OL handling
   snapInteraction: Snap;
   source: AnnotationSource;
+  layer: VectorLayer;
   vertexStyle: Style;
 
-  constructor(gifwMapInstance: GIFWMap, source: AnnotationSource) {
+  constructor(gifwMapInstance: GIFWMap, layer: VectorLayer) {
     super({
       condition: (e) => {
+        const source = layer.getSource();
         // Select on single click when modifier keys, e.g. shift, are inactive. Disables the selection of multiple features, as this is not supported yet.
         if (Condition.singleClick(e) && Condition.noModifierKeys(e)) {
           /*
@@ -79,7 +82,8 @@ export default class AnnotationSelect extends Select {
 
     this.gifwMapInstance = gifwMapInstance;
     this.selectedFeatures = new Collection<Feature<Geometry>>();
-    this.source = source;
+    this.source = layer.getSource();
+    this.layer = layer;
     this.init();
   }
 
@@ -183,8 +187,14 @@ export default class AnnotationSelect extends Select {
       this.modifyInteraction.addEventListener("modifyend", () => {
         this.selectedFeatures.forEach((feature) => {
           this.updateSelectionBackdrop(feature);
+          Annotate.updatePopupForAnnotation(feature.get('gifw-annotations-drawing-type'), feature, this.layer);
         });
         this.backdropLayer.setVisible(true);
+      });
+      this.modifyInteraction.addEventListener("propertychange", () => {
+        this.selectedFeatures.forEach((feature) => {
+          Annotate.updatePopupForAnnotation(feature.get('gifw-annotations-drawing-type'), feature, this.layer);
+        });
       });
       this.selectedFeatures.forEach((feature) => {
         this.updateSelectionBackdrop(feature);

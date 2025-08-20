@@ -477,7 +477,7 @@ export class Measure extends olControl {
 
     this.addMeasurementInfoToPopup(e.feature as Feature<Geometry>);
     if (!this.showTotals) {
-      const measurements = this.getMeasurementFromGeometry(
+      const measurements = Measure.getMeasurementFromGeometry(
         e.feature.getGeometry(),
       );
 
@@ -508,7 +508,7 @@ export class Measure extends olControl {
   }
 
   private addMeasurementInfoToPopup(feature: Feature<Geometry>) {
-    const measurements = this.getMeasurementFromGeometry(feature.getGeometry());
+    const measurements = Measure.getMeasurementFromGeometry(feature.getGeometry());
 
     const popupContent = `<h1>${measurements.name} Measurement</h1>
                             <h2>Metric</h2>
@@ -549,7 +549,7 @@ export class Measure extends olControl {
     );
   }
 
-  private getMeasurementFromGeometry(geom: Geometry): MeasurementResult {
+  public static getMeasurementFromGeometry(geom: Geometry): MeasurementResult {
     const type = geom.getType();
     let metric, imperial, metricOutput, imperialOutput: number;
     let metricUnit, imperialUnit, measurementName: string;
@@ -623,7 +623,7 @@ export class Measure extends olControl {
     const type = geometry.getType();
     let point, label, line;
     if (!drawType || drawType === type) {
-      const measurements = this.getMeasurementFromGeometry(
+      const measurements = Measure.getMeasurementFromGeometry(
         geometry as Geometry,
       );
       if (type === "Polygon") {
@@ -642,7 +642,7 @@ export class Measure extends olControl {
       let count = 0;
       (line as LineString).forEachSegment((a: Coordinate, b: Coordinate) => {
         const segment = new LineString([a, b]);
-        const measurements = this.getMeasurementFromGeometry(segment);
+        const measurements = Measure.getMeasurementFromGeometry(segment);
         let label = `${measurements.metric} ${measurements.metricUnit}`;
         if (this.preferredUnits === "imperial") {
           label = `${measurements.imperial} ${measurements.imperialUnit}`;
