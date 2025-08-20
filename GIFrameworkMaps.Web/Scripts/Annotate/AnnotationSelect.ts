@@ -187,10 +187,14 @@ export default class AnnotationSelect extends Select {
       this.modifyInteraction.addEventListener("modifyend", () => {
         this.selectedFeatures.forEach((feature) => {
           this.updateSelectionBackdrop(feature);
-          const popupText = Annotate.getPopupTextForFeature(feature.get('gifw-annotations-drawing-type'), feature);
-          Annotate.addPopupOptionsToFeature(feature, this.layer, popupText);
+          Annotate.updatePopupForAnnotation(feature.get('gifw-annotations-drawing-type'), feature, this.layer);
         });
         this.backdropLayer.setVisible(true);
+      });
+      this.modifyInteraction.addEventListener("propertychange", () => {
+        this.selectedFeatures.forEach((feature) => {
+          Annotate.updatePopupForAnnotation(feature.get('gifw-annotations-drawing-type'), feature, this.layer);
+        });
       });
       this.selectedFeatures.forEach((feature) => {
         this.updateSelectionBackdrop(feature);

@@ -123,17 +123,12 @@ export default class AnnotationDraw extends Draw {
       feature.set('gifw-annotations-drawing-type', annotationStyle.activeTool.name);
       feature.set("gifw-geometry-type", type);
 
-      const popupText = Annotate.getPopupTextForFeature(annotationStyle.activeTool.name, feature);
-      Annotate.addPopupOptionsToFeature(
-        feature,
-        annotationLayer,
-        popupText,
-      );
-        if (annotationStyle.activeTool.name === "Buffer") {
-            this.tip = "Click to draw a buffer";
-        } else {
-            this.tip = "Click to start drawing";
-        }
+      Annotate.updatePopupForAnnotation(annotationStyle.activeTool.name, feature, annotationLayer);
+      if (annotationStyle.activeTool.name === "Buffer") {
+          this.tip = "Click to draw a buffer";
+      } else {
+          this.tip = "Click to start drawing";
+      }
       if (
         annotationStyle.activeTool.name == "Text" &&
         annotationStyle.labelText.trim().length == 0

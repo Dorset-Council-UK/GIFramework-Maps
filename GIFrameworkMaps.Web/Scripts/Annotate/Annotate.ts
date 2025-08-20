@@ -356,7 +356,12 @@ export default class Annotate extends olControl {
     );
   }
 
-  public static addPopupOptionsToFeature(
+  public static updatePopupForAnnotation(annotationType: string, feature: Feature, layer: VectorLayer) {
+    const popupText = this.getPopupTextForFeature(annotationType, feature);
+    this.addPopupOptionsToFeature(feature, layer, popupText);
+  }
+
+  private static addPopupOptionsToFeature(
     feature: Feature<Geometry>,
     annotationLayer: VectorLayer,
     popupContent: string,
@@ -388,7 +393,7 @@ export default class Annotate extends olControl {
     feature.set("gifw-popup-opts", popupOpts);
   }
 
-  public static getPopupTextForFeature(annotationType: string, feature: Feature) {
+  private static getPopupTextForFeature(annotationType: string, feature: Feature) {
     const timestamp = new Date().toLocaleString();
     const geometry = feature.getGeometry();
     const bufferDistance = feature.get('gifw-annotations-buffer-radius-number');
