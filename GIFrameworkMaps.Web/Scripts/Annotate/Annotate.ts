@@ -1,6 +1,15 @@
 ﻿import { Control as olControl } from "ol/control";
 import { Snap } from "ol/interaction";
-
+import { Feature } from "ol";
+import { Circle, Geometry, SimpleGeometry } from "ol/geom";
+import VectorLayer from "ol/layer/Vector";
+import { getLength } from "ol/sphere";
+import { Style } from "ol/style";
+import { LayerGroupType } from "../Interfaces/LayerGroupType";
+import { GIFWMap } from "../Map";
+import { Measure } from "../Measure";
+import { GIFWPopupAction } from "../Popups/PopupAction";
+import { GIFWPopupOptions } from "../Popups/PopupOptions";
 import AnnotationActivateEvent from "./AnnotationActivateEvent";
 import AnnotationDraw from "./AnnotationDraw";
 import AnnotationExport from "./AnnotationExport";
@@ -9,17 +18,14 @@ import AnnotationSource from "./AnnotationSource";
 import AnnotationStyle from "./AnnotationStyle";
 import AnnotationStyleEvent from "./AnnotationStyleEvent";
 import {
-  AnnotationTool,
-  CircleTool,
-  BufferTool,
-  LineTool,
-  PointTool,
-  PolygonTool,
-  TextTool,
+    AnnotationTool,
+    BufferTool,
+    CircleTool,
+    LineTool,
+    PointTool,
+    PolygonTool,
+    TextTool,
 } from "./AnnotationTool";
-import { LayerGroupType } from "../Interfaces/LayerGroupType";
-import { GIFWMap } from "../Map";
-import VectorLayer from "ol/layer/Vector";
 
 export default class Annotate extends olControl {
   gifwMapInstance: GIFWMap;
@@ -346,7 +352,98 @@ export default class Annotate extends olControl {
   private activateModifications() {
     this.selectInteraction = new AnnotationSelect(
       this.gifwMapInstance,
-      this.annotationLayer.getSource(),
+      this.annotationLayer
     );
+  }
+
+  public static addPopupOptionsToFeature(
+    feature: Feature<Geometry>,
+    annotationLayer: VectorLayer,
+    popupContent: string,
+  ) {
+    const removeAction = new GIFWPopupAction(
+      "Remove drawing",
+      () => {
+        annotationLayer.getSource().removeFeature(feature);
+        if (annotationLayer.getSource().getFeatures().length === 0) {
+          annotationLayer.setVisible(false);
+        }
+      },
+      true,
+      true,
+    );
+    const removeAllAction = new GIFWPopupAction(
+      "Remove all drawings",
+      () => {
+        annotationLayer.getSource().clear();
+        annotationLayer.setVisible(false);
+      },
+      true,
+      true,
+    );
+    const popupOpts = new GIFWPopupOptions(popupContent, [
+      removeAction,
+      removeAllAction,
+    ]);
+    feature.set("gifw-popup-opts", popupOpts);
+  }
+
+  public static getPopupTextForFeature(annotationType: string, feature: Feature) {
+    const timestamp = new Date().toLocaleString();
+    const geometry = feature.getGeometry();
+    const bufferDistance = feature.get('gifw-annotations-buffer-radius-number');
+    const bufferUnit = feature.get('gifw-annotations-buffer-radius-unit');
+    let coordinates;
+    if (annotationType === "Circle") {
+      coordinates = (geometry as Circle).getCenter();
+    } else {
+      coordinates = (geometry as SimpleGeometry).getCoordinates();
+    }
+    const firstCoordinate = coordinates[0] as number;
+    const secondCoordinate = coordinates[1] as number;
+    const measurements = Measure.getMeasurementFromGeometry(feature.getGeometry());
+    feature.set("gifw-popup-title", `${annotationType} added at ${timestamp}`);
+    
+
+    let popupText = `<h1>Annotation</h1>`;
+    switch (annotationType) {
+      case "Buffer": {
+        popupText += `<p><strong>Buffer:</strong> ${bufferDistance} ${bufferUnit}</p><p>Buffer added at ${timestamp}</p>`
+        break;
+      }
+      case "Point": {
+        popupText += `<p><strong>Coordinates:</strong> ${firstCoordinate.toFixed()}, ${secondCoordinate.toFixed()}</p><p>${annotationType} added at ${timestamp}</p>`
+        break;
+      }
+      case "Line": {
+        popupText += `<p><strong>Length (Metric): </strong>${measurements.metric} ${measurements.metricUnit}</p>
+                         <p><strong>Length (Imperial): </strong>${measurements.imperial} ${measurements.imperialUnit}</p>
+                         <p>${annotationType} added at ${timestamp}</p>`
+        break;
+      }
+      case "Polygon": {
+        const perimeter = getLength(geometry);
+        popupText += `<p><strong>Area (Metric): </strong>${measurements.metric} ${measurements.metricUnit}</p>
+                         <p><strong>Area (Imperial): </strong>${measurements.imperial} ${measurements.imperialUnit}</p>
+                         <p><strong>Perimeter:</strong> ${perimeter.toFixed()} metres</p><p>${annotationType} added at ${timestamp}</p>`
+        break;
+      }
+      case "Circle": {
+        const radius = (geometry as Circle).getRadius();
+        popupText += `<p><strong>Centre coordinates:</strong> ${firstCoordinate.toFixed()}, ${secondCoordinate.toFixed()}</p>
+                         <p><strong>Radius:</strong> ${radius.toFixed()} metres</p><p>${annotationType} added at ${timestamp}</p>`
+        break;
+      }
+      case "Text": {       
+        const text = (feature.getStyle() as Style).getText().getText() || "";
+        popupText += `<p><strong>Text:</strong> ${text}</p><p>${annotationType} added at ${timestamp}</p>`;
+        break;
+      }
+      default: {
+        popupText += `<p>${annotationType} added at ${timestamp}</p>`
+        break;
+      }
+    }
+    return popupText;
   }
 }
