@@ -1,23 +1,23 @@
 ﻿using GIFrameworkMaps.Data;
+using GIFrameworkMaps.Data.Models;
+using GIFrameworkMaps.Web.Filters;
+using GIFrameworkMaps.Web.Hubs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Collections.Generic;
-using System.Linq;
-using GIFrameworkMaps.Web.Hubs;
-using System.Net.Http;
-using Yarp.ReverseProxy.Forwarder;
-using System.Net;
-using System.Diagnostics;
-using System;
-using Microsoft.AspNetCore.Http;
-using System.Threading.Tasks;
-using Yarp.ReverseProxy.Transforms;
-using GIFrameworkMaps.Data.Models;
-using System.Threading;
 using NodaTime;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Yarp.ReverseProxy.Forwarder;
+using Yarp.ReverseProxy.Transforms;
 
 namespace GIFrameworkMaps.Web
 {
@@ -29,7 +29,13 @@ namespace GIFrameworkMaps.Web
             IWebHostEnvironment env, 
             IHttpForwarder forwarder)
         {
-			app.UseForwardedHeaders();
+			// Add the unknown proxy logging middleware before UseForwardedHeaders
+			if (options.Networking?.UseForwardedHeadersMiddleware == true)
+			{
+				app.UseMiddleware<UnknownProxyLoggingMiddleware>();
+				app.UseForwardedHeaders();
+			}
+			
             if (env.IsDevelopment())
             {
                 SeedDatabase(app);
