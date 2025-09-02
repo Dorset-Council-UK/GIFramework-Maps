@@ -42,10 +42,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="9.0.8" />
-    <PackageReference Include="Microsoft.Graph" Version="5.89.0" />
+    <PackageReference Include="Microsoft.Graph" Version="5.91.0" />
     <PackageReference Include="Microsoft.Graph.Beta" Version="5.58.0-preview" />
-    <PackageReference Include="Microsoft.Identity.Web.UI" Version="3.12.0" />
-    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.8.3">
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="3.14.0" />
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.9.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
