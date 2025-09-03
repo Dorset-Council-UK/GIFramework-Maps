@@ -95,66 +95,119 @@ export class GIFWMap {
    * @returns OpenLayers map reference to the created map
    * */
   public async initMap(): Promise<olMap> {
-    /*TODO - THIS IS A NASTY MEGA FUNCTION OF ALMOST 300 LINES OF CODE. SIMPLIFY!!!*/
-    //get an access token if required
+    // Initialize authentication
+    await this.initAuthentication();
+
+    // Set up projections
+    const projectionInfo = this.setupProjections();
+
+    // Parse permalink parameters
+    const permalinkParams = this.parsePermalinkParams();
+
+    // Create map controls
+    const controls = this.createMapControls(projectionInfo.defaultViewProjection);
+
+    // Set up layer groups
+    await this.setupLayerGroups(permalinkParams);
+
+    // Create the OpenLayers map
+    const map = this.createOpenLayersMap(controls, projectionInfo, permalinkParams);
+
+    // Configure initial map state
+    await this.configureInitialMapState(map, projectionInfo, permalinkParams);
+
+    // Initialize additional components
+    this.initializeAdditionalComponents(controls, permalinkParams);
+
+    // Set up event listeners
+    this.setupEventListeners(map);
+
+    return map;
+  }
+
+  /**
+   * Initialize authentication if the user is logged in
+   */
+  private async initAuthentication(): Promise<void> {
     if (this.config.isLoggedIn) {
       await this.authManager.refreshAccessToken();
-      //check for new token every 2 minutes
-      //TODO - make this smarter or at least configurable
+      // Check for new token every 2 minutes
+      // TODO - make this smarter or at least configurable
       window.setInterval(async () => {
         await this.authManager.refreshAccessToken();
       }, 120000);
     }
+  }
 
-    //register projections
+  /**
+   * Set up map projections and return projection information
+   */
+  private setupProjections(): ProjectionInfo {
     this.registerProjections(this.config.availableProjections);
     const defaultMapProjection = this.config.availableProjections.filter(
-      (p) => p.isDefaultMapProjection === true
+      (p: Projection) => p.isDefaultMapProjection === true
     )[0];
     const defaultViewProjection = this.config.availableProjections.filter(
-      (p) => p.isDefaultViewProjection === true
+      (p: Projection) => p.isDefaultViewProjection === true
     )[0];
     const mapProjectionCode = `EPSG:${defaultMapProjection.epsgCode}`;
     const viewProjection = olProj.get(mapProjectionCode);
     const fromLonLat = olProj.getTransform("EPSG:4326", viewProjection);
     const from3857 = olProj.getTransform("EPSG:3857", viewProjection);
 
-    //parse permalink params
+    return {
+      defaultMapProjection,
+      defaultViewProjection,
+      mapProjectionCode,
+      viewProjection,
+      fromLonLat,
+      from3857,
+    };
+  }
+
+  /**
+   * Parse permalink parameters from the URL hash
+   */
+  private parsePermalinkParams(): Record<string, string> {
     let permalinkParams: Record<string, string> = {};
     if (window.location.hash !== "") {
-      // try to restore center, zoom-level and rotation from the URL
       permalinkParams = extractParamsFromHash(window.location.hash);
     }
+    return permalinkParams;
+  }
 
-    // set up controls
+  /**
+   * Create all map controls
+   */
+  private createMapControls(defaultViewProjection: Projection): olControl.Control[] {
+    // Set up basic controls
     const attribution = new olControl.Attribution({
       collapsible: true,
       collapsed: this.mode === "embed",
       attributions: this.config.attribution?.renderedAttributionHTML,
     });
-    const scalelineType =
-      getSetting("prefersScaleBar") === "true" ? "bar" : "line";
+    
+    const scalelineType = getSetting("prefersScaleBar") === "true" ? "bar" : "line";
     const scaleline = this.createScaleLineControl(scalelineType);
+    
     const rotateControl = new olControl.Rotate({
       autoHide: false,
       tipLabel: "Reset rotation (Alt-Shift and Drag to rotate)",
     });
-    //add mouse position
+
+    // Create custom controls
     const mousePosition = new GIFWMousePositionControl(
       defaultViewProjection.epsgCode.toString(),
       defaultViewProjection.defaultRenderedDecimalPlaces,
       this.config.availableProjections
     );
     const contextMenu = new GIFWContextMenu(mousePosition);
-    //add measure
     const measureControl = new Measure(this);
-    // add annotations
     const annotateControl = new Annotate(this);
-    // add info click
     const infoControl = new FeatureQuery(this);
-    //add geolocation
     const geolocationControl = new GIFWGeolocation(this);
 
+    // Store custom controls for later reference
     this.customControls.push(
       mousePosition,
       contextMenu,
@@ -163,6 +216,8 @@ export class GIFWMap {
       infoControl,
       geolocationControl
     );
+
+    // Combine all controls
     const controls: olControl.Control[] = [
       rotateControl,
       measureControl,
@@ -175,22 +230,26 @@ export class GIFWMap {
       attribution,
     ];
 
-    //TODO - MESSY!
-    const sidebarCollection = new gifwSidebarCollection.SidebarCollection(
-      this.sidebars
-    );
+    // Add sidebar controls
+    const sidebarCollection = new gifwSidebarCollection.SidebarCollection(this.sidebars);
     sidebarCollection.initSidebarCollection();
     sidebarCollection.sidebars.forEach((sb) => {
       controls.push(sb.control);
     });
 
-    //define layer groups
+    return controls;
+  }
 
-    //parse the permalink basemap parameters and display the correct basemap
-    //with relevant opacity and saturation
+  /**
+   * Set up layer groups (basemaps and overlays)
+   */
+  private async setupLayerGroups(permalinkParams: Record<string, string>): Promise<void> {
+    // Parse the permalink basemap parameters and display the correct basemap
     updateBaseMapFromLinkParams(this, permalinkParams);
 
     this.layerGroups = [];
+
+    // Create basemap group
     const basemapGroup = await new GIFWLayerGroup(
       this.config.basemaps,
       this,
@@ -198,11 +257,29 @@ export class GIFWMap {
     );
     basemapGroup.olLayerGroup = await basemapGroup.createLayersGroup();
     basemapGroup.addChangeEvents();
-
     this.layerGroups.push(basemapGroup);
 
+    // Process permalink layer settings
+    const { allLayers } = this.processPermalinkLayerSettings(permalinkParams);
+
+    // Create overlay group
+    const overlayGroup = await new GIFWLayerGroup(
+      allLayers,
+      this,
+      LayerGroupType.Overlay
+    );
+    overlayGroup.olLayerGroup = await overlayGroup.createLayersGroup();
+    overlayGroup.addChangeEvents();
+    this.layerGroups.push(overlayGroup);
+  }
+
+  /**
+   * Process permalink layer settings and return processed layer information
+   */
+  private processPermalinkLayerSettings(permalinkParams: Record<string, string>) {
     let permalinkEnabledLayerSettings: string[] = [];
     const permalinkEnabledLayers: string[][] = [];
+    
     if (permalinkParams.layers) {
       permalinkEnabledLayerSettings = permalinkParams.layers.split(",");
       permalinkEnabledLayerSettings.forEach((p) => {
@@ -215,6 +292,7 @@ export class GIFWMap {
     if (permalinkEnabledLayers.length !== 0) {
       overrideDefaultLayers = true;
     }
+
     const allLayers: Layer[] = [];
     flattenedLayers.forEach((f) => {
       f.layers.forEach((l) => {
@@ -236,28 +314,29 @@ export class GIFWMap {
       });
     });
 
-    const overlayGroup = await new GIFWLayerGroup(
-      allLayers,
-      this,
-      LayerGroupType.Overlay
-    );
-    overlayGroup.olLayerGroup = await overlayGroup.createLayersGroup();
-    overlayGroup.addChangeEvents();
+    return { allLayers, overrideDefaultLayers, permalinkEnabledLayers };
+  }
 
-    this.layerGroups.push(overlayGroup);
-
+  /**
+   * Create the OpenLayers map instance
+   */
+  private createOpenLayersMap(
+    controls: olControl.Control[],
+    projectionInfo: ProjectionInfo,
+    permalinkParams: Record<string, string>
+  ): olMap {
+    // Get all layer groups for the map
     const flattenedLayerGroups = this.layerGroups.flat();
     const allLayerGroups: olLayer.Group[] = [];
     flattenedLayerGroups.forEach((f) => {
       allLayerGroups.push(f.olLayerGroup);
     });
 
-    //define popups
+    // Define popups
     const popupEle = document.getElementById("gifw-popup");
     this.popupOverlay = new GIFWPopupOverlay(popupEle);
 
-    //define max extent of view
-    //let startExtent: number[] = [];
+    // Get zoom settings from basemap
     let startMaxZoom: number = 22;
     let startMinZoom: number = 0;
     const startBasemap = this.config.basemaps.find((b) => b.isDefault);
@@ -266,17 +345,49 @@ export class GIFWMap {
       startMinZoom = startBasemap.minZoom;
     }
 
-    //get passed in view parameters
-    //The zoom and center should always be overwritten by the versions start bounds or the url hash
+    // Parse view parameters from permalink
+    const viewParams = this.parseViewParameters(permalinkParams);
+
+    // Create the map
+    const map = new olMap({
+      target: this.id,
+      layers: allLayerGroups,
+      overlays: [this.popupOverlay.overlay],
+      controls: olControl.defaults({ attribution: false }).extend(controls),
+      view: new olView({
+        center: olProj.transform(
+          viewParams.defaultCenter,
+          olProj.get(`EPSG:${viewParams.defaultCRS}`),
+          olProj.get(projectionInfo.mapProjectionCode)
+        ),
+        zoom: viewParams.defaultZoom,
+        projection: projectionInfo.mapProjectionCode,
+        extent: applyTransform(projectionInfo.viewProjection.getWorldExtent(), projectionInfo.fromLonLat),
+        constrainOnlyCenter: true,
+        maxZoom: startMaxZoom,
+        minZoom: startMinZoom,
+        rotation: viewParams.defaultRotation,
+      }),
+      keyboardEventTarget: document,
+    });
+
+    this.olMap = map;
+    return map;
+  }
+
+  /**
+   * Parse view parameters from permalink
+   */
+  private parseViewParameters(permalinkParams: Record<string, string>): ViewParameters {
     let defaultZoom = 10;
     let defaultCenter = [50.7621, -2.3314];
     let defaultRotation = 0;
     let defaultCRS = 4326;
     let defaultBbox: number[];
     let locationProvidedByURL = false;
+
     if (permalinkParams) {
-      // try to restore center, zoom-level and rotation from the URL
-      //first we try the 'map' paramater, which should contain zoom, x, y, rotation and optional EPSG code
+      // Try the 'map' parameter first
       if (permalinkParams.map) {
         const parts = permalinkParams.map.split("/");
         if (parts.length >= 4) {
@@ -286,64 +397,57 @@ export class GIFWMap {
           defaultRotation = parseFloat(parts[3]) || 0;
           defaultCRS = parseFloat(parts[4]) || 4326;
           if (defaultCRS === 4326) {
-            //we display the coords in the friendly format for lat/lon, but these
-            //need reversing for use as actual coordinates
+            // Reverse coordinates for lat/lon display format
             defaultCenter.reverse();
           }
         }
       }
-      //if no map parameter, see if there is a bbox paramater
+      // Try bbox parameter if no map parameter
       else if (permalinkParams.bbox) {
         const parts = permalinkParams.bbox.split("/");
         if (parts.length !== 0) {
           const bbox = parts[0].split(",");
-
           if (bbox.length === 4) {
-            //check the contents are numbers
             if (bbox.every((c) => !isNaN(parseFloat(c)))) {
               defaultBbox = bbox.map((c) => parseFloat(c));
               locationProvidedByURL = true;
             }
           }
-
           if (parts.length === 2) {
-            //epsg inlcuded
             defaultCRS = parseFloat(parts[1]) || 4326;
           }
         }
       }
     }
 
-    //init map
-    const map = new olMap({
-      target: this.id,
-      layers: allLayerGroups,
-      overlays: [this.popupOverlay.overlay],
-      controls: olControl.defaults({ attribution: false }).extend(controls),
-      view: new olView({
-        center: olProj.transform(
-          defaultCenter,
-          olProj.get(`EPSG:${defaultCRS}`),
-          olProj.get(mapProjectionCode)
-        ),
-        zoom: defaultZoom,
-        projection: mapProjectionCode,
-        extent: applyTransform(viewProjection.getWorldExtent(), fromLonLat),
-        constrainOnlyCenter: true,
-        maxZoom: startMaxZoom,
-        minZoom: startMinZoom,
-        rotation: defaultRotation,
-      }),
-      keyboardEventTarget:
-        document /*NOTE: This might cause issue if map is used in embedded contexts*/,
-    });
-    this.olMap = map;
+    return {
+      defaultZoom,
+      defaultCenter,
+      defaultRotation,
+      defaultCRS,
+      defaultBbox,
+      locationProvidedByURL,
+    };
+  }
 
-    //set starting saturation of basemap (this needs to be done post map init)
+  /**
+   * Configure initial map state (saturation, bounds, etc.)
+   */
+  private async configureInitialMapState(
+    map: olMap,
+    projectionInfo: ProjectionInfo,
+    permalinkParams: Record<string, string>
+  ): Promise<void> {
+    const startBasemap = this.config.basemaps.find((b) => b.isDefault);
+    const viewParams = this.parseViewParameters(permalinkParams);
+    const { overrideDefaultLayers, permalinkEnabledLayers } = this.processPermalinkLayerSettings(permalinkParams);
+
+    // Set starting saturation of basemap
     if (startBasemap.defaultSaturation !== 100) {
       this.setInitialSaturationOfBasemap(startBasemap.defaultSaturation);
     }
-    //Set starting saturation and style of layers
+
+    // Set starting saturation and style of layers
     if (this.anyOverlaysOn()) {
       const layerGroup = this.getLayerGroupOfType(LayerGroupType.Overlay);
       const layers = layerGroup.olLayerGroup.getLayersArray();
@@ -351,50 +455,78 @@ export class GIFWMap {
 
       switchedOnLayers.forEach((l) => {
         const layerId = l.get("layerId");
-        const layer = this.getLayerConfigById(layerId, [
-          LayerGroupType.Overlay,
-        ]);
+        const layer = this.getLayerConfigById(layerId, [LayerGroupType.Overlay]);
+        
         if (layer !== null && layer.defaultSaturation !== 100) {
-          //get the default saturation and trigger a postrender once to apply it.
           this.setInitialSaturationOfLayer(
             l as olLayer.Layer<Source, LayerRenderer<olLayer.Layer>>,
             layer.defaultSaturation
           );
         }
+        
         if (overrideDefaultLayers) {
-          const layerSetting = permalinkEnabledLayers.filter(
-            (pel) => pel[0] == layerId
-          );
-          if (layerSetting.length === 1) {
-            if (layerSetting[0].length === 4) {
-              const permalinkStyleName = layerSetting[0][3];
-              const layerSource = l.getSource();
-              if (
-                layerSource instanceof TileWMS ||
-                layerSource instanceof ImageWMS
-              ) {
-                const currentStyleName = layerSource.getParams()?.STYLES || "";
-                if (currentStyleName !== permalinkStyleName) {
-                  layerSource.updateParams({ STYLES: permalinkStyleName });
-                }
-              }
-            }
-          }
+          this.applyPermalinkStyleSettings(l, layerId, permalinkEnabledLayers);
         }
       });
     }
-    //set start bounds
-    //check paramater defined bbox first, then fall back to default start bound
-    if (locationProvidedByURL && defaultBbox) {
+
+    // Set start bounds
+    this.setInitialMapBounds(map, viewParams, projectionInfo);
+
+    // Add attribution size checker for non-embed mode
+    if (this.mode !== "embed") {
+      const attribution = map.getControls().getArray().find(c => c instanceof olControl.Attribution) as olControl.Attribution;
+      window.addEventListener("resize", () => {
+        this.checkAttributionSize(map, attribution);
+      });
+      this.checkAttributionSize(map, attribution);
+    }
+  }
+
+  /**
+   * Apply permalink style settings to a layer
+   */
+  private applyPermalinkStyleSettings(
+    layer: olLayer.Layer,
+    layerId: string,
+    permalinkEnabledLayers: string[][]
+  ): void {
+    const layerSetting = permalinkEnabledLayers.filter(
+      (pel) => pel[0] == layerId
+    );
+    if (layerSetting.length === 1) {
+      if (layerSetting[0].length === 4) {
+        const permalinkStyleName = layerSetting[0][3];
+        const layerSource = layer.getSource();
+        if (layerSource instanceof TileWMS || layerSource instanceof ImageWMS) {
+          const currentStyleName = layerSource.getParams()?.STYLES || "";
+          if (currentStyleName !== permalinkStyleName) {
+            layerSource.updateParams({ STYLES: permalinkStyleName });
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Set initial map bounds based on parameters or default bounds
+   */
+  private setInitialMapBounds(
+    map: olMap,
+    viewParams: ViewParameters,
+    projectionInfo: ProjectionInfo
+  ): void {
+    // Check parameter defined bbox first, then fall back to default start bound
+    if (viewParams.locationProvidedByURL && viewParams.defaultBbox) {
       const mapSize = map.getSize();
       const reprojectedExtent = olProj.transformExtent(
-        defaultBbox,
-        `EPSG:${defaultCRS}`,
+        viewParams.defaultBbox,
+        `EPSG:${viewParams.defaultCRS}`,
         this.olMap.getView().getProjection()
       );
       this.olMap.getView().fit(reprojectedExtent, { size: mapSize });
     }
-    if (!locationProvidedByURL) {
+    if (!viewParams.locationProvidedByURL) {
       const bounds: Extent = [
         this.config.bound.bottomLeftX,
         this.config.bound.bottomLeftY,
@@ -402,80 +534,99 @@ export class GIFWMap {
         this.config.bound.topRightY,
       ];
       const mapSize = map.getSize();
-      const reprojectedExtent = applyTransform(bounds, from3857);
+      const reprojectedExtent = applyTransform(bounds, projectionInfo.from3857);
       map.getView().fit(reprojectedExtent, { size: mapSize });
     }
-    //add attribution size checker and app height variable
-    if (this.mode !== "embed") {
-      window.addEventListener("resize", () => {
-        this.checkAttributionSize(map, attribution);
-      });
-      this.checkAttributionSize(map, attribution);
-    }
+  }
 
-    //add drag and drop
+  /**
+   * Initialize additional components and services
+   */
+  private initializeAdditionalComponents(
+    controls: olControl.Control[],
+    permalinkParams: Record<string, string>
+  ): void {
+    // Add drag and drop
     this.addDragAndDropInteraction();
 
-    //add remote layer adder
+    // Add remote layer service
     const webLayerService = new WebLayerService(this);
     webLayerService.init();
 
-    //add bookmark control
+    // Add bookmark control for logged in users
     if (this.config.isLoggedIn) {
       const bookmarkControl = new BookmarkMenu(this);
       bookmarkControl.init();
     }
-    //add version toggler
+
+    // Add version toggler
     const versionToggler = new VersionToggler(this);
     versionToggler.init();
-    //init controls
+
+    // Initialize controls
+    const measureControl = this.customControls.find(c => c instanceof Measure) as Measure;
+    const infoControl = this.customControls.find(c => c instanceof FeatureQuery) as FeatureQuery;
+    const geolocationControl = this.customControls.find(c => c instanceof GIFWGeolocation) as GIFWGeolocation;
+    const contextMenu = this.customControls.find(c => c instanceof GIFWContextMenu) as GIFWContextMenu;
+    const annotateControl = this.customControls.find(c => c instanceof Annotate) as Annotate;
+
     measureControl.init();
     infoControl.init();
     geolocationControl.init();
 
-    //init search
+    // Initialize search
     const search = new Search(
       "#search-container",
       this,
       `${document.location.protocol}//${this.config.appRoot}search/options/${this.config.id}`,
       `${document.location.protocol}//${this.config.appRoot}search`
     );
-
     search.init(permalinkParams);
 
-    //add streetview
+    // Add streetview if Google Maps API key is available
     if (this.config.googleMapsAPIKey) {
       const streetview = new Streetview(this.config.googleMapsAPIKey);
       streetview.init(contextMenu);
     }
 
-    const annotationStylePanel = new AnnotationStylePanel(
-      "#annotation-style-panel"
-    );
+    // Set up annotation style panel
+    this.setupAnnotationStylePanel(annotateControl);
+
+    // Add scale bar changer
+    const scalelineType = getSetting("prefersScaleBar") === "true" ? "bar" : "line";
+    this.attachScaleBarSwitcherListener(scalelineType);
+  }
+
+  /**
+   * Set up the annotation style panel and sidebar
+   */
+  private setupAnnotationStylePanel(annotateControl: Annotate): void {
+    const annotationStylePanel = new AnnotationStylePanel("#annotation-style-panel");
     const annotationStyleIcon = `
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#FFFFFF" class="bi bi-brush-fill" viewBox="0 0 16 16">
           <path d="M15.825.12a.5.5 0 0 1 .132.584c-1.53 3.43-4.743 8.17-7.095 10.64a6.067 6.067 0 0 1-2.373 1.534c-.018.227-.06.538-.16.868-.201.659-.667 1.479-1.708 1.74a8.118 8.118 0 0 1-3.078.132 3.659 3.659 0 0 1-.562-.135 1.382 1.382 0 0 1-.466-.247.714.714 0 0 1-.204-.288.622.622 0 0 1 .004-.443c.095-.245.316-.38.461-.452.394-.197.625-.453.867-.826.095-.144.184-.297.287-.472l.117-.198c.151-.255.326-.54.546-.848.528-.739 1.201-.925 1.746-.896.126.007.243.025.348.048.062-.172.142-.38.238-.608.261-.619.658-1.419 1.187-2.069 2.176-2.67 6.18-6.206 9.117-8.104a.5.5 0 0 1 .596.04z"/>
         </svg>
     `;
+    
     const annotationStyleSidebar = new gifwSidebar.Sidebar(
       "annotation-style-panel",
       "Modify annotation style",
       "Change the appearance of your annotations",
-      `data:image/svg+xml; charset=utf8, ${encodeURIComponent(
-        annotationStyleIcon
-      )}`,
+      `data:image/svg+xml; charset=utf8, ${encodeURIComponent(annotationStyleIcon)}`,
       3,
       annotationStylePanel
     );
+    
     annotationStylePanel.setGIFWMapInstance(this);
     annotationStylePanel.setListeners(annotationStyleSidebar);
-
     annotateControl.init();
+  }
 
-    //add scale bar changer
-    this.attachScaleBarSwitcherListener(scalelineType);
-
-    //add permalink updater
+  /**
+   * Set up event listeners for the map
+   */
+  private setupEventListeners(map: olMap): void {
+    // Add permalink updater
     map.on("moveend", () => {
       document
         .getElementById(this.id)
@@ -488,8 +639,6 @@ export class GIFWMap {
         updatePermalinkInURL(this);
         updatePermalinkInLinks(this);
       });
-
-    return map;
   }
 
   private registerProjections(availableProjections: Projection[]) {
@@ -1415,4 +1564,24 @@ export class GIFWMap {
       this.config.appRoot
     }proxy?url=${encodeURIComponent(url)}`;
   }
+
+  // Type definitions for internal use
+
+}
+interface ProjectionInfo {
+  defaultMapProjection: Projection;
+  defaultViewProjection: Projection;
+  mapProjectionCode: string;
+  viewProjection: olProj.Projection;
+  fromLonLat: olProj.TransformFunction;
+  from3857: olProj.TransformFunction;
+}
+
+interface ViewParameters {
+  defaultZoom: number;
+  defaultCenter: number[];
+  defaultRotation: number;
+  defaultCRS: number;
+  defaultBbox?: number[];
+  locationProvidedByURL: boolean;
 }
