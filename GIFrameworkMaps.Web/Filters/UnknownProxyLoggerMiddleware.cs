@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Filters;
@@ -25,8 +26,8 @@ public class UnknownProxyLoggingMiddleware(RequestDelegate next, ILogger<Unknown
 			{
 				logger.LogWarning("Unknown proxy detected: {ProxyIP} forwarding request from {ForwardedFor} to {RequestPath}",
 					remoteIpAddress,
-					context.Request.Headers["X-Forwarded-For"].ToString(),
-					context.Request.Path);
+					context.Request.Headers["X-Forwarded-For"].ToString().Replace(Environment.NewLine, ""),
+					context.Request.Path.Value.Replace(Environment.NewLine, ""));
 			}
 		}
 
