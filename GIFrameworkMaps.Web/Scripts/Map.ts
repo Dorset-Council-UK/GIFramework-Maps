@@ -53,6 +53,31 @@ import {
   updateBaseMapFromLinkParams,
 } from "./PermalinkUtils";
 
+// Type definitions for internal use
+interface ProjectionInfo {
+  defaultMapProjection: Projection;
+  defaultViewProjection: Projection;
+  mapProjectionCode: string;
+  viewProjection: olProj.Projection;
+  fromLonLat: olProj.TransformFunction;
+  from3857: olProj.TransformFunction;
+}
+
+interface ViewParameters {
+  defaultZoom: number;
+  defaultCenter: number[];
+  defaultRotation: number;
+  defaultCRS: number;
+  defaultBbox?: number[];
+  locationProvidedByURL: boolean;
+}
+
+interface LayerProcessingResult {
+  allLayers: Layer[];
+  overrideDefaultLayers: boolean;
+  permalinkEnabledLayers: string[][];
+}
+
 export class GIFWMap {
   id: string;
   config: VersionViewModel;
@@ -71,6 +96,12 @@ export class GIFWMap {
     | GIFWGeolocation
   )[] = [];
   private delayPermalinkUpdate: DebouncedFunc<() => void>;
+
+  // Cache frequently accessed DOM elements
+  private readonly mapElement: HTMLElement;
+  private readonly leftSidebarElement: HTMLElement;
+  private readonly rightSidebarElement: HTMLElement;
+
   constructor(
     id: string,
     config: VersionViewModel,
@@ -88,6 +119,15 @@ export class GIFWMap {
       this.config.urlAuthorizationRules,
       `${document.location.protocol}//${this.config.appRoot}account/token`
     );
+
+    // Cache DOM elements
+    this.mapElement = document.getElementById(this.id);
+    this.leftSidebarElement = document.querySelector(
+      "#gifw-sidebar-left"
+    ) as HTMLElement;
+    this.rightSidebarElement = document.querySelector(
+      "#gifw-sidebar-right"
+    ) as HTMLElement;
   }
 
   /**
@@ -135,7 +175,7 @@ export class GIFWMap {
       // TODO - make this smarter or at least configurable
       window.setInterval(async () => {
         await this.authManager.refreshAccessToken();
-      }, 120000);
+      }, AUTH_TOKEN_REFRESH_INTERVAL);
     }
   }
 
@@ -186,10 +226,10 @@ export class GIFWMap {
       collapsed: this.mode === "embed",
       attributions: this.config.attribution?.renderedAttributionHTML,
     });
-    
+
     const scalelineType = getSetting("prefersScaleBar") === "true" ? "bar" : "line";
     const scaleline = this.createScaleLineControl(scalelineType);
-    
+
     const rotateControl = new olControl.Rotate({
       autoHide: false,
       tipLabel: "Reset rotation (Alt-Shift and Drag to rotate)",
@@ -250,7 +290,7 @@ export class GIFWMap {
     this.layerGroups = [];
 
     // Create basemap group
-    const basemapGroup = await new GIFWLayerGroup(
+    const basemapGroup = new GIFWLayerGroup(
       this.config.basemaps,
       this,
       LayerGroupType.Basemap
@@ -263,7 +303,7 @@ export class GIFWMap {
     const { allLayers } = this.processPermalinkLayerSettings(permalinkParams);
 
     // Create overlay group
-    const overlayGroup = await new GIFWLayerGroup(
+    const overlayGroup = new GIFWLayerGroup(
       allLayers,
       this,
       LayerGroupType.Overlay
@@ -276,35 +316,39 @@ export class GIFWMap {
   /**
    * Process permalink layer settings and return processed layer information
    */
-  private processPermalinkLayerSettings(permalinkParams: Record<string, string>) {
-    let permalinkEnabledLayerSettings: string[] = [];
+  private processPermalinkLayerSettings(permalinkParams: Record<string, string>): LayerProcessingResult {
     const permalinkEnabledLayers: string[][] = [];
-    
+
     if (permalinkParams.layers) {
-      permalinkEnabledLayerSettings = permalinkParams.layers.split(",");
+      const permalinkEnabledLayerSettings = permalinkParams.layers.split(",");
       permalinkEnabledLayerSettings.forEach((p) => {
         permalinkEnabledLayers.push(p.split("/"));
       });
     }
 
+    const overrideDefaultLayers = permalinkEnabledLayers.length > 0;
     const flattenedLayers = this.config.categories.flat();
-    let overrideDefaultLayers = false;
-    if (permalinkEnabledLayers.length !== 0) {
-      overrideDefaultLayers = true;
+    const allLayers: Layer[] = [];
+
+    // Create a Map for faster lookups if we're overriding default layers
+    const layerSettingsMap = new Map<string, string[]>();
+    if (overrideDefaultLayers) {
+      permalinkEnabledLayers.forEach((setting) => {
+        if (setting.length > 0) {
+          layerSettingsMap.set(setting[0], setting);
+        }
+      });
     }
 
-    const allLayers: Layer[] = [];
     flattenedLayers.forEach((f) => {
       f.layers.forEach((l) => {
         if (overrideDefaultLayers) {
-          const layerSetting = permalinkEnabledLayers.filter(
-            (pel) => pel[0] == l.id
-          );
-          if (layerSetting.length === 1) {
+          const layerSetting = layerSettingsMap.get(`${l.id}`);
+          if (layerSetting) {
             l.isDefault = true;
-            if (layerSetting[0].length >= 3) {
-              l.defaultOpacity = parseInt(layerSetting[0][1]);
-              l.defaultSaturation = parseInt(layerSetting[0][2]);
+            if (layerSetting.length >= 3) {
+              l.defaultOpacity = parseInt(layerSetting[1]);
+              l.defaultSaturation = parseInt(layerSetting[2]);
             }
           } else {
             l.isDefault = false;
@@ -337,10 +381,10 @@ export class GIFWMap {
     this.popupOverlay = new GIFWPopupOverlay(popupEle);
 
     // Get zoom settings from basemap
-    let startMaxZoom: number = 22;
-    let startMinZoom: number = 0;
+    let startMaxZoom: number = DEFAULT_MAX_ZOOM;
+    let startMinZoom: number = DEFAULT_MIN_ZOOM;
     const startBasemap = this.config.basemaps.find((b) => b.isDefault);
-    if (startBasemap !== null) {
+    if (startBasemap !== null && startBasemap !== undefined) {
       startMaxZoom = startBasemap.maxZoom;
       startMinZoom = startBasemap.minZoom;
     }
@@ -368,7 +412,7 @@ export class GIFWMap {
         minZoom: startMinZoom,
         rotation: viewParams.defaultRotation,
       }),
-      keyboardEventTarget: document,
+      keyboardEventTarget: document
     });
 
     this.olMap = map;
@@ -379,43 +423,52 @@ export class GIFWMap {
    * Parse view parameters from permalink
    */
   private parseViewParameters(permalinkParams: Record<string, string>): ViewParameters {
-    let defaultZoom = 10;
-    let defaultCenter = [50.7621, -2.3314];
-    let defaultRotation = 0;
-    let defaultCRS = 4326;
-    let defaultBbox: number[];
+    let defaultZoom = DEFAULT_ZOOM;
+    let defaultCenter = [...DEFAULT_CENTER]; // Create a copy to avoid mutation
+    let defaultRotation = DEFAULT_ROTATION;
+    let defaultCRS = DEFAULT_CRS;
+    let defaultBbox: number[] | undefined;
     let locationProvidedByURL = false;
 
-    if (permalinkParams) {
-      // Try the 'map' parameter first
-      if (permalinkParams.map) {
-        const parts = permalinkParams.map.split("/");
-        if (parts.length >= 4) {
-          locationProvidedByURL = true;
-          defaultZoom = parseFloat(parts[0]) || defaultZoom;
-          defaultCenter = [parseFloat(parts[1]), parseFloat(parts[2])];
-          defaultRotation = parseFloat(parts[3]) || 0;
-          defaultCRS = parseFloat(parts[4]) || 4326;
-          if (defaultCRS === 4326) {
-            // Reverse coordinates for lat/lon display format
-            defaultCenter.reverse();
-          }
+    if (!permalinkParams) {
+      return {
+        defaultZoom,
+        defaultCenter,
+        defaultRotation,
+        defaultCRS,
+        defaultBbox,
+        locationProvidedByURL,
+      };
+    }
+
+    // Try the 'map' parameter first
+    if (permalinkParams.map) {
+      const parts = permalinkParams.map.split("/");
+      if (parts.length >= 4) {
+        locationProvidedByURL = true;
+        defaultZoom = parseFloat(parts[0]) || defaultZoom;
+        defaultCenter = [parseFloat(parts[1]), parseFloat(parts[2])];
+        defaultRotation = parseFloat(parts[3]) || 0;
+        defaultCRS = parseFloat(parts[4]) || DEFAULT_CRS;
+        if (defaultCRS === DEFAULT_CRS) {
+          // Reverse coordinates for lat/lon display format
+          defaultCenter.reverse();
         }
       }
-      // Try bbox parameter if no map parameter
-      else if (permalinkParams.bbox) {
-        const parts = permalinkParams.bbox.split("/");
-        if (parts.length !== 0) {
-          const bbox = parts[0].split(",");
-          if (bbox.length === 4) {
-            if (bbox.every((c) => !isNaN(parseFloat(c)))) {
-              defaultBbox = bbox.map((c) => parseFloat(c));
-              locationProvidedByURL = true;
-            }
+    }
+    // Try bbox parameter if no map parameter
+    else if (permalinkParams.bbox) {
+      const parts = permalinkParams.bbox.split("/");
+      if (parts.length !== 0) {
+        const bbox = parts[0].split(",");
+        if (bbox.length === 4) {
+          if (bbox.every((c) => !isNaN(parseFloat(c)))) {
+            defaultBbox = bbox.map((c) => parseFloat(c));
+            locationProvidedByURL = true;
           }
-          if (parts.length === 2) {
-            defaultCRS = parseFloat(parts[1]) || 4326;
-          }
+        }
+        if (parts.length === 2) {
+          defaultCRS = parseFloat(parts[1]) || DEFAULT_CRS;
         }
       }
     }
@@ -443,7 +496,7 @@ export class GIFWMap {
     const { overrideDefaultLayers, permalinkEnabledLayers } = this.processPermalinkLayerSettings(permalinkParams);
 
     // Set starting saturation of basemap
-    if (startBasemap.defaultSaturation !== 100) {
+    if (startBasemap && startBasemap.defaultSaturation !== 100) {
       this.setInitialSaturationOfBasemap(startBasemap.defaultSaturation);
     }
 
@@ -456,14 +509,14 @@ export class GIFWMap {
       switchedOnLayers.forEach((l) => {
         const layerId = l.get("layerId");
         const layer = this.getLayerConfigById(layerId, [LayerGroupType.Overlay]);
-        
+
         if (layer !== null && layer.defaultSaturation !== 100) {
           this.setInitialSaturationOfLayer(
             l as olLayer.Layer<Source, LayerRenderer<olLayer.Layer>>,
             layer.defaultSaturation
           );
         }
-        
+
         if (overrideDefaultLayers) {
           this.applyPermalinkStyleSettings(l, layerId, permalinkEnabledLayers);
         }
@@ -475,7 +528,7 @@ export class GIFWMap {
 
     // Add attribution size checker for non-embed mode
     if (this.mode !== "embed") {
-      const attribution = map.getControls().getArray().find(c => c instanceof olControl.Attribution) as olControl.Attribution;
+      const attribution = map.getControls().getArray().find((c) => c instanceof olControl.Attribution) as olControl.Attribution;
       window.addEventListener("resize", () => {
         this.checkAttributionSize(map, attribution);
       });
@@ -564,11 +617,11 @@ export class GIFWMap {
     versionToggler.init();
 
     // Initialize controls
-    const measureControl = this.customControls.find(c => c instanceof Measure) as Measure;
-    const infoControl = this.customControls.find(c => c instanceof FeatureQuery) as FeatureQuery;
-    const geolocationControl = this.customControls.find(c => c instanceof GIFWGeolocation) as GIFWGeolocation;
-    const contextMenu = this.customControls.find(c => c instanceof GIFWContextMenu) as GIFWContextMenu;
-    const annotateControl = this.customControls.find(c => c instanceof Annotate) as Annotate;
+    const measureControl = this.customControls.find((c) => c instanceof Measure) as Measure;
+    const infoControl = this.customControls.find((c) => c instanceof FeatureQuery) as FeatureQuery;
+    const geolocationControl = this.customControls.find((c) => c instanceof GIFWGeolocation) as GIFWGeolocation;
+    const contextMenu = this.customControls.find((c) => c instanceof GIFWContextMenu) as GIFWContextMenu;
+    const annotateControl = this.customControls.find((c) => c instanceof Annotate) as Annotate;
 
     measureControl.init();
     infoControl.init();
@@ -607,7 +660,7 @@ export class GIFWMap {
           <path d="M15.825.12a.5.5 0 0 1 .132.584c-1.53 3.43-4.743 8.17-7.095 10.64a6.067 6.067 0 0 1-2.373 1.534c-.018.227-.06.538-.16.868-.201.659-.667 1.479-1.708 1.74a8.118 8.118 0 0 1-3.078.132 3.659 3.659 0 0 1-.562-.135 1.382 1.382 0 0 1-.466-.247.714.714 0 0 1-.204-.288.622.622 0 0 1 .004-.443c.095-.245.316-.38.461-.452.394-.197.625-.453.867-.826.095-.144.184-.297.287-.472l.117-.198c.151-.255.326-.54.546-.848.528-.739 1.201-.925 1.746-.896.126.007.243.025.348.048.062-.172.142-.38.238-.608.261-.619.658-1.419 1.187-2.069 2.176-2.67 6.18-6.206 9.117-8.104a.5.5 0 0 1 .596.04z"/>
         </svg>
     `;
-    
+
     const annotationStyleSidebar = new gifwSidebar.Sidebar(
       "annotation-style-panel",
       "Modify annotation style",
@@ -616,7 +669,7 @@ export class GIFWMap {
       3,
       annotationStylePanel
     );
-    
+
     annotationStylePanel.setGIFWMapInstance(this);
     annotationStylePanel.setListeners(annotationStyleSidebar);
     annotateControl.init();
@@ -628,17 +681,13 @@ export class GIFWMap {
   private setupEventListeners(map: olMap): void {
     // Add permalink updater
     map.on("moveend", () => {
-      document
-        .getElementById(this.id)
-        .dispatchEvent(new CustomEvent("gifw-update-permalink"));
+      this.mapElement.dispatchEvent(new CustomEvent("gifw-update-permalink"));
     });
 
-    document
-      .getElementById(this.id)
-      .addEventListener("gifw-update-permalink", () => {
-        updatePermalinkInURL(this);
-        updatePermalinkInLinks(this);
-      });
+    this.mapElement.addEventListener("gifw-update-permalink", () => {
+      updatePermalinkInURL(this);
+      updatePermalinkInLinks(this);
+    });
   }
 
   private registerProjections(availableProjections: Projection[]) {
@@ -676,7 +725,7 @@ export class GIFWMap {
    * Adds the Drag and Drop layer upload interaction
    * */
   private addDragAndDropInteraction() {
-    new LayerUpload(this, document.getElementById(this.id));
+    new LayerUpload(this, this.mapElement);
   }
 
   /**
@@ -1037,7 +1086,7 @@ export class GIFWMap {
     map: olMap,
     attribution: olControl.Attribution
   ): void {
-    const small = map.getSize()[0] < 600;
+    const small = map.getSize()[0] < SMALL_MAP_WIDTH_THRESHOLD;
     attribution.setCollapsed(small);
   }
 
@@ -1279,12 +1328,8 @@ export class GIFWMap {
    * @returns A number indicating the percentage of the map that is covered by overlays
    */
   public getPercentOfMapCoveredWithOverlays(): number {
-    const leftPanelWidth = (
-      document.querySelector("#gifw-sidebar-left") as HTMLDivElement
-    ).getBoundingClientRect().width;
-    const rightPanelWidth = (
-      document.querySelector("#gifw-sidebar-right") as HTMLDivElement
-    ).getBoundingClientRect().width;
+    const leftPanelWidth = this.leftSidebarElement.getBoundingClientRect().width;
+    const rightPanelWidth = this.rightSidebarElement.getBoundingClientRect().width;
     const screenWidth = this.olMap
       .getOverlayContainer()
       .getBoundingClientRect().width;
@@ -1299,12 +1344,8 @@ export class GIFWMap {
    * @returns array of 4 numbers
    */
   public getPaddingForMapCenter(defaultPadding: number = 100): number[] {
-    let leftPadding = (
-      document.querySelector("#gifw-sidebar-left") as HTMLDivElement
-    ).getBoundingClientRect().width;
-    let rightPadding = (
-      document.querySelector("#gifw-sidebar-right") as HTMLDivElement
-    ).getBoundingClientRect().width;
+    let leftPadding = this.leftSidebarElement.getBoundingClientRect().width;
+    let rightPadding = this.rightSidebarElement.getBoundingClientRect().width;
     const screenWidth = this.olMap
       .getOverlayContainer()
       .getBoundingClientRect().width;
@@ -1499,14 +1540,14 @@ export class GIFWMap {
    * Disables the context menu
    */
   public disableContextMenu() {
-    document.getElementById(this.id).classList.add("context-menu-disabled");
+    this.mapElement.classList.add("context-menu-disabled");
   }
 
   /**
    * Enables the context menu
    */
   public enableContextMenu() {
-    document.getElementById(this.id).classList.remove("context-menu-disabled");
+    this.mapElement.classList.remove("context-menu-disabled");
   }
 
   /**
@@ -1520,30 +1561,18 @@ export class GIFWMap {
    * Deactivates all interactions by dispatching a list of known events
    */
   public deactivateInteractions() {
-    document
-      .getElementById(this.id)
-      .dispatchEvent(new Event("gifw-measure-deactivate"));
-    document
-      .getElementById(this.id)
-      .dispatchEvent(new Event("gifw-annotate-deactivate"));
-    document
-      .getElementById(this.id)
-      .dispatchEvent(new Event("gifw-feature-query-deactivate"));
+    this.mapElement.dispatchEvent(new Event("gifw-measure-deactivate"));
+    this.mapElement.dispatchEvent(new Event("gifw-annotate-deactivate"));
+    this.mapElement.dispatchEvent(new Event("gifw-feature-query-deactivate"));
   }
 
   /**
    * Resets all interactions to their starting defaults by dispatching a list of known events
    */
   public resetInteractionsToDefault() {
-    document
-      .getElementById(this.id)
-      .dispatchEvent(new Event("gifw-measure-deactivate"));
-    document
-      .getElementById(this.id)
-      .dispatchEvent(new Event("gifw-annotate-deactivate"));
-    document
-      .getElementById(this.id)
-      .dispatchEvent(new Event("gifw-feature-query-activate"));
+    this.mapElement.dispatchEvent(new Event("gifw-measure-deactivate"));
+    this.mapElement.dispatchEvent(new Event("gifw-annotate-deactivate"));
+    this.mapElement.dispatchEvent(new Event("gifw-feature-query-activate"));
   }
 
   /**
@@ -1560,28 +1589,19 @@ export class GIFWMap {
   }
 
   public createProxyURL(url: string) {
-    return `${document.location.protocol}//${
-      this.config.appRoot
-    }proxy?url=${encodeURIComponent(url)}`;
+    return `${document.location.protocol}//${this.config.appRoot
+      }proxy?url=${encodeURIComponent(url)}`;
   }
-
-  // Type definitions for internal use
-
-}
-interface ProjectionInfo {
-  defaultMapProjection: Projection;
-  defaultViewProjection: Projection;
-  mapProjectionCode: string;
-  viewProjection: olProj.Projection;
-  fromLonLat: olProj.TransformFunction;
-  from3857: olProj.TransformFunction;
 }
 
-interface ViewParameters {
-  defaultZoom: number;
-  defaultCenter: number[];
-  defaultRotation: number;
-  defaultCRS: number;
-  defaultBbox?: number[];
-  locationProvidedByURL: boolean;
-}
+// Constants for better maintainability
+const DEFAULT_ZOOM = 10;
+const DEFAULT_CENTER = [50.7621, -2.3314];
+const DEFAULT_ROTATION = 0;
+const DEFAULT_CRS = 4326;
+const DEFAULT_MAX_ZOOM = 22;
+const DEFAULT_MIN_ZOOM = 0;
+const AUTH_TOKEN_REFRESH_INTERVAL = 120000; // 2 minutes
+const SMALL_MAP_WIDTH_THRESHOLD = 600;
+
+
