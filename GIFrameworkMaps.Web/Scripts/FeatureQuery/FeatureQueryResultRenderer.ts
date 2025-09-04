@@ -195,7 +195,7 @@ export class FeatureQueryResultRenderer {
     );
   }
 
-  public showFeatureArrayPopup(
+  public async showFeatureArrayPopup(
     coords: number[],
     responsesWithData: FeatureQueryResponse[],
   ) {
@@ -203,7 +203,8 @@ export class FeatureQueryResultRenderer {
     popupContent.className = "gifw-result-list";
     const popupHeader = "<h1>Search results</h1>";
     popupContent.innerHTML = popupHeader;
-    responsesWithData.forEach(async (r) => {
+
+    for (const r of responsesWithData) {
       const layerId = r.layer.get("layerId");
       const gifwLayer = this._gifwMapInstance.getLayerConfigById(layerId, [
         LayerGroupType.Overlay,
@@ -216,7 +217,8 @@ export class FeatureQueryResultRenderer {
       if (gifwLayer && !gifwLayer.infoListTitleTemplate) {
         gifwLayer.infoListTitleTemplate = await this.getListTitleTemplateForLayer(layerId);
       }
-      r.features.forEach((f) => {
+
+      for (const f of r.features) {
         const listItem = document.createElement("li");
         let listItemContent = "";
         if (f.get("gifw-popup-title")) {
@@ -251,7 +253,6 @@ export class FeatureQueryResultRenderer {
               //no properties available, just give them a generic title
               listItemContent = "A feature (no data properties available)"
             }
-            
           }
         }
 
@@ -260,13 +261,13 @@ export class FeatureQueryResultRenderer {
         listItemLink.href = "#";
         listItemLink.addEventListener("click", (e) => {
             this.showFeaturePopup(coords, r.layer, f, responsesWithData);
-            e.preventDefault();
+          e.preventDefault();
         });
         listItem.appendChild(listItemLink);
         featureList.appendChild(listItem);
-      });
+      }
       popupContent.append(featureList);
-    });
+    }
 
     const popupOptions = new GIFWPopupOptions(popupContent, [], [0, 0]);
     this.renderPopupFromOptions(popupOptions, coords);
