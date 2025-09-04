@@ -69,7 +69,7 @@ export class FeatureQueryResultRenderer {
    * @param feature The feature to show information for
    * @param parentResponses Optional array of other features queried that the user can go back to
    */
-  public showFeaturePopup(
+  public async showFeaturePopup(
     coords: number[],
     layer: Layer<Source, LayerRenderer<VectorLayer>>,
     feature: Feature,
@@ -103,6 +103,9 @@ export class FeatureQueryResultRenderer {
       popupActions.push(new GIFWPopupAction("About this layer", () => {
         showMetadataModal(gifwLayer, layer, this._gifwMapInstance)
       }, false, false))
+    }
+    if (gifwLayer && !gifwLayer.infoTemplate) {
+      gifwLayer.infoTemplate = await this.getTemplateForLayer(layerId);
     }
 
     if (!gifwLayer?.infoTemplate) {
@@ -200,7 +203,7 @@ export class FeatureQueryResultRenderer {
     popupContent.className = "gifw-result-list";
     const popupHeader = "<h1>Search results</h1>";
     popupContent.innerHTML = popupHeader;
-    responsesWithData.forEach((r) => {
+    responsesWithData.forEach(async (r) => {
       const layerId = r.layer.get("layerId");
       const gifwLayer = this._gifwMapInstance.getLayerConfigById(layerId, [
         LayerGroupType.Overlay,
@@ -210,7 +213,9 @@ export class FeatureQueryResultRenderer {
       popupContent.append(layerHeader);
       const featureList = document.createElement("ul");
       featureList.className = "list-unstyled";
-
+      if (gifwLayer && !gifwLayer.infoListTitleTemplate) {
+        gifwLayer.infoListTitleTemplate = await this.getListTitleTemplateForLayer(layerId);
+      }
       r.features.forEach((f) => {
         const listItem = document.createElement("li");
         let listItemContent = "";
@@ -410,5 +415,29 @@ export class FeatureQueryResultRenderer {
     popup.querySelector("#gifw-popup-content").innerHTML = loadingContent;
     this._gifwMapInstance.popupOverlay.overlay.setPosition(coords);
     this._gifwMapInstance.popupOverlay.overlay.setOffset([0, 0]);
+  }
+
+  private async getTemplateForLayer(layerId: number) {
+    const resp = await fetch(
+      `${document.location.protocol}//${this._gifwMapInstance.config.appRoot}API/InfoTemplate/${layerId}`,
+    );
+
+    if (!resp.ok) {
+      throw new Error("Network response was not OK");
+    } else {
+      return resp.text();
+    }
+  }
+
+  private async getListTitleTemplateForLayer(layerId: number) {
+    const resp = await fetch(
+      `${document.location.protocol}//${this._gifwMapInstance.config.appRoot}API/InfoListTitleTemplate/${layerId}`,
+    );
+
+    if (!resp.ok) {
+      throw new Error("Network response was not OK");
+    } else {
+      return resp.text();
+    }
   }
 }

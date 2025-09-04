@@ -42,10 +42,10 @@ namespace GIFrameworkMaps.Data
 				.ForMember(cl => cl.DefaultOpacity, lvm => lvm.MapFrom(s => s.Layer!.DefaultOpacity))
 				.ForMember(cl => cl.DefaultSaturation, lvm => lvm.MapFrom(s => s.Layer!.DefaultSaturation))
 				.ForMember(cl => cl.Queryable, lvm => lvm.MapFrom(s => s.Layer!.Queryable))
-				.ForMember(cl => cl.InfoTemplate, lvm => lvm.MapFrom(s => s.Layer!.InfoTemplate))
+				//.ForMember(cl => cl.InfoTemplate, lvm => lvm.MapFrom(s => s.Layer!.InfoTemplate))
+				//.ForMember(cl => cl.InfoListTitleTemplate, lvm => lvm.MapFrom(s => s.Layer!.InfoListTitleTemplate))
 				.ForMember(cl => cl.Filterable, lvm => lvm.MapFrom(s => s.Layer!.Filterable))
 				.ForMember(cl => cl.DefaultFilterEditable, lvm => lvm.MapFrom(s => s.Layer!.DefaultFilterEditable))
-				.ForMember(cl => cl.InfoListTitleTemplate, lvm => lvm.MapFrom(s => s.Layer!.InfoListTitleTemplate))
 				.ForMember(cl => cl.ProxyMapRequests, lvm => lvm.MapFrom(s => s.Layer!.ProxyMapRequests))
 				.ForMember(cl => cl.ProxyMetaRequests, lvm => lvm.MapFrom(s => s.Layer!.ProxyMetaRequests))
 				.ForMember(cl => cl.RefreshInterval, lvm => lvm.MapFrom(s => s.Layer!.RefreshInterval));

@@ -22,7 +22,8 @@ namespace GIFrameworkMaps.Data
         Task<string> GenerateShortId(string url);
         Task<string> GetFullUrlFromShortId(string shortId);
 		Task<List<URLAuthorizationRule>> GetURLAuthorizationRules();
-
 		bool IsURLCurrentApplication(string url);
-    }
+		Task<string?> GetInfoTemplateByLayerId(int layerId);
+		Task<string?> GetInfoListTitleTemplateByLayerId(int layerId);
+	}
 }

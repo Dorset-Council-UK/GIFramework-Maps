@@ -349,5 +349,52 @@ namespace GIFrameworkMaps.Data
             }
             return false;
         }
-    }
+
+		public async Task<string?> GetInfoTemplateByLayerId(int layerId)
+		{
+			string cacheKey = $"InfoTemplate/{layerId}";
+			if (_memoryCache.TryGetValue(cacheKey, out string? cacheValue))
+			{
+				return cacheValue!;
+			}
+
+			var template = await _context.Layers
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.Where(l => l.Id == layerId)
+				.Select(l => l.InfoTemplate)
+				.FirstOrDefaultAsync();
+
+			_memoryCache.Set(cacheKey, template, new MemoryCacheEntryOptions
+			{
+				Priority = CacheItemPriority.Low,
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(string.IsNullOrEmpty(template) ? 1 : 10)
+			});
+			return template;
+		}
+
+		public async Task<string?> GetInfoListTitleTemplateByLayerId(int layerId)
+		{
+			string cacheKey = $"InfoListTitleTemplate/{layerId}";
+			if (_memoryCache.TryGetValue(cacheKey, out string? cacheValue))
+			{
+				return cacheValue!;
+			}
+
+			var template = await _context.Layers
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.Where(l => l.Id == layerId)
+				.Select(l => l.InfoListTitleTemplate)
+				.FirstOrDefaultAsync();
+
+			_memoryCache.Set(cacheKey, template, new MemoryCacheEntryOptions
+			{
+				Priority = CacheItemPriority.Low,
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(string.IsNullOrEmpty(template) ? 1 : 10)
+			});
+			return template;
+		}
+
+	}
 }
