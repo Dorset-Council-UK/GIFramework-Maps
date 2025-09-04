@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace GIFrameworkMaps.Data.Models
 {
@@ -12,6 +13,7 @@ namespace GIFrameworkMaps.Data.Models
         public string? Name { get; set; }
 
         [Required]
+		[JsonIgnore]
         public string? Description { get; set; }
 
         [Required]
