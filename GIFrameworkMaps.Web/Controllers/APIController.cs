@@ -216,6 +216,16 @@ namespace GIFrameworkMaps.Web.Controllers
 			return Content(template);
 		}
 
+		public async Task<IActionResult> LayerSourceDescription(int id)
+		{
+			var description = await _repository.GetLayerSourceDescriptionById(id);
+			if (string.IsNullOrEmpty(description))
+			{
+				return NoContent();
+			}
+			return Content(description);
+		}
+
 		public IActionResult WebLayerServiceDefinitions()
         {
             var services = _repository.GetWebLayerServiceDefinitions();

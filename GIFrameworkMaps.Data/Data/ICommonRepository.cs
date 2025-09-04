@@ -25,5 +25,6 @@ namespace GIFrameworkMaps.Data
 		bool IsURLCurrentApplication(string url);
 		Task<string?> GetInfoTemplateByLayerId(int layerId);
 		Task<string?> GetInfoListTitleTemplateByLayerId(int layerId);
+		Task<string?> GetLayerSourceDescriptionById(int layerId);
 	}
 }

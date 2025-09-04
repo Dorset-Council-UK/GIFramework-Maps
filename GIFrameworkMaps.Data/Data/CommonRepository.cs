@@ -396,5 +396,27 @@ namespace GIFrameworkMaps.Data
 			return template;
 		}
 
+		public async Task<string?> GetLayerSourceDescriptionById(int layerId)
+		{
+			string cacheKey = $"LayerSourceDescription/{layerId}";
+			if (_memoryCache.TryGetValue(cacheKey, out string? cacheValue))
+			{
+				return cacheValue!;
+			}
+
+			var description = await _context.LayerSources
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.Where(l => l.Id == layerId)
+				.Select(l => l.Description)
+				.FirstOrDefaultAsync();
+
+			_memoryCache.Set(cacheKey, description, new MemoryCacheEntryOptions
+			{
+				Priority = CacheItemPriority.Low,
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(string.IsNullOrEmpty(description) ? 1 : 10)
+			});
+			return description;
+		}
 	}
 }
