@@ -22,7 +22,7 @@ a {
   color: #1d70b8;
 }
 [data-bs-theme="dark"] a {
-  color: #72b7df;
+  color: var(--bs-body-color);
 }
 a:hover,
 a:focus {
