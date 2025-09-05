@@ -16,7 +16,8 @@ export async function getMetadataForLayer(
   layer: Layer,
   olLayer: olLayer,
   proxyEndpoint: string = "",
-  httpHeaders: Headers = new Headers()
+  httpHeaders: Headers = new Headers(),
+  gifwMapInstance: GIFWMap
 ) {
   /*get metadata from sources in priority order*/
   /*     1: Metadata from GetCapabilities document
@@ -32,7 +33,7 @@ export async function getMetadataForLayer(
   if (metadata) {
     return metadata;
   }
-  metadata = await getMetadataFromLayerSource(layer);
+  metadata = await getMetadataFromLayerSource(layer, gifwMapInstance);
   if (metadata) {
     return metadata;
   }
@@ -118,8 +119,11 @@ export async function getMetadataFromGetCapabilities(
   return null;
 }
 
-export async function getMetadataFromLayerSource(layer: Layer) {
-  if (layer.layerSource.description !== "") {
+export async function getMetadataFromLayerSource(layer: Layer, gifwMapInstance: GIFWMap) {
+  if (layer.layerSource.description === null || layer.layerSource.description === undefined) {
+    layer.layerSource.description = await getDescriptionForLayerSource(layer.layerSource.id, gifwMapInstance);
+  }
+  if (layer.layerSource.description && layer.layerSource.description.trim() !== "") {
     const SimpleMetadata: SimpleMetadata = {
       title: layer.name,
       abstract: layer.layerSource.description || "No description provided",
@@ -132,6 +136,18 @@ export async function getMetadataFromLayerSource(layer: Layer) {
     return SimpleMetadata;
   }
   return null;
+}
+
+async function getDescriptionForLayerSource(layerId: number, gifwMapInstance: GIFWMap) {
+  const resp = await fetch(
+    `${document.location.protocol}//${gifwMapInstance.config.appRoot}API/LayerSourceDescription/${layerId}`,
+  );
+
+  if (!resp.ok) {
+    throw new Error("Network response was not OK");
+  } else {
+    return resp.text();
+  }
 }
 
 /**
@@ -281,7 +297,8 @@ export async function showMetadataModal(
       layerConfig,
       olLayer,
       proxyEndpoint,
-      httpHeaders
+      httpHeaders,
+      gifwMapInstance
     );
     if (metadata) {
       metaModalContent.innerHTML = createMetadataHTML(
