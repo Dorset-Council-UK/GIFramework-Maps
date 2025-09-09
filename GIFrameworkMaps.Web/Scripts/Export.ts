@@ -256,6 +256,8 @@ export class Export {
         pageOrientation === "l"
           ? chosenPageSettings.pageHeight - pageMargin
           : chosenPageSettings.pageWidth - pageMargin,
+        undefined,
+        'FAST'
       );
       pdf.rect(
         mapStartingX,
@@ -837,7 +839,7 @@ export class Export {
             const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
             pdf.text(layerName, currentX + 2, currentY);
             currentY += pdf.getTextDimensions(layerName).h;
-            pdf.addImage(img, currentX + 2, currentY, widthInMM, heightInMM);
+            pdf.addImage(img, currentX + 2, currentY, widthInMM, heightInMM, undefined, 'FAST');
             if (widthInMM > maxWidth) maxWidth = widthInMM;
             if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
             currentY += heightInMM + 7.5;
@@ -896,7 +898,7 @@ export class Export {
           const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
           pdf.text(layerName, currentX + 2, currentY);
           currentY += pdf.getTextDimensions(layerName).h;
-          pdf.addImage(img, currentX + 2, currentY, widthInMM, heightInMM);
+          pdf.addImage(img, currentX + 2, currentY, widthInMM, heightInMM, undefined, 'FAST');
           if (widthInMM > maxWidth) maxWidth = widthInMM;
           if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
           currentY += heightInMM + 7.5;
@@ -958,7 +960,7 @@ export class Export {
           }
           pdf.text(layerName, currentX, currentY);
           currentY += pdf.getTextDimensions(layerName).h;
-          pdf.addImage(img, currentX, currentY, widthInMM, heightInMM);
+          pdf.addImage(img, currentX, currentY, widthInMM, heightInMM, undefined, 'FAST');
           if (widthInMM > maxWidth) maxWidth = widthInMM;
           if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
           currentY += heightInMM + 7.5;
@@ -1156,6 +1158,8 @@ export class Export {
       pageMargin / 2 + 1,
       newWidth,
       newHeight,
+      undefined,
+      'FAST'
     );
   }
 
@@ -1212,6 +1216,8 @@ export class Export {
       startingAttrYPosition - pageMargin / 2 - adjustedYHeight,
       newWidth,
       newHeight,
+      undefined,
+      'FAST'
     );
   }
 
@@ -1262,8 +1268,8 @@ export class Export {
       newWidth,
       newHeight,
       undefined,
-      undefined,
-      0,
+      'FAST',
+      0
     );
   }
 
