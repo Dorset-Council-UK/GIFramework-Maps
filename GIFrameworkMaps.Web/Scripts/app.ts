@@ -22,6 +22,10 @@ declare let gifw_appinsights_key: string;
 declare let gifw_version_config_url: string;
 declare let gifw_map_services_access_token: string;
 
+const mapId = "giframeworkMap";
+
+addFullScreenLoader(mapId, "Loading your map");
+
 if (gifw_appinsights_key != "") {
   const appInsights = new ApplicationInsights({
     config: {
@@ -53,10 +57,6 @@ document.addEventListener("DOMContentLoaded", () => {
               e.preventDefault();
           });
   }
-
-  const mapId = "giframeworkMap";
-
-  addFullScreenLoader(mapId, "Loading your map");
 
   fetch(gifw_version_config_url)
     .then((response) => {

@@ -25,7 +25,6 @@ namespace GIFrameworkMaps.Data
 			CreateMap<VersionCategory, CategoryViewModel>()
 				.ForMember(vc => vc.Id, cvm => cvm.MapFrom(s => s.Category!.Id))
 				.ForMember(vc => vc.Name, cvm => cvm.MapFrom(s => s.Category!.Name))
-				.ForMember(vc => vc.Description, cvm => cvm.MapFrom(s => s.Category!.Description))
 				.ForMember(vc => vc.Order, cvm => cvm.MapFrom(s => s.Category!.Order))
 				.ForMember(vc => vc.Layers, cvm => cvm.MapFrom(s => s.Category!.Layers))
 				.ForMember(vc => vc.ParentCategory, cvm => cvm.MapFrom(s => s.Category!.ParentCategory));
@@ -43,12 +42,11 @@ namespace GIFrameworkMaps.Data
 				.ForMember(cl => cl.DefaultOpacity, lvm => lvm.MapFrom(s => s.Layer!.DefaultOpacity))
 				.ForMember(cl => cl.DefaultSaturation, lvm => lvm.MapFrom(s => s.Layer!.DefaultSaturation))
 				.ForMember(cl => cl.Queryable, lvm => lvm.MapFrom(s => s.Layer!.Queryable))
-				.ForMember(cl => cl.InfoTemplate, lvm => lvm.MapFrom(s => s.Layer!.InfoTemplate))
 				.ForMember(cl => cl.Filterable, lvm => lvm.MapFrom(s => s.Layer!.Filterable))
 				.ForMember(cl => cl.DefaultFilterEditable, lvm => lvm.MapFrom(s => s.Layer!.DefaultFilterEditable))
-				.ForMember(cl => cl.InfoListTitleTemplate, lvm => lvm.MapFrom(s => s.Layer!.InfoListTitleTemplate))
 				.ForMember(cl => cl.ProxyMapRequests, lvm => lvm.MapFrom(s => s.Layer!.ProxyMapRequests))
-				.ForMember(cl => cl.ProxyMetaRequests, lvm => lvm.MapFrom(s => s.Layer!.ProxyMetaRequests));
+				.ForMember(cl => cl.ProxyMetaRequests, lvm => lvm.MapFrom(s => s.Layer!.ProxyMetaRequests))
+				.ForMember(cl => cl.RefreshInterval, lvm => lvm.MapFrom(s => s.Layer!.RefreshInterval));
 
 			CreateMap<VersionProjection, ProjectionViewModel>()
 				.ForMember(vp => vp.EPSGCode, pvm => pvm.MapFrom(s => s.Projection!.EPSGCode))

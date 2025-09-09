@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace GIFrameworkMaps.Data.Models
 {
@@ -6,6 +7,7 @@ namespace GIFrameworkMaps.Data.Models
 	{
 		public int EPSGCode { get; set; }
 		public required string Name { get; set; }
+		[JsonIgnore]
 		public string? Description { get; set; }
 		[Display(Name="Proj4 or WKT Definition")]
 		public string? Proj4Definition {  get; set; }
