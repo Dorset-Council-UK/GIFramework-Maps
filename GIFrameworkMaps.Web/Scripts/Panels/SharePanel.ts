@@ -3,13 +3,8 @@ import { Sidebar } from "../Sidebar";
 import { GIFWMap } from "../Map";
 import { Modal, Tooltip } from "bootstrap";
 import { createSpinner } from "../Spinner";
-import {
-  Alert,
-  AlertSeverity,
-  AlertType,
-  CustomError,
-  generatePermalinkForMap
-} from "../Util";
+import { Alert, AlertSeverity, AlertType, CustomError } from "../Util";
+import { generatePermalinkForMap } from "../PermalinkUtils";
 
 export class SharePanel implements SidebarPanel {
   container: string;
@@ -46,7 +41,7 @@ export class SharePanel implements SidebarPanel {
   private attachCloseButton(): void {
     const container = document.querySelector(this.container);
     const closeButton = container.querySelector(
-      "button[data-gifw-dismiss-sidebar]",
+      "button[data-gifw-dismiss-sidebar]"
     );
     if (closeButton !== null) {
       closeButton.addEventListener("click", () => {
@@ -64,11 +59,11 @@ export class SharePanel implements SidebarPanel {
 
     const embedCode = `<iframe src="${permalink}&embed=true" allowfullscreen width="100%" height="500px"></iframe>`;
     const embedCodeInput: HTMLTextAreaElement = container.querySelector(
-      "#gifw-share-embed-code",
-      );
-      if (embedCodeInput) {
-        embedCodeInput.value = embedCode;
-      }
+      "#gifw-share-embed-code"
+    );
+    if (embedCodeInput) {
+      embedCodeInput.value = embedCode;
+    }
   }
 
   private attachCopyButtons(): void {
@@ -98,10 +93,10 @@ export class SharePanel implements SidebarPanel {
                     AlertType.Popup,
                     AlertSeverity.Danger,
                     "There was a problem copying to the clipboard",
-                    "<p>We couldn't automatically copy your link to the clipboard.</p><p>You can copy it manually by selecting the text and hitting <kbd>Ctrl</kbd> - <kbd>C</kbd> on Windows or <kbd>Cmd</kbd> - <kbd>C</kbd> on a Mac. For mobiles and touch screen devices, long tap and hold on the link, then choose Select All, then Copy.</p>",
+                    "<p>We couldn't automatically copy your link to the clipboard.</p><p>You can copy it manually by selecting the text and hitting <kbd>Ctrl</kbd> - <kbd>C</kbd> on Windows or <kbd>Cmd</kbd> - <kbd>C</kbd> on a Mac. For mobiles and touch screen devices, long tap and hold on the link, then choose Select All, then Copy.</p>"
                   );
                   errDialog.show();
-                },
+                }
               );
             }
           }
@@ -110,7 +105,7 @@ export class SharePanel implements SidebarPanel {
     }
     //since the short link copy button is in a modal, we need to attach a slightly different event handler
     const copyShortLinkButton = document.querySelector(
-      "#short-link-modal button[data-gifw-copy-target]",
+      "#short-link-modal button[data-gifw-copy-target]"
     ) as HTMLButtonElement;
     copyShortLinkButton.addEventListener("click", () => {
       const targetSelector = copyShortLinkButton.dataset.gifwCopyTarget;
@@ -130,21 +125,21 @@ export class SharePanel implements SidebarPanel {
             () => {
               /* clipboard write failed */
               alert(
-                `We couldn't automatically copy your link to the clipboard.</p><p>You can copy it manually by selecting the text and hitting Ctrl - C on Windows or Cmd - C on a Mac. For mobiles and touch screen devices, long tap and hold on the link, then choose Select All, then Copy.`,
+                `We couldn't automatically copy your link to the clipboard.</p><p>You can copy it manually by selecting the text and hitting Ctrl - C on Windows or Cmd - C on a Mac. For mobiles and touch screen devices, long tap and hold on the link, then choose Select All, then Copy.`
               );
-            },
+            }
           );
         }
       }
     });
 
     const shortLinkButton: HTMLButtonElement = container.querySelector(
-      "#gifw-generate-short-link",
+      "#gifw-generate-short-link"
     );
     shortLinkButton.addEventListener("click", async () => {
       shortLinkButton.insertAdjacentElement(
         "afterbegin",
-        createSpinner(["spinner-border-sm", "me-2"]),
+        createSpinner(["spinner-border-sm", "me-2"])
       );
       shortLinkButton.disabled = true;
       const shortLink = await this.generateShortLink();
@@ -161,7 +156,7 @@ export class SharePanel implements SidebarPanel {
 
   private async generateShortLink() {
     const permalink = encodeURIComponent(
-      generatePermalinkForMap(this.gifwMapInstance),
+      generatePermalinkForMap(this.gifwMapInstance)
     );
     const fetchUrl = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}api/GenerateShortUrl?url=${permalink}`;
     const response = await fetch(fetchUrl, {
@@ -171,7 +166,7 @@ export class SharePanel implements SidebarPanel {
       this.shareLinkModal.hide();
       Alert.showPopupError(
         "An error occurred",
-        "There was a problem generating a short link. Please try again later, or use the standard links.",
+        "There was a problem generating a short link. Please try again later, or use the standard links."
       );
       console.error(`HTTP error: ${response.status}`);
       return;

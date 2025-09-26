@@ -69,7 +69,7 @@ export class FeatureQueryResultRenderer {
    * @param feature The feature to show information for
    * @param parentResponses Optional array of other features queried that the user can go back to
    */
-  public showFeaturePopup(
+  public async showFeaturePopup(
     coords: number[],
     layer: Layer<Source, LayerRenderer<VectorLayer>>,
     feature: Feature,
@@ -103,6 +103,9 @@ export class FeatureQueryResultRenderer {
       popupActions.push(new GIFWPopupAction("About this layer", () => {
         showMetadataModal(gifwLayer, layer, this._gifwMapInstance)
       }, false, false))
+    }
+    if (gifwLayer && !gifwLayer.infoTemplate) {
+      gifwLayer.infoTemplate = await this.getTemplateForLayer(layerId);
     }
 
     if (!gifwLayer?.infoTemplate) {
@@ -192,7 +195,7 @@ export class FeatureQueryResultRenderer {
     );
   }
 
-  public showFeatureArrayPopup(
+  public async showFeatureArrayPopup(
     coords: number[],
     responsesWithData: FeatureQueryResponse[],
   ) {
@@ -200,7 +203,8 @@ export class FeatureQueryResultRenderer {
     popupContent.className = "gifw-result-list";
     const popupHeader = "<h1>Search results</h1>";
     popupContent.innerHTML = popupHeader;
-    responsesWithData.forEach((r) => {
+
+    for (const r of responsesWithData) {
       const layerId = r.layer.get("layerId");
       const gifwLayer = this._gifwMapInstance.getLayerConfigById(layerId, [
         LayerGroupType.Overlay,
@@ -210,8 +214,11 @@ export class FeatureQueryResultRenderer {
       popupContent.append(layerHeader);
       const featureList = document.createElement("ul");
       featureList.className = "list-unstyled";
+      if (gifwLayer && !gifwLayer.infoListTitleTemplate) {
+        gifwLayer.infoListTitleTemplate = await this.getListTitleTemplateForLayer(layerId);
+      }
 
-      r.features.forEach((f) => {
+      for (const f of r.features) {
         const listItem = document.createElement("li");
         let listItemContent = "";
         if (f.get("gifw-popup-title")) {
@@ -246,7 +253,6 @@ export class FeatureQueryResultRenderer {
               //no properties available, just give them a generic title
               listItemContent = "A feature (no data properties available)"
             }
-            
           }
         }
 
@@ -255,13 +261,13 @@ export class FeatureQueryResultRenderer {
         listItemLink.href = "#";
         listItemLink.addEventListener("click", (e) => {
             this.showFeaturePopup(coords, r.layer, f, responsesWithData);
-            e.preventDefault();
+          e.preventDefault();
         });
         listItem.appendChild(listItemLink);
         featureList.appendChild(listItem);
-      });
+      }
       popupContent.append(featureList);
-    });
+    }
 
     const popupOptions = new GIFWPopupOptions(popupContent, [], [0, 0]);
     this.renderPopupFromOptions(popupOptions, coords);
@@ -410,5 +416,29 @@ export class FeatureQueryResultRenderer {
     popup.querySelector("#gifw-popup-content").innerHTML = loadingContent;
     this._gifwMapInstance.popupOverlay.overlay.setPosition(coords);
     this._gifwMapInstance.popupOverlay.overlay.setOffset([0, 0]);
+  }
+
+  private async getTemplateForLayer(layerId: number) {
+    const resp = await fetch(
+      `${document.location.protocol}//${this._gifwMapInstance.config.appRoot}API/InfoTemplate/${layerId}`,
+    );
+
+    if (!resp.ok) {
+      throw new Error("Network response was not OK");
+    } else {
+      return resp.text();
+    }
+  }
+
+  private async getListTitleTemplateForLayer(layerId: number) {
+    const resp = await fetch(
+      `${document.location.protocol}//${this._gifwMapInstance.config.appRoot}API/InfoListTitleTemplate/${layerId}`,
+    );
+
+    if (!resp.ok) {
+      throw new Error("Network response was not OK");
+    } else {
+      return resp.text();
+    }
   }
 }

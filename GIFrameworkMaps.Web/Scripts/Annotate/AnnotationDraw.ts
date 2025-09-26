@@ -4,13 +4,12 @@ import * as Condition from "ol/events/condition";
 import Feature from "ol/Feature";
 import { Draw } from "ol/interaction";
 import { Fill, Style, Text } from "ol/style";
-import { GIFWPopupAction } from "../Popups/PopupAction";
-import { GIFWPopupOptions } from "../Popups/PopupOptions";
-import Geometry, { Type as olGeomType } from "ol/geom/Geometry";
+import { Type as olGeomType } from "ol/geom/Geometry";
 import AnnotationStyle from "./AnnotationStyle";
 import { Point, Polygon } from "ol/geom";
 import { GeoJSON } from "ol/format";
 import VectorLayer from "ol/layer/Vector";
+import Annotate from "./Annotate";
 
 export default class AnnotationDraw extends Draw {
   tip: string;
@@ -87,10 +86,10 @@ export default class AnnotationDraw extends Draw {
       if (!annotationLayer.getVisible()) {
         annotationLayer.setVisible(true);
       }
-        let feature = e.feature;
+      let feature = e.feature;
 
-    const bufferDistance = annotationStyle.radiusNumber;
-    const bufferUnit = annotationStyle.radiusUnit;
+      const bufferDistance = annotationStyle.radiusNumber;
+      const bufferUnit = annotationStyle.radiusUnit;
       if (annotationStyle.activeTool.name === "Buffer") {
         //create the buffer feature
 
@@ -119,22 +118,17 @@ export default class AnnotationDraw extends Draw {
       }
 
       feature.setStyle(annotationStyle);
-      const timestamp = new Date().toLocaleString("en-GB", { timeZone: "UTC" });
-      feature.set("gifw-popup-title", `${type} added at ${timestamp}`);
-        feature.set("gifw-geometry-type", type);
-        const popupText = (annotationStyle.activeTool.name === "Buffer"
-            ? `<h1>Annotation</h1><p>Buffer of ${bufferDistance} ${bufferUnit} added at ${timestamp}</p>`
-            : `<h1>Annotation</h1><p>${type} added at ${timestamp}</p>`);
-      this.addPopupOptionsToFeature(
-        feature,
-        annotationLayer,
-        popupText,
-      );
-        if (annotationStyle.activeTool.name === "Buffer") {
-            this.tip = "Click to draw a buffer";
-        } else {
-            this.tip = "Click to start drawing";
-        }
+      feature.set('gifw-annotations-buffer-radius-unit', annotationStyle.radiusUnit);
+      feature.set('gifw-annotations-buffer-radius-number', annotationStyle.radiusNumber);
+      feature.set('gifw-annotations-drawing-type', annotationStyle.activeTool.name);
+      feature.set("gifw-geometry-type", type);
+
+      Annotate.updatePopupForAnnotation(annotationStyle.activeTool.name, feature, annotationLayer);
+      if (annotationStyle.activeTool.name === "Buffer") {
+          this.tip = "Click to draw a buffer";
+      } else {
+          this.tip = "Click to start drawing";
+      }
       if (
         annotationStyle.activeTool.name == "Text" &&
         annotationStyle.labelText.trim().length == 0
@@ -149,37 +143,5 @@ export default class AnnotationDraw extends Draw {
     this.on("drawabort", () => {
       this.tip = "Click to start drawing";
     });
-  }
-
-  private addPopupOptionsToFeature(
-    feature: Feature<Geometry>,
-    annotationLayer: VectorLayer,
-    popupContent: string,
-  ) {
-    const removeAction = new GIFWPopupAction(
-      "Remove drawing",
-      () => {
-        annotationLayer.getSource().removeFeature(feature);
-        if (annotationLayer.getSource().getFeatures().length === 0) {
-          annotationLayer.setVisible(false);
-        }
-      },
-      true,
-      true,
-    );
-    const removeAllAction = new GIFWPopupAction(
-      "Remove all drawings",
-      () => {
-        annotationLayer.getSource().clear();
-        annotationLayer.setVisible(false);
-      },
-      true,
-      true,
-    );
-    const popupOpts = new GIFWPopupOptions(popupContent, [
-      removeAction,
-      removeAllAction,
-    ]);
-    feature.set("gifw-popup-opts", popupOpts);
   }
 }

@@ -194,7 +194,37 @@ namespace GIFrameworkMaps.Web.Controllers
             return NotFound();                    
         }
 
-        public IActionResult WebLayerServiceDefinitions()
+		public async Task<IActionResult> InfoTemplate(int id)
+		{
+			var template = await _repository.GetInfoTemplateByLayerId(id);
+			if (string.IsNullOrEmpty(template))
+			{
+				return NoContent();
+			}
+			return Content(template);
+		}
+
+		public async Task<IActionResult> InfoListTitleTemplate(int id)
+		{
+			var template = await _repository.GetInfoListTitleTemplateByLayerId(id);
+			if (string.IsNullOrEmpty(template))
+			{
+				return NoContent();
+			}
+			return Content(template);
+		}
+
+		public async Task<IActionResult> LayerSourceDescription(int id)
+		{
+			var description = await _repository.GetLayerSourceDescriptionById(id);
+			if (string.IsNullOrEmpty(description))
+			{
+				return NoContent();
+			}
+			return Content(description);
+		}
+
+		public IActionResult WebLayerServiceDefinitions()
         {
             var services = _repository.GetWebLayerServiceDefinitions();
             return Json(services);
