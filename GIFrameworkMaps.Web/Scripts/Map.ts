@@ -14,7 +14,6 @@ import { GIFWLayerGroup } from "./LayerGroup/GIFWLayerGroup";
 import { GIFWContextMenu } from "./ContextMenu";
 import { GIFWGeolocation } from "./Geolocation";
 import Geometry from "ol/geom/Geometry";
-import { v4 as uuidv4 } from "uuid";
 import { LayerGroupType } from "./Interfaces/LayerGroupType";
 import { NativeLayerGroup } from "./LayerGroup/NativeLayerGroup";
 import { LayerGroup } from "./LayerGroup/LayerGroup";
@@ -749,7 +748,7 @@ export class GIFWMap {
     type = LayerGroupType.UserNative,
     zIndex: number = 0,
     queryable: boolean = true,
-    layerId: string = uuidv4(),
+    layerId: string = crypto.randomUUID(),
     olLayerOpts = {}
   ) {
     /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -853,7 +852,7 @@ export class GIFWMap {
     type = LayerGroupType.Overlay,
     zIndex: number = 0,
     queryable: boolean = true,
-    layerId: string = uuidv4(),
+    layerId: string = crypto.randomUUID(),
     olLayerOpts = {}
   ) {
     let ol_layer;

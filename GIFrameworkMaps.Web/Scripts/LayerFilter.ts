@@ -17,7 +17,6 @@ import { VectorImage, Layer as olLayer } from "ol/layer";
 import BaseLayer from "ol/layer/Base";
 import { transformExtent } from "ol/proj";
 import { ImageWMS, TileWMS, Vector } from "ol/source";
-import { v4 as uuidv4 } from "uuid";
 import { Layer } from "./Interfaces/Layer";
 import {
     Capability,
@@ -451,7 +450,7 @@ export class LayerFilter {
       }
     }
 
-    const valueFieldId = uuidv4();
+    const valueFieldId = crypto.randomUUID();
     const hiddenLabel = document.createElement("label");
     hiddenLabel.className = "visually-hidden";
     hiddenLabel.textContent = "Expression for this filter";
@@ -550,7 +549,7 @@ export class LayerFilter {
       }
     }
 
-    const value1FieldId = uuidv4();
+    const value1FieldId = crypto.randomUUID();
     const hiddenLabel1 = document.createElement("label");
     hiddenLabel1.className = "visually-hidden";
     hiddenLabel1.textContent = "Lower boundary for this filter";
@@ -568,7 +567,7 @@ export class LayerFilter {
     value1Field.id = value1FieldId;
     value1Field.setAttribute("list", datalistId);
 
-    const value2FieldId = uuidv4();
+    const value2FieldId = crypto.randomUUID();
     const hiddenLabel2 = document.createElement("label");
     hiddenLabel2.className = "visually-hidden";
     hiddenLabel2.textContent = "Upper boundary for this filter";
@@ -823,7 +822,7 @@ export class LayerFilter {
     propertyType?: PropertyTypes,
   ) {
     let returnEle: HTMLElement;
-    const datalistId = uuidv4();
+    const datalistId = crypto.randomUUID();
     switch (filterType.type) {
       case "singleValue":
         returnEle = this.createSingleValueEditor(
