@@ -166,6 +166,119 @@ export class GIFWMap {
     // Set up event listeners
     this.setupEventListeners(map);
 
+    //cesium experiment
+    Cesium.Ion.defaultAccessToken = '<insert-access-token-here>';
+    const ol3d = new OLCesium({ map: map });
+    const scene = ol3d.getCesiumScene();
+    scene.globe.enableLighting = true;
+    scene.fog.enabled = true;
+    scene.fog.density = 0.003;;
+    scene.fog.visualDensityScalar = 0.6;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    //Cesium.createWorldTerrainAsync().then((tp: any) => scene.terrainProvider = tp);
+    const worldTerrain = await Cesium.createWorldTerrainAsync();
+    const localDtmTerrain = await Cesium.CesiumTerrainProvider.fromIonAssetId(3514600);
+    const localDsmTerrain = await Cesium.CesiumTerrainProvider.fromIonAssetId(3514669);
+    const provider = new Cesium.WebMapServiceImageryProvider({
+      url: 'https://gi.dorsetcouncil.gov.uk/geoserver/aerial_photography/wms',
+      layers: 'AP_Latest',
+    });
+    const imageryLayer = new Cesium.ImageryLayer(provider);
+
+    scene.imageryLayers.add(imageryLayer);
+    scene.terrainProvider = localDtmTerrain;
+    scene.shadowMap.enabled = true;
+    // Enable lighting the globe with the sun as a light source to have dynamic lighting conditions according to the position of the sun
+    scene.globe.enableLighting = true;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    //const buildings = await Cesium.createOsmBuildingsAsync();
+    const buildings = await Cesium.Cesium3DTileset.fromIonAssetId(3813031);
+
+
+    //buildings.imageryLayers.add(imageryLayer);
+    //const imageryProvider = await Cesium.createWorldImageryAsync({
+    //  style: Cesium.IonWorldImageryStyle.AERIAL,
+    //});
+    //const buildingImageryProvider = new Cesium.WebMapServiceImageryProvider({
+    //  url: 'https://gi.dorsetcouncil.gov.uk/geoserver/aerial_photography/wms',
+    //  layers: 'AP_Latest',
+    //});
+//    const buildingImageryLayer = Cesium.ImageryLayer.fromProviderAsync(
+//      Cesium.IonImageryProvider.fromAssetId(3812944),
+//);
+//    buildings.imageryLayers.add(buildingImageryLayer);
+//    buildings.maximumScreenSpaceError = 0.75;
+    scene.primitives.add(buildings);
+    //const newBuildingTileset = await Cesium.Cesium3DTileset.fromIonAssetId(3501961);
+    //scene.primitives.add(newBuildingTileset);
+
+    //const a380TileSet = await Cesium.Cesium3DTileset.fromIonAssetId(3502335);
+    //scene.primitives.add(a380TileSet);
+    const go3dButton = document.createElement('button');
+    go3dButton.textContent = "Toggle 3D";
+    go3dButton.style.position = 'absolute';
+    go3dButton.style.top = '10px'
+    go3dButton.style.left = '30%';
+    go3dButton.style.zIndex = '9999999';
+    go3dButton.addEventListener('click', () => {
+      ol3d.setEnabled(!ol3d.getEnabled());
+    });
+    const buildingsButton = document.createElement('button');
+    buildingsButton.textContent = "Toggle Buildings (3D)";
+    buildingsButton.style.position = 'absolute';
+    buildingsButton.style.top = '10px'
+    buildingsButton.style.left = '10%';
+    buildingsButton.style.zIndex = '9999999';
+    buildingsButton.addEventListener('click', () => {
+      if (scene.primitives.contains(buildings)) {
+        scene.primitives.remove(buildings);
+      } else {
+        scene.primitives.add(buildings);
+      }
+      //if (scene.primitives.contains(a380TileSet)) {
+      //  scene.primitives.remove(a380TileSet);
+      //} else {
+      //  scene.primitives.add(a380TileSet);
+      //} if (scene.primitives.contains(newBuildingTileset)) {
+      //  scene.primitives.remove(newBuildingTileset);
+      //} else {
+      //  scene.primitives.add(newBuildingTileset);
+      //}
+    });
+    const setWorldTerrainButton = document.createElement('button');
+    setWorldTerrainButton.textContent = "World Terrain";
+    setWorldTerrainButton.style.position = 'absolute';
+    setWorldTerrainButton.style.top = '10px'
+    setWorldTerrainButton.style.left = '50%';
+    setWorldTerrainButton.style.zIndex = '9999999';
+    setWorldTerrainButton.addEventListener('click', () => {
+      scene.terrainProvider = worldTerrain;
+    });
+    const setLocalDtmTerrain = document.createElement('button');
+    setLocalDtmTerrain.textContent = "Local DTM";
+    setLocalDtmTerrain.style.position = 'absolute';
+    setLocalDtmTerrain.style.top = '10px'
+    setLocalDtmTerrain.style.left = '62%';
+    setLocalDtmTerrain.style.zIndex = '9999999';
+    setLocalDtmTerrain.addEventListener('click', () => {
+      scene.terrainProvider = localDtmTerrain;
+    });
+    const setLocalDsmTerrain = document.createElement('button');
+    setLocalDsmTerrain.textContent = "Local DSM";
+    setLocalDsmTerrain.style.position = 'absolute';
+    setLocalDsmTerrain.style.top = '10px'
+    setLocalDsmTerrain.style.left = '75%';
+    setLocalDsmTerrain.style.zIndex = '9999999';
+    setLocalDsmTerrain.addEventListener('click', () => {
+      scene.terrainProvider = localDsmTerrain;
+    });
+    document.querySelector('.giframeworkMapContainer').insertAdjacentElement('afterend', go3dButton);
+    document.querySelector('.giframeworkMapContainer').insertAdjacentElement('afterend', setWorldTerrainButton);
+    document.querySelector('.giframeworkMapContainer').insertAdjacentElement('afterend', setLocalDtmTerrain);
+    document.querySelector('.giframeworkMapContainer').insertAdjacentElement('afterend', setLocalDsmTerrain);
+    document.querySelector('.giframeworkMapContainer').insertAdjacentElement('afterend', buildingsButton);
+
+
     return map;
   }
 
