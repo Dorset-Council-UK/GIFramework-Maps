@@ -678,6 +678,7 @@ export class GIFWLayerGroup implements LayerGroup {
       format: format,
       url: url,
       strategy: loadingStrategy,
+      attributions: layer.layerSource.attribution.renderedAttributionHTML,
     });
 
     // Custom loader if we need authentication or custom headers
