@@ -34,7 +34,7 @@
     "fuse.js": "7.1.0",
     "geostyler-openlayers-parser": "5.2.0",
     "jspdf": "3.0.3",
-    "lodash": "4.17.21",
+    "lodash.debounce": "4.0.8",
     "luxon": "3.7.2",
     "nunjucks": "3.2.4",
     "ol": "10.6.1",
