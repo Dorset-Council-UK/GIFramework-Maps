@@ -141,6 +141,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.Name,
                 a => a.Slug,
                 a => a.Description,
+				a => a.VersionNotes,
                 a => a.Enabled,
                 a => a.RequireLogin,
                 a => a.ShowLogin,
