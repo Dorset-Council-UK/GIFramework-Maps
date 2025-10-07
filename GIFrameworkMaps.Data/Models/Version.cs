@@ -15,7 +15,9 @@ namespace GIFrameworkMaps.Data.Models
         [Required]
         [MaxLength(50)]
         public string? Slug { get; set; }
-        public bool Enabled { get; set; } = true;
+		[Display(Name = "Version Notes (optional)"), MaxLength(500)]
+		public string? VersionNotes { get; set; }
+		public bool Enabled { get; set; } = true;
         [Display(Name="Require Login")]
         public bool RequireLogin { get; set; }
         [Display(Name = "Show login option")]
@@ -42,8 +44,6 @@ namespace GIFrameworkMaps.Data.Models
         public int? TourDetailsId { get; set; }
 		[Display(Name = "Fixed attribution to always display alongside the usual ones (optional)")]
 		public int? AttributionId { get; set; }
-        [Display(Name = "Version Notes (optional)"), MaxLength(500)]
-        public string? VersionNotes { get; set; }
 		public List<VersionProjection> VersionProjections { get; set; } = [];
         public List<VersionUser> VersionUsers { get; set; } = [];
         public List<VersionBasemap> VersionBasemaps { get; set; } = [];
