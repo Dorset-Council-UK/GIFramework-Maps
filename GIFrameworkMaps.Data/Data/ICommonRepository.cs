@@ -9,7 +9,7 @@ namespace GIFrameworkMaps.Data
 	public interface ICommonRepository
     {
         Task<Version?> GetVersionBySlug(string slug1, string slug2, string slug3);
-        Task<bool> CanUserAccessVersion(string userId, int id);
+		Task<bool> CanUserAccessVersion(string userId, string email, int id);
         Task<List<Version>> GetVersionsListForUser(string? userId);
         Task<Version?> GetVersion(int id);
 		Task<VersionViewModel> GetVersionViewModel(Version version);

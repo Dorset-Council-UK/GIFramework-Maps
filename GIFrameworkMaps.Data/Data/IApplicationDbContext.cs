@@ -42,7 +42,8 @@ namespace GIFrameworkMaps.Data
 		DbSet<VersionPrintConfiguration> VersionPrintConfigurations { get; set; }
         DbSet<VersionSearchDefinition> VersionSearchDefinitions { get; set; }
         DbSet<VersionUser> VersionUsers { get; set; }
-        DbSet<WebLayerServiceDefinition> WebLayerServiceDefinitions { get; set; }
+		DbSet<VersionEmailBasedAuthorization> VersionEmailBasedAuthorizations { get; set; }
+		DbSet<WebLayerServiceDefinition> WebLayerServiceDefinitions { get; set; }
         DbSet<WelcomeMessage> WelcomeMessages { get; set; }
     }
 }

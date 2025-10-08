@@ -170,7 +170,7 @@ namespace GIFrameworkMaps.Data
 				.ToListAsync();
         }
 
-		public async Task<bool> CanUserAccessVersion(string userId, int versionId)
+		public async Task<bool> CanUserAccessVersion(string userId, string email, int versionId)
         {
             var version = await GetVersion(versionId);
             if (version is not null && !version.RequireLogin)
@@ -182,8 +182,42 @@ namespace GIFrameworkMaps.Data
                 .AsNoTracking()
                 .AnyAsync(vu => vu.UserId == userId && vu.VersionId == versionId);
             
-            return versionuser;
-        }
+			if(versionuser == true)
+			{
+				//the user has explicit permission to access this version based on their user id
+				return true;
+			}
+
+			//check to see if there are any email based rules for this version
+			if (!string.IsNullOrEmpty(email))
+			{
+				//check for email regex matches
+				var emailRules = await _context.VersionEmailBasedAuthorizations
+					.AsNoTracking()
+					.Where(veba => veba.VersionId == versionId && !string.IsNullOrEmpty(veba.EmailRegEx))
+					.ToListAsync();
+
+				if(emailRules.Count > 0)
+				{
+					foreach(var rule in emailRules)
+					{
+						try
+						{
+							if(System.Text.RegularExpressions.Regex.IsMatch(email, rule.EmailRegEx!, System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+							{
+								return true;
+							}
+						}
+						catch (ArgumentException ex)
+						{
+							_logger.LogError(ex, "Invalid email regex {regex} for version ID {versionId}", rule.EmailRegEx, versionId);
+						}
+					}
+				}
+			}
+			return false;
+
+		}
 
 		public async Task<List<Models.Version>> GetVersionsListForUser(string? userId)
 		{

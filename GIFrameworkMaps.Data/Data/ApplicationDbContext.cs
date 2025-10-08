@@ -43,7 +43,8 @@ namespace GIFrameworkMaps.Data
         public DbSet<VersionPrintConfiguration> VersionPrintConfigurations { get; set; }
 		public DbSet<VersionSearchDefinition> VersionSearchDefinitions { get; set; }
 		public DbSet<VersionUser> VersionUsers { get; set; }
-        public DbSet<WebLayerServiceDefinition> WebLayerServiceDefinitions { get; set; }
+		public DbSet<VersionEmailBasedAuthorization> VersionEmailBasedAuthorizations { get; set; }
+		public DbSet<WebLayerServiceDefinition> WebLayerServiceDefinitions { get; set; }
         public DbSet<WelcomeMessage> WelcomeMessages { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -51,31 +52,7 @@ namespace GIFrameworkMaps.Data
             modelBuilder.HasDefaultSchema("giframeworkmaps");
 
 			// DbSet configurations
-			modelBuilder.ApplyConfiguration(new ApplicationUserRoleConfiguration());
-			modelBuilder.ApplyConfiguration(new BasemapConfiguration());
-			modelBuilder.ApplyConfiguration(new CategoryConfiguration());
-			modelBuilder.ApplyConfiguration(new CategoryLayerConfiguration());
-			modelBuilder.ApplyConfiguration(new DatabaseSearchResultConfiguration());
-			modelBuilder.ApplyConfiguration(new LayerConfiguration());
-			modelBuilder.ApplyConfiguration(new LayerSourceConfiguration());
-			modelBuilder.ApplyConfiguration(new LayerDisclaimerConfiguration());
-			modelBuilder.ApplyConfiguration(new ProjectionConfiguration());
-			modelBuilder.ApplyConfiguration(new ShortLinkConfiguration());
-			modelBuilder.ApplyConfiguration(new TourDetailConfiguration());
-			modelBuilder.ApplyConfiguration(new VersionConfiguration());
-			modelBuilder.ApplyConfiguration(new VersionContactConfiguration());
-			modelBuilder.ApplyConfiguration(new VersionLayerConfiguration());
-			modelBuilder.ApplyConfiguration(new VersionPrintConfigurationConfiguration());
-			modelBuilder.ApplyConfiguration(new VersionSearchDefinitionConfiguration());
-			modelBuilder.ApplyConfiguration(new VersionUserConfiguration());
-			modelBuilder.ApplyConfiguration(new WebLayerServiceDefinitionConfiguration());
-			modelBuilder.ApplyConfiguration(new WelcomeMessageConfiguration());
-
-			// Additional configurations
-			modelBuilder.ApplyConfiguration(new VersionAnalyticConfiguration());
-			modelBuilder.ApplyConfiguration(new VersionBasemapConfiguration());
-			modelBuilder.ApplyConfiguration(new VersionCategoryConfiguration());
-			modelBuilder.ApplyConfiguration(new VersionProjectionConfiguration());
+			modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 		}
     }
 }
