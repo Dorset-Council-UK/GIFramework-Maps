@@ -10,13 +10,16 @@ namespace GIFrameworkMaps.Web.Controllers.Version
 		public async Task<IActionResult> Index()
 		{
 			var userId = "";
+			var email = "";
 			if (User.Identity.IsAuthenticated)
 			{
 				var claimsIdentity = (ClaimsIdentity)User.Identity;
 				var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
 				userId = claim.Value;
+				var emailClaim = claimsIdentity.FindFirst(c => c.Type.Contains("email"));
+				email = emailClaim?.Value ?? string.Empty;
 			}
-			var versions = await commonRepository.GetVersionsListForUser(userId);
+			var versions = await commonRepository.GetVersionsListForUser(userId, email);
 			return View(versions);
 		}
 	}

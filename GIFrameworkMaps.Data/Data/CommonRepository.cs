@@ -217,7 +217,7 @@ namespace GIFrameworkMaps.Data
 
 		}
 
-		public async Task<List<Models.Version>> GetVersionsListForUser(string? userId)
+		public async Task<List<Models.Version>> GetVersionsListForUser(string userId, string email)
 		{
 			// Get user-specific versions
 			var users_versions = await _context.VersionUsers
@@ -226,6 +226,33 @@ namespace GIFrameworkMaps.Data
 				.Where(vu => vu.UserId == userId && vu.Version != null && vu.Version.Enabled == true && vu.Version.Hidden == false && vu.Version.RequireLogin == true)
 				.Select(vu => vu.Version)
 				.ToListAsync();
+
+			// Get email authorized versions
+			var email_rules = await GetVersionEmailAuthorizationRules();
+			foreach( var emailRule in email_rules)
+			{
+				if(!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(emailRule.EmailRegEx))
+				{
+					try
+					{
+						if(System.Text.RegularExpressions.Regex.IsMatch(email, emailRule.EmailRegEx, System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+						{
+							var version = emailRule.Version;
+							if (version != null && version.Enabled == true && version.Hidden == false && version.RequireLogin == true)
+							{
+								if(!users_versions.Any(v => v!.Id == version.Id))
+								{
+									users_versions.Add(version);
+								}
+							}
+						}
+					}
+					catch (ArgumentException ex)
+					{
+						_logger.LogError(ex, "Invalid email regex {regex} for version ID {versionId}", emailRule.EmailRegEx, emailRule.VersionId);
+					}
+				}
+			}
 
 			// Get public versions
 			var public_versions = await _context.Versions
@@ -451,18 +478,30 @@ namespace GIFrameworkMaps.Data
 			return description;
 		}
 
-		private async Task<List<VersionEmailBasedAuthorization>> GetVersionEmailAuthorizationRules(int versionId)
+		private async Task<List<VersionEmailBasedAuthorization>> GetVersionEmailAuthorizationRules(int? versionId = null)
 		{
 			string cacheKey = $"VersionEmailBasedAuthorization/{versionId}";
 			if (_memoryCache.TryGetValue(cacheKey, out List<VersionEmailBasedAuthorization>? cacheValue))
 			{
 				return cacheValue!;
 			}
-			var rules = await _context.VersionEmailBasedAuthorizations
+			List<VersionEmailBasedAuthorization> rules = [];
+			if(versionId is not null)
+			{
+				rules = await _context.VersionEmailBasedAuthorizations
 				.AsNoTracking()
-				.IgnoreAutoIncludes()
+				.Include(v => v.Version)
 				.Where(r => r.VersionId == versionId)
 				.ToListAsync();
+			}
+			else
+			{
+				rules = await _context.VersionEmailBasedAuthorizations
+				.AsNoTracking()
+				.Include(v => v.Version)
+				.ToListAsync();
+			}
+
 			_memoryCache.Set(cacheKey, rules, new MemoryCacheEntryOptions
 			{
 				Priority = CacheItemPriority.Low,
