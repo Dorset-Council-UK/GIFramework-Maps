@@ -191,11 +191,9 @@ namespace GIFrameworkMaps.Data
 			//check to see if there are any email based rules for this version
 			if (!string.IsNullOrEmpty(email))
 			{
+
 				//check for email regex matches
-				var emailRules = await _context.VersionEmailBasedAuthorizations
-					.AsNoTracking()
-					.Where(veba => veba.VersionId == versionId && !string.IsNullOrEmpty(veba.EmailRegEx))
-					.ToListAsync();
+				var emailRules = await GetVersionEmailAuthorizationRules(versionId);
 
 				if(emailRules.Count > 0)
 				{
@@ -451,6 +449,26 @@ namespace GIFrameworkMaps.Data
 				AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(string.IsNullOrEmpty(description) ? 1 : 10)
 			});
 			return description;
+		}
+
+		private async Task<List<VersionEmailBasedAuthorization>> GetVersionEmailAuthorizationRules(int versionId)
+		{
+			string cacheKey = $"VersionEmailBasedAuthorization/{versionId}";
+			if (_memoryCache.TryGetValue(cacheKey, out List<VersionEmailBasedAuthorization>? cacheValue))
+			{
+				return cacheValue!;
+			}
+			var rules = await _context.VersionEmailBasedAuthorizations
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.Where(r => r.VersionId == versionId)
+				.ToListAsync();
+			_memoryCache.Set(cacheKey, rules, new MemoryCacheEntryOptions
+			{
+				Priority = CacheItemPriority.Low,
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+			});
+			return rules;
 		}
 	}
 }
