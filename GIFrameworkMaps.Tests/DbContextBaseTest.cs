@@ -32,6 +32,7 @@ namespace GIFrameworkMaps.Tests
 				new() { Name = "Valid Version Test 2", Slug = "valid/version/two", Id=3 },
 				new() { Name = "Requires Login", Slug = "requires/login", Id=4, RequireLogin=true },
 				new() { Name = "Requires Login 2", Slug = "requires/login/two", Id=5, RequireLogin=true },
+				new() { Name = "Requires Login 3", Slug = "requires/login/three", Id=6, RequireLogin=true },
 				printVersion,
 				new() { Name = "Null Print Config",Slug = "null/config", Id=7 },
 				searchDefVersion,
@@ -66,6 +67,11 @@ namespace GIFrameworkMaps.Tests
 				new() { UserId="36850518-dd0a-48e0-9004-cdaf30d82746", VersionId=4 },
 			};
 
+			var emailBasedAuthorizations = new List<VersionEmailBasedAuthorization>
+			{
+				new() { VersionId = 5, EmailRegEx=".+@example.com" }
+			};
+
 			var bookmarks = new List<Bookmark>
 			{
 				new() { UserId="36850518-dd0a-48e0-9004-cdaf30d82746", Name="Test Bookmark", X=(decimal)-283267.6475493251, Y=(decimal)6570725.6916950345, Zoom = 18, Id = 1 },
@@ -94,6 +100,7 @@ namespace GIFrameworkMaps.Tests
 			var printConfigMockSet = printConfigs.BuildMockDbSet();
 			var printVersionConfigsMockSet = printVersionConfigs.BuildMockDbSet();
 			var versionUsersMockSet = users.BuildMockDbSet();
+			var versionEmailAuthMockSet = emailBasedAuthorizations.BuildMockDbSet();
 			var rolesMockSet = roles.BuildMockDbSet();
 			var userRolesMockSet =	userRoles.BuildMockDbSet();
 			var bookmarksMockSet = bookmarks.BuildMockDbSet();
@@ -117,6 +124,7 @@ namespace GIFrameworkMaps.Tests
 			mockApplicationDbContext.Setup(m => m.PrintConfigurations).Returns(printConfigMockSet.Object);
 			mockApplicationDbContext.Setup(m => m.VersionPrintConfigurations).Returns(printVersionConfigsMockSet.Object);
 			mockApplicationDbContext.Setup(m => m.VersionUsers).Returns(versionUsersMockSet.Object);
+			mockApplicationDbContext.Setup(m => m.VersionEmailBasedAuthorizations).Returns(versionEmailAuthMockSet.Object);
 			mockApplicationDbContext.Setup(m => m.ApplicationRoles).Returns(rolesMockSet.Object);
 			mockApplicationDbContext.Setup(m => m.ApplicationUserRoles).Returns(userRolesMockSet.Object);
 			mockApplicationDbContext.Setup(m => m.Bookmarks).Returns(bookmarksMockSet.Object);

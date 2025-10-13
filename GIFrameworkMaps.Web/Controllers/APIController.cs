@@ -345,13 +345,16 @@ namespace GIFrameworkMaps.Web.Controllers
 		public async Task<IActionResult> RecentVersions(string versionIds)
 		{
 			var userId = "";
+			var email = "";
 			if(User.Identity.IsAuthenticated)
 			{
 				var claimsIdentity = (ClaimsIdentity)User.Identity;
 				var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
 				userId = claim.Value;
+				var emailClaim = claimsIdentity.FindFirst(c => c.Type.Contains("email"));
+				email = emailClaim?.Value ?? string.Empty;
 			}
-			var userVersions = await _repository.GetVersionsListForUser(userId);
+			var userVersions = await _repository.GetVersionsListForUser(userId, email);
 
 			var parsedVersionIds = versionIds?.Split(',')
 			.Where(x => int.TryParse(x, out _))
