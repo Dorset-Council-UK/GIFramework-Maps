@@ -777,13 +777,7 @@ export class Export {
     pageSize: PageSizeOption,
     pageOrientation: PageOrientationOption,
   ) {
-    const legendUrls = map.getLegendURLs(
-      `fontAntiAliasing:true;forceLabels:on;hideEmptyRules:true;wrap:true;wrap_limit:${
-        pageOrientation === "l"
-          ? pageSettings.landscapeKeyWrapLimit
-          : pageSettings.portraitKeyWrapLimit
-      };`,
-    );
+    const legendUrls = await map.getLegendURLs(false, 'light', pageOrientation === "l" ? pageSettings.landscapeKeyWrapLimit : pageSettings.portraitKeyWrapLimit);
     if (legend === "none" || legendUrls.availableLegends.length === 0) {
       return;
     }
@@ -1060,13 +1054,8 @@ export class Export {
 
     if (legend === "pinned-left" || legend === "float-left") {
       //does legend fit
-      const legendUrls = map.getLegendURLs(
-        `fontAntiAliasing:true;forceLabels:on;hideEmptyRules:true;wrap:true;wrap_limit:${
-          pageOrientation === "l"
-            ? pageSettings.landscapeKeyWrapLimit
-            : pageSettings.portraitKeyWrapLimit
-        };`,
-      );
+      const legendUrls = await map.getLegendURLs(false, 'light', pageOrientation === "l" ? pageSettings.landscapeKeyWrapLimit : pageSettings.portraitKeyWrapLimit);
+
       const legends = await this.getLegendImages(legendUrls);
       
       //calculate width and height required
