@@ -1,5 +1,4 @@
-﻿/* eslint-disable no-console */
-import { Feature, Map as olMap, View as olView } from "ol";
+﻿import { Feature, Map as olMap, View as olView } from "ol";
 import * as olControl from "ol/control";
 import * as olProj from "ol/proj";
 import * as olLayer from "ol/layer";
@@ -1439,7 +1438,9 @@ export class GIFWMap {
 
   /**
    * Gets all Legend URLs for layers that are legendable, and a list of layer names that are not legendable
-   * @param additionalLegendOptions Optional string of additoinal options to add to the LEGEND_OPTIONS parameter of the GetLegendGraphic request
+   * @param countMatched Set the countMatched parameter for WMS legends
+   * @param colorMode The color mode to render the legend as (dark or light)
+   * @param textWrapLimit The text wrapping limit in pixels for WMS legends
    * @returns LegendURLs
    */
   public async getLegendURLs(countMatched: boolean = true, colorMode: 'dark' | 'light', textWrapLimit?: number) {
@@ -1452,7 +1453,7 @@ export class GIFWMap {
       wmsLegendOptions += `wrap:true;wrap_limit:${textWrapLimit};`
     }
     if (colorMode === 'dark') {
-      wmsLegendOptions += "bgColor:0x212529;fontColor:0xFFFFFF";
+      wmsLegendOptions += "bgColor:0x212529;fontColor:0xFFFFFF;";
     }
 
     if (this.anyOverlaysOn()) {
@@ -1587,9 +1588,8 @@ export class GIFWMap {
                 
                 // Serialize the modified SVG
                 const svgData = new XMLSerializer().serializeToString(svgElement);
-                //const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-                //const legendDataUri = URL.createObjectURL(svgBlob);
                 const legendDataUri = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgData)))}`;
+
                 document.body.removeChild(tempContainer);
                 
                 const legendInfo = {
@@ -1608,6 +1608,7 @@ export class GIFWMap {
               legends.nonLegendableLayers.push((l.get("name") as string).trim());
             }
           } else {
+            //no style opt, might be using a default style
             legends.nonLegendableLayers.push((l.get("name") as string).trim());
           }
         } else {
@@ -1636,18 +1637,7 @@ export class GIFWMap {
       // Set text color (fill)
       textElement.setAttribute('fill', fontColor);
       
-      // You can also set other properties:
-      // textElement.setAttribute('font-style', 'normal');
-      // textElement.setAttribute('letter-spacing', '0.5');
     });
-    
-    // Optionally customize the background
-    const rect = svgElement.querySelector('rect');
-    if (rect) {
-      rect.setAttribute('fill', '#ffffff');
-      // rect.setAttribute('stroke', '#e0e0e0');
-      // rect.setAttribute('stroke-width', '1');
-    }
   }
 
   /**
@@ -1755,5 +1745,3 @@ const DEFAULT_MAX_ZOOM = 22;
 const DEFAULT_MIN_ZOOM = 0;
 const AUTH_TOKEN_REFRESH_INTERVAL = 120000; // 2 minutes
 const SMALL_MAP_WIDTH_THRESHOLD = 600;
-
-

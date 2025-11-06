@@ -1093,112 +1093,91 @@ export class Export {
   }
 
   private async loadLegendImage(legend: LegendURL): Promise<HTMLImageElement> {
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error(`Image load timeout for ${legend.name}`));
-      }, this._imageLoadTimeout);
+    const timeout = setTimeout(() => {
+      throw new Error(`Image load timeout for ${legend.name}`);
+    }, this._imageLoadTimeout);
 
-      const cleanup = () => {
-        clearTimeout(timeout);
-      };
+    const cleanup = () => {
+      clearTimeout(timeout);
+    };
 
+    try {
       // Check if it's already a data URI (e.g., from SVG legends)
       if (legend.legendUrl.startsWith('data:image/svg+xml')) {
         // SVG data URI - need to convert to PNG for jsPDF compatibility
-        const img = new Image();
-        img.onload = () => {
-          try {
-            // Convert SVG to PNG canvas
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width || 300;
-            canvas.height = img.height || 400;
-            const ctx = canvas.getContext('2d');
-            if (!ctx) {
-              cleanup();
-              reject(new Error("Failed to get canvas context"));
-              return;
-            }
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0);
-            
-            // Create new image from PNG canvas
-            const pngImg = new Image();
-            pngImg.onload = () => {
-              cleanup();
-              resolve(pngImg);
-            };
-            pngImg.onerror = () => {
-              cleanup();
-              reject(new Error("PNG conversion failed"));
-            };
-            pngImg.src = canvas.toDataURL('image/png');
-          } catch (ex) {
-            cleanup();
-            reject(ex);
-          }
-        };
-        img.onerror = () => {
-          cleanup();
-          reject(new Error("SVG load failed"));
-        };
-        img.src = legend.legendUrl;
+        const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const svgImg = new Image();
+          svgImg.onload = () => resolve(svgImg);
+          svgImg.onerror = () => reject(new Error("SVG load failed"));
+          svgImg.src = legend.legendUrl;
+        });
+
+        // Convert SVG to PNG canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width || 300;
+        canvas.height = img.height || 400;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          throw new Error("Failed to get canvas context");
+        }
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        
+        // Create new image from PNG canvas
+        const pngImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const pngImage = new Image();
+          pngImage.onload = () => resolve(pngImage);
+          pngImage.onerror = () => reject(new Error("PNG conversion failed"));
+          pngImage.src = canvas.toDataURL('image/png');
+        });
+
+        cleanup();
+        return pngImg;
       } else if (legend.legendUrl.startsWith('data:')) {
         // Other data URI formats (PNG, JPEG, etc.)
-        const img = new Image();
-        img.onload = () => {
-          cleanup();
-          resolve(img);
-        };
-        img.onerror = () => {
-          cleanup();
-          reject(new Error("Image load failed"));
-        };
-        img.src = legend.legendUrl;
+        const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const dataImg = new Image();
+          dataImg.onload = () => resolve(dataImg);
+          dataImg.onerror = () => reject(new Error("Image load failed"));
+          dataImg.src = legend.legendUrl;
+        });
+        
+        cleanup();
+        return img;
       } else {
         // For regular URLs, fetch and convert to blob
-        if (legend.headers && [...legend.headers].length > 0) {
-          //fetch with headers
-          fetch(legend.legendUrl, { method: "GET", headers: legend.headers })
-            .then(response => {
-              if (response.status !== 200) {
-                throw new Error(`Failed to load image: ${response.status}`);
-              }
-              return response.blob();
-            })
-            .then(blob => {
-              const img = new Image();
-              img.onload = () => {
-                cleanup();
-                URL.revokeObjectURL(img.src);
-                resolve(img);
-              };
-              img.onerror = () => {
-                cleanup();
-                URL.revokeObjectURL(img.src);
-                reject(new Error("Image load failed"));
-              };
-              img.src = URL.createObjectURL(blob);
-            })
-            .catch(err => {
-              cleanup();
-              reject(err);
-            });
+        if (legend.headers != null) {
+          const response = await fetch(legend.legendUrl, { method: "GET", headers: legend.headers });
+          if (response.status !== 200) {
+            throw new Error("Failed to load image");
+          }
+          const blob = await response.blob();
+          const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+            const blobImg = new Image();
+            blobImg.onload = () => resolve(blobImg);
+            blobImg.onerror = () => reject(new Error("Image load failed"));
+            blobImg.src = URL.createObjectURL(blob);
+          });
+          
+          cleanup();
+          return img;
         } else {
-          //no headers, basic src set
-          const img = new Image();
-          img.onload = () => {
-            cleanup();
-            resolve(img);
-          };
-          img.onerror = () => {
-            cleanup();
-            reject(new Error("Image load failed"));
-          };
-          img.src = legend.legendUrl;
+          const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+            const urlImg = new Image();
+            urlImg.onload = () => resolve(urlImg);
+            urlImg.onerror = () => reject(new Error("Image load failed"));
+            urlImg.src = legend.legendUrl;
+          });
+          
+          cleanup();
+          return img;
         }
       }
-    });
+    } catch (ex) {
+      cleanup();
+      throw ex;
+    }
   }
 
   /**
