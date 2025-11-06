@@ -1449,7 +1449,7 @@ export class GIFWMap {
     };
     let wmsLegendOptions = `fontAntiAliasing:true;forceLabels:on;countMatched:${countMatched};hideEmptyRules:true;`
     if (textWrapLimit != undefined) {
-      wmsLegendOptions += `wrap:true;wrap_limit=${textWrapLimit};`
+      wmsLegendOptions += `wrap:true;wrap_limit:${textWrapLimit};`
     }
     if (colorMode === 'dark') {
       wmsLegendOptions += "bgColor:0x212529;fontColor:0xFFFFFF";
