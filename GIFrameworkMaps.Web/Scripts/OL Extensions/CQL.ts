@@ -594,7 +594,7 @@ export class CQL {
           );
         }
         if (typeof value === "string") {
-          value = `'${value}'`;
+          value = `'${CQL.escapeCQLString(value)}'`;
         }
         return `${propName} ${operator} ${value}`;
       }
@@ -604,12 +604,12 @@ export class CQL {
         const lowerBoundary = (filter as IsBetween).lowerBoundary;
         let coercedLowerBoundary: string | number = lowerBoundary;
         if (typeof lowerBoundary === "string") {
-          coercedLowerBoundary = `'${lowerBoundary}'`;
+          coercedLowerBoundary = `'${CQL.escapeCQLString(lowerBoundary)}'`;
         }
         const upperBoundary = (filter as IsBetween).upperBoundary;
         let coercedUpperBoundary: string | number = upperBoundary;
         if (typeof upperBoundary === "string") {
-          coercedUpperBoundary = `'${upperBoundary}'`;
+          coercedUpperBoundary = `'${CQL.escapeCQLString(upperBoundary)}'`;
         }
 
         const propName = (filter as IsBetween).propertyName;
@@ -754,6 +754,15 @@ export class CQL {
       }
     }
     return convertedPattern;
+  }
+
+  /**
+   * Escapes single quotes in a CQL string value by doubling them
+   * @param value The string value to escape
+   * @returns The escaped string
+   */
+  private static escapeCQLString(value: string): string {
+    return value.replace(/'/g, "''");
   }
 }
 
