@@ -31,6 +31,7 @@ export class Export {
   printConfiguration: PrintConfiguration;
   _timeoutId: number;
   _maxProcessingTime: number = 60000;
+  _imageLoadTimeout: number = 30000;
   startingAttrYPosition: number;
   ONE_INCH: number =  25.4;
   DEFAULT_SCREEN_RESOLUTION: number = 96;
@@ -67,12 +68,35 @@ export class Export {
     if (abortController.signal.aborted) {
       return Promise.reject(new DOMException("Aborted", "AbortError"));
     }
-    document
-      .getElementById(map.id)
-      .dispatchEvent(new Event("gifw-draw-deactivate"));
-    document
-      .getElementById(map.id)
-      .dispatchEvent(new Event("gifw-measure-deactivate"));
+
+    // Ensure cleanup happens even if early errors occur
+    const cleanup = (success: boolean = false, keyWasMoved: boolean = false) => {
+      try {
+        window.clearTimeout(this._timeoutId);
+        this.resetMap(map, originalMapSize, viewResolution);
+        document
+          .getElementById(map.id)
+          .dispatchEvent(new CustomEvent("gifw-print-finished", {
+            detail: { success, keyWasMoved }
+          }));
+      } catch (ex) {
+        console.error("Error during print cleanup:", ex);
+      }
+    };
+
+    try {
+      document
+        .getElementById(map.id)
+        .dispatchEvent(new Event("gifw-draw-deactivate"));
+      document
+        .getElementById(map.id)
+        .dispatchEvent(new Event("gifw-measure-deactivate"));
+    } catch (ex) {
+      console.error("Error deactivating draw/measure tools:", ex);
+      cleanup(false);
+      return Promise.reject(ex);
+    }
+
     const olMap = map.olMap;
 
     const chosenPageSettings = this.pageSettings[pageSize];
@@ -106,41 +130,17 @@ export class Export {
     let keyWasMoved = false;
 
     const evt = olMap.once("rendercomplete", async () => {
-      const keyWillFit = await this.keyWillFit(
-        map,
-        pageMargin,
-        chosenPageSettings,
-        legend,
-        pageSize,
-        pageOrientation,
-      );
-
-      if (keyWillFit) {
-        await this.renderPDF(
+      try {
+        const keyWillFit = await this.keyWillFit(
           map,
-          mapWidth,
-          mapHeight,
-          width,
-          height,
-          pageOrientation,
-          pageSize,
+          pageMargin,
+          chosenPageSettings,
           legend,
-          legendMargin,
-          originalMapSize,
-          viewResolution,
+          pageSize,
+          pageOrientation,
         );
 
-        this._timeoutId = window.setTimeout(() => {
-          abortController.abort();
-        }, this._maxProcessingTime);
-      } else {
-        if (legend !== "none") {
-          legend = "separate-page";
-          legendMargin = 0;
-          keyWasMoved = true;
-        }
-        //resize the map and listen for new render event before rendering
-        const secondRenderEvt = olMap.once("rendercomplete", async () => {
+        if (keyWillFit) {
           await this.renderPDF(
             map,
             mapWidth,
@@ -153,53 +153,93 @@ export class Export {
             legendMargin,
             originalMapSize,
             viewResolution,
-            keyWasMoved,
           );
 
           this._timeoutId = window.setTimeout(() => {
             abortController.abort();
           }, this._maxProcessingTime);
-        });
-        abortController.signal.addEventListener("abort", () => {
-          window.clearTimeout(this._timeoutId);
-          olMap.removeEventListener("rendercomplete", secondRenderEvt.listener);
-          this.resetMap(map, originalMapSize, viewResolution);
-          document
-            .getElementById(map.id)
-            .dispatchEvent(new CustomEvent("gifw-print-finished"));
-        });
-        // Set print size to standard
-        legendMargin = 0;
-        const mapWidth =
-          width - ((pageMargin + legendMargin) * resolution) / this.ONE_INCH; //pixels
-        const mapHeight = height - (pageMargin * resolution) / this.ONE_INCH; // pixels
-        this.setMapSizeForPrinting(
-          olMap,
-          mapWidth,
-          mapHeight,
-          pageOrientation,
-          resolution,
-          scale,
-        );
+        } else {
+          if (legend !== "none") {
+            legend = "separate-page";
+            legendMargin = 0;
+            keyWasMoved = true;
+          }
+          //resize the map and listen for new render event before rendering
+          const secondRenderEvt = olMap.once("rendercomplete", async () => {
+            try {
+              await this.renderPDF(
+                map,
+                mapWidth,
+                mapHeight,
+                width,
+                height,
+                pageOrientation,
+                pageSize,
+                legend,
+                legendMargin,
+                originalMapSize,
+                viewResolution,
+                keyWasMoved,
+              );
+
+              this._timeoutId = window.setTimeout(() => {
+                abortController.abort();
+              }, this._maxProcessingTime);
+            } catch (ex) {
+              console.error("Error during second render:", ex);
+              cleanup(false);
+            }
+          });
+          abortController.signal.addEventListener("abort", () => {
+            window.clearTimeout(this._timeoutId);
+            olMap.removeEventListener("rendercomplete", secondRenderEvt.listener);
+            cleanup(false);
+          });
+          // Set print size to standard
+          legendMargin = 0;
+          const mapWidth =
+            width - ((pageMargin + legendMargin) * resolution) / this.ONE_INCH; //pixels
+          const mapHeight = height - (pageMargin * resolution) / this.ONE_INCH; // pixels
+          
+          try {
+            this.setMapSizeForPrinting(
+              olMap,
+              mapWidth,
+              mapHeight,
+              pageOrientation,
+              resolution,
+              scale,
+            );
+          } catch (ex) {
+            console.error("Error setting map size for printing:", ex);
+            cleanup(false);
+          }
+        }
+      } catch (ex) {
+        console.error("Error during first render:", ex);
+        cleanup(false);
       }
     });
     abortController.signal.addEventListener("abort", () => {
       window.clearTimeout(this._timeoutId);
       olMap.removeEventListener("rendercomplete", evt.listener);
-      this.resetMap(map, originalMapSize, viewResolution);
-      document
-        .getElementById(map.id)
-        .dispatchEvent(new CustomEvent("gifw-print-finished"));
+      cleanup(false);
     });
     // Set print size
-    this.setMapSizeForPrinting(
-      olMap,
-      mapWidth,
-      mapHeight,
-      pageOrientation,
-      resolution,
-      scale,
-    );
+    try {
+      this.setMapSizeForPrinting(
+        olMap,
+        mapWidth,
+        mapHeight,
+        pageOrientation,
+        resolution,
+        scale,
+      );
+    } catch (ex) {
+      console.error("Error setting initial map size:", ex);
+      cleanup(false);
+      return Promise.reject(ex);
+    }
   }
 
   private async renderPDF(
@@ -231,12 +271,26 @@ export class Export {
       mapCanvas.height = mapHeight;
       const mapContext = mapCanvas.getContext("2d");
 
+      if (!mapContext) {
+        throw new Error("Failed to get 2D context from canvas");
+      }
+
       this.createBackgroundCanvas(mapContext, width, height);
 
       const canvases: NodeListOf<HTMLCanvasElement> =
         document.querySelectorAll(".ol-layers canvas");
+      
+      if (canvases.length === 0) {
+        console.warn("No map canvases found to render");
+      }
+
       canvases.forEach((canvas) => {
-        this.createLayerCanvas(canvas, mapContext);
+        try {
+          this.createLayerCanvas(canvas, mapContext);
+        } catch (ex) {
+          console.error("Error rendering layer canvas:", ex);
+          // Continue with other layers
+        }
       });
 
       let mapStartingX = pageMargin / 2;
@@ -271,65 +325,93 @@ export class Export {
         "S",
       );
       if (legend !== "none") {
-        await this.createLegend(
-          pdf,
-          map,
-          pageMargin,
-          chosenPageSettings,
-          legend,
-          pageSize,
-          pageOrientation,
-        );
+        try {
+          await this.createLegend(
+            pdf,
+            map,
+            pageMargin,
+            chosenPageSettings,
+            legend,
+            pageSize,
+            pageOrientation,
+          );
+        } catch (ex) {
+          console.error("Error creating legend, continuing without it:", ex);
+          // Legend is optional, continue without it
+        }
       }
       pdf.setPage(1);
 
-      this.createTitleBox(pdf, pageMargin, chosenPageSettings);
+      try {
+        this.createTitleBox(pdf, pageMargin, chosenPageSettings);
+      } catch (ex) {
+        console.error("Error creating title box:", ex);
+        // Title box is important but not critical, continue
+      }
 
-      this.createCoordinatesBox(pdf, map, pageMargin, chosenPageSettings);
+      try {
+        this.createCoordinatesBox(pdf, map, pageMargin, chosenPageSettings);
+      } catch (ex) {
+        console.error("Error creating coordinates box:", ex);
+        // Coordinates are optional, continue
+      }
 
-      this.createAttributionsBox(pdf, map, pageMargin, chosenPageSettings);
+      try {
+        this.createAttributionsBox(pdf, map, pageMargin, chosenPageSettings);
+      } catch (ex) {
+        console.error("Error creating attributions box:", ex);
+        // Attributions are important but not critical
+      }
 
       const scalebarCheckbox = (document.getElementById(
         "gifw-print-scale-bar",
       ) as HTMLInputElement);
-      if (scalebarCheckbox.checked) {
+      if (scalebarCheckbox && scalebarCheckbox.checked) {
         try {
           const scaleImg = await this.getScaleLine();
-          const imgData = scaleImg;
-          this.createScalebarBox(pdf, pageMargin, imgData, this.startingAttrYPosition);
+          if (scaleImg) {
+            this.createScalebarBox(pdf, pageMargin, scaleImg, this.startingAttrYPosition);
+          }
         } catch (ex) {
           console.warn(`Getting the scaleline for a print failed.`);
           console.error(ex);
+          // Scalebar is optional, continue
         }
       }
       
       try {
         const logoResp = await this.getLogo();
-        const imgData = <string>logoResp;
-        this.createLogoBox(pdf, pageMargin, imgData);
+        if (logoResp) {
+          const imgData = <string>logoResp;
+          this.createLogoBox(pdf, pageMargin, imgData);
+        }
       } catch (ex) {
         console.warn(`Getting the logo for a print failed.`);
         console.error(ex);
+        // Logo is optional, continue
       }
 
       const northPointerCheckBox = document.getElementById(
         "gifw-print-north-pointer",
       ) as HTMLInputElement;
-      if (northPointerCheckBox.checked) {
+      if (northPointerCheckBox && northPointerCheckBox.checked) {
         try {
           const northPointerResp = await this.getNorthArrow();
-          const imgData = <string>northPointerResp;
-          await this.createNorthPointerBox(pdf, pageMargin, imgData, map);
+          if (northPointerResp) {
+            const imgData = <string>northPointerResp;
+            await this.createNorthPointerBox(pdf, pageMargin, imgData, map);
+          }
         } catch (ex) {
           console.warn(`Getting the north arrow for a print failed.`);
           console.error(ex);
+          // North arrow is optional, continue
         }
       }
 
       const timestamp = new Date().toISOString();
       const title = (
         document.getElementById("gifw-print-title") as HTMLInputElement
-      ).value;
+      )?.value || "Map";
 
       pdf.setProperties({
         title: `${title.length !== 0 ? title : "Map"}`,
@@ -342,7 +424,7 @@ export class Export {
         { returnPromise: true },
       );
     } catch (ex) {
-      console.error(ex);
+      console.error("Critical error during PDF generation:", ex);
       success = false;
     } finally {
       document.getElementById(map.id).dispatchEvent(
@@ -424,7 +506,9 @@ export class Export {
     const size = olMap.getSize();
 
     const scaleLineCtrl = olMap.getControls().getArray().filter(c => c instanceof olControl.ScaleLine);
-    (scaleLineCtrl[0] as olControl.ScaleLine).setDpi(scaleResolution);
+    if (scaleLineCtrl.length > 0) {
+      (scaleLineCtrl[0] as olControl.ScaleLine).setDpi(scaleResolution);
+    }
 
     if (isScalePrint) {
       olMap.getView().setResolution(scaleResolution);
@@ -443,9 +527,13 @@ export class Export {
    * @param viewResolution
    */
   private resetMap(map: GIFWMap, size: number[], viewResolution: number): void {
-    const olMap = map.olMap;
-    olMap.setSize(size);
-    olMap.getView().setResolution(viewResolution);
+    try {
+      const olMap = map.olMap;
+      olMap.setSize(size);
+      olMap.getView().setResolution(viewResolution);
+    } catch (ex) {
+      console.error("Error resetting map:", ex);
+    }
   }
 
   private createLayerCanvas(
@@ -484,6 +572,9 @@ export class Export {
     const backgroundCanvas: HTMLCanvasElement =
       document.createElement("canvas");
     const ctx = backgroundCanvas.getContext("2d");
+    if (!ctx) {
+      throw new Error("Failed to get 2D context for background canvas");
+    }
     backgroundCanvas.width = width;
     backgroundCanvas.height = height;
     ctx.fillStyle = "white";
@@ -505,10 +596,10 @@ export class Export {
     /*process title, subtitle and date*/
     const title = (
       document.getElementById("gifw-print-title") as HTMLInputElement
-    ).value;
+    )?.value || "";
     const subtitle = (
       document.getElementById("gifw-print-subtitle") as HTMLInputElement
-    ).value;
+    )?.value || "";
     const dateString = `Date: ${new Date().toLocaleDateString()}`;
     const maxTitleWidth =
       ((pdf.internal.pageSize.width - pageMargin * 2) / 100) * 75;
@@ -572,10 +663,10 @@ export class Export {
   ) {
     const title = (
       document.getElementById("gifw-print-title") as HTMLInputElement
-    ).value;
+    )?.value || "";
     const subtitle = (
       document.getElementById("gifw-print-subtitle") as HTMLInputElement
-    ).value;
+    )?.value || "";
     const dateString = `Date: ${new Date().toLocaleDateString()}`;
     const maxTitleWidth =
       ((pdf.internal.pageSize.width - pageMargin * 2) / 100) * 75;
@@ -724,13 +815,23 @@ export class Export {
     pageMargin: number,
     pageSettings: PDFPageSetting,
   ): void {
-    const attributionListItems: NodeListOf<HTMLLIElement> = document
-      .getElementById(map.id)
-      .querySelectorAll(".ol-attribution ul li");
+    const mapElement = document.getElementById(map.id);
+    if (!mapElement) {
+      console.warn("Map element not found for attributions");
+      return;
+    }
+
+    const attributionListItems: NodeListOf<HTMLLIElement> = 
+      mapElement.querySelectorAll(".ol-attribution ul li");
     let attributionText: string = "";
     attributionListItems.forEach((attr) => {
       attributionText += `${attr.innerText} `;
     });
+
+    if (attributionText.trim() === "") {
+      return;
+    }
+
     pdf.setFontSize(pageSettings.attributionFontSize);
     const maxAttrWidth =
       ((pdf.internal.pageSize.width - pageMargin * 2) / 100) * 75;
@@ -777,54 +878,120 @@ export class Export {
     pageSize: PageSizeOption,
     pageOrientation: PageOrientationOption,
   ) {
-    const legendUrls = await map.getLegendURLs(false, 'light', pageOrientation === "l" ? pageSettings.landscapeKeyWrapLimit : pageSettings.portraitKeyWrapLimit);
-    if (legend === "none" || legendUrls.availableLegends.length === 0) {
-      return;
-    }
-    //get images
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const startingX = pageMargin / 2;
-    let startingY = pageMargin / 2;
-    let currentX = 0;
-    let currentY = 0;
-    let maxWidth = 0;
-    let rectangleWidth = 0;
-    let rectangleHeight = 0;
-    const legends = await this.getLegendImages(legendUrls);
-    const requiredTitleBoxDims = this.getTitleBoxRequiredDimensions(
-      pdf,
-      pageMargin,
-      pageSettings,
-    );
-    switch (legend) {
-      case "pinned-left":
-        pdf.setFontSize(pageSettings.titleFontSize);
-        rectangleHeight = pageHeight - pageMargin;
-        rectangleWidth =
-          pageOrientation === "l"
-            ? pageSettings.inlineLegendLandscapeMaxWidth
-            : pageSettings.inlineLegendPortraitMaxWidth;
-        pdf.setFillColor(255, 255, 255);
-        pdf.setDrawColor(0, 0, 0);
-        pdf.rect(startingX, startingY, rectangleWidth, rectangleHeight, "S");
-        pdf.setFontSize(pageSettings.titleFontSize);
-        pdf.text(
-          "Map Key",
-          pageMargin / 2 + 2,
-          pageMargin / 2 + requiredTitleBoxDims.TotalHeight + 2,
-          { baseline: "top" },
-        );
+    try {
+      const legendUrls = await map.getLegendURLs(false, 'light', pageOrientation === "l" ? pageSettings.landscapeKeyWrapLimit : pageSettings.portraitKeyWrapLimit);
+      if (legend === "none" || legendUrls.availableLegends.length === 0) {
+        return;
+      }
+      //get images
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const startingX = pageMargin / 2;
+      let startingY = pageMargin / 2;
+      let currentX = 0;
+      let currentY = 0;
+      let maxWidth = 0;
+      let rectangleWidth = 0;
+      let rectangleHeight = 0;
+      const legends = await this.getLegendImages(legendUrls);
+      
+      if (legends.length === 0) {
+        console.warn("No legend images could be loaded");
+        return;
+      }
 
-        startingY =
-          pageMargin / 2 +
-          pdf.getTextDimensions("Map Key").h +
-          7.5 +
-          requiredTitleBoxDims.TotalHeight;
-        currentX = startingX;
-        currentY = startingY;
-        pdf.setFontSize(pageSettings.subtitleFontSize);
-        legends.forEach((legend) => {
+      const requiredTitleBoxDims = this.getTitleBoxRequiredDimensions(
+        pdf,
+        pageMargin,
+        pageSettings,
+      );
+      switch (legend) {
+        case "pinned-left":
+          pdf.setFontSize(pageSettings.titleFontSize);
+          rectangleHeight = pageHeight - pageMargin;
+          rectangleWidth =
+            pageOrientation === "l"
+              ? pageSettings.inlineLegendLandscapeMaxWidth
+              : pageSettings.inlineLegendPortraitMaxWidth;
+          pdf.setFillColor(255, 255, 255);
+          pdf.setDrawColor(0, 0, 0);
+          pdf.rect(startingX, startingY, rectangleWidth, rectangleHeight, "S");
+          pdf.setFontSize(pageSettings.titleFontSize);
+          pdf.text(
+            "Map Key",
+            pageMargin / 2 + 2,
+            pageMargin / 2 + requiredTitleBoxDims.TotalHeight + 2,
+            { baseline: "top" },
+          );
+
+          startingY =
+            pageMargin / 2 +
+            pdf.getTextDimensions("Map Key").h +
+            7.5 +
+            requiredTitleBoxDims.TotalHeight;
+          currentX = startingX;
+          currentY = startingY;
+          pdf.setFontSize(pageSettings.subtitleFontSize);
+          legends.forEach((legend) => {
+              const layerName = legend[0];
+              const layerNameWidth = pdf.getTextDimensions(layerName).w;
+              const img = legend[1];
+              const imgProps = pdf.getImageProperties(img);
+              const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+              const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+              pdf.text(layerName, currentX + 2, currentY);
+              currentY += pdf.getTextDimensions(layerName).h;
+              pdf.addImage(img, currentX + 2, currentY, widthInMM, heightInMM, undefined, 'FAST');
+              if (widthInMM > maxWidth) maxWidth = widthInMM;
+              if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
+              currentY += heightInMM + 7.5;
+          });
+          break;
+        case "float-left":
+          pdf.setFontSize(pageSettings.titleFontSize);
+          rectangleHeight = pdf.getTextDimensions("Map key").h;
+
+          /*get max width required*/
+          legends.forEach((legend) => {
+            const layerName = legend[0];
+            const layerNameWidth = pdf.getTextDimensions(layerName).w;
+            const layerNameHeight = pdf.getTextDimensions(layerName).h;
+            const img = legend[1];
+            const imgProps = pdf.getImageProperties(img);
+            const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+            const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+            rectangleHeight += layerNameHeight + heightInMM + 8;
+            if (widthInMM > rectangleWidth) rectangleWidth = widthInMM + 3;
+            if (layerNameWidth > rectangleWidth)
+              rectangleWidth = layerNameWidth + 3;
+          });
+          pdf.setFillColor(255, 255, 255);
+          pdf.setDrawColor(0, 0, 0);
+          pdf.rect(
+            startingX,
+            startingY + requiredTitleBoxDims.TotalHeight,
+            rectangleWidth,
+            rectangleHeight,
+            "DF",
+          );
+
+          pdf.setFontSize(pageSettings.titleFontSize);
+          pdf.text(
+            "Map Key",
+            pageMargin / 2 + 2,
+            pageMargin / 2 + requiredTitleBoxDims.TotalHeight + 2,
+            { baseline: "top" },
+          );
+
+          startingY =
+            pageMargin / 2 +
+            pdf.getTextDimensions("Map Key").h +
+            7.5 +
+            requiredTitleBoxDims.TotalHeight;
+          currentX = startingX;
+          currentY = startingY;
+          pdf.setFontSize(pageSettings.subtitleFontSize);
+          legends.forEach((legend) => {
             const layerName = legend[0];
             const layerNameWidth = pdf.getTextDimensions(layerName).w;
             const img = legend[1];
@@ -837,129 +1004,74 @@ export class Export {
             if (widthInMM > maxWidth) maxWidth = widthInMM;
             if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
             currentY += heightInMM + 7.5;
-        });
-        break;
-      case "float-left":
-        pdf.setFontSize(pageSettings.titleFontSize);
-        rectangleHeight = pdf.getTextDimensions("Map key").h;
+          });
 
-        /*get max width required*/
-        legends.forEach((legend) => {
-          const layerName = legend[0];
-          const layerNameWidth = pdf.getTextDimensions(layerName).w;
-          const layerNameHeight = pdf.getTextDimensions(layerName).h;
-          const img = legend[1];
-          const imgProps = pdf.getImageProperties(img);
-          const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
-          const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
-          rectangleHeight += layerNameHeight + heightInMM + 8;
-          if (widthInMM > rectangleWidth) rectangleWidth = widthInMM + 3;
-          if (layerNameWidth > rectangleWidth)
-            rectangleWidth = layerNameWidth + 3;
-        });
-        pdf.setFillColor(255, 255, 255);
-        pdf.setDrawColor(0, 0, 0);
-        pdf.rect(
-          startingX,
-          startingY + requiredTitleBoxDims.TotalHeight,
-          rectangleWidth,
-          rectangleHeight,
-          "DF",
-        );
+          break;
+        case "separate-page":
+          pdf.addPage(pageSize, pageOrientation);
+          pdf.setFontSize(pageSettings.standaloneLegendTitleFontSize);
+          pdf.text("Map Key", pageMargin / 2, pageMargin / 2 + 3);
 
-        pdf.setFontSize(pageSettings.titleFontSize);
-        pdf.text(
-          "Map Key",
-          pageMargin / 2 + 2,
-          pageMargin / 2 + requiredTitleBoxDims.TotalHeight + 2,
-          { baseline: "top" },
-        );
+          startingY = pageMargin / 2 + pdf.getTextDimensions("Map Key").h + 7.5;
+          currentX = startingX;
+          currentY = startingY;
+          pdf.setFontSize(pageSettings.titleFontSize);
+          legends.forEach((legend) => {
+            const layerName = legend[0];
+            const layerNameWidth = pdf.getTextDimensions(layerName).w;
+            const img = legend[1];
+            const imgProps = pdf.getImageProperties(img);
+            let widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+            let heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+            if (
+              currentY + heightInMM + pdf.getTextDimensions(layerName).h >=
+              pageHeight - pageMargin
+            ) {
+              currentX = pageMargin / 2 + maxWidth + 7.5;
+              currentY = startingY;
+            }
 
-        startingY =
-          pageMargin / 2 +
-          pdf.getTextDimensions("Map Key").h +
-          7.5 +
-          requiredTitleBoxDims.TotalHeight;
-        currentX = startingX;
-        currentY = startingY;
-        pdf.setFontSize(pageSettings.subtitleFontSize);
-        legends.forEach((legend) => {
-          const layerName = legend[0];
-          const layerNameWidth = pdf.getTextDimensions(layerName).w;
-          const img = legend[1];
-          const imgProps = pdf.getImageProperties(img);
-          const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
-          const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
-          pdf.text(layerName, currentX + 2, currentY);
-          currentY += pdf.getTextDimensions(layerName).h;
-          pdf.addImage(img, currentX + 2, currentY, widthInMM, heightInMM, undefined, 'FAST');
-          if (widthInMM > maxWidth) maxWidth = widthInMM;
-          if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
-          currentY += heightInMM + 7.5;
-        });
+            if (widthInMM > pageWidth - pageMargin) {
+              //key is wider than page.
+              const originalWidth = widthInMM;
+              widthInMM = pageWidth - pageMargin - startingX;
+              const scaleRatio = widthInMM / originalWidth;
+              heightInMM = heightInMM * scaleRatio;
+            }
+            if (heightInMM > pageHeight - pageMargin) {
+              //key is taller than page
+              const originalHeight = heightInMM;
+              heightInMM = pageHeight - pageMargin - startingY;
+              const scaleRatio = heightInMM / originalHeight;
+              widthInMM = widthInMM * scaleRatio;
+            }
 
-        break;
-      case "separate-page":
-        pdf.addPage(pageSize, pageOrientation);
-        pdf.setFontSize(pageSettings.standaloneLegendTitleFontSize);
-        pdf.text("Map Key", pageMargin / 2, pageMargin / 2 + 3);
-
-        startingY = pageMargin / 2 + pdf.getTextDimensions("Map Key").h + 7.5;
-        currentX = startingX;
-        currentY = startingY;
-        pdf.setFontSize(pageSettings.titleFontSize);
-        legends.forEach((legend) => {
-          const layerName = legend[0];
-          const layerNameWidth = pdf.getTextDimensions(layerName).w;
-          const img = legend[1];
-          const imgProps = pdf.getImageProperties(img);
-          let widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
-          let heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
-          if (
-            currentY + heightInMM + pdf.getTextDimensions(layerName).h >=
-            pageHeight - pageMargin
-          ) {
-            currentX = pageMargin / 2 + maxWidth + 7.5;
-            currentY = startingY;
-          }
-
-          if (widthInMM > pageWidth - pageMargin) {
-            //key is wider than page.
-            const originalWidth = widthInMM;
-            widthInMM = pageWidth - pageMargin - startingX;
-            const scaleRatio = widthInMM / originalWidth;
-            heightInMM = heightInMM * scaleRatio;
-          }
-          if (heightInMM > pageHeight - pageMargin) {
-            //key is taller than page
-            const originalHeight = heightInMM;
-            heightInMM = pageHeight - pageMargin - startingY;
-            const scaleRatio = heightInMM / originalHeight;
-            widthInMM = widthInMM * scaleRatio;
-          }
-
-          if (
-            widthInMM + currentX > pageWidth - pageMargin ||
-            layerNameWidth + currentX > pageWidth - pageMargin
-          ) {
-            //key or title would overflow page edge
-            //add to new page
-            pdf.addPage(pageSize, pageOrientation);
-            pdf.setFontSize(pageSettings.standaloneLegendTitleFontSize);
-            pdf.text("Map Key (cont.)", pageMargin / 2, pageMargin / 2 + 3);
-            pdf.setFontSize(pageSettings.titleFontSize);
-            currentX = startingX;
-            currentY = startingY;
-            maxWidth = 0;
-          }
-          pdf.text(layerName, currentX, currentY);
-          currentY += pdf.getTextDimensions(layerName).h;
-          pdf.addImage(img, currentX, currentY, widthInMM, heightInMM, undefined, 'FAST');
-          if (widthInMM > maxWidth) maxWidth = widthInMM;
-          if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
-          currentY += heightInMM + 7.5;
-        });
-        break;
+            if (
+              widthInMM + currentX > pageWidth - pageMargin ||
+              layerNameWidth + currentX > pageWidth - pageMargin
+            ) {
+              //key or title would overflow page edge
+              //add to new page
+              pdf.addPage(pageSize, pageOrientation);
+              pdf.setFontSize(pageSettings.standaloneLegendTitleFontSize);
+              pdf.text("Map Key (cont.)", pageMargin / 2, pageMargin / 2 + 3);
+              pdf.setFontSize(pageSettings.titleFontSize);
+              currentX = startingX;
+              currentY = startingY;
+              maxWidth = 0;
+            }
+            pdf.text(layerName, currentX, currentY);
+            currentY += pdf.getTextDimensions(layerName).h;
+            pdf.addImage(img, currentX, currentY, widthInMM, heightInMM, undefined, 'FAST');
+            if (widthInMM > maxWidth) maxWidth = widthInMM;
+            if (layerNameWidth > maxWidth) maxWidth = layerNameWidth;
+            currentY += heightInMM + 7.5;
+          });
+          break;
+      }
+    } catch (ex) {
+      console.error("Error creating legend:", ex);
+      throw ex;
     }
   }
 
@@ -968,67 +1080,168 @@ export class Export {
     for (const legend of legendUrls.availableLegends) {
       try {
         const img = await this.loadLegendImage(legend);
-        if (img.width < 5) {
-          // Optionally skip or handle "no legend" case
-          continue;
+        if (img && img.width >= 5) {
+          results.push([legend.name, img]);
         }
-        results.push([legend.name, img]);
       } catch (ex) {
-        console.warn(`Getting a legend image failed.`);
+        console.warn(`Getting a legend image failed for ${legend.name}`);
         console.error(ex);
+        // Continue with other legends
       }
     }
     return results;
   }
 
   private async loadLegendImage(legend: LegendURL): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error(`Image load timeout for ${legend.name}`));
+      }, this._imageLoadTimeout);
 
-    if (legend.headers != null) {
-      const response = await fetch(legend.legendUrl, { method: "GET", headers: legend.headers });
-      if (response.status !== 200) throw new Error("Failed to load image");
-      const blob = await response.blob();
-      return new Promise((resolve, reject) => {
+      const cleanup = () => {
+        clearTimeout(timeout);
+      };
+
+      // Check if it's already a data URI (e.g., from SVG legends)
+      if (legend.legendUrl.startsWith('data:image/svg+xml')) {
+        // SVG data URI - need to convert to PNG for jsPDF compatibility
         const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = () => reject("Image load failed");
-        img.src = URL.createObjectURL(blob);
-      });
-    } else {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = () => reject("Image load failed");
+        img.onload = () => {
+          try {
+            // Convert SVG to PNG canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width || 300;
+            canvas.height = img.height || 400;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+              cleanup();
+              reject(new Error("Failed to get canvas context"));
+              return;
+            }
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            
+            // Create new image from PNG canvas
+            const pngImg = new Image();
+            pngImg.onload = () => {
+              cleanup();
+              resolve(pngImg);
+            };
+            pngImg.onerror = () => {
+              cleanup();
+              reject(new Error("PNG conversion failed"));
+            };
+            pngImg.src = canvas.toDataURL('image/png');
+          } catch (ex) {
+            cleanup();
+            reject(ex);
+          }
+        };
+        img.onerror = () => {
+          cleanup();
+          reject(new Error("SVG load failed"));
+        };
         img.src = legend.legendUrl;
-      });
-    }
-    
+      } else if (legend.legendUrl.startsWith('data:')) {
+        // Other data URI formats (PNG, JPEG, etc.)
+        const img = new Image();
+        img.onload = () => {
+          cleanup();
+          resolve(img);
+        };
+        img.onerror = () => {
+          cleanup();
+          reject(new Error("Image load failed"));
+        };
+        img.src = legend.legendUrl;
+      } else {
+        // For regular URLs, fetch and convert to blob
+        if (legend.headers && [...legend.headers].length > 0) {
+          //fetch with headers
+          fetch(legend.legendUrl, { method: "GET", headers: legend.headers })
+            .then(response => {
+              if (response.status !== 200) {
+                throw new Error(`Failed to load image: ${response.status}`);
+              }
+              return response.blob();
+            })
+            .then(blob => {
+              const img = new Image();
+              img.onload = () => {
+                cleanup();
+                URL.revokeObjectURL(img.src);
+                resolve(img);
+              };
+              img.onerror = () => {
+                cleanup();
+                URL.revokeObjectURL(img.src);
+                reject(new Error("Image load failed"));
+              };
+              img.src = URL.createObjectURL(blob);
+            })
+            .catch(err => {
+              cleanup();
+              reject(err);
+            });
+        } else {
+          //no headers, basic src set
+          const img = new Image();
+          img.onload = () => {
+            cleanup();
+            resolve(img);
+          };
+          img.onerror = () => {
+            cleanup();
+            reject(new Error("Image load failed"));
+          };
+          img.src = legend.legendUrl;
+        }
+      }
+    });
   }
 
   /**
    * Gets the logo defined in the print configuration and converts it to a base64 string
    * */
-  private async getLogo(): Promise<string | ArrayBuffer> {
-    const resp = await fetch(this.printConfiguration.logoURL);
-    if (resp.ok) {
-      const blobImg = await resp.blob();
+  private async getLogo(): Promise<string | ArrayBuffer | null> {
+    try {
+      if (!this.printConfiguration.logoURL) {
+        return null;
+      }
 
-      return this.blobToBase64(blobImg);
-    } else {
-      throw Error("There was a network error.");
+      const resp = await fetch(this.printConfiguration.logoURL);
+      if (resp.ok) {
+        const blobImg = await resp.blob();
+        return this.blobToBase64(blobImg);
+      } else {
+        throw new Error(`Network error: ${resp.status}`);
+      }
+    } catch (ex) {
+      console.error("Error loading logo:", ex);
+      throw ex;
     }
   }
 
   /**
    * Gets the north pointer defined in the print configuration and converts it to a base64 string
    * */
-  private async getNorthArrow(): Promise<string | ArrayBuffer> {
-    const resp = await fetch(this.printConfiguration.northArrowURL);
-    if (resp.ok) {
-      const blobImg = await resp.blob();
+  private async getNorthArrow(): Promise<string | ArrayBuffer | null> {
+    try {
+      if (!this.printConfiguration.northArrowURL) {
+        return null;
+      }
 
-      return this.blobToBase64(blobImg);
-    } else {
-      throw Error("There was a network error.");
+      const resp = await fetch(this.printConfiguration.northArrowURL);
+      if (resp.ok) {
+        const blobImg = await resp.blob();
+        return this.blobToBase64(blobImg);
+      } else {
+        throw new Error(`Network error: ${resp.status}`);
+      }
+    } catch (ex) {
+      console.error("Error loading north arrow:", ex);
+      throw ex;
     }
   }
 
@@ -1039,67 +1252,77 @@ export class Export {
     legend: LegendPositioningOption,
     pageSize: PageSizeOption,
     pageOrientation: PageOrientationOption,
-  ) {
-    if (legend === "none" || legend === "separate-page") {
-      return true;
-    }
+  ): Promise<boolean> {
+    try {
+      if (legend === "none" || legend === "separate-page") {
+        return true;
+      }
 
-    const pdf = new jsPDF({
-      orientation: pageOrientation,
-      unit: "mm",
-      format: pageSize,
-    });
-
-    const pageHeight = pdf.internal.pageSize.getHeight();
-
-    if (legend === "pinned-left" || legend === "float-left") {
-      //does legend fit
-      const legendUrls = await map.getLegendURLs(false, 'light', pageOrientation === "l" ? pageSettings.landscapeKeyWrapLimit : pageSettings.portraitKeyWrapLimit);
-
-      const legends = await this.getLegendImages(legendUrls);
-      
-      //calculate width and height required
-      pdf.setFontSize(pageSettings.titleFontSize);
-      let totalRequiredHeight = pdf.getTextDimensions("Map key").h;
-      let totalRequiredWidth = pdf.getTextDimensions("Map key").w;
-      pdf.setFontSize(pageSettings.subtitleFontSize);
-      legends.forEach((legend) => {
-        const layerName = legend[0];
-        const layerNameWidth = pdf.getTextDimensions(layerName).w;
-        const layerNameHeight = pdf.getTextDimensions(layerName).h;
-        totalRequiredHeight += layerNameHeight;
-        if (totalRequiredWidth < layerNameWidth)
-          totalRequiredWidth = layerNameWidth;
-
-        const img = legend[1];
-        const imgProps = pdf.getImageProperties(img);
-        const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
-        const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
-
-        totalRequiredHeight += heightInMM;
-        if (totalRequiredWidth < widthInMM) totalRequiredWidth = widthInMM;
+      const pdf = new jsPDF({
+        orientation: pageOrientation,
+        unit: "mm",
+        format: pageSize,
       });
 
-      const requiredTitleBoxDims = this.getTitleBoxRequiredDimensions(
-        pdf,
-        pageMargin,
-        pageSettings,
-      );
-      if (
-        totalRequiredHeight >
-        pageHeight - pageMargin - requiredTitleBoxDims.TotalHeight
-      ) {
-        return false;
-      }
-      if (
-        totalRequiredWidth >
-        (pageOrientation === "l"
-          ? pageSettings.inlineLegendLandscapeMaxWidth
-          : pageSettings.inlineLegendPortraitMaxWidth)
-      ) {
-        return false;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      if (legend === "pinned-left" || legend === "float-left") {
+        //does legend fit
+        const legendUrls = await map.getLegendURLs(false, 'light', pageOrientation === "l" ? pageSettings.landscapeKeyWrapLimit : pageSettings.portraitKeyWrapLimit);
+
+        const legends = await this.getLegendImages(legendUrls);
+        
+        if (legends.length === 0) {
+          return true; // No legends to fit
+        }
+
+        //calculate width and height required
+        pdf.setFontSize(pageSettings.titleFontSize);
+        let totalRequiredHeight = pdf.getTextDimensions("Map key").h;
+        let totalRequiredWidth = pdf.getTextDimensions("Map key").w;
+        pdf.setFontSize(pageSettings.subtitleFontSize);
+        legends.forEach((legend) => {
+          const layerName = legend[0];
+          const layerNameWidth = pdf.getTextDimensions(layerName).w;
+          const layerNameHeight = pdf.getTextDimensions(layerName).h;
+          totalRequiredHeight += layerNameHeight;
+          if (totalRequiredWidth < layerNameWidth)
+            totalRequiredWidth = layerNameWidth;
+
+          const img = legend[1];
+          const imgProps = pdf.getImageProperties(img);
+          const widthInMM = (imgProps.width * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+          const heightInMM = (imgProps.height * this.ONE_INCH) / this.DEFAULT_SCREEN_RESOLUTION;
+
+          totalRequiredHeight += heightInMM;
+          if (totalRequiredWidth < widthInMM) totalRequiredWidth = widthInMM;
+        });
+
+        const requiredTitleBoxDims = this.getTitleBoxRequiredDimensions(
+          pdf,
+          pageMargin,
+          pageSettings,
+        );
+        if (
+          totalRequiredHeight >
+          pageHeight - pageMargin - requiredTitleBoxDims.TotalHeight
+        ) {
+          return false;
+        }
+        if (
+          totalRequiredWidth >
+          (pageOrientation === "l"
+            ? pageSettings.inlineLegendLandscapeMaxWidth
+            : pageSettings.inlineLegendPortraitMaxWidth)
+        ) {
+          return false;
+        }
+        return true;
       }
       return true;
+    } catch (ex) {
+      console.error("Error checking if key will fit:", ex);
+      return false; // If we can't determine, assume it won't fit
     }
   }
 
@@ -1110,9 +1333,16 @@ export class Export {
    * @author https://stackoverflow.com/a/18650249/863487
    */
   private blobToBase64(blob: Blob): Promise<string | ArrayBuffer> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
+      reader.onloadend = () => {
+        if (reader.result) {
+          resolve(reader.result);
+        } else {
+          reject(new Error("Failed to convert blob to base64"));
+        }
+      };
+      reader.onerror = () => reject(reader.error);
       reader.readAsDataURL(blob);
     });
   }
@@ -1158,16 +1388,31 @@ export class Export {
    * that adjust the size of the canvas selected to make sure to include the scale numbers and text properly.
    * @returns
    */
-  private async getScaleLine() {
-    const scalelineData: HTMLElement = document.querySelector("div.ol-scale-line");
+  private async getScaleLine(): Promise<string | null> {
+    try {
+      const scalelineData: HTMLElement = document.querySelector("div.ol-scale-line");
 
-    if (scalelineData != null) {
-      const canvas = await html2canvas(scalelineData, { backgroundColor: null });
-      return canvas.toDataURL('image/png');
-    } else {
-      const scalelineData: HTMLElement = document.querySelector("div.ol-scale-bar");
-      const canvas = await html2canvas(scalelineData, { backgroundColor: null, width: scalelineData.clientWidth + 20, height: scalelineData.clientHeight + 20, x: -5, y: -1 });
-      return canvas.toDataURL('image/png');
+      if (scalelineData != null) {
+        const canvas = await html2canvas(scalelineData, { backgroundColor: null });
+        return canvas.toDataURL('image/png');
+      } else {
+        const scalebarData: HTMLElement = document.querySelector("div.ol-scale-bar");
+        if (scalebarData != null) {
+          const canvas = await html2canvas(scalebarData, { 
+            backgroundColor: null, 
+            width: scalebarData.clientWidth + 20, 
+            height: scalebarData.clientHeight + 20, 
+            x: -5, 
+            y: -1 
+          });
+          return canvas.toDataURL('image/png');
+        }
+      }
+      console.warn("No scale line or scale bar element found");
+      return null;
+    } catch (ex) {
+      console.error("Error capturing scale line:", ex);
+      throw ex;
     }
   }
 
@@ -1182,7 +1427,7 @@ export class Export {
     const imgProps = pdf.getImageProperties(imgData);
     const printResolution = parseInt(
       (document.getElementById("gifw-print-resolution") as HTMLSelectElement)
-        .value,
+        ?.value || "200",
     );
     const newWidth = (imgProps.width) * this.ONE_INCH / printResolution;
     const newHeight = (imgProps.height) * this.ONE_INCH / printResolution;
@@ -1275,17 +1520,34 @@ export class Export {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-      const img = new Image();
-      img.onload = () => {
-        canvas.width = degrees % 180 === 0 ? img.width : img.height;
-        canvas.height = degrees % 180 === 0 ? img.height : img.width;
+      if (!ctx) {
+        reject(new Error("Failed to get canvas context"));
+        return;
+      }
 
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate((degrees * Math.PI) / -180);
-        ctx.drawImage(img, img.width / -2, img.height / -2);
-        resolve(canvas.toDataURL());
+      const img = new Image();
+      const timeout = setTimeout(() => {
+        reject(new Error("Image rotation timeout"));
+      }, this._imageLoadTimeout);
+
+      img.onload = () => {
+        clearTimeout(timeout);
+        try {
+          canvas.width = degrees % 180 === 0 ? img.width : img.height;
+          canvas.height = degrees % 180 === 0 ? img.height : img.width;
+
+          ctx.translate(canvas.width / 2, canvas.height / 2);
+          ctx.rotate((degrees * Math.PI) / -180);
+          ctx.drawImage(img, img.width / -2, img.height / -2);
+          resolve(canvas.toDataURL());
+        } catch (ex) {
+          reject(ex);
+        }
       };
-      img.onerror = reject;
+      img.onerror = () => {
+        clearTimeout(timeout);
+        reject(new Error("Image load failed during rotation"));
+      };
       img.src = srcBase64;
     });
   }
