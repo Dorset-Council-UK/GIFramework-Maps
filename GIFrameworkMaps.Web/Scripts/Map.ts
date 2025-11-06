@@ -1587,9 +1587,9 @@ export class GIFWMap {
                 
                 // Serialize the modified SVG
                 const svgData = new XMLSerializer().serializeToString(svgElement);
-                const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-                const legendDataUri = URL.createObjectURL(svgBlob);
-                
+                //const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                //const legendDataUri = URL.createObjectURL(svgBlob);
+                const legendDataUri = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgData)))}`;
                 document.body.removeChild(tempContainer);
                 
                 const legendInfo = {
