@@ -495,15 +495,23 @@ export class GIFWMap {
     projectionInfo: ProjectionInfo,
     permalinkParams: Record<string, string>
   ): Promise<void> {
-    const startBasemap = this.config.basemaps.find((b) => b.isDefault);
+    if (this.getActiveBasemap() !== undefined) {
+      const startBasemap = this.config.basemaps.find((b) => b.isDefault);
+      // Set starting saturation of basemap
+      if (startBasemap && startBasemap.defaultSaturation !== 100) {
+        this.setInitialSaturationOfBasemap(startBasemap.defaultSaturation);
+      }
+    } else {
+      //there was some sort of problem, and there is currently no active basemap.
+      //Switch on the first basemap in the list
+      console.warn("The intended start basemap could not be found, switching to first in group");
+      const baseGroup = this.getLayerGroupOfType(LayerGroupType.Basemap).olLayerGroup;
+      const defaultBasemap = baseGroup.getLayersArray()[0];
+      defaultBasemap.setVisible(true);
+    }
+    
     const viewParams = this.parseViewParameters(permalinkParams);
     const { overrideDefaultLayers, permalinkEnabledLayers } = this.processPermalinkLayerSettings(permalinkParams);
-
-    // Set starting saturation of basemap
-    if (startBasemap && startBasemap.defaultSaturation !== 100) {
-      this.setInitialSaturationOfBasemap(startBasemap.defaultSaturation);
-    }
-
     // Set starting saturation and style of layers
     if (this.anyOverlaysOn()) {
       const layerGroup = this.getLayerGroupOfType(LayerGroupType.Overlay);
