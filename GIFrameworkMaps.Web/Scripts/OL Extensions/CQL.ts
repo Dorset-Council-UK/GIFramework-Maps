@@ -499,7 +499,8 @@ export class CQL {
           case "VALUE": {
             const num = parseFloat(token.text);
             if (isNaN(num)) {
-              return token.text.replace(/['"]/g, "");
+              const stringValue = token.text.replace(/['"]/g, "");
+              return CQL.unescapeCQLString(stringValue);
             } else {
               return num;
             }
@@ -763,6 +764,15 @@ export class CQL {
    */
   private static escapeCQLString(value: string): string {
     return value.replace(/'/g, "''");
+  }
+
+  /**
+   * Unescapes doubled single quotes in a CQL string value back to single quotes
+   * @param value The string value to unescape
+   * @returns The unescaped string
+   */
+  private static unescapeCQLString(value: string): string {
+    return value.replace(/''/g, "'");
   }
 }
 
