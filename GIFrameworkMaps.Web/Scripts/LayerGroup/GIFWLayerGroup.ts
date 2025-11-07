@@ -740,23 +740,25 @@ export class GIFWLayerGroup implements LayerGroup {
     try {
       const parser = new OpenLayersParser();
       let styleJson = styleOpt;
-      if (styleOpt.startsWith('https://')) {
-        //we need to fetch the style first
-        const resp = await fetch(styleOpt);
-        if (resp.ok) {
-          styleJson = await resp.text();
-        } else {
-          //err
-          throw new DOMException("Could not fetch style");
+      if (styleOpt) {
+        if (styleOpt.startsWith('https://')) {
+          //we need to fetch the style first
+          const resp = await fetch(styleOpt);
+          if (resp.ok) {
+            styleJson = await resp.text();
+          } else {
+            //err
+            throw new DOMException("Could not fetch style");
+          }
         }
-      }
-      const jsonStyle = JSON.parse(styleJson);
-      if (jsonStyle !== null) {
-        parser
-          .writeStyle(jsonStyle)
-          .then(({ output: olStyle }) => vector.setStyle(olStyle));
-      } else {
-        vector.setStyle();
+        const jsonStyle = JSON.parse(styleJson);
+        if (jsonStyle !== null) {
+          parser
+            .writeStyle(jsonStyle)
+            .then(({ output: olStyle }) => vector.setStyle(olStyle));
+        } else {
+          vector.setStyle();
+        }
       }
     } catch (ex) {
       console.warn('Style could not be set on layer', ex);
