@@ -98,6 +98,9 @@ export class GIFWMap {
   )[] = [];
   private delayPermalinkUpdate: DebouncedFunc<() => void>;
 
+  // Cache for vector legends - keyed by layer ID and color mode
+  private vectorLegendCache: Map<string, string> = new Map();
+
   // Cache frequently accessed DOM elements
   private readonly mapElement: HTMLElement;
   private readonly leftSidebarElement: HTMLElement;
@@ -1544,71 +1547,103 @@ export class GIFWMap {
         } else if (source instanceof VectorSource) {
           //get style option from layer
           const layerId = l.get("layerId");
-          const layer = this.getLayerConfigById(layerId);
-          const styleOpt = getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "style");
-          
-          if (styleOpt) {
-            try {
-              const parsedStyle = JSON.parse(styleOpt);
-              
-              // Create a temporary container div for the legend renderer
-              const tempContainer = document.createElement('div');
-              tempContainer.style.position = 'absolute';
-              tempContainer.style.left = '-9999px';
-              tempContainer.style.top = '-9999px';
-              tempContainer.style.width = '600px';
-              tempContainer.style.background = 'white';
-              document.body.appendChild(tempContainer);
+          const layer = this.getLayerConfigById(layerId, [LayerGroupType.Overlay]);
+          if (layer) {
+            const cacheKey = `${layerId}-${colorMode}`;
 
-              // Use large initial size to accommodate all content
-              const legendRenderer = new LegendRenderer({
-                maxColumnWidth: 600,
-                maxColumnHeight: 1000,
-                overflow: 'auto',
-                styles: [parsedStyle],
-                size: [600, 1000],
-                iconSize: [20, 20],
-                legendItemTextSize: 14,
-                hideRect: true
-              });
-              
-              await legendRenderer.render(tempContainer);
-               
-              // Check if we have any SVG content
-              const svgElements = tempContainer.getElementsByTagName('svg');
-              
-              if (svgElements.length > 0) {
-                const svgElement = svgElements[0];
-                
-                // Customize the SVG text elements
-                this.customizeLegendSVG(svgElement, colorMode === 'dark' ? '#ffffff' :'#000000');
-                
-                // Resize SVG to actual content size
-                this.resizeSVGToContent(svgElement);
-                
-                // Serialize the modified SVG
-                const svgData = new XMLSerializer().serializeToString(svgElement);
-                const legendDataUri = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgData)))}`;
+            // Check cache first
+            if (this.vectorLegendCache.has(cacheKey)) {
+              const legendInfo = {
+                name: (l.get("name") as string).trim(),
+                legendUrl: this.vectorLegendCache.get(cacheKey),
+                headers: new Headers(),
+              };
+              legends.availableLegends.push(legendInfo);
+              continue; // Skip to next layer
+            }
 
-                document.body.removeChild(tempContainer);
-                
-                const legendInfo = {
-                  name: (l.get("name") as string).trim(),
-                  legendUrl: legendDataUri,
-                  headers: new Headers(),
-                };
-                legends.availableLegends.push(legendInfo);
-                
-              } else {
-                document.body.removeChild(tempContainer);
+            const styleOpt = getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "style");
+            if (styleOpt) {
+              try {
+                let styleJson = styleOpt;
+                if (styleOpt.startsWith('https://')) {
+                  //we need to fetch the style first
+                  const resp = await fetch(styleOpt);
+                  if (resp.ok) {
+                    styleJson = await resp.text();
+                  } else {
+                    //err
+                    throw new DOMException("Could not fetch style");
+                  }
+                }
+                const parsedStyle = JSON.parse(styleJson);
+
+                // Create a temporary container div for the legend renderer
+                const tempContainer = document.createElement('div');
+                tempContainer.style.position = 'absolute';
+                tempContainer.style.left = '-9999px';
+                tempContainer.style.top = '-9999px';
+                tempContainer.style.width = '600px';
+                tempContainer.style.background = 'white';
+                document.body.appendChild(tempContainer);
+
+                // Use large initial size to accommodate all content
+                const legendRenderer = new LegendRenderer({
+                  maxColumnWidth: 600,
+                  maxColumnHeight: 1000,
+                  overflow: 'auto',
+                  styles: [parsedStyle],
+                  size: [600, 1000],
+                  iconSize: [20, 20],
+                  legendItemTextSize: 14,
+                  hideRect: true
+                });
+
+                await legendRenderer.render(tempContainer);
+
+                // Check if we have any SVG content
+                const svgElements = tempContainer.getElementsByTagName('svg');
+
+                if (svgElements.length > 0) {
+                  const svgElement = svgElements[0];
+
+                  // Customize the SVG text elements
+                  this.customizeLegendSVG(svgElement, colorMode === 'dark' ? '#ffffff' : '#000000');
+
+                  // Resize SVG to actual content size
+                  this.resizeSVGToContent(svgElement);
+
+                  // Serialize the modified SVG
+                  const svgData = new XMLSerializer().serializeToString(svgElement);
+                  const legendDataUri = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgData)))}`;
+
+                  document.body.removeChild(tempContainer);
+
+                  // Cache the generated legend
+                  this.vectorLegendCache.set(cacheKey, legendDataUri);
+
+                  const legendInfo = {
+                    name: (l.get("name") as string).trim(),
+                    legendUrl: legendDataUri,
+                    headers: new Headers(),
+                  };
+
+                  legends.availableLegends.push(legendInfo);
+
+                } else {
+                  document.body.removeChild(tempContainer);
+                  legends.nonLegendableLayers.push((l.get("name") as string).trim());
+                }
+              } catch (error) {
+                console.error(`Failed to generate legend for layer ${l.get("name")}:`, error);
                 legends.nonLegendableLayers.push((l.get("name") as string).trim());
               }
-            } catch (error) {
-              console.error(`Failed to generate legend for layer ${l.get("name")}:`, error);
+            } else {
+              //no style opt, might be using a default style
               legends.nonLegendableLayers.push((l.get("name") as string).trim());
             }
           } else {
-            //no style opt, might be using a default style
+            //couldn't find layer from overlay list. Might be an annotation or user added layer
             legends.nonLegendableLayers.push((l.get("name") as string).trim());
           }
         } else {
@@ -1643,9 +1678,9 @@ export class GIFWMap {
   /**
    * Resizes an SVG element to fit its actual content with optional padding
    * @param svgElement The SVG element to resize
-   * @param padding Optional padding to add around the content (default: 10)
+   * @param padding Optional padding to add around the content (default: 5)
    */
-  private resizeSVGToContent(svgElement: SVGSVGElement, padding: number = 10): void {
+  private resizeSVGToContent(svgElement: SVGSVGElement, padding: number = 5): void {
     try {
       // Get the bounding box of all content in the SVG
       const bbox = svgElement.getBBox();
@@ -1656,7 +1691,7 @@ export class GIFWMap {
       
       // Set minimum sizes to avoid tiny legends
       const minWidth = 100;
-      const minHeight = 50;
+      const minHeight = 30;
       
       const finalWidth = Math.max(newWidth, minWidth);
       const finalHeight = Math.max(newHeight, minHeight);

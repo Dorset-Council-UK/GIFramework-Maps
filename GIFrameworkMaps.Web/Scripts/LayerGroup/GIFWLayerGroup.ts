@@ -114,7 +114,7 @@ export class GIFWLayerGroup implements LayerGroup {
         } else if (layer.layerSource.layerSourceType.name === 'ImageWMS') {
           ol_layer = this.createImageWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
         } else if (layer.layerSource.layerSourceType.name === "Vector" || layer.layerSource.layerSourceType.name === "VectorImage") {
-          ol_layer = this.createVectorLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
+          ol_layer = await this.createVectorLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
         } else if (layer.layerSource.layerSourceType.name === "VectorTile") {
           ol_layer = await this.createVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
         } else if (layer.layerSource.layerSourceType.name === 'OGCVectorTile') {
@@ -634,7 +634,7 @@ export class GIFWLayerGroup implements LayerGroup {
     return vectorTileLayer;
   }
 
-  private createVectorLayer(
+  private async createVectorLayer(
     layer: Layer,
     visible: boolean,
     className: string,
@@ -734,7 +734,18 @@ export class GIFWLayerGroup implements LayerGroup {
       
     try {
       const parser = new OpenLayersParser();
-      const jsonStyle = JSON.parse(styleOpt);
+      let styleJson = styleOpt;
+      if (styleOpt.startsWith('https://')) {
+        //we need to fetch the style first
+        const resp = await fetch(styleOpt);
+        if (resp.ok) {
+          styleJson = await resp.text();
+        } else {
+          //err
+          throw new DOMException("Could not fetch style");
+        }
+      }
+      const jsonStyle = JSON.parse(styleJson);
       if (jsonStyle !== null) {
         parser
           .writeStyle(jsonStyle)
