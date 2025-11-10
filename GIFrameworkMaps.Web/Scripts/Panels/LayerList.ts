@@ -170,7 +170,7 @@ export class LayerList {
       const element: HTMLInputElement = <HTMLInputElement>e.currentTarget;
       const layerId = element.value;
       this.gifwMapInstance.setLayerVisibility(layerId, element.checked);
-      if (element.checked && layer.layerDisclaimer !== null) {
+      if (element.checked && layer.layerDisclaimer) {
         this.showLayerDisclaimerIfAppropriate(layer.layerDisclaimer);
       }
     });

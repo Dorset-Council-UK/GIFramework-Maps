@@ -39,6 +39,7 @@ import {
   extractParamsFromHash,
   PrefersReducedMotion,
   extractCustomHeadersFromLayerSource,
+  getLayerSourceOptionValueByName
 } from "./Util";
 import LayerRenderer from "ol/renderer/Layer";
 import { Projection } from "./Interfaces/Projection";
@@ -51,6 +52,7 @@ import {
   updatePermalinkInLinks,
   updateBaseMapFromLinkParams,
 } from "./PermalinkUtils";
+import { LegendRenderer } from "geostyler-legend";
 
 // Type definitions for internal use
 interface ProjectionInfo {
@@ -95,6 +97,9 @@ export class GIFWMap {
     | GIFWGeolocation
   )[] = [];
   private delayPermalinkUpdate: DebouncedFunc<() => void>;
+
+  // Cache for vector legends - keyed by layer ID and color mode
+  private vectorLegendCache: Map<string, string> = new Map();
 
   // Cache frequently accessed DOM elements
   private readonly mapElement: HTMLElement;
@@ -490,15 +495,23 @@ export class GIFWMap {
     projectionInfo: ProjectionInfo,
     permalinkParams: Record<string, string>
   ): Promise<void> {
-    const startBasemap = this.config.basemaps.find((b) => b.isDefault);
+    if (this.getActiveBasemap() !== undefined) {
+      const startBasemap = this.config.basemaps.find((b) => b.isDefault);
+      // Set starting saturation of basemap
+      if (startBasemap && startBasemap.defaultSaturation !== 100) {
+        this.setInitialSaturationOfBasemap(startBasemap.defaultSaturation);
+      }
+    } else {
+      //there was some sort of problem, and there is currently no active basemap.
+      //Switch on the first basemap in the list
+      console.warn("The intended start basemap could not be found, switching to first in group");
+      const baseGroup = this.getLayerGroupOfType(LayerGroupType.Basemap).olLayerGroup;
+      const defaultBasemap = baseGroup.getLayersArray()[0];
+      defaultBasemap.setVisible(true);
+    }
+    
     const viewParams = this.parseViewParameters(permalinkParams);
     const { overrideDefaultLayers, permalinkEnabledLayers } = this.processPermalinkLayerSettings(permalinkParams);
-
-    // Set starting saturation of basemap
-    if (startBasemap && startBasemap.defaultSaturation !== 100) {
-      this.setInitialSaturationOfBasemap(startBasemap.defaultSaturation);
-    }
-
     // Set starting saturation and style of layers
     if (this.anyOverlaysOn()) {
       const layerGroup = this.getLayerGroupOfType(LayerGroupType.Overlay);
@@ -1436,14 +1449,24 @@ export class GIFWMap {
 
   /**
    * Gets all Legend URLs for layers that are legendable, and a list of layer names that are not legendable
-   * @param additionalLegendOptions Optional string of additoinal options to add to the LEGEND_OPTIONS parameter of the GetLegendGraphic request
+   * @param countMatched Set the countMatched parameter for WMS legends
+   * @param colorMode The color mode to render the legend as (dark or light)
+   * @param textWrapLimit The text wrapping limit in pixels for WMS legends
    * @returns LegendURLs
    */
-  public getLegendURLs(additionalLegendOptions: string = "") {
+  public async getLegendURLs(countMatched: boolean = true, colorMode: 'dark' | 'light', textWrapLimit?: number) {
     const legends: LegendURLs = {
       availableLegends: [],
       nonLegendableLayers: [],
     };
+    let wmsLegendOptions = `fontAntiAliasing:true;forceLabels:on;countMatched:${countMatched};hideEmptyRules:true;`
+    if (textWrapLimit != undefined) {
+      wmsLegendOptions += `wrap:true;wrap_limit:${textWrapLimit};`
+    }
+    if (colorMode === 'dark') {
+      wmsLegendOptions += "bgColor:0x212529;fontColor:0xFFFFFF;";
+    }
+
     if (this.anyOverlaysOn()) {
       const resolution = this.olMap.getView().getResolution();
       const roundedZoom = Math.ceil(this.olMap.getView().getZoom());
@@ -1464,75 +1487,238 @@ export class GIFWMap {
           l.getMaxZoom() >= roundedZoom &&
           l.getMinZoom() < roundedZoom
       );
-      switchedOnLayers
+      
+      const sortedLayers = switchedOnLayers
         .sort((a, b) => a.getZIndex() - b.getZIndex())
-        .reverse()
-        .forEach((l) => {
-          const source = l.getSource();
-          if (source instanceof TileWMS || source instanceof ImageWMS) {
-            const view = this.olMap.getView();
-            const viewport = this.olMap.getViewport();
-            //version is forced to 1.1.0 to get around lat/lon flipping issues
-            let params = {
-              LEGEND_OPTIONS: additionalLegendOptions,
-              bbox: view.calculateExtent().toString(),
-              srcwidth: viewport.clientWidth,
-              srcheight: viewport.clientHeight,
-              srs: view.getProjection().getCode(),
-              version: "1.1.0",
-            };
-            //merge valid params from the source and add to the legend
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Disabled to make make handling this generic object easier. The code is safe as written
-            let additionalParams: any = {};
-            const sourceParams = source.getParams();
+        .reverse();
+        
+      for (const l of sortedLayers) {
+        const source = l.getSource();
+        if (source instanceof TileWMS || source instanceof ImageWMS) {
+          const view = this.olMap.getView();
+          const viewport = this.olMap.getViewport();
+          //version is forced to 1.1.0 to get around lat/lon flipping issues
+          let params = {
+            LEGEND_OPTIONS: wmsLegendOptions,
+            bbox: view.calculateExtent().toString(),
+            srcwidth: viewport.clientWidth,
+            srcheight: viewport.clientHeight,
+            srs: view.getProjection().getCode(),
+            version: "1.1.0",
+          };
+          //merge valid params from the source and add to the legend
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Disabled to make make handling this generic object easier. The code is safe as written
+          let additionalParams: any = {};
+          const sourceParams = source.getParams();
 
-            const validProps = [
-              "time",
-              "cql_filter",
-              "filter",
-              "featureid",
-              "elevation",
-              "styles",
-              "authkey",
-            ];
-            //For the sake of sanity, convert the param names to lowercase for processing
-            const lowerCaseParams = Object.fromEntries(
-              Object.entries(sourceParams).map(([k, v]) => [k.toLowerCase(), v])
-            );
-            additionalParams = Object.fromEntries(
-              Object.entries(lowerCaseParams).filter(([key]) =>
-                validProps.includes(key)
-              )
-            );
-            if (additionalParams?.styles) {
-              //in WMS GetMap, we use the paramater 'STYLES'. In a GetLegendGraphic, we need to use 'STYLE'
-              //so we detect and convert it here, and get rid of the old one
-              additionalParams.style = additionalParams.styles;
-              delete additionalParams.styles;
+          const validProps = [
+            "time",
+            "cql_filter",
+            "filter",
+            "featureid",
+            "elevation",
+            "styles",
+            "authkey",
+          ];
+          //For the sake of sanity, convert the param names to lowercase for processing
+          const lowerCaseParams = Object.fromEntries(
+            Object.entries(sourceParams).map(([k, v]) => [k.toLowerCase(), v])
+          );
+          additionalParams = Object.fromEntries(
+            Object.entries(lowerCaseParams).filter(([key]) =>
+              validProps.includes(key)
+            )
+          );
+          if (additionalParams?.styles) {
+            //in WMS GetMap, we use the paramater 'STYLES'. In a GetLegendGraphic, we need to use 'STYLE'
+            //so we detect and convert it here, and get rid of the old one
+            additionalParams.style = additionalParams.styles;
+            delete additionalParams.styles;
+          }
+          params = { ...params, ...additionalParams };
+
+          const legendUrl = source.getLegendUrl(resolution, params);
+          const layerConfig = this.getLayerConfigById(l.get("layerId"));
+          const headers = extractCustomHeadersFromLayerSource(
+            layerConfig.layerSource
+          );
+          this.authManager.applyAuthenticationToRequestHeaders(
+            legendUrl,
+            headers
+          );
+          const legendInfo = {
+            name: (l.get("name") as string).trim(),
+            legendUrl: legendUrl,
+            headers: headers,
+          };
+          legends.availableLegends.push(legendInfo);
+        } else if (source instanceof VectorSource) {
+          //get style option from layer
+          const layerId = l.get("layerId");
+          const layer = this.getLayerConfigById(layerId, [LayerGroupType.Overlay]);
+          if (layer) {
+            const cacheKey = `${layerId}-${colorMode}`;
+
+            // Check cache first
+            if (this.vectorLegendCache.has(cacheKey)) {
+              const legendInfo = {
+                name: (l.get("name") as string).trim(),
+                legendUrl: this.vectorLegendCache.get(cacheKey),
+                headers: new Headers(),
+              };
+              legends.availableLegends.push(legendInfo);
+              continue; // Skip to next layer
             }
-            params = { ...params, ...additionalParams };
 
-            const legendUrl = source.getLegendUrl(resolution, params);
-            const layerConfig = this.getLayerConfigById(l.get("layerId"));
-            const headers = extractCustomHeadersFromLayerSource(
-              layerConfig.layerSource
-            );
-            this.authManager.applyAuthenticationToRequestHeaders(
-              legendUrl,
-              headers
-            );
-            const legendInfo = {
-              name: (l.get("name") as string).trim(),
-              legendUrl: legendUrl,
-              headers: headers,
-            };
-            legends.availableLegends.push(legendInfo);
+            const styleOpt = getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "style");
+            if (styleOpt) {
+              try {
+                let styleJson = styleOpt;
+                if (styleOpt.startsWith('https://')) {
+                  //we need to fetch the style first
+                  const resp = await fetch(styleOpt);
+                  if (resp.ok) {
+                    styleJson = await resp.text();
+                  } else {
+                    //err
+                    throw new DOMException("Could not fetch style");
+                  }
+                }
+                const parsedStyle = JSON.parse(styleJson);
+
+                // Create a temporary container div for the legend renderer
+                const tempContainer = document.createElement('div');
+                tempContainer.style.position = 'absolute';
+                tempContainer.style.left = '-9999px';
+                tempContainer.style.top = '-9999px';
+                tempContainer.style.width = '600px';
+                tempContainer.style.background = 'white';
+                document.body.appendChild(tempContainer);
+
+                // Use large initial size to accommodate all content
+                const legendRenderer = new LegendRenderer({
+                  maxColumnWidth: 600,
+                  maxColumnHeight: 1000,
+                  overflow: 'auto',
+                  styles: [parsedStyle],
+                  size: [600, 1000],
+                  iconSize: [20, 20],
+                  legendItemTextSize: 14,
+                  hideRect: true
+                });
+
+                await legendRenderer.render(tempContainer);
+
+                // Check if we have any SVG content
+                const svgElements = tempContainer.getElementsByTagName('svg');
+
+                if (svgElements.length > 0) {
+                  const svgElement = svgElements[0];
+
+                  // Customize the SVG text elements
+                  this.customizeLegendSVG(svgElement, colorMode === 'dark' ? '#ffffff' : '#000000');
+
+                  // Resize SVG to actual content size
+                  this.resizeSVGToContent(svgElement);
+
+                  // Serialize the modified SVG
+                  const svgData = new XMLSerializer().serializeToString(svgElement);
+                  const legendDataUri = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgData)))}`;
+
+                  document.body.removeChild(tempContainer);
+
+                  // Cache the generated legend
+                  this.vectorLegendCache.set(cacheKey, legendDataUri);
+
+                  const legendInfo = {
+                    name: (l.get("name") as string).trim(),
+                    legendUrl: legendDataUri,
+                    headers: new Headers(),
+                  };
+
+                  legends.availableLegends.push(legendInfo);
+
+                } else {
+                  document.body.removeChild(tempContainer);
+                  legends.nonLegendableLayers.push((l.get("name") as string).trim());
+                }
+              } catch (error) {
+                console.error(`Failed to generate legend for layer ${l.get("name")}:`, error);
+                legends.nonLegendableLayers.push((l.get("name") as string).trim());
+              }
+            } else {
+              //no style opt, might be using a default style
+              legends.nonLegendableLayers.push((l.get("name") as string).trim());
+            }
           } else {
+            //couldn't find layer from overlay list. Might be an annotation or user added layer
             legends.nonLegendableLayers.push((l.get("name") as string).trim());
           }
-        });
+        } else {
+          legends.nonLegendableLayers.push((l.get("name") as string).trim());
+        }
+      }
     }
     return legends;
+  }
+
+  /**
+   * Customizes the styling of a legend SVG element
+   * @param svgElement The SVG element to customize
+   */
+  private customizeLegendSVG(svgElement: SVGSVGElement, fontColor: string): void {
+    // Find all text elements in the SVG
+    const textElements = svgElement.querySelectorAll('text');
+    
+    textElements.forEach((textElement) => {
+      // Set font family
+      textElement.setAttribute('font-family', 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif');
+      
+      // Set font weight
+      textElement.setAttribute('font-weight', '400');
+      
+      // Set text color (fill)
+      textElement.setAttribute('fill', fontColor);
+      
+    });
+  }
+
+  /**
+   * Resizes an SVG element to fit its actual content with optional padding
+   * @param svgElement The SVG element to resize
+   * @param padding Optional padding to add around the content (default: 5)
+   */
+  private resizeSVGToContent(svgElement: SVGSVGElement, padding: number = 5): void {
+    try {
+      // Get the bounding box of all content in the SVG
+      const bbox = svgElement.getBBox();
+      
+      // Calculate new dimensions with padding
+      const newWidth = Math.ceil(bbox.width + bbox.x + padding * 2);
+      const newHeight = Math.ceil(bbox.height + bbox.y + padding * 2);
+      
+      // Set minimum sizes to avoid tiny legends
+      const minWidth = 100;
+      const minHeight = 30;
+      
+      const finalWidth = Math.max(newWidth, minWidth);
+      const finalHeight = Math.max(newHeight, minHeight);
+      
+      // Update SVG dimensions
+      svgElement.setAttribute('width', finalWidth.toString());
+      svgElement.setAttribute('height', finalHeight.toString());
+      svgElement.setAttribute('viewBox', `0 0 ${finalWidth} ${finalHeight}`);
+      
+      // Also update the background rect if it exists
+      const backgroundRect = svgElement.querySelector('rect');
+      if (backgroundRect) {
+        backgroundRect.setAttribute('width', finalWidth.toString());
+        backgroundRect.setAttribute('height', finalHeight.toString());
+      }
+    } catch (error) {
+      console.warn('Could not resize SVG to content:', error);
+      // If getBBox fails, leave the SVG at its original size
+    }
   }
 
   /**
@@ -1602,5 +1788,3 @@ const DEFAULT_MAX_ZOOM = 22;
 const DEFAULT_MIN_ZOOM = 0;
 const AUTH_TOKEN_REFRESH_INTERVAL = 120000; // 2 minutes
 const SMALL_MAP_WIDTH_THRESHOLD = 600;
-
-

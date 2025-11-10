@@ -47,13 +47,7 @@ export class LegendsPanel implements SidebarPanel {
       .querySelector("#gifw-legends-container") as HTMLDivElement;
     legendsContainer.innerHTML = "";
 
-    const colorOpts = getCurrentTheme() === "dark"
-      ? "bgColor:0x212529;fontColor:0xFFFFFF"
-      : "";
-
-    const legends = this.gifwMapInstance.getLegendURLs(
-      `fontAntiAliasing:true;forceLabels:on;countMatched:true;hideEmptyRules:true;${colorOpts}`,
-    );
+    const legends = await this.gifwMapInstance.getLegendURLs(true, getCurrentTheme() === "dark" ? "dark" : "light");
 
     if (legends.availableLegends.length === 0) {
       this.updateNoLegendsList(legends.nonLegendableLayers, false);

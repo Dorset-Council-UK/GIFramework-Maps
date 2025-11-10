@@ -62,98 +62,103 @@ export class GIFWLayerGroup implements LayerGroup {
     if (this.layers !== null) {
 
       for (const layer of this.layers) {
-        let ol_layer;
-        /*define reused attributes*/
-        const className = `${this.layerGroupType === LayerGroupType.Basemap
-          ? "basemapLayer"
-          : "layer"
-          }-${layer.id}`;
-        const visible = layer.isDefault !== undefined ? layer.isDefault : false;
-        const minZoom = layer.minZoom ? layer.minZoom - 1 : 0;
-        const maxZoom = layer.maxZoom ? layer.maxZoom : 100;
-        const opacity =
-          (layer.defaultOpacity !== undefined ? layer.defaultOpacity : 100) /
-          100;
-        let projection = viewProj;
-        let hasCustomHeaders = false;
-        const layerHeaders = extractCustomHeadersFromLayerSource(
-          layer.layerSource,
-        );
-        //this is a bit of a nasty way of checking for existence of headers
-        layerHeaders.forEach(() => {
-          hasCustomHeaders = true;
-        });
-        if (
-          layer.layerSource.layerSourceOptions.some(
-            (l) => l.name.toLowerCase() === "projection",
-          )
-        ) {
-          projection = getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "projection");
-        }
-        let extent: Extent;
-        if (layer.bound) {
-          extent = [
-            layer.bound.bottomLeftX,
-            layer.bound.bottomLeftY,
-            layer.bound.topRightX,
-            layer.bound.topRightY,
-          ];
-          const extentProj = olProj.get('EPSG:3857');
-          const reprojectedSourceExtent = transformExtent(extent, extentProj, "EPSG:4326");
-          const viewProj = olProj.get(`EPSG:${defaultMapProjection.epsgCode ?? '3857'}`);
-          if (containsExtent(reprojectedSourceExtent, viewProj.getWorldExtent())) {
-            extent = transformExtent(viewProj.getWorldExtent(), 'EPSG:4326', `EPSG:${defaultMapProjection.epsgCode ?? '3857'}`);
-          } else {
-            extent = transformExtent(extent, 'EPSG:3857', `EPSG:${defaultMapProjection.epsgCode ?? '3857'}`);
-          }
-        }
-        if (layer.layerSource.layerSourceType.name === 'XYZ') {
-          ol_layer = this.createXYZLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
-        } else if (layer.layerSource.layerSourceType.name === 'TileWMS') {
-          ol_layer = this.createTileWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection)
-        } else if (layer.layerSource.layerSourceType.name === 'ImageWMS') {
-          ol_layer = this.createImageWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
-        } else if (layer.layerSource.layerSourceType.name === "Vector" || layer.layerSource.layerSourceType.name === "VectorImage") {
-          ol_layer = this.createVectorLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
-        } else if (layer.layerSource.layerSourceType.name === "VectorTile") {
-          ol_layer = await this.createVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
-        } else if (layer.layerSource.layerSourceType.name === 'OGCVectorTile') {
-          ol_layer = await this.createOGCVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
-        }
-
-        if (layer.isDefault) {
-          ol_layer.setProperties({ hasBeenOpened: true });
-        }
-
-        ol_layer.setProperties({ layerId: layer.id });
-        ol_layer.setProperties({ "gifw-queryable": layer.queryable });
-        ol_layer.setProperties({
-          "gifw-proxy-meta-request": layer.proxyMetaRequests,
-        });
-        ol_layer.setProperties({ name: layer.name });
-        ol_layer.setProperties({ saturation: layer.defaultSaturation });
-        ol_layer.setProperties({ layerGroupType: this.layerGroupType });
-        if (layer.filterable && !layer.defaultFilterEditable) {
+        try {
+          let ol_layer;
+          /*define reused attributes*/
+          const className = `${this.layerGroupType === LayerGroupType.Basemap
+            ? "basemapLayer"
+            : "layer"
+            }-${layer.id}`;
+          const visible = layer.isDefault !== undefined ? layer.isDefault : false;
+          const minZoom = layer.minZoom ? layer.minZoom - 1 : 0;
+          const maxZoom = layer.maxZoom ? layer.maxZoom : 100;
+          const opacity =
+            (layer.defaultOpacity !== undefined ? layer.defaultOpacity : 100) /
+            100;
+          let projection = viewProj;
+          let hasCustomHeaders = false;
+          const layerHeaders = extractCustomHeadersFromLayerSource(
+            layer.layerSource,
+          );
+          //this is a bit of a nasty way of checking for existence of headers
+          layerHeaders.forEach(() => {
+            hasCustomHeaders = true;
+          });
           if (
-            layer.layerSource.layerSourceType.name === "TileWMS" ||
-            layer.layerSource.layerSourceType.name === "ImageWMS"
+            layer.layerSource.layerSourceOptions.some(
+              (l) => l.name.toLowerCase() === "projection",
+            )
           ) {
-            if (
-              (
-                ol_layer.getSource() as olSource.TileWMS | olSource.ImageWMS
-              ).getParams().CQL_FILTER
-            ) {
-              ol_layer.setProperties({
-                "gifw-default-filter": (
-                  ol_layer.getSource() as olSource.TileWMS | olSource.ImageWMS
-                ).getParams().CQL_FILTER,
-              });
+            projection = getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "projection");
+          }
+          let extent: Extent;
+          if (layer.bound) {
+            extent = [
+              layer.bound.bottomLeftX,
+              layer.bound.bottomLeftY,
+              layer.bound.topRightX,
+              layer.bound.topRightY,
+            ];
+            const extentProj = olProj.get('EPSG:3857');
+            const reprojectedSourceExtent = transformExtent(extent, extentProj, "EPSG:4326");
+            const viewProj = olProj.get(`EPSG:${defaultMapProjection.epsgCode ?? '3857'}`);
+            if (containsExtent(reprojectedSourceExtent, viewProj.getWorldExtent())) {
+              extent = transformExtent(viewProj.getWorldExtent(), 'EPSG:4326', `EPSG:${defaultMapProjection.epsgCode ?? '3857'}`);
+            } else {
+              extent = transformExtent(extent, 'EPSG:3857', `EPSG:${defaultMapProjection.epsgCode ?? '3857'}`);
             }
           }
-        }
-        ol_layers.push(ol_layer);
-        if (layer.refreshInterval && layer.refreshInterval > 0) {
-          this.setAutoRefreshInterval(ol_layer, layer.refreshInterval);
+          if (layer.layerSource.layerSourceType.name === 'XYZ') {
+            ol_layer = this.createXYZLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
+          } else if (layer.layerSource.layerSourceType.name === 'TileWMS') {
+            ol_layer = this.createTileWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection)
+          } else if (layer.layerSource.layerSourceType.name === 'ImageWMS') {
+            ol_layer = this.createImageWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
+          } else if (layer.layerSource.layerSourceType.name === "Vector" || layer.layerSource.layerSourceType.name === "VectorImage") {
+            ol_layer = await this.createVectorLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
+          } else if (layer.layerSource.layerSourceType.name === "VectorTile") {
+            ol_layer = await this.createVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
+          } else if (layer.layerSource.layerSourceType.name === 'OGCVectorTile') {
+            ol_layer = await this.createOGCVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
+          }
+
+          if (layer.isDefault) {
+            ol_layer.setProperties({ hasBeenOpened: true });
+          }
+
+          ol_layer.setProperties({ layerId: layer.id });
+          ol_layer.setProperties({ "gifw-queryable": layer.queryable });
+          ol_layer.setProperties({
+            "gifw-proxy-meta-request": layer.proxyMetaRequests,
+          });
+          ol_layer.setProperties({ name: layer.name });
+          ol_layer.setProperties({ saturation: layer.defaultSaturation });
+          ol_layer.setProperties({ layerGroupType: this.layerGroupType });
+          if (layer.filterable && !layer.defaultFilterEditable) {
+            if (
+              layer.layerSource.layerSourceType.name === "TileWMS" ||
+              layer.layerSource.layerSourceType.name === "ImageWMS"
+            ) {
+              if (
+                (
+                  ol_layer.getSource() as olSource.TileWMS | olSource.ImageWMS
+                ).getParams().CQL_FILTER
+              ) {
+                ol_layer.setProperties({
+                  "gifw-default-filter": (
+                    ol_layer.getSource() as olSource.TileWMS | olSource.ImageWMS
+                  ).getParams().CQL_FILTER,
+                });
+              }
+            }
+          }
+          ol_layers.push(ol_layer);
+          if (layer.refreshInterval && layer.refreshInterval > 0) {
+            this.setAutoRefreshInterval(ol_layer, layer.refreshInterval);
+            }
+        } catch (ex) {
+          //simple general catch for a failed layer addition
+          console.error(ex);
         }
       }
     }
@@ -634,7 +639,7 @@ export class GIFWLayerGroup implements LayerGroup {
     return vectorTileLayer;
   }
 
-  private createVectorLayer(
+  private async createVectorLayer(
     layer: Layer,
     visible: boolean,
     className: string,
@@ -734,13 +739,26 @@ export class GIFWLayerGroup implements LayerGroup {
       
     try {
       const parser = new OpenLayersParser();
-      const jsonStyle = JSON.parse(styleOpt);
-      if (jsonStyle !== null) {
-        parser
-          .writeStyle(jsonStyle)
-          .then(({ output: olStyle }) => vector.setStyle(olStyle));
-      } else {
-        vector.setStyle();
+      let styleJson = styleOpt;
+      if (styleOpt) {
+        if (styleOpt.startsWith('https://')) {
+          //we need to fetch the style first
+          const resp = await fetch(styleOpt);
+          if (resp.ok) {
+            styleJson = await resp.text();
+          } else {
+            //err
+            throw new DOMException("Could not fetch style");
+          }
+        }
+        const jsonStyle = JSON.parse(styleJson);
+        if (jsonStyle !== null) {
+          parser
+            .writeStyle(jsonStyle)
+            .then(({ output: olStyle }) => vector.setStyle(olStyle));
+        } else {
+          vector.setStyle();
+        }
       }
     } catch (ex) {
       console.warn('Style could not be set on layer', ex);
