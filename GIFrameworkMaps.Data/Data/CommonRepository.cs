@@ -490,6 +490,7 @@ namespace GIFrameworkMaps.Data
 			{
 				rules = await _context.VersionEmailBasedAuthorizations
 				.AsNoTracking()
+				.IgnoreAutoIncludes()
 				.Include(v => v.Version)
 				.Where(r => r.VersionId == versionId)
 				.ToListAsync();
@@ -498,6 +499,7 @@ namespace GIFrameworkMaps.Data
 			{
 				rules = await _context.VersionEmailBasedAuthorizations
 				.AsNoTracking()
+				.IgnoreAutoIncludes()
 				.Include(v => v.Version)
 				.ToListAsync();
 			}
