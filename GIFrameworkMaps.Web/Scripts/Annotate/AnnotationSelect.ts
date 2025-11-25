@@ -28,6 +28,7 @@ import { Coordinate } from "ol/coordinate";
 import CircleStyle from "ol/style/Circle";
 import { StyleFunction } from "ol/style/Style";
 import Annotate from "./Annotate";
+import RenderFeature from "ol/render/Feature";
 
 export default class AnnotationSelect extends Select {
   gifwMapInstance: GIFWMap;
@@ -234,6 +235,7 @@ export default class AnnotationSelect extends Select {
     this.gifwMapInstance.olMap.forEachFeatureAtPixel(
       this.gifwMapInstance.olMap.getPixelFromCoordinate(coordinate),
       (feature) => {
+        if (feature instanceof RenderFeature) return;
         const geometry = feature.getGeometry();
         const geomType = geometry.getType();
         if (geomType === "Polygon" || geomType === "LineString") {
