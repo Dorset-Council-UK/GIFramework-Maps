@@ -2,12 +2,6 @@
   "version": 1,
   "dependencies": {
     "net10.0": {
-      "AutoMapper": {
-        "type": "Direct",
-        "requested": "[13.0.1, )",
-        "resolved": "13.0.1",
-        "contentHash": "/Fx1SbJ16qS7dU4i604Sle+U9VLX+WSNVJggk6MupKVkYvvBm4XqYaeFuf67diHefHKHs50uQIS2YEDFhPCakQ=="
-      },
       "Azure.Extensions.AspNetCore.Configuration.Secrets": {
         "type": "Direct",
         "requested": "[1.4.0, )",
@@ -1710,7 +1704,6 @@
       "giframeworkmaps.data": {
         "type": "Project",
         "dependencies": {
-          "AutoMapper": "[13.0.1, )",
           "Azure.Identity": "[1.17.1, )",
           "Microsoft.EntityFrameworkCore": "[10.0.0, )",
           "Microsoft.Graph.Beta": "[5.126.0-preview, )",
