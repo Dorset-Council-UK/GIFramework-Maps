@@ -96,7 +96,7 @@ export default class AnnotationDraw extends Draw {
         const formatter = new GeoJSON({
           dataProjection: "EPSG:4326",
         });
-        const featureGeom = e.feature.getGeometry().clone();
+        const featureGeom = e.feature.getGeometry();
         featureGeom.transform(
           this.getMap().getView().getProjection(),
           "EPSG:4326",
@@ -114,8 +114,6 @@ export default class AnnotationDraw extends Draw {
           this.getMap().getView().getProjection(),
         );
         feature = new Feature(bufferedGeometry);
-        // Remove the original point feature that was automatically added
-        annotationLayer.getSource().removeFeature(e.feature);
         annotationLayer.getSource().addFeature(feature);
       }
 
