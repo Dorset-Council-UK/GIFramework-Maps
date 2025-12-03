@@ -1,4 +1,3 @@
-using AutoMapper;
 using GIFrameworkMaps.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
@@ -26,10 +25,7 @@ namespace GIFrameworkMaps.Tests
 			var context = new DefaultHttpContext();
 			mockHttpContextAccessor.Setup(_ => _.HttpContext).Returns(context);
 
-			// Mock AutoMapper
-			var mapper = new MapperConfiguration(cfg => cfg.AddProfile(new AutoMapping())).CreateMapper();
-
-			sut = new CommonRepository(mockLogger.Object, mockIApplicationDbContext.Object, mockMemoryCache, mapper, mockHttpContextAccessor.Object);
+			sut = new CommonRepository(mockLogger.Object, mockIApplicationDbContext.Object, mockMemoryCache, mockHttpContextAccessor.Object);
 		}
 
         [Test]

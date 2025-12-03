@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using GIFrameworkMaps.Data.Models;
+﻿using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Authorization;
 using GIFrameworkMaps.Data.ViewModels;
 using Microsoft.AspNetCore.Http;
@@ -15,13 +14,12 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data
 {
-	public class CommonRepository(ILogger<CommonRepository> logger, IApplicationDbContext context, IMemoryCache memoryCache, IMapper mapper, IHttpContextAccessor httpContextAccessor) : ICommonRepository
+	public class CommonRepository(ILogger<CommonRepository> logger, IApplicationDbContext context, IMemoryCache memoryCache, IHttpContextAccessor httpContextAccessor) : ICommonRepository
     {
         //dependency injection
         private readonly ILogger<CommonRepository> _logger = logger;
         private readonly IApplicationDbContext _context = context;
         private readonly IMemoryCache _memoryCache = memoryCache;
-        private readonly IMapper _mapper = mapper;
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
 		/// <summary>
@@ -100,9 +98,9 @@ namespace GIFrameworkMaps.Data
 		public async Task<VersionViewModel> GetVersionViewModel(Models.Version version)
         {
 
-            List<BasemapViewModel> basemaps = _mapper.Map<List<VersionBasemap>, List<BasemapViewModel>>(version.VersionBasemaps);
-            List<CategoryViewModel> categories = _mapper.Map<List<VersionCategory>, List<CategoryViewModel>>(version.VersionCategories);
-			List<ProjectionViewModel> projections = _mapper.Map<List<VersionProjection>, List<ProjectionViewModel>>(version.VersionProjections);
+            List<BasemapViewModel> basemaps = version.VersionBasemaps.ToViewModelList();
+            List<CategoryViewModel> categories = version.VersionCategories.ToViewModelList();
+			List<ProjectionViewModel> projections = version.VersionProjections.ToViewModelList();
 
 			//remove duplicates
 			var allLayers = (from cat in version.VersionCategories from layers in cat.Category!.Layers select layers).ToList();
@@ -146,7 +144,7 @@ namespace GIFrameworkMaps.Data
 				_logger.LogWarning("Version {version} does not have a default map projection set. First projection has been automatically selected", version.Name);
 			}
 
-            var viewModel = _mapper.Map<VersionViewModel>(version);
+            var viewModel = version.ToViewModel();
             viewModel.Categories = categories;
             viewModel.Basemaps = basemaps;
 			viewModel.AvailableProjections = projections;
