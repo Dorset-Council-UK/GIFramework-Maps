@@ -50,4 +50,5 @@ export interface Layer {
   proxyMetaRequests: boolean;
   proxyMapRequests: boolean;
   refreshInterval: number;
+  permalinkFilter?: string;
 }

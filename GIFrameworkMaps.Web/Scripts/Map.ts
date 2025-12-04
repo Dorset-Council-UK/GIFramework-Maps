@@ -39,7 +39,8 @@ import {
   extractParamsFromHash,
   PrefersReducedMotion,
   extractCustomHeadersFromLayerSource,
-  getLayerSourceOptionValueByName
+  getLayerSourceOptionValueByName,
+  createWFSFeatureRequestFromLayer,
 } from "./Util";
 import LayerRenderer from "ol/renderer/Layer";
 import { Projection } from "./Interfaces/Projection";
@@ -51,8 +52,11 @@ import {
   updatePermalinkInURL,
   updatePermalinkInLinks,
   updateBaseMapFromLinkParams,
+  base64UrlDecode,
 } from "./PermalinkUtils";
 import { LegendRenderer } from "geostyler-legend";
+import CQL from "./OL Extensions/CQL";
+import { transformExtent } from "ol/proj";
 
 // Type definitions for internal use
 interface ProjectionInfo {
@@ -354,6 +358,11 @@ export class GIFWMap {
               l.defaultOpacity = parseInt(layerSetting[1]);
               l.defaultSaturation = parseInt(layerSetting[2]);
             }
+            // Store filter info for later application (index 4)
+            if (layerSetting.length >= 5 && layerSetting[4]) {
+              // Store the encoded filter on the layer for later application
+              l.permalinkFilter = layerSetting[4];
+            }
           } else {
             l.isDefault = false;
           }
@@ -538,6 +547,11 @@ export class GIFWMap {
     // Set start bounds
     this.setInitialMapBounds(map, viewParams, projectionInfo);
 
+    // Apply permalink filters after layers are loaded
+    if (this.anyOverlaysOn()) {
+      this.applyPermalinkFilters();
+    }
+
     // Add attribution size checker for non-embed mode
     if (this.mode !== "embed") {
       const attribution = map.getControls().getArray().find((c) => c instanceof olControl.Attribution) as olControl.Attribution;
@@ -571,6 +585,107 @@ export class GIFWMap {
         }
       }
     }
+  }
+
+  /**
+   * Apply permalink filters to layers that were loaded with filters from the URL
+   */
+  private applyPermalinkFilters(): void {
+    const cqlFormatter = new CQL();
+
+    const layerGroup = this.getLayerGroupOfType(LayerGroupType.Overlay);
+    const layers = layerGroup.olLayerGroup.getLayersArray();
+    const switchedOnLayers = layers.filter((l) => l.getVisible() === true);
+
+    switchedOnLayers.forEach((olLayer) => {
+      const layerId = olLayer.get("layerId");
+      const layerConfig = this.getLayerConfigById(layerId, [LayerGroupType.Overlay]);
+
+      // Check if this layer has a permalink filter stored
+      const encodedFilter = layerConfig.permalinkFilter;
+      
+      if (encodedFilter) {
+        try {
+          // Decode the base64 filter
+          const decodedFilter = base64UrlDecode(encodedFilter);
+          
+          if (!decodedFilter) {
+            console.warn(`Could not decode permalink filter for layer ${layerId}`);
+            return;
+          }
+
+          // Convert CQL to OpenLayers Filter
+          const olFilter = cqlFormatter.read(decodedFilter);
+          
+          if (!olFilter) {
+            console.warn(`Could not parse CQL filter for layer ${layerId}: ${decodedFilter}`);
+            return;
+          }
+
+          const source = olLayer.getSource();
+          
+          // Check for default filter that should be combined
+          const defaultFilter = olLayer.get("gifw-default-filter");
+          let finalCqlFilter = decodedFilter;
+          
+          if (defaultFilter && !layerConfig.defaultFilterEditable) {
+            // Append the default filter
+            finalCqlFilter = `(${defaultFilter}) AND (${decodedFilter})`;
+          }
+
+          // Mark that a filter has been applied
+          olLayer.set("gifw-filter-applied", olFilter);
+
+          // Apply the filter based on source type
+          if (source instanceof TileWMS || source instanceof ImageWMS) {
+            // For WMS layers, update the CQL_FILTER parameter
+            source.updateParams({ CQL_FILTER: finalCqlFilter });
+          } else if (source instanceof VectorSource) {
+            // For vector layers, we need to update the URL function
+            let projection = getLayerSourceOptionValueByName(
+              layerConfig.layerSource.layerSourceOptions,
+              "projection"
+            );
+            
+            if (projection === null) {
+              const defaultMapProjection = this.config.availableProjections.filter(
+                (p) => p.isDefaultMapProjection === true
+              )[0];
+              projection = `EPSG:${defaultMapProjection.epsgCode ?? "3857"}`;
+            }
+
+            const baseUrl = createWFSFeatureRequestFromLayer(layerConfig);
+            
+            // Create a new URL function that includes the filter
+            const urlFunction = (extent: Extent) => {
+              let transformedExtent = extent;
+              if (projection !== this.olMap.getView().getProjection().getCode()) {
+                transformedExtent = transformExtent(
+                  extent,
+                  this.olMap.getView().getProjection(),
+                  projection
+                );
+              }
+              
+              // Get geometry column for BBOX
+              const geomCol = layerConfig.layerSource.layerSourceOptions
+                .find(opt => opt.name.toLowerCase() === "geometryname")?.value || "geom";
+              
+              // Build CQL filter with BBOX
+              const bboxFilter = `bbox(${geomCol},${transformedExtent.join(",")})`;
+              const combinedFilter = `${bboxFilter} AND ${finalCqlFilter}`;
+              
+              return `${baseUrl}&srsname=${projection}&CQL_FILTER=${encodeURIComponent(combinedFilter)}`;
+            };
+            
+            source.setUrl(urlFunction);
+            source.refresh();
+          }
+        } catch (error) {
+          console.error(`Error applying permalink filter to layer ${layerId}:`, error);
+        }
+      }
+    });
   }
 
   /**

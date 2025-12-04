@@ -12,6 +12,74 @@ import { b64EncodeUnicode } from "./Util";
 import { extractParamsFromHash } from "./Util";
 import { debounce, DebouncedFunc } from "lodash";
 import { Basemap } from "./Interfaces/Basemap";
+import CQL from "./OL Extensions/CQL";
+
+/**
+ * Encodes a string to URL-safe base64
+ * @param str The string to encode
+ * @returns URL-safe base64 encoded string
+ */
+export function base64UrlEncode(str: string): string {
+  try {
+    // Use btoa for base64 encoding, then make it URL-safe
+    return btoa(str)
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+  } catch (e) {
+    console.warn("Could not encode filter to base64", e);
+    return "";
+  }
+}
+
+/**
+ * Decodes a URL-safe base64 string
+ * @param str The URL-safe base64 string to decode
+ * @returns Decoded string
+ */
+export function base64UrlDecode(str: string): string {
+  try {
+    // Convert URL-safe base64 back to standard base64
+    let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+    // Add padding if needed
+    while (base64.length % 4) {
+      base64 += "=";
+    }
+    return atob(base64);
+  } catch (e) {
+    console.warn("Could not decode filter from base64", e);
+    return "";
+  }
+}
+
+/**
+ * Extracts the CQL filter from a layer source
+ * @param layer The OpenLayers layer
+ * @param map The GIFramework Map object
+ * @returns The CQL filter string or empty string if none
+ */
+function getLayerCQLFilter(
+  layer: olLayer<Source, LayerRenderer<olLayer>>,
+): string {
+  const source = layer.getSource();
+  if (source instanceof TileWMS || source instanceof ImageWMS) {
+    const params = source.getParams();
+    for (const property in params) {
+      if (property.toLowerCase() === "cql_filter") {
+        return params[property] || "";
+      }
+    }
+  } else if (source instanceof VectorSource) {
+    // For vector layers, check if filter is applied
+    const appliedFilter = layer.get("gifw-filter-applied");
+    if (appliedFilter) {
+      // The filter needs to be converted to CQL string
+      const cqlFormatter = new CQL();
+      return cqlFormatter.write(appliedFilter);
+    }
+  }
+  return "";
+}
 
 /**
  * Generates a permalink (or 'share link') based on the current map
@@ -55,9 +123,14 @@ export function generatePermalinkForMap(
           ) {
             styleName = layerSource.getParams()?.STYLES || "";
           }
+          
+          // Get the CQL filter for this layer
+          const cqlFilter = getLayerCQLFilter(x);
+          const encodedFilter = cqlFilter ? base64UrlEncode(cqlFilter) : "";
+          
           return `${x.get("layerId")}/${(x.getOpacity() * 100).toFixed(
             0
-          )}/${x.get("saturation")}/${styleName}`;
+          )}/${x.get("saturation")}/${styleName}/${encodedFilter}`;
         });
       hash += layerIds.join(",");
     }
