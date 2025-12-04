@@ -8,7 +8,7 @@ import { Point, SimpleGeometry } from "ol/geom";
 import { GIFWPopupOptions } from "./Popups/PopupOptions";
 import { ImageWMS, Source, TileWMS } from "ol/source";
 import LayerRenderer from "ol/renderer/Layer";
-import { b64EncodeUnicode } from "./Util";
+import { b64EncodeUnicode, UnicodeDecodeB64 } from "./Util";
 import { extractParamsFromHash } from "./Util";
 import { debounce, DebouncedFunc } from "lodash";
 import { Basemap } from "./Interfaces/Basemap";
@@ -22,7 +22,7 @@ import CQL from "./OL Extensions/CQL";
 export function base64UrlEncode(str: string): string {
   try {
     // Use btoa for base64 encoding, then make it URL-safe
-    return btoa(str)
+    return b64EncodeUnicode(str)
       .replace(/\+/g, "-")
       .replace(/\//g, "_")
       .replace(/=+$/, "");
@@ -45,7 +45,8 @@ export function base64UrlDecode(str: string): string {
     while (base64.length % 4) {
       base64 += "=";
     }
-    return atob(base64);
+    // Use UnicodeDecodeB64 for proper Unicode support
+    return UnicodeDecodeB64(base64);
   } catch (e) {
     console.warn("Could not decode filter from base64", e);
     return "";
