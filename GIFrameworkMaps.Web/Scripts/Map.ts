@@ -668,12 +668,11 @@ export class GIFWMap {
               }
               
               // Get geometry column for BBOX
-              const geomCol = layerConfig.layerSource.layerSourceOptions
-                .find(opt => opt.name.toLowerCase() === "geometryname")?.value || "geom";
+              const geomCol = getLayerSourceOptionValueByName(layerConfig.layerSource.layerSourceOptions, "geometryname") || "geom";
               
               // Build CQL filter with BBOX
               const bboxFilter = `bbox(${geomCol},${transformedExtent.join(",")})`;
-              const combinedFilter = `${bboxFilter} AND ${finalCqlFilter}`;
+              const combinedFilter = `(${bboxFilter}) AND (${finalCqlFilter})`;
               
               return `${baseUrl}&srsname=${projection}&CQL_FILTER=${encodeURIComponent(combinedFilter)}`;
             };
