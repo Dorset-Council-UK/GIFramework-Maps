@@ -12,6 +12,7 @@ import { b64EncodeUnicode, UnicodeDecodeB64 } from "./Util";
 import { extractParamsFromHash } from "./Util";
 import { debounce, DebouncedFunc } from "lodash";
 import { Basemap } from "./Interfaces/Basemap";
+import { Layer } from "./Interfaces/Layer";
 import CQL from "./OL Extensions/CQL";
 
 /**
@@ -54,30 +55,60 @@ export function base64UrlDecode(str: string): string {
 }
 
 /**
- * Extracts the CQL filter from a layer source
+ * Extracts the user-applied CQL filter from a layer source, excluding non-editable default filters
  * @param layer The OpenLayers layer
- * @param map The GIFramework Map object
- * @returns The CQL filter string or empty string if none
+ * @param layerConfig The layer configuration (can be null)
+ * @returns The user-applied CQL filter string or empty string if none
  */
 function getLayerCQLFilter(
   layer: olLayer<Source, LayerRenderer<olLayer>>,
+  layerConfig: Layer | null,
 ): string {
+  // First, check if there's a user-applied filter stored on the layer
+  // This is the filter the user has explicitly applied, NOT including default filters
+  const appliedFilter = layer.get("gifw-filter-applied");
+  if (appliedFilter) {
+    // The filter needs to be converted to CQL string
+    const cqlFormatter = new CQL();
+    return cqlFormatter.write(appliedFilter);
+  }
+
+  // If no explicit user filter is applied, check the source params
   const source = layer.getSource();
   if (source instanceof TileWMS || source instanceof ImageWMS) {
     const params = source.getParams();
+    let cqlFilter = "";
     for (const property in params) {
       if (property.toLowerCase() === "cql_filter") {
-        return params[property] || "";
+        cqlFilter = params[property] || "";
+        break;
       }
     }
-  } else if (source instanceof VectorSource) {
-    // For vector layers, check if filter is applied
-    const appliedFilter = layer.get("gifw-filter-applied");
-    if (appliedFilter) {
-      // The filter needs to be converted to CQL string
-      const cqlFormatter = new CQL();
-      return cqlFormatter.write(appliedFilter);
+    
+    if (cqlFilter) {
+      // Check if there's a default filter that should NOT be included in the permalink
+      const defaultFilter = layer.get("gifw-default-filter");
+      if (defaultFilter && layerConfig && !layerConfig.defaultFilterEditable) {
+        // If the default filter is non-editable, it should not be in the permalink
+        // The default filter is already applied to the layer, so we shouldn't include it
+        // If the current filter IS the default filter, return empty (no user filter)
+        if (cqlFilter === defaultFilter) {
+          return "";
+        }
+        // If the current filter contains the default filter wrapped in the combined format,
+        // extract just the user filter portion
+        // Format: (defaultFilter) AND (userFilter)
+        const prefix = `(${defaultFilter}) AND (`;
+        if (cqlFilter.startsWith(prefix) && cqlFilter.endsWith(")")) {
+          // Extract the user filter portion
+          return cqlFilter.slice(prefix.length, -1);
+        }
+      }
+      return cqlFilter;
     }
+  } else if (source instanceof VectorSource) {
+    // For vector layers without gifw-filter-applied, there's no user filter
+    return "";
   }
   return "";
 }
@@ -125,11 +156,15 @@ export function generatePermalinkForMap(
             styleName = layerSource.getParams()?.STYLES || "";
           }
           
-          // Get the CQL filter for this layer
-          const cqlFilter = getLayerCQLFilter(x);
+          // Get the layer config to check defaultFilterEditable
+          const layerId = x.get("layerId");
+          const layerConfig = map.getLayerConfigById(layerId, [LayerGroupType.Overlay]);
+          
+          // Get the CQL filter for this layer (excluding non-editable default filters)
+          const cqlFilter = getLayerCQLFilter(x, layerConfig);
           const encodedFilter = cqlFilter ? base64UrlEncode(cqlFilter) : "";
           
-          return `${x.get("layerId")}/${(x.getOpacity() * 100).toFixed(
+          return `${layerId}/${(x.getOpacity() * 100).toFixed(
             0
           )}/${x.get("saturation")}/${styleName}/${encodedFilter}`;
         });

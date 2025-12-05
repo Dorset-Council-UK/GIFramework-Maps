@@ -23,7 +23,7 @@ import { Layer } from "../Interfaces/Layer";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { TileMatrixSet } from "../Interfaces/OGCMetadata/TileMatrixSet";
 import { GIFWMap } from "../Map";
-import { createWFSFeatureRequestFromLayer, extractCustomHeadersFromLayerSource, getLayerSourceOptionValueByName, getOpenLayersFormatFromOGCFormat } from "../Util";
+import { createWFSFeatureRequestFromLayer, extractCustomHeadersFromLayerSource, getLayerSourceOptionValueByName, getOpenLayersFormatFromOGCFormat, getValueFromObjectByKey } from "../Util";
 import { LayerGroup } from "./LayerGroup";
 
 export class GIFWLayerGroup implements LayerGroup {
@@ -139,15 +139,14 @@ export class GIFWLayerGroup implements LayerGroup {
               layer.layerSource.layerSourceType.name === "TileWMS" ||
               layer.layerSource.layerSourceType.name === "ImageWMS"
             ) {
-              if (
-                (
-                  ol_layer.getSource() as olSource.TileWMS | olSource.ImageWMS
-                ).getParams().CQL_FILTER
-              ) {
+              // Use case-insensitive lookup for CQL_FILTER parameter
+              const params = (
+                ol_layer.getSource() as olSource.TileWMS | olSource.ImageWMS
+              ).getParams();
+              const cqlFilter = getValueFromObjectByKey(params, "cql_filter");
+              if (cqlFilter) {
                 ol_layer.setProperties({
-                  "gifw-default-filter": (
-                    ol_layer.getSource() as olSource.TileWMS | olSource.ImageWMS
-                  ).getParams().CQL_FILTER,
+                  "gifw-default-filter": cqlFilter,
                 });
               }
             }
