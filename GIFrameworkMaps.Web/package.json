@@ -8,15 +8,14 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:webpack": "webpack --config webpack.dev.js",
-    "watch:webpack": "webpack --config webpack.dev.js --watch",
-    "build:webpack-prod": "webpack --config webpack.prod.js",
-    "audit": "npm audit",
-    "audit fix": "npm audit fix",
-    "outdated": "npm outdated",
-    "lint": "npx eslint",
-    "prettier": "npx prettier . --write",
-    "watch:prettier": "npx onchange \"Scripts/*.ts\" \"wwwroot/css/*.css\" -- prettier --write --ignore-unknown {{changed}}"
+    "build": "bun run bun.build.ts",
+    "build:dev": "bun run bun.build.ts --dev",
+    "watch": "bun run bun.build.ts --dev --watch",
+    "audit": "bun pm audit",
+    "outdated": "bun outdated",
+    "lint": "bunx eslint",
+    "prettier": "bunx prettier . --write",
+    "watch:prettier": "bunx onchange \"Scripts/*.ts\" \"wwwroot/css/*.css\" -- prettier --write --ignore-unknown {{changed}}"
   },
   "dependencies": {
     "@camptocamp/ogc-client": "1.2.0",
@@ -50,6 +49,7 @@
     "@eslint/eslintrc": "3.3.1",
     "@eslint/js": "9.39.1",
     "@types/bootstrap": "5.2.10",
+    "@types/bun": "latest",
     "@types/dom-screen-wake-lock": "1.0.3",
     "@types/lodash": "4.17.21",
     "@types/luxon": "3.7.1",
@@ -62,16 +62,12 @@
     "globals": "16.5.0",
     "onchange": "7.1.0",
     "prettier": "3.6.2",
-    "ts-loader": "9.5.4",
     "typescript": "5.9.3",
-    "typescript-eslint": "8.48.0",
-    "webpack": "5.103.0",
-    "webpack-cli": "6.0.1",
-    "webpack-merge": "6.0.1"
+    "typescript-eslint": "8.48.0"
   },
   "-vs-binding": {
     "ProjectOpened": [
-      "watch:webpack"
+      "watch"
     ]
   }
 }
