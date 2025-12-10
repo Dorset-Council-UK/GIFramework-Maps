@@ -1384,6 +1384,11 @@ export class LayerFilter {
       }
     }
     this.layersPanelInstance.updateLayerFilteredStatusIcon(this.layerConfig.id);
+    
+    // Trigger permalink update after filter is applied
+    document
+      .getElementById(this.gifwMapInstance.id)
+      .dispatchEvent(new CustomEvent("gifw-update-permalink"));
   }
 
   /**
