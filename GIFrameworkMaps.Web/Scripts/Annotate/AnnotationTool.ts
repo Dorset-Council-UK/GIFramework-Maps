@@ -47,11 +47,15 @@ PolygonTool.optionsHTML = `
         <div>
             <input type="color" class="form-range" data-style-property="strokeColour" list="annotationColors" id="colors" />
                 <datalist id="annotationColors">
+                    <option value="#e31a1c"></option>
+                    <option value="#FE6100"></option>
+                    <option value="#FFB000"></option>
+                    <option value="#b8e186"></option>
+                    <option value="#5aae61"></option>
+                    <option value="#00E0FE"></option>
                     <option value="#648fff"></option>
                     <option value="#785EF0"></option>
                     <option value="#DC267F"></option>
-                    <option value="#FE6100"></option>
-                    <option value="#FFB000"></option>
                     <option value="#000000"></option>
                 </datalist>
         </div>
@@ -109,11 +113,15 @@ LineTool.optionsHTML = `
         <div>
             <input type="color" class="form-range" data-style-property="strokeColour" list="annotationColors" id="colors" />
                 <datalist id="annotationColors">
+                    <option value="#e31a1c"></option>
+                    <option value="#FE6100"></option>
+                    <option value="#FFB000"></option>
+                    <option value="#b8e186"></option>
+                    <option value="#5aae61"></option>
+                    <option value="#00E0FE"></option>
                     <option value="#648fff"></option>
                     <option value="#785EF0"></option>
                     <option value="#DC267F"></option>
-                    <option value="#FE6100"></option>
-                    <option value="#FFB000"></option>
                     <option value="#000000"></option>
                 </datalist>
         </div>
@@ -173,11 +181,15 @@ PointTool.optionsHTML = `
         <div>
             <input type="color" class="form-range" data-style-property="fillColour" list="annotationColors" id="colors" />
                 <datalist id="annotationColors">
+                    <option value="#e31a1c"></option>
+                    <option value="#FE6100"></option>
+                    <option value="#FFB000"></option>
+                    <option value="#b8e186"></option>
+                    <option value="#5aae61"></option>
+                    <option value="#00E0FE"></option>
                     <option value="#648fff"></option>
                     <option value="#785EF0"></option>
                     <option value="#DC267F"></option>
-                    <option value="#FE6100"></option>
-                    <option value="#FFB000"></option>
                     <option value="#000000"></option>
                 </datalist>
         </div>
@@ -205,13 +217,16 @@ PointTool.optionsHTML = `
                 <label class="form-label" for="gifw-annotation-border-colors">Border colour</label>
                 <input type="color" class="form-range" data-style-property="borderColour" list="annotationBorderColors" id="gifw-annotation-border-colors">
                     <datalist id="annotationBorderColors">
-                        <option value="#000000"></option>
-                        <option value="#FFFFFF"></option>
-                        <option value="#648fff"></option>
-                        <option value="#785EF0"></option>
-                        <option value="#DC267F"></option>
-                        <option value="#FE6100"></option>
-                        <option value="#FFB000"></option>
+                    <option value="#e31a1c"></option>
+                    <option value="#FE6100"></option>
+                    <option value="#FFB000"></option>
+                    <option value="#b8e186"></option>
+                    <option value="#5aae61"></option>
+                    <option value="#00E0FE"></option>
+                    <option value="#648fff"></option>
+                    <option value="#785EF0"></option>
+                    <option value="#DC267F"></option>
+                    <option value="#000000"></option>
                     </datalist>
             </div>
         </div>
@@ -242,11 +257,15 @@ CircleTool.optionsHTML = `
         <div>
             <input type="color" class="form-range" data-style-property="strokeColour" list="annotationColors" id="colors" />
                 <datalist id="annotationColors">
+                    <option value="#e31a1c"></option>
+                    <option value="#FE6100"></option>
+                    <option value="#FFB000"></option>
+                    <option value="#b8e186"></option>
+                    <option value="#5aae61"></option>
+                    <option value="#00E0FE"></option>
                     <option value="#648fff"></option>
                     <option value="#785EF0"></option>
                     <option value="#DC267F"></option>
-                    <option value="#FE6100"></option>
-                    <option value="#FFB000"></option>
                     <option value="#000000"></option>
                 </datalist>
         </div>
@@ -319,11 +338,15 @@ BufferTool.optionsHTML = `
         <div>
             <input type="color" class="form-range" data-style-property="strokeColour" list="annotationColors" id="colors" />
                 <datalist id="annotationColors">
+                    <option value="#e31a1c"></option>
+                    <option value="#FE6100"></option>
+                    <option value="#FFB000"></option>
+                    <option value="#b8e186"></option>
+                    <option value="#5aae61"></option>
+                    <option value="#00E0FE"></option>
                     <option value="#648fff"></option>
                     <option value="#785EF0"></option>
                     <option value="#DC267F"></option>
-                    <option value="#FE6100"></option>
-                    <option value="#FFB000"></option>
                     <option value="#000000"></option>
                 </datalist>
         </div>
@@ -409,11 +432,15 @@ TextTool.optionsHTML = `
         <div>
             <input type="color" class="form-range" data-style-property="fontColour" list="annotationColors" id="colors" />
                 <datalist id="annotationColors">
+                    <option value="#e31a1c"></option>
+                    <option value="#FE6100"></option>
+                    <option value="#FFB000"></option>
+                    <option value="#b8e186"></option>
+                    <option value="#5aae61"></option>
+                    <option value="#00E0FE"></option>
                     <option value="#648fff"></option>
                     <option value="#785EF0"></option>
                     <option value="#DC267F"></option>
-                    <option value="#FE6100"></option>
-                    <option value="#FFB000"></option>
                     <option value="#000000"></option>
                 </datalist>
         </div>

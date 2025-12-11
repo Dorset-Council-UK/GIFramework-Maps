@@ -24,7 +24,7 @@ export default class AnnotationDraw extends Draw {
         : "Click to start drawing"
     );
     super({
-      source: annotationLayer.getSource(),
+      source: annotationStyle.activeTool.name === "Buffer" ? undefined : annotationLayer.getSource(),
       type: type,
       freehand: false,
       freehandCondition: Condition.shiftKeyOnly,

@@ -136,8 +136,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         // options.LogTo(Console.WriteLine, minimumLevel: Microsoft.Extensions.Logging.LogLevel.Information);
     });
 
-    services.AddAutoMapper(typeof(ApplicationDbContext));
-
 	// Configure authentication and authorization if Azure AD ClientId is provided
 	if (!string.IsNullOrEmpty(configuration.GetSection("AzureAd")["ClientId"]))
 	{

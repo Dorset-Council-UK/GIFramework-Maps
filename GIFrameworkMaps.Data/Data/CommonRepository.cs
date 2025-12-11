@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using GIFrameworkMaps.Data.Models;
+﻿using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Authorization;
 using GIFrameworkMaps.Data.ViewModels;
 using Microsoft.AspNetCore.Http;
@@ -15,13 +14,12 @@ using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data
 {
-	public class CommonRepository(ILogger<CommonRepository> logger, IApplicationDbContext context, IMemoryCache memoryCache, IMapper mapper, IHttpContextAccessor httpContextAccessor) : ICommonRepository
+	public class CommonRepository(ILogger<CommonRepository> logger, IApplicationDbContext context, IMemoryCache memoryCache, IHttpContextAccessor httpContextAccessor) : ICommonRepository
     {
         //dependency injection
         private readonly ILogger<CommonRepository> _logger = logger;
         private readonly IApplicationDbContext _context = context;
         private readonly IMemoryCache _memoryCache = memoryCache;
-        private readonly IMapper _mapper = mapper;
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
 		/// <summary>
@@ -100,9 +98,9 @@ namespace GIFrameworkMaps.Data
 		public async Task<VersionViewModel> GetVersionViewModel(Models.Version version)
         {
 
-            List<BasemapViewModel> basemaps = _mapper.Map<List<VersionBasemap>, List<BasemapViewModel>>(version.VersionBasemaps);
-            List<CategoryViewModel> categories = _mapper.Map<List<VersionCategory>, List<CategoryViewModel>>(version.VersionCategories);
-			List<ProjectionViewModel> projections = _mapper.Map<List<VersionProjection>, List<ProjectionViewModel>>(version.VersionProjections);
+            List<BasemapViewModel> basemaps = version.VersionBasemaps.ToViewModelList();
+            List<CategoryViewModel> categories = version.VersionCategories.ToViewModelList();
+			List<ProjectionViewModel> projections = version.VersionProjections.ToViewModelList();
 
 			//remove duplicates
 			var allLayers = (from cat in version.VersionCategories from layers in cat.Category!.Layers select layers).ToList();
@@ -146,7 +144,7 @@ namespace GIFrameworkMaps.Data
 				_logger.LogWarning("Version {version} does not have a default map projection set. First projection has been automatically selected", version.Name);
 			}
 
-            var viewModel = _mapper.Map<VersionViewModel>(version);
+            var viewModel = version.ToViewModel();
             viewModel.Categories = categories;
             viewModel.Basemaps = basemaps;
 			viewModel.AvailableProjections = projections;
@@ -170,7 +168,7 @@ namespace GIFrameworkMaps.Data
 				.ToListAsync();
         }
 
-		public async Task<bool> CanUserAccessVersion(string userId, int versionId)
+		public async Task<bool> CanUserAccessVersion(string userId, string email, int versionId)
         {
             var version = await GetVersion(versionId);
             if (version is not null && !version.RequireLogin)
@@ -182,10 +180,42 @@ namespace GIFrameworkMaps.Data
                 .AsNoTracking()
                 .AnyAsync(vu => vu.UserId == userId && vu.VersionId == versionId);
             
-            return versionuser;
-        }
+			if(versionuser == true)
+			{
+				//the user has explicit permission to access this version based on their user id
+				return true;
+			}
 
-		public async Task<List<Models.Version>> GetVersionsListForUser(string? userId)
+			//check to see if there are any email based rules for this version
+			if (!string.IsNullOrEmpty(email))
+			{
+
+				//check for email regex matches
+				var emailRules = await GetVersionEmailAuthorizationRules(versionId);
+
+				if(emailRules.Count > 0)
+				{
+					foreach(var rule in emailRules)
+					{
+						try
+						{
+							if(System.Text.RegularExpressions.Regex.IsMatch(email, rule.EmailRegEx!, System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+							{
+								return true;
+							}
+						}
+						catch (ArgumentException ex)
+						{
+							_logger.LogError(ex, "Invalid email regex {regex} for version ID {versionId}", rule.EmailRegEx, versionId);
+						}
+					}
+				}
+			}
+			return false;
+
+		}
+
+		public async Task<List<Models.Version>> GetVersionsListForUser(string userId, string email)
 		{
 			// Get user-specific versions
 			var users_versions = await _context.VersionUsers
@@ -194,6 +224,33 @@ namespace GIFrameworkMaps.Data
 				.Where(vu => vu.UserId == userId && vu.Version != null && vu.Version.Enabled == true && vu.Version.Hidden == false && vu.Version.RequireLogin == true)
 				.Select(vu => vu.Version)
 				.ToListAsync();
+
+			// Get email authorized versions
+			var email_rules = await GetVersionEmailAuthorizationRules();
+			foreach( var emailRule in email_rules)
+			{
+				if(!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(emailRule.EmailRegEx))
+				{
+					try
+					{
+						if(System.Text.RegularExpressions.Regex.IsMatch(email, emailRule.EmailRegEx, System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+						{
+							var version = emailRule.Version;
+							if (version != null && version.Enabled == true && version.Hidden == false && version.RequireLogin == true)
+							{
+								if(!users_versions.Any(v => v!.Id == version.Id))
+								{
+									users_versions.Add(version);
+								}
+							}
+						}
+					}
+					catch (ArgumentException ex)
+					{
+						_logger.LogError(ex, "Invalid email regex {regex} for version ID {versionId}", emailRule.EmailRegEx, emailRule.VersionId);
+					}
+				}
+			}
 
 			// Get public versions
 			var public_versions = await _context.Versions
@@ -417,6 +474,40 @@ namespace GIFrameworkMaps.Data
 				AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(string.IsNullOrEmpty(description) ? 1 : 10)
 			});
 			return description;
+		}
+
+		private async Task<List<VersionEmailBasedAuthorization>> GetVersionEmailAuthorizationRules(int? versionId = null)
+		{
+			string cacheKey = $"VersionEmailBasedAuthorization/{versionId}";
+			if (_memoryCache.TryGetValue(cacheKey, out List<VersionEmailBasedAuthorization>? cacheValue))
+			{
+				return cacheValue!;
+			}
+			List<VersionEmailBasedAuthorization> rules = [];
+			if(versionId is not null)
+			{
+				rules = await _context.VersionEmailBasedAuthorizations
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.Include(v => v.Version)
+				.Where(r => r.VersionId == versionId)
+				.ToListAsync();
+			}
+			else
+			{
+				rules = await _context.VersionEmailBasedAuthorizations
+				.AsNoTracking()
+				.IgnoreAutoIncludes()
+				.Include(v => v.Version)
+				.ToListAsync();
+			}
+
+			_memoryCache.Set(cacheKey, rules, new MemoryCacheEntryOptions
+			{
+				Priority = CacheItemPriority.Low,
+				AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+			});
+			return rules;
 		}
 	}
 }

@@ -26,8 +26,9 @@ namespace GIFrameworkMaps.Web.Authorization
                     var claimsIdentity = (ClaimsIdentity)context.User.Identity;
                     var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
                     var userId = claim.Value;
-                    
-					var canAccess = _repository.CanUserAccessVersion(userId, resource.Id).Result;
+					var emailClaim = claimsIdentity.FindFirst(c => c.Type.Contains("email"));
+					var email = emailClaim?.Value ?? string.Empty;
+					var canAccess = _repository.CanUserAccessVersion(userId, email, resource.Id).Result;
 					if (canAccess)
                     {
                         context.Succeed(requirement);

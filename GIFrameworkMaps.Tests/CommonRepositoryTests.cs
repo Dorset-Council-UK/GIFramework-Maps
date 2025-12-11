@@ -1,4 +1,3 @@
-using AutoMapper;
 using GIFrameworkMaps.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
@@ -26,10 +25,7 @@ namespace GIFrameworkMaps.Tests
 			var context = new DefaultHttpContext();
 			mockHttpContextAccessor.Setup(_ => _.HttpContext).Returns(context);
 
-			// Mock AutoMapper
-			var mapper = new MapperConfiguration(cfg => cfg.AddProfile(new AutoMapping())).CreateMapper();
-
-			sut = new CommonRepository(mockLogger.Object, mockIApplicationDbContext.Object, mockMemoryCache, mapper, mockHttpContextAccessor.Object);
+			sut = new CommonRepository(mockLogger.Object, mockIApplicationDbContext.Object, mockMemoryCache, mockHttpContextAccessor.Object);
 		}
 
         [Test]
@@ -107,19 +103,30 @@ namespace GIFrameworkMaps.Tests
         {
             var versions = await sut.GetVersions();
 
-            Assert.That(versions.Count, Is.EqualTo(9));
+            Assert.That(versions.Count, Is.EqualTo(10));
         }
 
         [Test]
-        [TestCase("36850518-dd0a-48e0-9004-cdaf30d82746", 4, ExpectedResult = true)]
-        [TestCase("36850518-dd0a-48e0-9004-cdaf30d82746", 1, ExpectedResult = true)]
-        [TestCase("36850518-dd0a-48e0-9004-cdaf30d82746", 5, ExpectedResult = false)]
-        public async Task<bool> CanUserAccessVersion_UserExists_VersionExists(string userId, int versionId)
+        [TestCase("36850518-dd0a-48e0-9004-cdaf30d82746", "test@example.com", 4, ExpectedResult = true)]
+        [TestCase("36850518-dd0a-48e0-9004-cdaf30d82746", "test@example.com", 1, ExpectedResult = true)]
+		[TestCase("36850518-dd0a-48e0-9004-cdaf30d82746", "test@example.com", 6, ExpectedResult = false)]
+		public async Task<bool> CanUserAccessVersion_UserExists_VersionExists(string userId, string email, int versionId)
         {
-			return await sut.CanUserAccessVersion(userId, versionId);
+			return await sut.CanUserAccessVersion(userId, email, versionId);
         }
 
-        [Test]
+		[Test]
+		[TestCase("36850518-dd0a-48e0-9004-cdaf30d82747", "test@example.com", 5, ExpectedResult = true)]
+		[TestCase("36850518-dd0a-48e0-9004-cdaf30d82747", "test@example.net", 5, ExpectedResult = false)]
+		[TestCase("36850518-dd0a-48e0-9004-cdaf30d82747", "test@sub.example.net", 5, ExpectedResult = false)]
+		public async Task<bool> CanUserAccessVersionWithEmail_UserExists_VersionExists(string userId, string email, int versionId)
+		{
+			return await sut.CanUserAccessVersion(userId, email, versionId);
+		}
+
+
+
+		[Test]
         [TestCase("36850518-dd0a-48e0-9004-cdaf30d82746")]
         public void GetUserRoles_UserExists(string userId)
         {

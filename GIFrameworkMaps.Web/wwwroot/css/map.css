@@ -345,7 +345,7 @@
 
 .giframeworkMap aside#sidebar-container .sidebar-panels {
   top: 48px;
-  max-height: calc(100% - 48px);
+  max-height: calc(100dvh - 48px);
 }
 .giframeworkMap.embed aside#sidebar-container .sidebar-panels {
   top: 0px;
