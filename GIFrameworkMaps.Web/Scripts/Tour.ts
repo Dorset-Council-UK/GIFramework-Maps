@@ -1,6 +1,6 @@
 ﻿import { DateTime } from "luxon";
 import Shepherd from "shepherd.js";
-import { StepOptionsButton, StepOptionsAttachTo, PopperPlacement } from "shepherd.js"
+import { StepOptionsButton, StepOptionsAttachTo, PopperPlacement } from "shepherd.js";
 import { TourDetails } from "./Interfaces/Tour/TourDetails";
 import { getItem as getSetting, setItem as setSetting, removeItem as removeSetting } from "./UserSettings";
 
