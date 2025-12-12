@@ -8,7 +8,7 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "bun run bun.build.ts",
+    "build": "bun run bun.build.ts --prod",
     "build:dev": "bun run bun.build.ts --dev",
     "watch": "bun run bun.build.ts --dev --watch",
     "audit": "bun pm audit",
