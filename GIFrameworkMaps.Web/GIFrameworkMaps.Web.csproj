@@ -95,6 +95,7 @@
 
   <ItemGroup>
     <Folder Include="Scripts\Interfaces\Authorization\" />
+    <Folder Include="wwwroot\js\" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,6 @@
 ﻿import { DateTime } from "luxon";
 import Shepherd from "shepherd.js";
+import { StepOptionsButton, StepOptionsAttachTo, PopperPlacement } from "shepherd.js";
 import { TourDetails } from "./Interfaces/Tour/TourDetails";
 import { getItem as getSetting, setItem as setSetting, removeItem as removeSetting } from "./UserSettings";
 
@@ -21,7 +22,6 @@ export class Tour {
   public showTourIfAppropriate(): void {
     if (this.showTour()) {
       //initialize shepherd
-
       const tour = new Shepherd.Tour({
         useModalOverlay: true,
         defaultStepOptions: {
@@ -36,7 +36,7 @@ export class Tour {
       this.tourConfig.steps
         .sort((a, b) => a.stepNumber - b.stepNumber)
         .forEach((step) => {
-          let buttons: Shepherd.StepOptionsButton[] = [];
+          let buttons: StepOptionsButton[] = [];
           if (i === 0) {
             buttons = [
               {
@@ -65,11 +65,11 @@ export class Tour {
             ];
           }
 
-          let attachTo: Shepherd.StepOptionsAttachTo = {};
+          let attachTo: StepOptionsAttachTo = {};
           if (step.attachToPosition && step.attachToSelector) {
             attachTo = {
               element: step.attachToSelector,
-              on: step.attachToPosition as Shepherd.PopperPlacement,
+              on: step.attachToPosition as PopperPlacement,
             };
           }
 
