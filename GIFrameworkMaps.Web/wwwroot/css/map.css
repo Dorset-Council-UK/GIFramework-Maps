@@ -780,7 +780,7 @@
   #welcome-modal .modal-dialog {
     width: 100%;
     max-width: none;
-    height: 100%;
+    min-height: 80vh;
     margin: 0;
   }
 
