@@ -11,7 +11,7 @@
     "build": "bun run bun.build.ts --prod",
     "build:dev": "bun run bun.build.ts --dev",
     "watch": "bun run bun.build.ts --dev --watch",
-    "audit": "bun pm audit",
+    "audit": "bun audit",
     "outdated": "bun outdated",
     "lint": "bunx eslint",
     "prettier": "bunx prettier . --write",
