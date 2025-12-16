@@ -205,7 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-//Civic cookie control integration
+//Civic cookie control integration - TODO, this is a bit messy, needs to be cleaned up
 declare let CookieControl: { open: () => void };
 declare let configure_cookie_control: string;
 
@@ -220,4 +220,5 @@ function loadCookieControl() {
       .addEventListener("click", CookieControl.open);
   }
 }
-window.loadCookieControl = loadCookieControl;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(window as any).loadCookieControl = loadCookieControl;
