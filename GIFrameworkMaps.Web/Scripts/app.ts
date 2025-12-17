@@ -215,9 +215,8 @@ function loadCookieControl() {
     configure_cookie_control == "Civic Cookie Control" &&
     typeof CookieControl != "undefined"
   ) {
-    document
-      .getElementById("CookieControlLink")
-      .addEventListener("click", CookieControl.open);
+    const cookieControlLink = document.getElementById("CookieControlLink");
+    cookieControlLink?.addEventListener("click", CookieControl.open);
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
