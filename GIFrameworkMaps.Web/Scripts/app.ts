@@ -204,3 +204,20 @@ document.addEventListener("DOMContentLoaded", () => {
       ).style.backgroundColor = "var(--primary-color)";
     });
 });
+
+//Civic cookie control integration - TODO, this is a bit messy, needs to be cleaned up
+declare let CookieControl: { open: () => void };
+declare let configure_cookie_control: string;
+
+function loadCookieControl() {
+  //This allows the use of a cookie control
+  if (
+    configure_cookie_control == "Civic Cookie Control" &&
+    typeof CookieControl != "undefined"
+  ) {
+    const cookieControlLink = document.getElementById("CookieControlLink");
+    cookieControlLink?.addEventListener("click", CookieControl.open);
+  }
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(window as any).loadCookieControl = loadCookieControl;

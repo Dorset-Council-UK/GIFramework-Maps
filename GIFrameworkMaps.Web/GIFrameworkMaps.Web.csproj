@@ -21,9 +21,6 @@
 
   <ItemGroup>
     <None Remove="Scripts\app.ts" />
-    <None Remove="webpack.common.js" />
-    <None Remove="webpack.dev.js" />
-    <None Remove="webpack.prod.js" />
   </ItemGroup>
 
   <ItemGroup>
@@ -69,9 +66,6 @@
 
   <ItemGroup>
     <TypeScriptCompile Include="Scripts\app.ts" />
-    <TypeScriptCompile Include="webpack.prod.js" />
-    <TypeScriptCompile Include="webpack.dev.js" />
-    <TypeScriptCompile Include="webpack.common.js" />
   </ItemGroup>
 
   <ItemGroup>
@@ -95,6 +89,7 @@
 
   <ItemGroup>
     <Folder Include="Scripts\Interfaces\Authorization\" />
+    <Folder Include="wwwroot\js\" />
   </ItemGroup>
 
 </Project>

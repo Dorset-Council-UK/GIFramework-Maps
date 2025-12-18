@@ -211,11 +211,9 @@ export async function getBasicCapabilities(
 export async function getStylesForLayer(
   baseUrl: string,
   layerName: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   proxyEndpoint: string = "",
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   additionalUrlParams: object = {},
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   httpHeaders: Headers = new Headers(),
 ) {
   ogcClientEnableFallbackWithoutWorker();

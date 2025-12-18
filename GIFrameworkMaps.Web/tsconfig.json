@@ -5,17 +5,22 @@
     "removeComments": false,
     "sourceMap": true,
     "target": "ES2021",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "noUnusedLocals": true,
-    "moduleResolution": "Node",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": [
+      "bun-types"
+    ]
   },
   "exclude": [
     "node_modules",
-    "wwwroot"
+    "wwwroot",
+    "bun.build.ts"
   ],
   "typeRoots": [
     "./types",
     "./node_modules/@types/"
-  ]
+  ] 
 }

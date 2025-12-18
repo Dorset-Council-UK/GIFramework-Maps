@@ -8,9 +8,8 @@ To run GIFramework Maps with minimal modification, you will need.
 - Create a user in your database with permission to login
     - You can then either [create the schema yourself](#create-the-schema-yourself) or [let EF create the schema for you](#let-ef-create-the-schema-for-you)
 - Set up your [connection strings and user secrets](#user-secrets-and-connection-strings)
-- Run an `npm install` from within the `GIFrameworkMaps.Web` project to download the dependencies
-    - In Visual Studio this can be done by installing the NPM Task Runner Extension and using Task Runner Explorer
-    - Alternatively just use the command line
+- [Install Bun](https://bun.com/docs/installation) and run `bun install` from within the `GIFrameworkMaps.Web` project to download the dependencies
+    - Previously we recommended using the NPM Task Runner extension in Visual Studio. This can still be used for other tasks, but `install` commands should be run using `bun install` in a seperate terminal, since the `install` command in the extension defaults to `npm install`
 - Run the Entity Framework migrations against the `GIFrameworkMaps.Web` project
     - Using Visual Studio
         - `Update-Database`
@@ -18,10 +17,10 @@ To run GIFramework Maps with minimal modification, you will need.
         - `dotnet ef database update`
 - Build and Run!
     - Using Visual Studio
-        - Make sure the NPM task `watch:webpack` is running, to build and auto rebuild the client scripts
+        - Make sure the task `watch` is running, to build and auto rebuild the client scripts
         - Hit Run to launch IIS Express or Kestrel
-    - Using .Net CLI
-        - Run `npm run watch:webpack` to build and auto rebuild the client scripts
+    - Using CLI
+        - Run `bun run watch` to build and auto rebuild the client scripts
         - Run `dotnet run` to launch Kestrel
 
 This will give you a minimal starting application, with a few basic layers, to get you started. Start modifying your database
@@ -65,9 +64,10 @@ It's entirely optional to download these extensions. You can download these by g
 ### Running the application
 Once you’ve followed the steps above, you’re ready to run the application. 
 
-- Run an `npm update` to download the dependencies
-    - In Visual Studio this can be done by installing the NPM Task Runner Extension and using Task Runner Explorer
-    - Alternatively just use the command line
+- Run `bun install` to download the dependencies
+    - Use the command line over the NPM Task Runner extension for this step, since the task runner defaults to using NPM
+- Run `bun run build:dev` to build the client scripts once, or start `bun run watch` to build and auto rebuild the client scripts as you make changes
+    - Alternatively, you can use the NPM Task Runner extension to run the `build:dev` or `watch` tasks
 - Run the Entity Framework migrations against the GIFrameworkMaps.Web project
     - Using Visual Studio
         - `Update-Database`
