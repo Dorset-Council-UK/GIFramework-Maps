@@ -41,31 +41,33 @@ jobs:
 
     - name: Initialize CodeQL
       if: ${{ matrix.language != 'javascript' }}
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@v4
       with:
         languages: ${{ matrix.language }}
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 9.0.x
+        dotnet-version: 10.0.x
+        
     - name: Restore dependencies
       run: dotnet restore
       
-    - name: npm install
-      run: npm install
+    - name: bun install
+      run: bun install
       working-directory: 'GIFrameworkMaps.Web'
-    - name: Install webpack
-      run: npm i -g webpack webpack-cli
+      shell: bash
+
+    - name: bun build
+      run: bun run bun.build.ts --${{ inputs.environment }}
       working-directory: 'GIFrameworkMaps.Web'
-    - name: webpack
-      run: webpack --config webpack.dev.js
-      working-directory: 'GIFrameworkMaps.Web'
+      shell: bash
+      
     - name: Build
       run: dotnet build
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@v4
       with:
         category: "/language:${{matrix.language}}"
 
