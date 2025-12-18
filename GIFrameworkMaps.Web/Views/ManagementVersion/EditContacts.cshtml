@@ -9,7 +9,7 @@
     List<string> ContactableUsers = Model.Version.VersionContacts.Where(u => u.Enabled == true).Select(u => u.UserId).ToList();
     if (ContactableUsers.Count > 0)
     {
-        var contactableUserList = Model.UserDetails.Where(u => ContactableUsers.Contains(u.Value.Id)).Select(u => u.Value).ToList();
+        var contactableUserList = Model.VersionContactUserDetails.Where(u => ContactableUsers.Contains(u.Value.Id)).Select(u => u.Value).ToList();
         if (contactableUserList.Count > 0)
         {
             foreach (var user in contactableUserList)
@@ -50,30 +50,30 @@
         <tbody>
             @foreach (var user in Model.Version.VersionContacts.OrderBy(u => u.DisplayName))
             {
-                var currentUser = Model.UserDetails.FirstOrDefault(u => u.Key == user.UserId).Value;
-                if (currentUser is not null)
-                {
-                    <tr>
-                        <td>@Html.ActionLink("Edit entry", "EditContact",new {Id = Model.Version.Id, VersionContactId = user.VersionContactId})</td>
-                        <td>@Html.ActionLink((!string.IsNullOrEmpty(user.DisplayName) ? user.DisplayName : currentUser.DisplayName), "Edit", "ManagementUser", new { id = currentUser.Id })</td>
-                        <td>
-                            @foreach (var mail in currentUser.OtherMails)
-                            {
-                                @mail
+                
+                var currentUser = Model.VersionContactUserDetails.FirstOrDefault(u => u.Key == user.UserId);
 
-                                <br />
-                            }
-                        </td>
-                        @if (user.Enabled)
+                <tr>
+                    <td>@Html.ActionLink("Edit entry", "EditContact",new {Id = Model.Version.Id, VersionContactId = user.VersionContactId})</td>
+                    <td>@Html.ActionLink((!string.IsNullOrEmpty(user.DisplayName) ? user.DisplayName : currentUser.DisplayName), "Edit", "ManagementUser", new { id = currentUser.Id })</td>
+                    <td>
+                        @foreach (var mail in currentUser?.OtherMails)
                         {
-                            <td><span class="badge bg-success">Yes</span></td>
-                        } else
-                        {
-                            <td></td>
+                            @mail
+
+                            <br />
                         }
-                        <td>@Html.ActionLink("Remove entry", "DeleteContact",new {Id = Model.Version.Id, VersionContactId = user.VersionContactId}, new {@Class="text-danger"})</td>
-                    </tr>
-                }
+                    </td>
+                    @if (user.Enabled)
+                    {
+                        <td><span class="badge bg-success">Yes</span></td>
+                    } else
+                    {
+                        <td></td>
+                    }
+                    <td>@Html.ActionLink("Remove entry", "DeleteContact",new {Id = Model.Version.Id, VersionContactId = user.VersionContactId}, new {@Class="text-danger"})</td>
+                </tr>
+                
             }
 
         </tbody>

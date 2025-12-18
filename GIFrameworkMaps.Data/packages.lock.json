@@ -42,12 +42,6 @@
           "Newtonsoft.Json": "13.0.3"
         }
       },
-      "Microsoft.Extensions.Http": {
-        "type": "Direct",
-        "requested": "[10.0.0, )",
-        "resolved": "10.0.0",
-        "contentHash": "r+mSvm/Ryc/iYcc9zcUG5VP9EBB8PL1rgVU6macEaYk45vmGRk9PntM3aynFKN6s3Q4WW36kedTycIctctpTUQ=="
-      },
       "Microsoft.Graph.Beta": {
         "type": "Direct",
         "requested": "[5.126.0-preview, )",

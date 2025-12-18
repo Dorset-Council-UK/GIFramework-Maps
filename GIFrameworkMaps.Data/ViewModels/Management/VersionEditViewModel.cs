@@ -32,6 +32,6 @@ namespace GIFrameworkMaps.Data.ViewModels.Management
 		[Display(Name = "Purge memory cache on save?")]
 		public bool PurgeCache { get; set; }
 
-		public Dictionary<string, User> UserDetails { get; set; } = [];
+		public Dictionary<string, User> VersionContactUserDetails { get; set; } = [];
 	}
 }

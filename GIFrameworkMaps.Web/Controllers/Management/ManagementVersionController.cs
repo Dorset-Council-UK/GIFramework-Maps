@@ -202,10 +202,14 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 }
                 var editModel = new VersionEditViewModel() { Version = version };
 				await RebuildViewModel(editModel, editModel.Version);
-                editModel.UserDetails = [];
+                editModel.VersionContactUserDetails = [];
                 foreach (var v in editModel.Version.VersionContacts)
                 {
-                    editModel.UserDetails.Add(v.UserId, await _repository.GetUser(v.UserId));
+					if(v.UserId is not null)
+					{
+						editModel.VersionContactUserDetails.Add(v.UserId, await _repository.GetUser(v.UserId));
+					}
+                    
                 }
                 return View(editModel);
             } catch (DbUpdateException ex)
@@ -245,7 +249,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                             DisplayName = model.ContactEntry.DisplayName,
                             Enabled = model.ContactEntry.Enabled,
                             UserId = model.ContactEntry.UserId,
-                            VersionId = model.ContactEntry.VersionId
+                            VersionId = model.ContactEntry.VersionId,
+							Email = model.ContactEntry.Email,
                         });
                     }
                     else
@@ -258,7 +263,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                             existingRecord.DisplayName = model.ContactEntry.DisplayName;
                             existingRecord.Enabled = model.ContactEntry.Enabled;
                             existingRecord.UserId = model.ContactEntry.UserId;
-                        }
+							existingRecord.Email = model.ContactEntry.Email;
+						}
                     }
                     await _context.SaveChangesAsync();
                 }
