@@ -33,6 +33,7 @@ const themeSwitcherBundle: BuildConfig = {
 	entrypoints: ["./Scripts/ThemeSwitcher.ts"],
 	outdir: "./wwwroot/js",
 	naming: "[dir]/ThemeSwitcher.[ext]",
+	format: "iife",
 };
 
 async function build() {
