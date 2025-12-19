@@ -255,6 +255,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                             existingRecord.UserId = model.ContactEntry.UserId;
 							existingRecord.Email = model.ContactEntry.Email;
 						}
+						_context.Update(existingRecord);
                     }
                     await _context.SaveChangesAsync();
                 }
