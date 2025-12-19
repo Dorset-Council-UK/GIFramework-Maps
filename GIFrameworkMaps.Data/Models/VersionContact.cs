@@ -10,10 +10,11 @@ namespace GIFrameworkMaps.Data.Models
         public int VersionId { get; set; }
         [Display(Name = "Enable alerts for user")]
         public bool Enabled { get; set; }
-        [Display(Name = "Friendly name")]
+        [Display(Name = "Contact name")]
         public string? DisplayName { get; set; }
         [Display(Name = "User")]
         public string? UserId { get; set; }
+		public string? Email { get; set;  }
         public Version? Version { get; set; }
     }
 }

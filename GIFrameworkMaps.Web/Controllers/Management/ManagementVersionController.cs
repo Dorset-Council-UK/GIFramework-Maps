@@ -200,13 +200,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     return NotFound();
                 }
-                var editModel = new VersionEditViewModel() { Version = version };
-				await RebuildViewModel(editModel, editModel.Version);
-                editModel.UserDetails = [];
-                foreach (var v in editModel.Version.VersionContacts)
-                {
-                    editModel.UserDetails.Add(v.UserId, await _repository.GetUser(v.UserId));
-                }
+                var editModel = new VersionEditContactViewModel() { VersionId = version.Id, VersionName = version.Name };
+				editModel.Contacts = await _context.VersionContacts.Where(v => v.VersionId == version.Id).ToArrayAsync();
                 return View(editModel);
             } catch (DbUpdateException ex)
             {
@@ -245,20 +240,22 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                             DisplayName = model.ContactEntry.DisplayName,
                             Enabled = model.ContactEntry.Enabled,
                             UserId = model.ContactEntry.UserId,
-                            VersionId = model.ContactEntry.VersionId
+                            VersionId = model.ContactEntry.VersionId,
+							Email = model.ContactEntry.Email,
                         });
                     }
                     else
                     {
                         var existingRecord = await _context.VersionContacts
-							.AsNoTracking()
 							.FirstOrDefaultAsync(o => o.VersionContactId == model.ContactEntry.VersionContactId);
                         if (existingRecord is not null)
                         {
                             existingRecord.DisplayName = model.ContactEntry.DisplayName;
                             existingRecord.Enabled = model.ContactEntry.Enabled;
                             existingRecord.UserId = model.ContactEntry.UserId;
-                        }
+							existingRecord.Email = model.ContactEntry.Email;
+						}
+						_context.Update(existingRecord);
                     }
                     await _context.SaveChangesAsync();
                 }
