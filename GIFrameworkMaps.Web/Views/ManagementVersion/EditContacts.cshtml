@@ -1,24 +1,40 @@
-﻿@using GIFrameworkMaps.Data.ViewModels.Management
+﻿@using GIFrameworkMaps.Data
+@using GIFrameworkMaps.Data.ViewModels.Management
 @using Microsoft.Extensions.Options
-@model VersionEditViewModel
+@model VersionEditContactViewModel
 @inject IOptions<GIFrameworkMapsOptions> giFrameworkMapsOptions;
+@inject IManagementRepository repository;
 @{
     string appName = giFrameworkMapsOptions.Value.appName;
-    ViewData["Title"] = $"Manage version users for '{Model.Version.Name}'";
+    ViewData["Title"] = $"Manage version users for '{Model.VersionName}'";
     List<string> emailList = new List<string>();
-    List<string> ContactableUsers = Model.Version.VersionContacts.Where(u => u.Enabled == true).Select(u => u.UserId).ToList();
+    List<GIFrameworkMaps.Data.Models.VersionContact> ContactableUsers = Model.Contacts.Where(u => u.Enabled == true).ToList();
     if (ContactableUsers.Count > 0)
     {
-        var contactableUserList = Model.VersionContactUserDetails.Where(u => ContactableUsers.Contains(u.Value.Id)).Select(u => u.Value).ToList();
-        if (contactableUserList.Count > 0)
+        //fetch emails for contactable users, either via the email in the record, or the users email
+        //this isn't super efficient since we fetch the email here AND further down, but for the sake of simplicity
+        //and the fact this will rarely have more than a handful of users in, and is a very low use screen, its good enough
+        foreach(var contactableUser in ContactableUsers)
         {
-            foreach (var user in contactableUserList)
+
+            Microsoft.Graph.Beta.Models.User fetchedUser = null;
+            if (contactableUser.UserId != null)
             {
-                foreach(string email in user.OtherMails)
+                fetchedUser = await repository.GetUser(contactableUser.UserId);
+                if(fetchedUser is not null)
                 {
-                    emailList.Add(email);
+                    @foreach (var mail in fetchedUser.OtherMails)
+                    {
+                        emailList.Add(mail);
+                    }
                 }
             }
+            if (contactableUser.Email is not null)
+            {
+                emailList.Add(contactableUser.Email);
+            }
+            
+
         }
     }
     string mailingList = string.Join(";",emailList);
@@ -26,17 +42,17 @@
 
 <h1>@ViewData["Title"]</h1>
 
-<a asp-action="Edit" asp-route-id="@Model.Version.Id">Back to version</a>
+<a asp-action="Edit" asp-route-id="@Model.VersionId">Back to version</a>
 
 <p class ="lead">
     You can add a list of contacts for this version below and specify whether or not they should recieve messages relating to this version.
  </p>
-<a href="@Url.Action("AddContact", "ManagementVersion",new {Id = Model.Version.Id})" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add a contact entry</a>
-@if (Model.Version.VersionContacts.Any())
+<a href="@Url.Action("AddContact", "ManagementVersion",new {Id = Model.VersionId})" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add a contact entry</a>
+@if (Model.Contacts.Any())
 {
 
-    <a href="mailto:@(mailingList)?subject=Re:%20@(appName)%20version%20=%20@(Model.Version.Name)" class="btn btn-primary float-end"><i class="bi bi-envelope-at"></i> Draft an email</a>
-    @if (Model.Version.VersionContacts.Count > 0){
+    <a href="mailto:@(mailingList)?subject=Re:%20@(appName)%20version%20@(Model.VersionName)" class="btn btn-primary float-end"><i class="bi bi-envelope-at"></i> Draft an email</a>
+    @if (Model.Contacts.Count() > 0){
     <table id="userTable" class="table table-bordered table-striped mt-2">
         <thead>
             <tr>
@@ -48,22 +64,44 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var user in Model.Version.VersionContacts.OrderBy(u => u.DisplayName))
+            @foreach (var user in Model.Contacts.OrderBy(u => u.DisplayName))
             {
-                
-                var currentUser = Model.VersionContactUserDetails.FirstOrDefault(u => u.Key == user.UserId);
+
+                //if user id is set, get user details from repository
+                Microsoft.Graph.Beta.Models.User fetchedUser = null;
+                if(user.UserId != null)
+                {
+                    fetchedUser = await repository.GetUser(user.UserId);      
+                }
 
                 <tr>
-                    <td>@Html.ActionLink("Edit entry", "EditContact",new {Id = Model.Version.Id, VersionContactId = user.VersionContactId})</td>
-                    <td>@Html.ActionLink((!string.IsNullOrEmpty(user.DisplayName) ? user.DisplayName : currentUser.DisplayName), "Edit", "ManagementUser", new { id = currentUser.Id })</td>
-                    <td>
-                        @foreach (var mail in currentUser?.OtherMails)
-                        {
-                            @mail
+                    <td>@Html.ActionLink("Edit entry", "EditContact", new { Id = Model.VersionId, VersionContactId = user.VersionContactId })</td>
 
-                            <br />
-                        }
-                    </td>
+                    @if(fetchedUser is not null)
+                    {
+                        <td>@Html.ActionLink(fetchedUser.DisplayName, "Edit", "ManagementUser", new { id = fetchedUser.Id })</td>
+                    }
+                    else
+                    {
+                        <td>@user.DisplayName</td>
+                    }
+                    @if (fetchedUser is not null)
+                    {
+                        <td>
+                            @foreach (var mail in fetchedUser.OtherMails)
+                            {
+                                @mail
+
+                                <br />
+                            }
+                        </td>
+                    }
+                    else
+                    {
+                        <td>@user.Email</td>
+                    }
+
+
                     @if (user.Enabled)
                     {
                         <td><span class="badge bg-success">Yes</span></td>
@@ -71,7 +109,7 @@
                     {
                         <td></td>
                     }
-                    <td>@Html.ActionLink("Remove entry", "DeleteContact",new {Id = Model.Version.Id, VersionContactId = user.VersionContactId}, new {@Class="text-danger"})</td>
+                    <td>@Html.ActionLink("Remove entry", "DeleteContact",new {Id = Model.VersionId, VersionContactId = user.VersionContactId}, new {@Class="text-danger"})</td>
                 </tr>
                 
             }

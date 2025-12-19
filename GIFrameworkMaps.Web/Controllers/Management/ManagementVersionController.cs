@@ -200,17 +200,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 {
                     return NotFound();
                 }
-                var editModel = new VersionEditViewModel() { Version = version };
-				await RebuildViewModel(editModel, editModel.Version);
-                editModel.VersionContactUserDetails = [];
-                foreach (var v in editModel.Version.VersionContacts)
-                {
-					if(v.UserId is not null)
-					{
-						editModel.VersionContactUserDetails.Add(v.UserId, await _repository.GetUser(v.UserId));
-					}
-                    
-                }
+                var editModel = new VersionEditContactViewModel() { VersionId = version.Id, VersionName = version.Name };
+				editModel.Contacts = await _context.VersionContacts.Where(v => v.VersionId == version.Id).ToArrayAsync();
                 return View(editModel);
             } catch (DbUpdateException ex)
             {
@@ -256,7 +247,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                     else
                     {
                         var existingRecord = await _context.VersionContacts
-							.AsNoTracking()
 							.FirstOrDefaultAsync(o => o.VersionContactId == model.ContactEntry.VersionContactId);
                         if (existingRecord is not null)
                         {
