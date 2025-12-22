@@ -17,6 +17,8 @@ export interface LayerSource {
   id: number;
   name: string;
   description: string;
+  minZoom: number;
+  maxZoom: number;
   layerSourceType: LayerSourceType;
   attribution: Attribution;
   layerSourceOptions: LayerSourceOption[];

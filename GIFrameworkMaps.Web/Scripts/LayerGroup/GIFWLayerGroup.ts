@@ -70,8 +70,10 @@ export class GIFWLayerGroup implements LayerGroup {
             : "layer"
             }-${layer.id}`;
           const visible = layer.isDefault !== undefined ? layer.isDefault : false;
-          const minZoom = layer.minZoom ? layer.minZoom - 1 : 0;
-          const maxZoom = layer.maxZoom ? layer.maxZoom : 100;
+          const layerMinZoom = layer.minZoom ? layer.minZoom - 1 : 0;
+          const layerMaxZoom = layer.maxZoom ? layer.maxZoom : 100;
+          const sourceMinZoom = layer.layerSource.minZoom;
+          const sourceMaxZoom = layer.layerSource.maxZoom;
           const opacity =
             (layer.defaultOpacity !== undefined ? layer.defaultOpacity : 100) /
             100;
@@ -109,17 +111,17 @@ export class GIFWLayerGroup implements LayerGroup {
             }
           }
           if (layer.layerSource.layerSourceType.name === 'XYZ') {
-            ol_layer = this.createXYZLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
+            ol_layer = this.createXYZLayer(layer, visible, className, layerMaxZoom, layerMinZoom, sourceMaxZoom, sourceMinZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
           } else if (layer.layerSource.layerSourceType.name === 'TileWMS') {
-            ol_layer = this.createTileWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection)
+            ol_layer = this.createTileWMSLayer(layer, visible, className, layerMaxZoom, layerMinZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection)
           } else if (layer.layerSource.layerSourceType.name === 'ImageWMS') {
-            ol_layer = this.createImageWMSLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
+            ol_layer = this.createImageWMSLayer(layer, visible, className, layerMaxZoom, layerMinZoom, opacity, extent, layerHeaders, hasCustomHeaders, projection);
           } else if (layer.layerSource.layerSourceType.name === "Vector" || layer.layerSource.layerSourceType.name === "VectorImage") {
-            ol_layer = await this.createVectorLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
+            ol_layer = await this.createVectorLayer(layer, visible, className, layerMaxZoom, layerMinZoom, opacity, extent, projection);
           } else if (layer.layerSource.layerSourceType.name === "VectorTile") {
-            ol_layer = await this.createVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
+            ol_layer = await this.createVectorTileLayer(layer, visible, className, layerMaxZoom, layerMinZoom, opacity, extent, projection);
           } else if (layer.layerSource.layerSourceType.name === 'OGCVectorTile') {
-            ol_layer = await this.createOGCVectorTileLayer(layer, visible, className, maxZoom, minZoom, opacity, extent, projection);
+            ol_layer = await this.createOGCVectorTileLayer(layer, visible, className, layerMaxZoom, layerMinZoom, opacity, extent, projection);
           }
 
           if (layer.isDefault) {
@@ -279,8 +281,10 @@ export class GIFWLayerGroup implements LayerGroup {
     layer: Layer,
     visible: boolean,
     className: string,
-    maxZoom: number,
-    minZoom: number,
+    layerMaxZoom: number,
+    layerMinZoom: number,
+    sourceMaxZoom: number,
+    sourceMinZoom: number,
     opacity: number,
     extent: Extent,
     layerHeaders: Headers,
@@ -292,6 +296,8 @@ export class GIFWLayerGroup implements LayerGroup {
       attributions: layer.layerSource.attribution.renderedAttributionHTML,
       crossOrigin: "anonymous",
       projection: projection,
+      minZoom: sourceMinZoom,
+      maxZoom: sourceMaxZoom
     };
 
     const tileGrid = getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "tilegrid");
@@ -314,8 +320,8 @@ export class GIFWLayerGroup implements LayerGroup {
       source: new olSource.XYZ(xyzOpts),
       visible: visible,
       className: className,
-      maxZoom: maxZoom,
-      minZoom: minZoom,
+      maxZoom: layerMaxZoom,
+      minZoom: layerMinZoom,
       opacity: opacity,
       extent: extent,
       zIndex:
