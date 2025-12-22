@@ -45,6 +45,20 @@
                 </div>
             </div>
 
+            <div class="alert alert-light">The following options apply only to XYZ layers</div>
+
+            <div class="mb-3">
+                <label asp-for="LayerSource.MinZoom" class="control-label"></label>
+                <input asp-for="LayerSource.MinZoom" class="form-control" />
+                <span asp-validation-for="LayerSource.MinZoom" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LayerSource.MaxZoom" class="control-label"></label>
+                <input asp-for="LayerSource.MaxZoom" class="form-control" />
+                <span asp-validation-for="LayerSource.MaxZoom" class="text-danger"></span>
+            </div>
+
             <div class="mb-3 form-check">
                 <input id="AddOption" name="AddOption" value="true" checked class="form-check-input" type="checkbox" />
                 <label for="AddOption" class="form-check-label">Create layer source option on save</label>

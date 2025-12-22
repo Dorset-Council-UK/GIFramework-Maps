@@ -14,7 +14,11 @@ namespace GIFrameworkMaps.Data.Models
         public string? Name { get; set; }
 		[JsonIgnore]
 		public string? Description { get; set; }
-        [Display(Name="Attribution")]
+		[Display(Name = "Minimum source zoom level (optional)")]
+		public int? MinZoom { get; set; }
+		[Display(Name = "Maximum source zoom level (optional)")]
+		public int? MaxZoom { get; set; }
+		[Display(Name="Attribution")]
         public int AttributionId { get; set; }
         public Attribution? Attribution { get; set; }
         [Display(Name = "Layer Type")]

@@ -154,7 +154,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 "LayerSource",
                 a => a.Name,
                 a => a.Description,
-                a => a.AttributionId,
+				a => a.MinZoom,
+				a => a.MaxZoom,
+				a => a.AttributionId,
                 a => a.LayerSourceTypeId))
             {
 
