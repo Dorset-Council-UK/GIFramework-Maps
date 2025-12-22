@@ -296,10 +296,13 @@ export class GIFWLayerGroup implements LayerGroup {
       attributions: layer.layerSource.attribution.renderedAttributionHTML,
       crossOrigin: "anonymous",
       projection: projection,
-      minZoom: sourceMinZoom,
-      maxZoom: sourceMaxZoom
     };
-
+    if (sourceMinZoom != null) {
+      xyzOpts.minZoom = sourceMinZoom;
+    }
+    if (sourceMaxZoom != null) {
+      xyzOpts.maxZoom = sourceMaxZoom;
+    }
     const tileGrid = getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "tilegrid");
     if (tileGrid !== null) {
       xyzOpts.tileGrid = new TileGrid(JSON.parse(tileGrid));
