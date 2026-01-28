@@ -574,7 +574,7 @@ export class GIFWMap {
       (pel) => pel[0] == layerId
     );
     if (layerSetting.length === 1) {
-      if (layerSetting[0].length === 4) {
+      if (layerSetting[0].length >= 4) {
         const permalinkStyleName = layerSetting[0][3];
         const layerSource = layer.getSource();
         if (layerSource instanceof TileWMS || layerSource instanceof ImageWMS) {
