@@ -216,7 +216,7 @@ export function generatePermalinkForMap(
     hash += "&embed=true";
   }
   const baseUrl = `${window.location.origin}${window.location.pathname}`;
-  return `${baseUrl}${hash}`;
+  return encodeURI(`${baseUrl}${hash}`);
 }
 
 /**

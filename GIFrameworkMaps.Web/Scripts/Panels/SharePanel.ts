@@ -155,12 +155,14 @@ export class SharePanel implements SidebarPanel {
   }
 
   private async generateShortLink() {
-    const permalink = encodeURIComponent(
-      generatePermalinkForMap(this.gifwMapInstance)
-    );
-    const fetchUrl = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}api/GenerateShortUrl?url=${permalink}`;
+    const permalink = generatePermalinkForMap(this.gifwMapInstance);
+    const fetchUrl = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}api/GenerateShortUrl`;
     const response = await fetch(fetchUrl, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({ url: permalink })
     });
     if (!response.ok) {
       this.shareLinkModal.hide();
