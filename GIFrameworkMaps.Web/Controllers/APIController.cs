@@ -231,7 +231,7 @@ namespace GIFrameworkMaps.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GenerateShortUrl(string url)
+        public async Task<IActionResult> GenerateShortUrl([FromForm] string url)
         {
             if (Uri.IsWellFormedUriString(url, UriKind.Absolute) && _repository.IsURLCurrentApplication(url))
             {
