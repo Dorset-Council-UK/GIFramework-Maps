@@ -231,7 +231,8 @@ namespace GIFrameworkMaps.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GenerateShortUrl([FromForm] string url)
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> GenerateShortUrl([FromForm] string url)
         {
             if (Uri.IsWellFormedUriString(url, UriKind.Absolute) && _repository.IsURLCurrentApplication(url))
             {
@@ -304,7 +305,8 @@ namespace GIFrameworkMaps.Web.Controllers
         [Authorize()]
         [HttpPost]
         [Route("api/bookmarks/create")]
-        public async Task<IActionResult> AddBookmark(Bookmark bookmark)
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> AddBookmark(Bookmark bookmark)
         {
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
