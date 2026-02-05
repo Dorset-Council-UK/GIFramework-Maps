@@ -359,6 +359,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         // POST: Version/EditLayerCustomisation
         [HttpPost, ActionName("EditLayerCustomisation")]
+		[ValidateAntiForgeryToken]
         public async Task<IActionResult> EditLayerCustomisationPost(CustomiseLayerEditViewModel model)
         {
             //forces version, layer and category to not be validated
@@ -448,7 +449,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         // POST: Version/DeleteLayerCustomisation/123
         [HttpPost, ActionName("DeleteLayerCustomisation")]
-        public async Task<IActionResult> DeleteLayerCustomisationPost(int id)
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> DeleteLayerCustomisationPost(int id)
         {
 			var customisation = await _context.VersionLayers.FindAsync(id);
 			try
@@ -483,7 +485,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         }
         // POST Version/RemoveAllCustomisations/1
         [HttpPost, ActionName("RemoveAllCustomisations")]
-        public async Task<IActionResult> RemoveAllCustomisationsPost(int id)
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> RemoveAllCustomisationsPost(int id)
         {
             try
             {

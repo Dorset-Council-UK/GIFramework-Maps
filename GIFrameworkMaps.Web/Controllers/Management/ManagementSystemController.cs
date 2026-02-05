@@ -21,7 +21,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         }
 
         [HttpPost]
-        public IActionResult PurgeCache()
+		[ValidateAntiForgeryToken]
+		public IActionResult PurgeCache()
         {
             var success=false;
             if (_repository.PurgeCache())

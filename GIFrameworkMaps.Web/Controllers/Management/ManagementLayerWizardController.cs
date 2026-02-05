@@ -33,7 +33,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateXYZSource(string xyzUrl)
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> CreateXYZSource(string xyzUrl)
         {
             var layerSource = new LayerSource();
             var editModel = new LayerWizardCreateXYZSourceViewModel { LayerSource = layerSource, URLTemplate = xyzUrl };
@@ -42,7 +43,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateXYZSourcePost(LayerWizardCreateXYZSourceViewModel model)
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> CreateXYZSourcePost(LayerWizardCreateXYZSourceViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -81,7 +83,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
         }
 
         [HttpPost]
-        public IActionResult CreateSource(string layerDetails, string type, string projection, string format) {
+		[ValidateAntiForgeryToken]
+		public IActionResult CreateSource(string layerDetails, string type, string projection, string format) {
 
 			var layerResource = JsonSerializer.Deserialize<LayerResource>(layerDetails, layerResourceDeserializationOpts);
 

@@ -157,12 +157,23 @@ export class SharePanel implements SidebarPanel {
   private async generateShortLink() {
     const permalink = generatePermalinkForMap(this.gifwMapInstance);
     const fetchUrl = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}api/GenerateShortUrl`;
+
+    // Get the anti-forgery token
+    const container = document.querySelector(this.container);
+    const tokenInput = container.querySelector('input[name="__RequestVerificationToken"]') as HTMLInputElement;
+    const token = tokenInput?.value || '';
+
+    const formData = new URLSearchParams({ 
+      url: permalink,
+      __RequestVerificationToken: token
+    });
+
     const response = await fetch(fetchUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded"
       },
-      body: new URLSearchParams({ url: permalink })
+      body: formData
     });
     if (!response.ok) {
       this.shareLinkModal.hide();
