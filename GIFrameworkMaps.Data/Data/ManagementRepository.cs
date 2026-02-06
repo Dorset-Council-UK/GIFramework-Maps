@@ -286,8 +286,6 @@ namespace GIFrameworkMaps.Data
 				var graphClient = GetGraphClient();
 				if (graphClient is not null)
 				{
-					// Efficiently get users from graph using DirectoryObjects.GetByIds
-					// This API supports up to 1000 IDs in a single request
 					var requestBody = new Microsoft.Graph.Beta.DirectoryObjects.GetByIds.GetByIdsPostRequestBody
 					{
 						Ids = version_users,
@@ -299,7 +297,7 @@ namespace GIFrameworkMaps.Data
 					if (directoryObjects?.Value != null)
 					{
 						// Cast directory objects to users
-						return directoryObjects.Value.OfType<User>().ToList();
+						return [.. directoryObjects.Value.OfType<User>()];
 					}
 				}
 			}

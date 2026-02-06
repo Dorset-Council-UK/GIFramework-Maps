@@ -323,7 +323,13 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 			}
 
 			IList<User> versionUsers = await _repository.GetUsersInVersion(id);
-			return View(versionUsers);
+			var viewModel = new VersionUsersViewModel
+			{
+				VersionId = version.Id,
+				Version = version,
+				Users = versionUsers
+			};
+			return View(viewModel);
 		}
 
 		// GET: Version/LayerCustomisation/1

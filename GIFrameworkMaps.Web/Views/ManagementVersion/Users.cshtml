@@ -1,17 +1,18 @@
-﻿@model List<Microsoft.Graph.Beta.Models.User>
+﻿@model GIFrameworkMaps.Data.ViewModels.Management.VersionUsersViewModel
+
 @{
-    ViewData["Title"] = "Users";
+    ViewData["Title"] = $"Users for version {Model.Version.Name}";
 
     // Working out the base edit URL once is significantly faster than doing it for each row
-    var editUrl = Url.Action("Edit");
+    var editUrl = Url.Action("Users/Edit");
 }
+
+<a asp-action="Edit" asp-route-id="@Model.VersionId">Back to version</a>
 
 
 <h1>@ViewData["Title"]</h1>
-<p class="lead">Users for version {{version}}</p>
 
-
-@if (Model != null && Model.Count != 0)
+@if (Model.Users != null && Model.Users.Count != 0)
 {
     <table id="userTable" class="table table-bordered table-striped mt-2">
         <thead>
@@ -22,7 +23,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var user in Model.OrderBy(u => u.DisplayName))
+            @foreach (var user in Model.Users.OrderBy(u => u.DisplayName))
             {
                 <tr>
                     <td>@user.Id</td>
