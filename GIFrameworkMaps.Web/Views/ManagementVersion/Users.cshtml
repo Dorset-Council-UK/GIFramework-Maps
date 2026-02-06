@@ -1,0 +1,71 @@
+﻿@model List<Microsoft.Graph.Beta.Models.User>
+@{
+    ViewData["Title"] = "Users";
+
+    // Working out the base edit URL once is significantly faster than doing it for each row
+    var editUrl = Url.Action("Edit");
+}
+
+
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Users for version {{version}}</p>
+
+
+@if (Model != null && Model.Count != 0)
+{
+    <table id="userTable" class="table table-bordered table-striped mt-2">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email(s)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model.OrderBy(u => u.DisplayName))
+            {
+                <tr>
+                    <td>@user.Id</td>
+                    <td><a href="@editUrl/@user.Id">@user.DisplayName</a></td>
+                    <td>
+                        @foreach (var mail in user.OtherMails)
+                        {
+                            @mail
+                
+                            <br />
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No users could be found</div>
+}
+
+@section Scripts {
+    <script>
+        const opts = {
+            perPage: 50,
+            perPageSelect: [10, 25, 50, 100, ["All", 0]],
+            classes:
+            {
+                input: "form-control",
+                top: "datatable-top px-0",
+                selector: "form-select",
+                paginationList: "pagination",
+                paginationListItem: "page-item",
+                paginationListItemLink: "page-link",
+                active: 'active',
+                disabled: 'disabled'
+            }
+        };
+        const dataTable = new simpleDatatables.DataTable("#userTable", opts);
+    </script>
+}
+
+
+
+

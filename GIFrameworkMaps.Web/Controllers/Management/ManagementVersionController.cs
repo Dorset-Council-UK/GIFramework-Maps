@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph.Beta.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -310,8 +311,23 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return RedirectToAction(nameof(EditContacts), new { Id = id });
         }
 
-        // GET: Version/LayerCustomisation/1
-        public async Task<IActionResult> LayerCustomisation(int id)
+		public async Task<IActionResult> Users(int id)
+		{
+			var version = await _commonRepository.GetVersion(id);
+
+			if (version is null)
+			{
+				TempData["Message"] = "Version not found";
+				TempData["MessageType"] = "danger";
+				return RedirectToAction("Edit", new { Id = id });
+			}
+
+			IList<User> versionUsers = await _repository.GetUsersInVersion(id);
+			return View(versionUsers);
+		}
+
+		// GET: Version/LayerCustomisation/1
+		public async Task<IActionResult> LayerCustomisation(int id)
         {
             //get list of all layers and customisations
             var version = await _commonRepository.GetVersion(id);

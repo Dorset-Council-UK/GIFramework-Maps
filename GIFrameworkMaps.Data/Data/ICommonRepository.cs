@@ -1,6 +1,7 @@
 ﻿using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Authorization;
 using GIFrameworkMaps.Data.ViewModels;
+using Microsoft.Graph.Beta.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
