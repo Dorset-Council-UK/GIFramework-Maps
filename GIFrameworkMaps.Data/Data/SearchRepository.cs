@@ -281,7 +281,7 @@ namespace GIFrameworkMaps.Data
             //make a HTTP request to the defined search endpoint
             //NOTE: Null forgiving operator used on URLTemplate as an API search def without a URL template is invalid
             var request = new HttpRequestMessage(HttpMethod.Get,
-                searchDefinition.URLTemplate!.Replace("{{search}}", searchTerm));
+                searchDefinition.URLTemplate!.Replace("{{search}}", Uri.EscapeDataString(searchTerm)));
 
             request.Headers.Add("User-Agent", "HttpClientFactory-GIFrameworkMaps");
             var referer = $"{_httpContextAccessor.HttpContext!.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host.Value}";

@@ -1,8 +1,10 @@
 ﻿using GIFrameworkMaps.Data;
+using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Data.Models.Search;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using MockQueryable.Moq;
 using Moq;
 using Moq.Protected;
 using NUnit.Framework;
@@ -347,6 +349,90 @@ namespace GIFrameworkMaps.Tests
             var results = SearchRepository.LocalSearch(searchTerm, searchDefinition);
 
             Assert.That(results.Count, Is.EqualTo(0));
+        }
+
+        [Test(Description = "Tests that a search term containing special characters (e.g. #) is properly URL-encoded in the API request")]
+        [TestCase("241 chickerell road#", "241%20chickerell%20road%23")]
+        [TestCase("test&query=1", "test%26query%3D1")]
+        [TestCase("normal search", "normal%20search")]
+        public async Task APISearch_SearchTermWithSpecialCharacters_IsProperlyURLEncoded(string searchTerm, string expectedEncodedTerm)
+        {
+            // Arrange
+            const string urlTemplate = "https://api.example.com/search?q={{search}}&format=json";
+            const int searchDefId = 42;
+            string? capturedUri = null;
+
+            var mockLogger = new Mock<ILogger<SearchRepository>>();
+            var mockIApplicationDbContext = new Mock<IApplicationDbContext>();
+
+            // Set up APISearchDefinition with a URL template containing the {{search}} placeholder
+            var apiSearchDef = new APISearchDefinition
+            {
+                Id = searchDefId,
+                Name = "Test API Search",
+                Title = "Test Addresses",
+                URLTemplate = urlTemplate,
+                TitleFieldPath = "$.display_name",
+                XFieldPath = "$.lon",
+                YFieldPath = "$.lat",
+                EPSG = 4326,
+                ZoomLevel = 15,
+                MaxResults = 10
+            };
+            var apiSearchDefsMockSet = new List<APISearchDefinition> { apiSearchDef }.BuildMockDbSet();
+            mockIApplicationDbContext.Setup(m => m.APISearchDefinitions).Returns(apiSearchDefsMockSet.Object);
+
+            // Set up empty DatabaseSearchDefinitions and LocalSearchDefinitions
+            mockIApplicationDbContext.Setup(m => m.DatabaseSearchDefinitions)
+                .Returns(new List<DatabaseSearchDefinition>().BuildMockDbSet().Object);
+            mockIApplicationDbContext.Setup(m => m.LocalSearchDefinitions)
+                .Returns(new List<LocalSearchDefinition>().BuildMockDbSet().Object);
+
+            // Set up VersionSearchDefinitions pointing to the API search definition
+            var versionSearchDef = new VersionSearchDefinition
+            {
+                SearchDefinitionId = searchDefId,
+                SearchDefinition = apiSearchDef
+            };
+            mockIApplicationDbContext.Setup(m => m.VersionSearchDefinitions)
+                .Returns(new List<VersionSearchDefinition> { versionSearchDef }.BuildMockDbSet().Object);
+
+            // Set up HTTP mock that captures the request URI
+            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Callback<HttpRequestMessage, CancellationToken>((req, _) => capturedUri = req.RequestUri?.AbsoluteUri)
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("[]"),
+                });
+
+            var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+            mockHttpContextAccessor.Setup(_ => _.HttpContext).Returns(new DefaultHttpContext());
+
+            var mockFactory = new Mock<IHttpClientFactory>();
+            mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(new HttpClient(mockHttpMessageHandler.Object));
+
+            var repository = new SearchRepository(
+                mockLogger.Object,
+                mockIApplicationDbContext.Object,
+                mockFactory.Object,
+                mockHttpContextAccessor.Object,
+                new MemoryCache(new MemoryCacheOptions()));
+
+            var requiredSearches = new List<RequiredSearch>
+            {
+                new() { SearchDefinitionId = searchDefId, Enabled = true, Order = 1 }
+            };
+
+            // Act
+            await repository.Search(searchTerm, requiredSearches);
+
+            // Assert
+            Assert.That(capturedUri, Is.Not.Null, "Expected an HTTP request to be made");
+            Assert.That(capturedUri, Does.Contain(expectedEncodedTerm), $"Expected encoded term '{expectedEncodedTerm}' in URI");
+            Assert.That(capturedUri, Does.Not.Contain("#"), "URI must not contain an unencoded '#' character");
         }
     }
 }
