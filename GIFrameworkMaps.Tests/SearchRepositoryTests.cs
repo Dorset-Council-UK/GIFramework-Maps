@@ -352,7 +352,7 @@ namespace GIFrameworkMaps.Tests
         }
 
         [Test(Description = "Tests that a search term containing special characters (e.g. #) is properly URL-encoded in the API request")]
-        [TestCase("123 test avenue#", "241%20chickerell%20road%23")]
+        [TestCase("123 test avenue#", "123%20test%20avenue%23")]
         [TestCase("test&query=1", "test%26query%3D1")]
 		[TestCase("test query?","test%20query%3F")]
         [TestCase("normal search", "normal%20search")]
