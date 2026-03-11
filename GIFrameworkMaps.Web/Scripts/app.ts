@@ -152,6 +152,14 @@ document.addEventListener("DOMContentLoaded", () => {
         panels.forEach(panel => {
           panel.setGIFWMapInstance(map);
         });
+
+        const panelParam = extractParamFromHash(window.location.hash, 'panel');
+        if (panelParam) {
+          const matchingSidebar = sidebars.find(s => s.id === panelParam);
+          if (matchingSidebar) {
+            matchingSidebar.open();
+          }
+        }
         
         const tooltipTriggerList = [].slice.call(
           document.querySelectorAll('[data-bs-toggle="tooltip"]'),
