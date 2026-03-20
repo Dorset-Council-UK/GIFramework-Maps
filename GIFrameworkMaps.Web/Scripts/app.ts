@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const map = new GIFWMaps.GIFWMap(mapId, config, sidebars, mode, gifw_map_services_access_token);
 
-        map.initMap();
+        await map.initMap();
 
         panels.forEach(panel => {
           panel.setGIFWMapInstance(map);
