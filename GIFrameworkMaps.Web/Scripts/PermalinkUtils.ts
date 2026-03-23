@@ -10,7 +10,7 @@ import { ImageWMS, Source, TileWMS } from "ol/source";
 import LayerRenderer from "ol/renderer/Layer";
 import { b64EncodeUnicode, UnicodeDecodeB64 } from "./Util";
 import { extractParamsFromHash } from "./Util";
-import { debounce, DebouncedFunc } from "lodash";
+import debounce from "lodash.debounce";
 import { Basemap } from "./Interfaces/Basemap";
 import { Layer } from "./Interfaces/Layer";
 import CQL from "./OL Extensions/CQL";
@@ -251,7 +251,7 @@ export function updatePermalinkInLinks(map: GIFWMap): void {
  */
 export function permaLinkDelayedUpdate(
   map: GIFWMap
-): DebouncedFunc<() => void> {
+): ReturnType<typeof debounce> {
   return debounce(() => {
     document
       .getElementById(map.id)
