@@ -147,7 +147,7 @@ export class BasemapsPanel implements SidebarPanel {
     meta.appendChild(aboutLink);
 
     const source = basemap.getSource();
-    if (source.getProjection) {
+    if (source && source.getProjection) {
       const proj = source.getProjection() as Projection;
       if (
         proj &&
