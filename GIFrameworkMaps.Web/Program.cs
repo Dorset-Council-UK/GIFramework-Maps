@@ -199,9 +199,9 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
 	// Configure Azure Monitor (Application Insights) via OpenTelemetry
 	services.AddOpenTelemetry()
+		.WithTracing(tracing => tracing.AddProcessor(new UnwantedTelemetryFilter()))
 		.UseAzureMonitor(options =>
 		{
 			options.ConnectionString = configuration["ApplicationInsights:ConnectionString"];
-		})
-		.WithTracing(tracing => tracing.AddProcessor(new UnwantedTelemetryFilter()));
+		});
 }

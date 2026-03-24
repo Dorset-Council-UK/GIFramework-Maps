@@ -355,13 +355,13 @@ namespace GIFrameworkMaps.Data
 
         public async Task<string> GenerateShortId(string url)
         {
-            string shortId = Convert.ToHexString(RandomNumberGenerator.GetBytes(5)).ToUpperInvariant();
+            string shortId = Convert.ToHexString(RandomNumberGenerator.GetBytes(5));
 
 			var existing = await _context.ShortLinks.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
             var iterations = 0;
             var maxIterations = 100;
             while (existing != null && iterations < maxIterations) {
-                shortId = Convert.ToHexString(RandomNumberGenerator.GetBytes(5)).ToUpperInvariant();
+                shortId = Convert.ToHexString(RandomNumberGenerator.GetBytes(5));
 				existing = await _context.ShortLinks.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
                 iterations++;
             }
