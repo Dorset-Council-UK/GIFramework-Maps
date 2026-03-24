@@ -65,16 +65,27 @@
     "@types/luxon": "3.7.1",
     "@types/nunjucks": "3.2.6",
     "@types/sortablejs": "1.15.9",
-    "@typescript-eslint/eslint-plugin": "8.57.1",
-    "@typescript-eslint/parser": "8.57.1",
+    "@typescript-eslint/eslint-plugin": "8.57.2",
+    "@typescript-eslint/parser": "8.57.2",
     "concurrently": "9.2.1",
     "eslint": "10.1.0",
     "eslint-config-prettier": "10.1.8",
     "globals": "17.4.0",
     "onchange": "7.1.0",
     "prettier": "3.8.1",
-    "typescript": "5.9.3",
-    "typescript-eslint": "8.57.1"
+    "typescript": "6.0.2",
+    "typescript-eslint": "8.57.2"
+  },
+  "overrides": {
+    "@typescript-eslint/eslint-plugin": {
+      "typescript": "$typescript"
+    },
+    "@typescript-eslint/parser": {
+      "typescript": "$typescript"
+    },
+    "typescript-eslint": {
+      "typescript": "$typescript"
+    }
   },
   "-vs-binding": {
     "ProjectOpened": [
