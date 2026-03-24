@@ -531,11 +531,6 @@
         "resolved": "2.1.1",
         "contentHash": "9sMrkSNS3pR72WLjhWycPAv9f/prnRF4VlSdpAi3HXjoz6F/Ijs9gcuWcsy1R/8I0ffMrwdutjUlpg2sKA2N0A=="
       },
-      "shortid": {
-        "type": "Transitive",
-        "resolved": "4.0.0",
-        "contentHash": "iiOsFHiZLfmUxViNKWAmLYi6xCJanKBYlxe163pkK4C+k9vnkWdCNCPouNWukn/F147k3bLq0tEFEQhlGMLqjA=="
-      },
       "Std.UriTemplate": {
         "type": "Transitive",
         "resolved": "2.0.1",
@@ -580,8 +575,7 @@
           "Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime": "[10.0.1, )",
           "Npgsql.NodaTime": "[10.0.2, )",
           "OpenLocationCode": "[2.1.1, )",
-          "System.IdentityModel.Tokens.Jwt": "[8.16.0, )",
-          "shortid": "[4.0.0, )"
+          "System.IdentityModel.Tokens.Jwt": "[8.16.0, )"
         }
       }
     }

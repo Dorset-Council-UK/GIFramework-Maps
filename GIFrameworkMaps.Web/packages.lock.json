@@ -167,15 +167,6 @@
           "Npgsql": "10.0.2"
         }
       },
-      "OpenTelemetry": {
-        "type": "Direct",
-        "requested": "[1.15.0, )",
-        "resolved": "1.15.0",
-        "contentHash": "7mS/oZFF8S6xyqGQfMU1btp0nXJQUPWV535Vp/XMLYwRAUv36xQN+U4vufWBF1+z4HnRTOwuFHtUSGnHbyN6FQ==",
-        "dependencies": {
-          "OpenTelemetry.Api.ProviderBuilderExtensions": "1.15.0"
-        }
-      },
       "Svg": {
         "type": "Direct",
         "requested": "[3.4.7, )",
@@ -654,17 +645,25 @@
         "resolved": "2.1.1",
         "contentHash": "9sMrkSNS3pR72WLjhWycPAv9f/prnRF4VlSdpAi3HXjoz6F/Ijs9gcuWcsy1R/8I0ffMrwdutjUlpg2sKA2N0A=="
       },
+      "OpenTelemetry": {
+        "type": "Transitive",
+        "resolved": "1.14.0",
+        "contentHash": "aiPBAr1+0dPDItH++MQQr5UgMf4xiybruzNlAoYYMYN3UUk+mGRcoKuZy4Z4rhhWUZIpK2Xhe7wUUXSTM32duQ==",
+        "dependencies": {
+          "OpenTelemetry.Api.ProviderBuilderExtensions": "1.14.0"
+        }
+      },
       "OpenTelemetry.Api": {
         "type": "Transitive",
-        "resolved": "1.15.0",
-        "contentHash": "vk5OGdf6K9kQScCWo3bRjhDWCv6Pqw92IpX4dlARZ8B1WL7/2NGTDtCkkw42eQf7UdwyoHKzVvMH/PtL8d6z7w=="
+        "resolved": "1.14.0",
+        "contentHash": "foHci6viUw1f3gUB8qzz3Rk02xZIWMo299X0rxK0MoOWok/3dUVru+KKdY7WIoSHwRGpxGKkmAz9jIk2RFNbsQ=="
       },
       "OpenTelemetry.Api.ProviderBuilderExtensions": {
         "type": "Transitive",
-        "resolved": "1.15.0",
-        "contentHash": "OnuSUlRpGvowkOzGFQfy+KZFu0cITfKfh2IYJJiZskxVJiOuexwOOuvfDAgpJdmTzVWAHjYdz2shcHZaJ06UjQ==",
+        "resolved": "1.14.0",
+        "contentHash": "i/lxOM92v+zU5I0rGl5tXAGz6EJtxk2MvzZ0VN6F6L5pMqT6s6RCXnGWXg6fW+vtZJsllBlQaf/VLPTzgefJpg==",
         "dependencies": {
-          "OpenTelemetry.Api": "1.15.0"
+          "OpenTelemetry.Api": "1.14.0"
         }
       },
       "OpenTelemetry.Extensions.Hosting": {
