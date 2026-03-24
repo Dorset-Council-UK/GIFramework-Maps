@@ -1,21 +1,14 @@
-﻿using Microsoft.ApplicationInsights.Channel;
-using Microsoft.ApplicationInsights.DataContracts;
-using Microsoft.ApplicationInsights.Extensibility;
+﻿using OpenTelemetry;
+using System.Diagnostics;
 
 namespace GIFrameworkMaps.Web.Filters
 {
-	public class UnwantedTelemetryFilter(ITelemetryProcessor next) : ITelemetryProcessor
+	public class UnwantedTelemetryFilter : BaseProcessor<Activity>
 	{
-		private ITelemetryProcessor Next { get; set; } = next;
-
-		public void Process(ITelemetry item)
+		public override void OnEnd(Activity activity)
 		{
-			if (item is RequestTelemetry request && request.Name != null)
-				if (request.Name.Contains("broadcasthub"))
-					return;
-
-			// Send everything else:
-			Next.Process(item);
+			if (activity.Kind == ActivityKind.Server && activity.DisplayName.Contains("broadcasthub"))
+				activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
 		}
 	}
 }

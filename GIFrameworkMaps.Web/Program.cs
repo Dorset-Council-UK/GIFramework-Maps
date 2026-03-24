@@ -1,10 +1,11 @@
 using Azure.Identity;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using GIFrameworkMaps.Data;
 using GIFrameworkMaps.Data.Models.Authorization;
 using GIFrameworkMaps.Web;
 using GIFrameworkMaps.Web.Authorization;
 using GIFrameworkMaps.Web.Filters;
-using Microsoft.ApplicationInsights.AspNetCore.Extensions;
+using OpenTelemetry.Trace;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -20,7 +21,6 @@ using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using Npgsql;
 using System;
-using System.Configuration;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
@@ -117,11 +117,11 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 	services.AddHealthChecks()
 		.AddDbContextCheck<ApplicationDbContext>();
 
-	var connectionString = configuration.GetConnectionString("GIFrameworkMaps");
-	if (string.IsNullOrEmpty(connectionString))
-	{
-		throw new ConfigurationErrorsException("Connection string was empty");
-	}
+    var connectionString = configuration.GetConnectionString("GIFrameworkMaps");
+    if (string.IsNullOrEmpty(connectionString))
+    {
+		throw new InvalidOperationException("Connection string was empty");
+    }
 	// Configure the database context
 	services.AddDbContextPool<ApplicationDbContext>(options =>
     {
@@ -197,11 +197,11 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.AddHttpForwarder();
 
-    // Configure Application Insights
-    ApplicationInsightsServiceOptions appInsightOptions = new()
-    {
-        ConnectionString = configuration["ApplicationInsights:ConnectionString"]
-    };
-    services.AddApplicationInsightsTelemetry(appInsightOptions);
-    services.AddApplicationInsightsTelemetryProcessor<UnwantedTelemetryFilter>();
+	// Configure Azure Monitor (Application Insights) via OpenTelemetry
+	services.AddOpenTelemetry()
+		.UseAzureMonitor(options =>
+		{
+			options.ConnectionString = configuration["ApplicationInsights:ConnectionString"];
+		})
+		.WithTracing(tracing => tracing.AddProcessor(new UnwantedTelemetryFilter()));
 }
