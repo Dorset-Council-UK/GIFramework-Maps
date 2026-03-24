@@ -332,6 +332,118 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 			return View(viewModel);
 		}
 
+		// GET: Version/DeleteUser/1?userId=abc
+		public async Task<IActionResult> DeleteUser(int id, string userId)
+		{
+			var version = await _commonRepository.GetVersion(id);
+			if (version is null)
+			{
+				TempData["Message"] = "Version not found";
+				TempData["MessageType"] = "danger";
+				return RedirectToAction("Edit", new { Id = id });
+			}
+
+			var user = await _repository.GetUser(userId);
+			if (user is null)
+			{
+				TempData["Message"] = "User not found";
+				TempData["MessageType"] = "danger";
+				return RedirectToAction(nameof(Users), new { Id = id });
+			}
+
+			var viewModel = new VersionDeleteUserViewModel
+			{
+				VersionId = id,
+				VersionName = version.Name,
+				UserId = userId,
+				UserDisplayName = user.DisplayName
+			};
+			return View(viewModel);
+		}
+
+		// POST: Version/DeleteUser/1?userId=abc
+		[HttpPost, ActionName("DeleteUser")]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> DeleteUserPost(int id, string userId)
+		{
+			var recordToDelete = await _context.VersionUsers
+				.FirstOrDefaultAsync(vu => vu.VersionId == id && vu.UserId == userId);
+			try
+			{
+				if (recordToDelete is not null)
+				{
+					_context.VersionUsers.Remove(recordToDelete);
+					await _context.SaveChangesAsync();
+				}
+				TempData["Message"] = "User removed from version";
+				TempData["MessageType"] = "success";
+				return RedirectToAction(nameof(Users), new { Id = id });
+			}
+			catch (DbUpdateException ex)
+			{
+				_logger.LogError(ex, "Version user delete failed");
+				TempData["Message"] = "Failed to remove user from version";
+				TempData["MessageType"] = "danger";
+			}
+			return RedirectToAction(nameof(Users), new { Id = id });
+		}
+
+		// GET: Version/AddUser/1
+		public async Task<IActionResult> AddUser(int id)
+		{
+			var version = await _commonRepository.GetVersion(id);
+			if (version is null)
+			{
+				TempData["Message"] = "Version not found";
+				TempData["MessageType"] = "danger";
+				return RedirectToAction("Edit", new { Id = id });
+			}
+			var viewModel = new VersionAddUserViewModel
+			{
+				VersionId = id,
+				VersionName = version.Name,
+				ListOfUsers = await _repository.GetUsers()
+			};
+			return View(viewModel);
+		}
+
+		// POST: Version/AddUser
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> AddUser(VersionAddUserViewModel model)
+		{
+			if (ModelState.IsValid)
+			{
+				try
+				{
+					var existing = await _context.VersionUsers
+						.FirstOrDefaultAsync(vu => vu.VersionId == model.VersionId && vu.UserId == model.UserId);
+
+					if (existing is null)
+					{
+						_context.VersionUsers.Add(new VersionUser
+						{
+							VersionId = model.VersionId,
+							UserId = model.UserId
+						});
+						await _context.SaveChangesAsync();
+					}
+					TempData["Message"] = "User added to version";
+					TempData["MessageType"] = "success";
+					return RedirectToAction(nameof(Users), new { Id = model.VersionId });
+				}
+				catch (DbUpdateException ex)
+				{
+					_logger.LogError(ex, "Version user add failed");
+					ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
+				}
+			}
+			var version = await _commonRepository.GetVersion(model.VersionId);
+			model.VersionName = version?.Name ?? string.Empty;
+			model.ListOfUsers = await _repository.GetUsers();
+			return View(model);
+		}
+
 		// GET: Version/LayerCustomisation/1
 		public async Task<IActionResult> LayerCustomisation(int id)
         {

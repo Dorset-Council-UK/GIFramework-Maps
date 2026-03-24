@@ -1,0 +1,32 @@
+@model GIFrameworkMaps.Data.ViewModels.Management.VersionDeleteUserViewModel
+
+@{
+    ViewData["Title"] = "Remove user from version";
+}
+
+<h1>@ViewData["Title"]</h1>
+<p class="lead">Are you sure you want to remove this user from version <strong>@Model.VersionName</strong>?</p>
+
+<form asp-action="DeleteUser" asp-route-id="@Model.VersionId" method="post">
+    <div class="row mt-4 mb-2">
+        <div class="col-md-6">
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <input type="hidden" asp-for="VersionId" />
+            <input type="hidden" asp-for="UserId" />
+
+            <table class="table table-striped">
+                <tr>
+                    <th>User</th>
+                    <td>@Model.UserDisplayName</td>
+                </tr>
+            </table>
+
+            <div class="mb-3">
+                <input type="submit" value="Remove" class="btn btn-danger btn-lg" />
+                <a asp-action="Users" asp-route-id="@Model.VersionId" class="btn btn-link">Cancel</a>
+            </div>
+
+        </div>
+    </div>
+</form>

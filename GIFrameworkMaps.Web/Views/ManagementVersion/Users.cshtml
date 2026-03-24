@@ -12,6 +12,8 @@
 
 <h1>@ViewData["Title"]</h1>
 
+<a href="@Url.Action("AddUser", "ManagementVersion", new { Id = Model.VersionId })" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add a user</a>
+
 @if (Model.Users != null && Model.Users.Count != 0)
 {
     <table id="userTable" class="table table-bordered table-striped mt-2">
@@ -20,6 +22,7 @@
                 <th>ID</th>
                 <th>Name</th>
                 <th>Email(s)</th>
+                <th>Remove</th>
             </tr>
         </thead>
         <tbody>
@@ -32,10 +35,11 @@
                         @foreach (var mail in user.OtherMails)
                         {
                             @mail
-                
+
                             <br />
                         }
                     </td>
+                    <td>@Html.ActionLink("Remove", "DeleteUser", new { Id = Model.VersionId, userId = user.Id }, new { @class = "text-danger" })</td>
                 </tr>
             }
         </tbody>
