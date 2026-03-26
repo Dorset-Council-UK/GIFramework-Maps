@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using shortid;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data
@@ -355,14 +355,14 @@ namespace GIFrameworkMaps.Data
 
         public async Task<string> GenerateShortId(string url)
         {
-            string shortId = ShortId.Generate();
+            string shortId = Convert.ToHexString(RandomNumberGenerator.GetBytes(5));
 
-            var existing = await _context.ShortLinks.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
+			var existing = await _context.ShortLinks.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
             var iterations = 0;
             var maxIterations = 100;
             while (existing != null && iterations < maxIterations) {
-                shortId = ShortId.Generate();
-                existing = await _context.ShortLinks.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
+                shortId = Convert.ToHexString(RandomNumberGenerator.GetBytes(5));
+				existing = await _context.ShortLinks.AsNoTracking().FirstOrDefaultAsync(s => s.ShortId == shortId);
                 iterations++;
             }
             
