@@ -52,39 +52,198 @@ namespace GIFrameworkMaps.Data
 		}
 
         /// <summary>
-        /// Attempts to convert a WGS84 coordinate represented in degrees minutes and seconds to its Decimal equivalent
+        /// Attempts to convert a WGS84 coordinate represented in degrees/minutes/seconds (DMS)
+        /// or degrees/decimal minutes (DDM) to its Decimal equivalent.
+        /// Supports various symbol formats, hemisphere prefixes/suffixes, negative signs,
+        /// colon-separated, and space-separated inputs.
         /// </summary>
-        /// <param name="dmsCoord">The DMS coordinate as a string</param>
+        /// <param name="dmsCoord">The DMS or DDM coordinate as a string</param>
         /// <returns>A decimal coordinate</returns>
         internal static decimal ConvertDMSCoordinateToDecimal(string dmsCoord)
         {
-
-            dmsCoord = dmsCoord.Trim();
-            /*parse the three parts of the coordinate out of the string*/
-            /*the first part will be the numbers until either the degree symbol is hit or a space*/
-            /*the second part will be the numbers until either an apostrophe symbol is hit or a space*/
-            /*the third part will be the numbers until the last number in the string*/
-            /*This could perhaps be better done with regular expressions*/
-            var firstBreak = dmsCoord.IndexOfAny([' ', '°']);
-            var degrees = dmsCoord[..firstBreak];
-
-            var startPointOfSecondSection = dmsCoord.IndexOfAny("0123456789".ToCharArray(),firstBreak);
-            var secondBreak = dmsCoord.IndexOfAny([' ', '\'', '′'],startPointOfSecondSection);
-            var minutes = dmsCoord[startPointOfSecondSection..secondBreak];
-
-            var startPointOfThirdSection = dmsCoord.IndexOfAny("0123456789".ToCharArray(), secondBreak);
-			#pragma warning disable CA1870
-			var thirdBreak = dmsCoord.LastIndexOfAny("0123456789".ToCharArray())+1;
-			#pragma warning restore CA1870
-			var seconds = dmsCoord[startPointOfThirdSection..thirdBreak];
-
-            Regex pattern = NSEWRegex();
-            var hemisphereIndicator = pattern.Match(dmsCoord.ToUpper());
-            if (decimal.TryParse(degrees, out decimal d) && decimal.TryParse(minutes, out decimal m) && decimal.TryParse(seconds, out decimal s))
+            if (string.IsNullOrWhiteSpace(dmsCoord))
             {
-                return ConvertDegreeAngleToDecimal(d, m, s, hemisphereIndicator.Success ? hemisphereIndicator.Value : "");
+                throw new ArgumentOutOfRangeException(nameof(dmsCoord), "Coordinate string is empty");
             }
-            throw new ArgumentOutOfRangeException(nameof(dmsCoord),$"Coordinate {dmsCoord} could not be converted to Decimal degrees");
+
+            string normalized = NormalizeDMSInput(dmsCoord.Trim());
+            var match = SingleDMSCoordRegex().Match(normalized);
+
+            if (!match.Success)
+            {
+                throw new ArgumentOutOfRangeException(nameof(dmsCoord), $"Coordinate {dmsCoord} could not be converted to Decimal degrees");
+            }
+
+            if (!decimal.TryParse(match.Groups["deg"].Value, out decimal degrees))
+            {
+                throw new ArgumentOutOfRangeException(nameof(dmsCoord), $"Coordinate {dmsCoord} could not be converted to Decimal degrees");
+            }
+
+            decimal minutes = 0;
+            if (match.Groups["min"].Success && !string.IsNullOrEmpty(match.Groups["min"].Value))
+            {
+                decimal.TryParse(match.Groups["min"].Value, out minutes);
+            }
+
+            decimal seconds = 0;
+            if (match.Groups["sec"].Success && !string.IsNullOrEmpty(match.Groups["sec"].Value))
+            {
+                decimal.TryParse(match.Groups["sec"].Value, out seconds);
+            }
+
+            string hemisphere = "";
+            if (match.Groups["suffix"].Success && !string.IsNullOrEmpty(match.Groups["suffix"].Value))
+            {
+                hemisphere = match.Groups["suffix"].Value.ToUpper();
+            }
+            else if (match.Groups["prefix"].Success && !string.IsNullOrEmpty(match.Groups["prefix"].Value))
+            {
+                hemisphere = match.Groups["prefix"].Value.ToUpper();
+            }
+
+            bool isNegative = match.Groups["neg"].Success && match.Groups["neg"].Value == "-";
+
+            decimal result = ConvertDegreeAngleToDecimal(degrees, minutes, seconds, hemisphere);
+
+            if (isNegative)
+            {
+                result = -Math.Abs(result);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Attempts to parse a coordinate pair string in DMS or DDM format into decimal latitude and longitude.
+        /// Handles comma-separated, hemisphere-separated, and space-separated coordinate pairs.
+        /// </summary>
+        /// <param name="input">The coordinate pair string</param>
+        /// <param name="latitude">The parsed latitude</param>
+        /// <param name="longitude">The parsed longitude</param>
+        /// <returns>True if parsing succeeded, false otherwise</returns>
+        internal static bool TryParseDMSCoordinatePair(string input, out decimal latitude, out decimal longitude)
+        {
+            latitude = 0;
+            longitude = 0;
+
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return false;
+            }
+
+            string normalized = NormalizeDMSInput(input.Trim());
+
+            if (!TrySplitCoordinatePair(normalized, out string latPart, out string lonPart))
+            {
+                return false;
+            }
+
+            try
+            {
+                latitude = ConvertDMSCoordinateToDecimal(latPart);
+                longitude = ConvertDMSCoordinateToDecimal(lonPart);
+                return true;
+            }
+            catch
+            {
+                latitude = 0;
+                longitude = 0;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Normalizes various Unicode symbol variants and separator characters in DMS input
+        /// </summary>
+        private static string NormalizeDMSInput(string input)
+        {
+            // Replace colons with spaces (e.g., 50:39:41.8 → 50 39 41.8)
+            input = input.Replace(':', ' ');
+
+            // Normalize degree-like symbols to ° (U+00B0)
+            input = input.Replace('\u02DA', '\u00B0');  // RING ABOVE
+            input = input.Replace('\u00BA', '\u00B0');  // MASCULINE ORDINAL INDICATOR
+
+            // Normalize minute/prime-like symbols to ′ (U+2032)
+            input = input.Replace('\u2019', '\u2032');  // RIGHT SINGLE QUOTATION MARK
+            input = input.Replace('\u02B9', '\u2032');  // MODIFIER LETTER PRIME
+            input = input.Replace('\'', '\u2032');      // APOSTROPHE
+
+            // Normalize second/double-prime-like symbols to ″ (U+2033)
+            input = input.Replace('\u201C', '\u2033');  // LEFT DOUBLE QUOTATION MARK
+            input = input.Replace('\u201D', '\u2033');  // RIGHT DOUBLE QUOTATION MARK
+            input = input.Replace('\u02BA', '\u2033');  // MODIFIER LETTER DOUBLE PRIME
+            input = input.Replace('"', '\u2033');       // QUOTATION MARK
+
+            return input;
+        }
+
+        /// <summary>
+        /// Attempts to split a coordinate pair string into two individual coordinate strings
+        /// </summary>
+        private static bool TrySplitCoordinatePair(string input, out string part1, out string part2)
+        {
+            part1 = "";
+            part2 = "";
+            input = input.Trim();
+
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return false;
+            }
+
+            // Strategy 1: Comma-separated (e.g., "50° 39′ 41.8″ N, 2° 36′ 22.0″ W")
+            int commaIndex = input.IndexOf(',');
+            if (commaIndex > 0 && commaIndex < input.Length - 1)
+            {
+                part1 = input[..commaIndex].Trim();
+                part2 = input[(commaIndex + 1)..].Trim();
+                if (!string.IsNullOrWhiteSpace(part1) && !string.IsNullOrWhiteSpace(part2))
+                {
+                    return true;
+                }
+            }
+
+            // Strategy 2: Hemisphere suffix split - N/S after a digit marks end of latitude
+            // Handles: "50° 39′ 41.8″ N 2° 36′ 22.0″ W", "50 39 41.8S 37 50 43"
+            var hemiSuffixMatch = HemisphereSuffixSplitRegex().Match(input);
+            if (hemiSuffixMatch.Success)
+            {
+                part1 = hemiSuffixMatch.Groups[1].Value.Trim();
+                part2 = hemiSuffixMatch.Groups[2].Value.Trim();
+                if (!string.IsNullOrWhiteSpace(part1) && !string.IsNullOrWhiteSpace(part2))
+                {
+                    return true;
+                }
+            }
+
+            // Strategy 3: E/W prefix on second coordinate (e.g., "N50° 39′ 41.8″ W2° 36′ 22.0″")
+            var ewPrefixMatch = EWPrefixSplitRegex().Match(input);
+            if (ewPrefixMatch.Success)
+            {
+                part1 = ewPrefixMatch.Groups[1].Value.Trim();
+                part2 = ewPrefixMatch.Groups[2].Value.Trim();
+                if (!string.IsNullOrWhiteSpace(part1) && !string.IsNullOrWhiteSpace(part2))
+                {
+                    return true;
+                }
+            }
+
+            // Strategy 4: No hemispheres - split by number group count
+            var numbers = NumberGroupRegex().Matches(input);
+            if (numbers.Count >= 4 && numbers.Count % 2 == 0)
+            {
+                int halfIndex = numbers.Count / 2;
+                int splitPos = numbers[halfIndex - 1].Index + numbers[halfIndex - 1].Length;
+                part1 = input[..splitPos].Trim();
+                part2 = input[splitPos..].Trim();
+                if (!string.IsNullOrWhiteSpace(part1) && !string.IsNullOrWhiteSpace(part2))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -144,10 +303,36 @@ namespace GIFrameworkMaps.Data
 			return [e, n];
 		}
 
-        [GeneratedRegex("[NSEW]")]
-        private static partial Regex NSEWRegex();
-
 		[GeneratedRegex("^[THJONS][VWXYZQRSTULMNOPFGHJKABCDE] ?[0-9]{1,5} ?[0-9]{1,5}$")]
 		private static partial Regex BNGRegEx();
+
+        /// <summary>
+        /// Matches a single DMS/DDM coordinate with optional hemisphere prefix/suffix and negative sign.
+        /// Requires a separator (°/′ symbol or whitespace) between number groups to prevent ambiguous parsing.
+        /// Handles: "50° 39′ 41.8″ N", "50 39 41.8", "N50°39′41.8″", "-50 39 41.8", "50° 39.697′ N"
+        /// </summary>
+        [GeneratedRegex(@"^\s*(?<prefix>[NSEWnsew])?\s*(?<neg>-)?\s*(?<deg>\d+(?:\.\d+)?)(?:(?:\s*[°′]\s*|\s+)(?:(?<min>\d+(?:\.\d+)?)(?:(?:\s*[′″]\s*|\s+)(?:(?<sec>\d+(?:\.\d+)?)\s*″?\s*)?)?)?)?(?<suffix>[NSEWnsew])?\s*$")]
+        private static partial Regex SingleDMSCoordRegex();
+
+        /// <summary>
+        /// Splits a coordinate pair on N/S hemisphere suffix.
+        /// Matches the first coordinate ending with a digit (possibly followed by symbols) then N or S,
+        /// followed by whitespace or comma, then the second coordinate.
+        /// </summary>
+        [GeneratedRegex(@"^(.+\d[^\dNSEWnsew]*[NSns])[\s,]+(.+)$")]
+        private static partial Regex HemisphereSuffixSplitRegex();
+
+        /// <summary>
+        /// Splits a coordinate pair where the second coordinate starts with E or W.
+        /// Handles hemisphere prefix formats like "N50° 39′ 41.8″ W2° 36′ 22.0″"
+        /// </summary>
+        [GeneratedRegex(@"^(.+?)\s+([EWew]-?\s*\d.*)$")]
+        private static partial Regex EWPrefixSplitRegex();
+
+        /// <summary>
+        /// Matches individual number groups (with optional decimal parts) in a coordinate string
+        /// </summary>
+        [GeneratedRegex(@"\d+(?:\.\d+)?")]
+        private static partial Regex NumberGroupRegex();
 	}
 }

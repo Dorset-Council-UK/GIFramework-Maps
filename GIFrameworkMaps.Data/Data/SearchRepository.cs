@@ -533,20 +533,11 @@ namespace GIFrameworkMaps.Data
                     break;
 
                 case "LatLonDMS":
-                    /*attempt to split the DMS into two parts by the N or S string that should be included*/
-                    /*TODO - Would be good if this could handle not having N/S. This would require changes to the DB enforced RegEx*/
-
-                    string[] dmsCoords = LatLonDMSRegex().Split(searchTerm);
-
-                    if (dmsCoords is not null && dmsCoords.Length == 2)
+                    if (CoordHelper.TryParseDMSCoordinatePair(searchTerm, out decimal decimalLatitude, out decimal decimalLongitude)
+                        && CoordHelper.ValidateLatLon(decimalLatitude, decimalLongitude))
                     {
-                        decimal decimalLatitude = CoordHelper.ConvertDMSCoordinateToDecimal(dmsCoords[0]);
-                        decimal decimalLongitude = CoordHelper.ConvertDMSCoordinateToDecimal(dmsCoords[1]);
-                        if (CoordHelper.ValidateLatLon(decimalLatitude, decimalLongitude))
-                        {                            
-                            AddResult($"{searchTerm} (approx {Math.Round(decimalLatitude, 5)}, {Math.Round(decimalLongitude, 5)})",
-                                decimalLongitude, decimalLatitude);
-                        }
+                        AddResult($"{searchTerm} (approx {Math.Round(decimalLatitude, 5)}, {Math.Round(decimalLongitude, 5)})",
+                            decimalLongitude, decimalLatitude);
                     }
                     break;
 
@@ -643,8 +634,6 @@ namespace GIFrameworkMaps.Data
 
         [GeneratedRegex("{{[^}]+}}")]
         private static partial Regex HandlebarsPlaceholderRegEx();
-        [GeneratedRegex("(?<=[NS])")]
-        private static partial Regex LatLonDMSRegex();
         [GeneratedRegex("{[^{]*{search}[^}]*}")]
         private static partial Regex SearchHandlebarsRegex();
     }
