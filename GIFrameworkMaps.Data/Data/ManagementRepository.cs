@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph.Beta;
-using Microsoft.Graph.Beta.Drives.Item.Items.Item.Workbook.Functions.Ecma_Ceiling;
 using Microsoft.Graph.Beta.Models;
 using System.Collections.Generic;
 using System.Linq;
@@ -280,15 +279,15 @@ namespace GIFrameworkMaps.Data
 
 		public async Task<IList<User>> GetUsersInVersion(int id)
 		{
-			var version_users = await _context.VersionUsers.Where(vu => vu.VersionId == id).Select(vu => vu.UserId).ToListAsync();
-			if(version_users.Count > 0)
+			var versionUsers = await _context.VersionUsers.Where(vu => vu.VersionId == id).Select(vu => vu.UserId).ToListAsync();
+			if (versionUsers.Count > 0)
 			{
 				var graphClient = GetGraphClient();
 				if (graphClient is not null)
 				{
 					var requestBody = new Microsoft.Graph.Beta.DirectoryObjects.GetByIds.GetByIdsPostRequestBody
 					{
-						Ids = version_users,
+						Ids = versionUsers,
 						Types = ["user"]
 					};
 

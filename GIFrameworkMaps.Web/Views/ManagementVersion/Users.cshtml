@@ -32,12 +32,15 @@
                     <td>@user.Id</td>
                     <td><a href="@editUrl/@user.Id">@user.DisplayName</a></td>
                     <td>
-                        @foreach (var mail in user.OtherMails)
+                        @if(user.OtherMails is not null)
                         {
-                            @mail
-
-                            <br />
+                            @foreach (var mail in user.OtherMails)
+                            {
+                                @mail
+                                <br />
+                            }
                         }
+                        
                     </td>
                     <td>@Html.ActionLink("Remove", "DeleteUser", new { Id = Model.VersionId, userId = user.Id }, new { @class = "text-danger" })</td>
                 </tr>
@@ -67,10 +70,9 @@ else
                 disabled: 'disabled'
             }
         };
-        const dataTable = new simpleDatatables.DataTable("#userTable", opts);
+        const userTableElement = document.querySelector("#userTable");
+        if (userTableElement) {
+            const dataTable = new simpleDatatables.DataTable(userTableElement, opts);
+        }
     </script>
 }
-
-
-
-
