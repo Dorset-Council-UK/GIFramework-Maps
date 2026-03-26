@@ -4,7 +4,7 @@
     ViewData["Title"] = $"Users for version {Model.Version.Name}";
 
     // Working out the base edit URL once is significantly faster than doing it for each row
-    var editUrl = Url.Action("Users/Edit");
+    var editUrl = Url.Action("Edit", "ManagementUser");
 }
 
 <a asp-action="Edit" asp-route-id="@Model.VersionId">Back to version</a>
