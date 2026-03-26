@@ -101,6 +101,18 @@ namespace GIFrameworkMaps.Tests
         [TestCase("50 39 41.8", ExpectedResult = 50.66161)]
         [TestCase("37 50′ 43 S", ExpectedResult = -37.84528)]
         [TestCase("144° 53 32.56767", ExpectedResult = 144.89238)]
+        [TestCase("50° 39.697′ N", ExpectedResult = 50.66162)]           // DDM format
+        [TestCase("50° 39.697′", ExpectedResult = 50.66162)]             // DDM without hemisphere
+        [TestCase("N 50° 39′ 41.8″", ExpectedResult = 50.66161)]        // Hemisphere prefix with space
+        [TestCase("N50°39′41.8″", ExpectedResult = 50.66161)]           // Hemisphere prefix without space
+        [TestCase("S37° 50′ 43″", ExpectedResult = -37.84528)]          // South hemisphere prefix
+        [TestCase("-50 39 41.8", ExpectedResult = -50.66161)]            // Negative sign
+        [TestCase("50:39:41.8", ExpectedResult = 50.66161)]             // Colon-separated
+        [TestCase("2:36:22.0 W", ExpectedResult = -2.60611)]            // Colon-separated with hemisphere
+        [TestCase("50°N", ExpectedResult = 50.0)]                       // Degrees only with hemisphere
+        [TestCase("50° N", ExpectedResult = 50.0)]                      // Degrees only with hemisphere and space
+        [TestCase("50 39 N", ExpectedResult = 50.65)]                   // Degrees and minutes only
+        [TestCase("50'39'41.8 N", ExpectedResult = 50.66161)]           // ASCII apostrophes as separators
         public decimal ConvertDMSCoordinateToDecimal_Valid(string dmsCoord)
         {
             return CoordHelper.ConvertDMSCoordinateToDecimal(dmsCoord);
@@ -114,6 +126,39 @@ namespace GIFrameworkMaps.Tests
         public void ConvertDMSCoordinateToDecimal_Invalid(string dmsCoord)
         { 
             Assert.Throws<ArgumentOutOfRangeException>(delegate { CoordHelper.ConvertDMSCoordinateToDecimal(dmsCoord); });
+        }
+
+        [Test]
+        [TestCase("50° 39′ 41.8″ N 2° 36′ 22.0″ W", 50.66161, -2.60611)]
+        [TestCase("50°39′41.8″N 144° 53 32.56767", 50.66161, 144.89238)]
+        [TestCase("50 39 41.8S 37 50 43", -50.66161, 37.84528)]
+        [TestCase("50° 39′ 41.8″ N, 2° 36′ 22.0″ W", 50.66161, -2.60611)]                 // Comma-separated
+        [TestCase("50°39′41.8″N,2°36′22.0″W", 50.66161, -2.60611)]                         // Comma no spaces
+        [TestCase("50 39 41.8 37 50 43", 50.66161, 37.84528)]                               // No hemispheres
+        [TestCase("50° 39.697′ N 2° 36.367′ W", 50.66162, -2.60612)]                        // DDM format
+        [TestCase("50° 39.697′ N, 2° 36.367′ W", 50.66162, -2.60612)]                       // DDM with comma
+        [TestCase("50:39:41.8N 2:36:22.0W", 50.66161, -2.60611)]                            // Colon-separated
+        [TestCase("N50°39′41.8″ W2°36′22.0″", 50.66161, -2.60611)]                         // Hemisphere prefix
+        [TestCase("50 39.697 2 36.367", 50.66162, 2.60612)]                                 // DDM no hemispheres
+        public void TryParseDMSCoordinatePair_Valid(string input, decimal expectedLat, decimal expectedLon)
+        {
+            bool result = CoordHelper.TryParseDMSCoordinatePair(input, out decimal latitude, out decimal longitude);
+
+            Assert.That(result, Is.True);
+            Assert.That(latitude, Is.EqualTo(expectedLat));
+            Assert.That(longitude, Is.EqualTo(expectedLon));
+        }
+
+        [Test]
+        [TestCase("")]
+        [TestCase("astring")]
+        [TestCase("50")]
+        [TestCase("just one coordinate 50 39 41.8")]
+        public void TryParseDMSCoordinatePair_Invalid(string input)
+        {
+            bool result = CoordHelper.TryParseDMSCoordinatePair(input, out _, out _);
+
+            Assert.That(result, Is.False);
         }
     }
 }
