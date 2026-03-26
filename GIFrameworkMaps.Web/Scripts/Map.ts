@@ -33,7 +33,7 @@ import { VersionViewModel } from "./Interfaces/VersionViewModel";
 import { WebLayerService } from "./WebLayerService";
 import { BookmarkMenu } from "./BookmarkMenu";
 import { LegendURLs } from "./Interfaces/LegendURLs";
-import { DebouncedFunc } from "lodash";
+import type { DebouncedFunc } from "lodash";
 import {
   getDefaultStyleByGeomType,
   extractParamsFromHash,

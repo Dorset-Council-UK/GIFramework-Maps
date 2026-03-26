@@ -8,6 +8,8 @@ export class LegendsPanel implements SidebarPanel {
   container: string;
   gifwMapInstance: GIFWMap;
   //_previousZoom: number;
+  private _isUpdatingLegend = false;
+  private _legendUpdatePending = false;
   constructor(container: string) {
     this.container = container;
   }
@@ -40,35 +42,46 @@ export class LegendsPanel implements SidebarPanel {
       });
     }
   }
-  // Mark updateLegend as async
   private async updateLegend(): Promise<void> {
-    const legendsContainer = document
-      .querySelector(this.container)
-      .querySelector("#gifw-legends-container") as HTMLDivElement;
-    legendsContainer.innerHTML = "";
-
-    const legends = await this.gifwMapInstance.getLegendURLs(true, getCurrentTheme() === "dark" ? "dark" : "light");
-
-    if (legends.availableLegends.length === 0) {
-      this.updateNoLegendsList(legends.nonLegendableLayers, false);
+    if (this._isUpdatingLegend) {
+      this._legendUpdatePending = true;
       return;
     }
+    this._isUpdatingLegend = true;
+    try {
+      const legendsContainer = document
+        .querySelector(this.container)
+        .querySelector("#gifw-legends-container") as HTMLDivElement;
+      legendsContainer.innerHTML = "";
 
-    // Use for...of with await to ensure sequential rendering
-    for (let index = 0; index < legends.availableLegends.length; index++) {
-      const legend = legends.availableLegends[index];
-      this.appendLegendHeader(legendsContainer, legend.name);
+      const legends = await this.gifwMapInstance.getLegendURLs(true, getCurrentTheme() === "dark" ? "dark" : "light");
 
-      if (legend.headers != null) {
-        await this.fetchAndAppendLegendImage(legendsContainer, legend, index, legend.headers);
-      } else {
-        this.appendLegendImage(legendsContainer, legend, index);
-        // Wait for the image to load or error before continuing
-        await this.waitForImageLoadOrError(legendsContainer, legend.name);
+      if (legends.availableLegends.length === 0) {
+        this.updateNoLegendsList(legends.nonLegendableLayers, false);
+        return;
+      }
+
+      for (let index = 0; index < legends.availableLegends.length; index++) {
+        const legend = legends.availableLegends[index];
+        this.appendLegendHeader(legendsContainer, legend.name);
+
+        if (legend.headers != null) {
+          await this.fetchAndAppendLegendImage(legendsContainer, legend, index, legend.headers);
+        } else {
+          this.appendLegendImage(legendsContainer, legend, index);
+          // Wait for the image to load or error before continuing
+          await this.waitForImageLoadOrError(legendsContainer, legend.name);
+        }
+      }
+
+      this.updateNoLegendsList(legends.nonLegendableLayers, true);
+    } finally {
+      this._isUpdatingLegend = false;
+      if (this._legendUpdatePending) {
+        this._legendUpdatePending = false;
+        void this.updateLegend();
       }
     }
-
-    this.updateNoLegendsList(legends.nonLegendableLayers, true);
   }
 
   // Make fetchAndAppendLegendImage async and return a Promise
