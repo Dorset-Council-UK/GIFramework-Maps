@@ -144,7 +144,7 @@ namespace GIFrameworkMaps.Data
                 longitude = ConvertDMSCoordinateToDecimal(lonPart);
                 return true;
             }
-            catch
+            catch (ArgumentOutOfRangeException)
             {
                 latitude = 0;
                 longitude = 0;
@@ -230,6 +230,7 @@ namespace GIFrameworkMaps.Data
             }
 
             // Strategy 4: No hemispheres - split by number group count
+            // Requires at least 4 numbers (minimum 2 per coordinate: degrees + minutes)
             var numbers = NumberGroupRegex().Matches(input);
             if (numbers.Count >= 4 && numbers.Count % 2 == 0)
             {
@@ -309,6 +310,8 @@ namespace GIFrameworkMaps.Data
         /// <summary>
         /// Matches a single DMS/DDM coordinate with optional hemisphere prefix/suffix and negative sign.
         /// Requires a separator (°/′ symbol or whitespace) between number groups to prevent ambiguous parsing.
+        /// Pattern structure:
+        ///   prefix?  neg?  degrees  (°/′/space  minutes  (′/″/space  seconds  ″?)?)?  suffix?
         /// Handles: "50° 39′ 41.8″ N", "50 39 41.8", "N50°39′41.8″", "-50 39 41.8", "50° 39.697′ N"
         /// </summary>
         [GeneratedRegex(@"^\s*(?<prefix>[NSEWnsew])?\s*(?<neg>-)?\s*(?<deg>\d+(?:\.\d+)?)(?:(?:\s*[°′]\s*|\s+)(?:(?<min>\d+(?:\.\d+)?)(?:(?:\s*[′″]\s*|\s+)(?:(?<sec>\d+(?:\.\d+)?)\s*″?\s*)?)?)?)?(?<suffix>[NSEWnsew])?\s*$")]
