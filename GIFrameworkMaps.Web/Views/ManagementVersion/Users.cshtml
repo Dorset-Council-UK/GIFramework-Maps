@@ -1,0 +1,78 @@
+﻿@model GIFrameworkMaps.Data.ViewModels.Management.VersionUsersViewModel
+
+@{
+    ViewData["Title"] = $"Users for version {Model.Version.Name}";
+
+    // Working out the base edit URL once is significantly faster than doing it for each row
+    var editUrl = Url.Action("Edit", "ManagementUser");
+}
+
+<a asp-action="Edit" asp-route-id="@Model.VersionId">Back to version</a>
+
+
+<h1>@ViewData["Title"]</h1>
+
+<a href="@Url.Action("AddUser", "ManagementVersion", new { Id = Model.VersionId })" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add a user</a>
+
+@if (Model.Users != null && Model.Users.Count != 0)
+{
+    <table id="userTable" class="table table-bordered table-striped mt-2">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email(s)</th>
+                <th>Remove</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model.Users.OrderBy(u => u.DisplayName))
+            {
+                <tr>
+                    <td>@user.Id</td>
+                    <td><a href="@editUrl/@user.Id">@user.DisplayName</a></td>
+                    <td>
+                        @if(user.OtherMails is not null)
+                        {
+                            @foreach (var mail in user.OtherMails)
+                            {
+                                @mail
+                                <br />
+                            }
+                        }
+                        
+                    </td>
+                    <td>@Html.ActionLink("Remove", "DeleteUser", new { Id = Model.VersionId, userId = user.Id }, new { @class = "text-danger" })</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No users could be found</div>
+}
+
+@section Scripts {
+    <script>
+        const opts = {
+            perPage: 50,
+            perPageSelect: [10, 25, 50, 100, ["All", 0]],
+            classes:
+            {
+                input: "form-control",
+                top: "datatable-top px-0",
+                selector: "form-select",
+                paginationList: "pagination",
+                paginationListItem: "page-item",
+                paginationListItemLink: "page-link",
+                active: 'active',
+                disabled: 'disabled'
+            }
+        };
+        const userTableElement = document.querySelector("#userTable");
+        if (userTableElement) {
+            const dataTable = new simpleDatatables.DataTable(userTableElement, opts);
+        }
+    </script>
+}
