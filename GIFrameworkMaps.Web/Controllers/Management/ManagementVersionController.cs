@@ -356,7 +356,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 				VersionId = id,
 				VersionName = version.Name,
 				UserId = userId,
-				UserDisplayName = user.DisplayName
+				UserDisplayName = user.DisplayName,
+				UserPrimaryEmail = user.OtherMails.FirstOrDefault()
 			};
 			return View(viewModel);
 		}

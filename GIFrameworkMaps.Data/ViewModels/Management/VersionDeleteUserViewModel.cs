@@ -6,5 +6,6 @@ namespace GIFrameworkMaps.Data.ViewModels.Management
         public required string VersionName { get; set; }
         public string? UserId { get; set; }
         public string? UserDisplayName { get; set; }
+		public string? UserPrimaryEmail { get; set; }
     }
 }

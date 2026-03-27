@@ -25,11 +25,11 @@
                     {
                         if (user.Id == Model.UserId)
                         {
-                            <option value="@user.Id" data-abbreviations="@user.DisplayName" selected>@user.DisplayName</option>
+                            <option value="@user.Id" data-abbreviations="@user.DisplayName" selected>@user.DisplayName (@user.OtherMails.FirstOrDefault())</option>
                         }
                         else
                         {
-                            <option value="@user.Id" data-abbreviations="@user.DisplayName">@user.DisplayName</option>
+                            <option value="@user.Id" data-abbreviations="@user.DisplayName">@user.DisplayName (@user.OtherMails.FirstOrDefault())</option>
                         }
                     }
                 </select>
