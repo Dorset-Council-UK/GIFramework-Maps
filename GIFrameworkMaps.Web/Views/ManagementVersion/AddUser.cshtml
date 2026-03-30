@@ -1,0 +1,48 @@
+@using GIFrameworkMaps.Data.ViewModels.Management
+@model VersionAddUserViewModel
+@{
+    ViewData["Title"] = $"Add a user to {Model.VersionName}";
+}
+
+<h1>@ViewData["Title"]</h1>
+@using (Html.BeginForm("AddUser", "ManagementVersion", null, FormMethod.Post, true, null))
+{
+    <div class="row mt-4">
+        <div class="col-md-6">
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+            <div class="mb-3">
+                <label asp-for="UserId" class="control-label">User name</label>
+                <div id="userSelectHelpText" class="form-text">
+                    Start typing to find the user
+                </div>
+                <select asp-for="UserId" class="form-control" data-autocomplete="true" aria-describedby="userSelectHelpText">
+                    @if (Model.UserId == null)
+                    {
+                        <option value="" data-abbreviations=""></option>
+                    }
+                    @foreach (var user in Model.ListOfUsers.OrderBy(u => u.DisplayName))
+                    {
+                        if (user.Id == Model.UserId)
+                        {
+                            <option value="@user.Id" data-abbreviations="@user.DisplayName" selected>@user.DisplayName (@user.OtherMails.FirstOrDefault())</option>
+                        }
+                        else
+                        {
+                            <option value="@user.Id" data-abbreviations="@user.DisplayName">@user.DisplayName (@user.OtherMails.FirstOrDefault())</option>
+                        }
+                    }
+                </select>
+                <span asp-validation-for="UserId" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3">
+        <input type="hidden" asp-for="VersionId" />
+        <input type="submit" value="Add User" class="btn btn-primary" />
+        <a asp-action="Users" asp-route-id="@Model.VersionId" class="btn btn-link">Cancel</a>
+    </div>
+    
+}
+
+<link rel="stylesheet" href="~/css/accessible-autocomplete.min.css" />

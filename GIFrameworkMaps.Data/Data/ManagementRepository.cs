@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph.Beta;
+using Microsoft.Graph.Beta.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -276,7 +277,33 @@ namespace GIFrameworkMaps.Data
             return allUsers;
         }
 
-        public async Task<Microsoft.Graph.Beta.Models.User?> GetUser(string id)
+		public async Task<IList<User>> GetUsersInVersion(int id)
+		{
+			var versionUsers = await _context.VersionUsers.Where(vu => vu.VersionId == id).Select(vu => vu.UserId).ToListAsync();
+			if (versionUsers.Count > 0)
+			{
+				var graphClient = GetGraphClient();
+				if (graphClient is not null)
+				{
+					var requestBody = new Microsoft.Graph.Beta.DirectoryObjects.GetByIds.GetByIdsPostRequestBody
+					{
+						Ids = versionUsers,
+						Types = ["user"]
+					};
+
+					var directoryObjects = await graphClient.DirectoryObjects.GetByIds.PostAsGetByIdsPostResponseAsync(requestBody);
+
+					if (directoryObjects?.Value != null)
+					{
+						// Cast directory objects to users
+						return [.. directoryObjects.Value.OfType<User>()];
+					}
+				}
+			}
+			return [];
+		}
+
+		public async Task<Microsoft.Graph.Beta.Models.User?> GetUser(string id)
         {
             var graphClient = GetGraphClient();
             if (graphClient is not null)
