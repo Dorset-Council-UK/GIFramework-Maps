@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 [assembly: InternalsVisibleTo("GIFrameworkMaps.Tests")]
@@ -74,7 +75,7 @@ namespace GIFrameworkMaps.Data
                 throw new ArgumentOutOfRangeException(nameof(dmsCoord), $"Coordinate {dmsCoord} could not be converted to Decimal degrees");
             }
 
-            if (!decimal.TryParse(match.Groups["deg"].Value, out decimal degrees))
+            if (!decimal.TryParse(match.Groups["deg"].Value, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal degrees))
             {
                 throw new ArgumentOutOfRangeException(nameof(dmsCoord), $"Coordinate {dmsCoord} could not be converted to Decimal degrees");
             }
@@ -82,14 +83,20 @@ namespace GIFrameworkMaps.Data
             decimal minutes = 0;
             if (match.Groups["min"].Success && !string.IsNullOrEmpty(match.Groups["min"].Value))
             {
-                decimal.TryParse(match.Groups["min"].Value, out minutes);
-            }
+                if(!decimal.TryParse(match.Groups["min"].Value, NumberStyles.Number, CultureInfo.InvariantCulture, out minutes))
+				{
+					throw new ArgumentOutOfRangeException(nameof(dmsCoord), $"Coordinate {dmsCoord} could not be converted to Decimal degrees");
+				}
+			}
 
             decimal seconds = 0;
             if (match.Groups["sec"].Success && !string.IsNullOrEmpty(match.Groups["sec"].Value))
             {
-                decimal.TryParse(match.Groups["sec"].Value, out seconds);
-            }
+                if(!decimal.TryParse(match.Groups["sec"].Value, NumberStyles.Number, CultureInfo.InvariantCulture, out seconds))
+				{
+					throw new ArgumentOutOfRangeException(nameof(dmsCoord), $"Coordinate {dmsCoord} could not be converted to Decimal degrees");
+				}
+			}
 
             string hemisphere = "";
             if (match.Groups["suffix"].Success && !string.IsNullOrEmpty(match.Groups["suffix"].Value))
