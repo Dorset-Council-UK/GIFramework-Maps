@@ -274,6 +274,11 @@ namespace GIFrameworkMaps.Tests
         [TestCase("50° 39′ 41.8″ N 2° 36′ 22.0″ W", ExpectedResult = new double[] { -2.60611, 50.66161 })]
         [TestCase("50°39′41.8″N 144° 53 32.56767", ExpectedResult = new double[] { 144.89238 , 50.66161 })]
         [TestCase("50 39 41.8S 37 50 43", ExpectedResult = new double[] { 37.84528, -50.66161 })]
+        [TestCase("50° 39′ 41.8″ N, 2° 36′ 22.0″ W", ExpectedResult = new double[] { -2.60611, 50.66161 })]             // Comma-separated
+        [TestCase("50 39 41.8 37 50 43", ExpectedResult = new double[] { 37.84528, 50.66161 })]                           // No hemispheres
+        [TestCase("50° 39.697′ N 2° 36.367′ W", ExpectedResult = new double[] { -2.60612, 50.66162 })]                    // DDM format
+        [TestCase("50:39:41.8N 2:36:22.0W", ExpectedResult = new double[] { -2.60611, 50.66161 })]                        // Colon-separated
+        [TestCase("N50°39′41.8″ W2°36′22.0″", ExpectedResult = new double[] { -2.60611, 50.66161 })]                     // Hemisphere prefix
         public decimal[] LocalSearch_LatLonDMS_Valid(string searchTerm)
         {
             LocalSearchDefinition searchDefinition = new() { LocalSearchName = "LatLonDMS" };
