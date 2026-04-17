@@ -151,6 +151,19 @@ export class GIFWLayerGroup implements LayerGroup {
                   "gifw-default-filter": cqlFilter,
                 });
               }
+            } else if (
+              layer.layerSource.layerSourceType.name === "Vector" ||
+              layer.layerSource.layerSourceType.name === "VectorImage"
+            ) {
+              const filterOpt = getLayerSourceOptionValueByName(
+                layer.layerSource.layerSourceOptions,
+                "filter",
+              );
+              if (filterOpt) {
+                ol_layer.setProperties({
+                  "gifw-default-filter": filterOpt,
+                });
+              }
             }
           }
           ol_layers.push(ol_layer);
@@ -678,6 +691,12 @@ export class GIFWLayerGroup implements LayerGroup {
     let baseUrl = sourceUrlOpt;
     if (urlType === 'wfs') {
       baseUrl = createWFSFeatureRequestFromLayer(layer);
+      const filterOpt = getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "filter");
+      if (filterOpt) {
+        const parsedUrl = new URL(baseUrl);
+        parsedUrl.searchParams.set("CQL_FILTER", filterOpt);
+        baseUrl = parsedUrl.toString();
+      }
     }
     url = baseUrl;
 
