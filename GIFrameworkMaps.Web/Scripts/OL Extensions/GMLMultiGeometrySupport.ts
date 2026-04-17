@@ -56,7 +56,10 @@ function geometryMemberParser(
 
 /**
  * Parsers for the children of a MultiGeometry element.
- * Handles `geometryMember` and `geometryMembers` child elements.
+ * Handles both `geometryMember` (single geometry wrapper) and
+ * `geometryMembers` (multiple geometries wrapper) as per the GML spec.
+ * This follows the same pattern used by OpenLayers' built-in multi-geometry
+ * parsers (e.g., MULTIPOINT_PARSERS handles pointMember/pointMembers).
  */
 const MULTIGEOMETRY_PARSERS: Record<string, Record<string, unknown>> = {
   [GMLNS]: {
