@@ -1358,9 +1358,14 @@ export class LayerFilter {
           projection = viewProj;
         }
 
-        const url = createWFSFeatureRequestFromLayer(
+        let baseUrl = createWFSFeatureRequestFromLayer(
           this.layerConfig,
         );
+        if (cqlFilter) {
+          const parsedUrl = new URL(baseUrl);
+          parsedUrl.searchParams.set("CQL_FILTER", cqlFilter);
+          baseUrl = parsedUrl.toString();
+        }
         vectorSourceUrl = (extent) => {
           if (
             projection !==
@@ -1373,7 +1378,7 @@ export class LayerFilter {
             );
           }
           return (
-            `${url}&srsname=${projection}&` +
+            `${baseUrl}&srsname=${projection}&` +
             `bbox=${extent.join(",")},${projection}`
           );
         };
