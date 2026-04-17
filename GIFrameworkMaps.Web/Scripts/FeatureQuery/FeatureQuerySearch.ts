@@ -7,10 +7,10 @@ import { never as olConditionNever } from "ol/events/condition";
 import { GeoJSON, WFS, WMSGetFeatureInfo } from "ol/format";
 import GML3 from "ol/format/GML3";
 import {
-    and as andFilter,
-    between as betweenFilter,
-    equalTo as equalToFilter,
-    intersects as intersectsFilter,
+  and as andFilter,
+  between as betweenFilter,
+  equalTo as equalToFilter,
+  intersects as intersectsFilter,
 } from "ol/format/filter";
 import EqualTo from "ol/format/filter/EqualTo";
 import Filter from "ol/format/filter/Filter";
@@ -31,16 +31,20 @@ import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { CapabilityType } from "../Interfaces/OGCMetadata/BasicServerCapabilities";
 import { DescribeFeatureType } from "../Interfaces/OGCMetadata/DescribeFeatureType";
 import { GIFWMap } from "../Map";
-import { getBasicCapabilities, getDescribeFeatureType } from "../Metadata/Metadata";
+import {
+  getBasicCapabilities,
+  getDescribeFeatureType,
+} from "../Metadata/Metadata";
 import CQL from "../OL Extensions/CQL";
+import "../OL Extensions/GMLMultiGeometrySupport";
 import { GIFWPopupAction } from "../Popups/PopupAction";
 import { GIFWPopupOptions } from "../Popups/PopupOptions";
 import {
-    AlertSeverity,
-    AlertType,
-    CustomError,
-    extractCustomHeadersFromLayerSource,
-    getValueFromObjectByKey,
+  AlertSeverity,
+  AlertType,
+  CustomError,
+  extractCustomHeadersFromLayerSource,
+  getValueFromObjectByKey,
 } from "../Util";
 import { FeatureQueryResultRenderer } from "./FeatureQueryResultRenderer";
 
@@ -100,7 +104,11 @@ export class FeatureQuerySearch {
           };
           searchPromises.push(this.getFeatureInfoForLayer(request));
           layerNames.push(layer.get("name"));
-        } else if (source instanceof Vector || source instanceof OGCVectorTile || source instanceof VectorTile) {
+        } else if (
+          source instanceof Vector ||
+          source instanceof OGCVectorTile ||
+          source instanceof VectorTile
+        ) {
           const features = new Set<Feature<Geometry> | RenderFeature>();
           this._gifwMapInstance.olMap
             .getFeaturesAtPixel(searchPixel, {
@@ -433,7 +441,10 @@ export class FeatureQuerySearch {
         const layerHeaders = extractCustomHeadersFromLayerSource(
           gifwLayer.layerSource,
         );
-        this._gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(baseUrl, layerHeaders);
+        this._gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(
+          baseUrl,
+          layerHeaders,
+        );
         const serverCapabilities = await getBasicCapabilities(
           baseUrl,
           additionalParams,
@@ -465,7 +476,10 @@ export class FeatureQuerySearch {
           const httpHeaders = extractCustomHeadersFromLayerSource(
             gifwLayer.layerSource,
           );
-          this._gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(describeFeatureCapability.url, httpHeaders);
+          this._gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(
+            describeFeatureCapability.url,
+            httpHeaders,
+          );
           const featureDescription = await getDescribeFeatureType(
             describeFeatureCapability.url,
             featureTypeName,
@@ -500,7 +514,10 @@ export class FeatureQuerySearch {
               }
 
               const wfsFeatureInfoRequest = new WFS().writeGetFeature({
-                srsName: this._gifwMapInstance.olMap.getView().getProjection().getCode(),
+                srsName: this._gifwMapInstance.olMap
+                  .getView()
+                  .getProjection()
+                  .getCode(),
                 featureTypes: [featureTypeName],
                 featureNS: featureDescription.targetNamespace,
                 featurePrefix: featureDescription.targetPrefix,
@@ -569,10 +586,7 @@ export class FeatureQuerySearch {
               const formatter = new GeoJSON();
               const turfSourceFeature =
                 formatter.writeFeatureObject(sourceFeatureClone);
-              if (booleanIntersects(
-                turfSearchPolygon,
-                turfSourceFeature,
-              )) {
+              if (booleanIntersects(turfSearchPolygon, turfSourceFeature)) {
                 features.add(f);
               }
             }
@@ -612,7 +626,10 @@ export class FeatureQuerySearch {
       const layerHeaders = extractCustomHeadersFromLayerSource(
         gifwLayer.layerSource,
       );
-      this._gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(fetchUrl, layerHeaders);
+      this._gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(
+        fetchUrl,
+        layerHeaders,
+      );
       layerHeaders.append("Content-Type", "application/vnd.ogc.gml");
       fetch(fetchUrl, {
         method: request.wfsRequest ? "POST" : "GET",
@@ -631,9 +648,11 @@ export class FeatureQuerySearch {
         })
         .then((data) => {
           //if the request was a WFS, use the GML reader, else use the WMSGetFeatureInfo reader
-          const viewProjection = this._gifwMapInstance.olMap.getView().getProjection();
+          const viewProjection = this._gifwMapInstance.olMap
+            .getView()
+            .getProjection();
           const features = request.wfsRequest
-            ? new GML3().readFeatures(data, {dataProjection: viewProjection})
+            ? new GML3().readFeatures(data, { dataProjection: viewProjection })
             : new WMSGetFeatureInfo().readFeatures(data);
 
           const response: FeatureQueryResponse = {
