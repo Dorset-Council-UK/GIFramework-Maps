@@ -3,9 +3,9 @@
  * MultiGeometry (GeometryCollection) elements.
  *
  * By default, OpenLayers' GML2 and GML3 GEOMETRY_PARSERS do not include a
- * handler for the `MultiGeometry` GML element, causing features with
- * GeometryCollection geometries to lose their geometry when parsed from
- * WMS GetFeatureInfo or WFS responses.
+ * handler for `GeometryCollection` (GML 2.x) or `MultiGeometry` (GML 3.x)
+ * elements, causing features with GeometryCollection geometries to lose
+ * their geometry when parsed from WMS GetFeatureInfo or WFS responses.
  *
  * Import this module to register the MultiGeometry parser at application
  * startup.
@@ -20,15 +20,17 @@ import {
   makeReplacer,
   pushParseAndPop,
   parseNode,
+  type Parser,
 } from "ol/xml";
 
 /**
  * Reads a MultiGeometry element and returns a GeometryCollection.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenLayers Parser API requires any[]
 function readMultiGeometry(
   this: GMLBase,
   node: Element,
-  objectStack: unknown[],
+  objectStack: any[],
 ): GeometryCollection | undefined {
   const geometries = pushParseAndPop(
     [] as Geometry[],
@@ -46,10 +48,11 @@ function readMultiGeometry(
 /**
  * Parses the child geometry elements within a geometryMember element.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- OpenLayers Parser API requires any[]
 function geometryMemberParser(
   this: GMLBase,
   node: Element,
-  objectStack: unknown[],
+  objectStack: any[],
 ): void {
   parseNode(GEOMETRYMEMBER_PARSERS, node, objectStack, this);
 }
@@ -61,7 +64,7 @@ function geometryMemberParser(
  * This follows the same pattern used by OpenLayers' built-in multi-geometry
  * parsers (e.g., MULTIPOINT_PARSERS handles pointMember/pointMembers).
  */
-const MULTIGEOMETRY_PARSERS: Record<string, Record<string, unknown>> = {
+const MULTIGEOMETRY_PARSERS: Record<string, Record<string, Parser>> = {
   [GMLNS]: {
     geometryMember: makeArrayPusher(geometryMemberParser),
     geometryMembers: makeArrayPusher(geometryMemberParser),
@@ -72,7 +75,7 @@ const MULTIGEOMETRY_PARSERS: Record<string, Record<string, unknown>> = {
  * Parsers for geometry elements found within a geometryMember element.
  * Supports all standard GML geometry types including nested MultiGeometry.
  */
-const GEOMETRYMEMBER_PARSERS: Record<string, Record<string, unknown>> = {
+const GEOMETRYMEMBER_PARSERS: Record<string, Record<string, Parser>> = {
   [GMLNS]: {
     Point: makeArrayPusher(GMLBase.prototype.readPoint),
     MultiPoint: makeArrayPusher(GMLBase.prototype.readMultiPoint),
@@ -80,21 +83,26 @@ const GEOMETRYMEMBER_PARSERS: Record<string, Record<string, unknown>> = {
     MultiLineString: makeArrayPusher(GMLBase.prototype.readMultiLineString),
     Polygon: makeArrayPusher(GMLBase.prototype.readPolygon),
     MultiPolygon: makeArrayPusher(GMLBase.prototype.readMultiPolygon),
+    GeometryCollection: makeArrayPusher(readMultiGeometry),
     MultiGeometry: makeArrayPusher(readMultiGeometry),
   },
 };
 
-// Register the MultiGeometry parser on the GML2 and GML3 GEOMETRY_PARSERS
-// prototypes so all instances can parse GeometryCollection elements.
-(
-  GML2.prototype.GEOMETRY_PARSERS[GMLNS] as Record<
-    string,
-    ReturnType<typeof makeReplacer>
-  >
-)["MultiGeometry"] = makeReplacer(readMultiGeometry);
-(
-  GML3.prototype.GEOMETRY_PARSERS[GMLNS] as Record<
-    string,
-    ReturnType<typeof makeReplacer>
-  >
-)["MultiGeometry"] = makeReplacer(readMultiGeometry);
+// Register parsers for both GeometryCollection (GML 2.x element name) and
+// MultiGeometry (GML 3.x element name) on all GML format prototypes.
+const gml2Parsers = GML2.prototype.GEOMETRY_PARSERS[GMLNS] as Record<
+  string,
+  ReturnType<typeof makeReplacer>
+>;
+const readMultiGeometryReplacer = makeReplacer(
+  readMultiGeometry as unknown as Parameters<typeof makeReplacer>[0],
+);
+gml2Parsers["GeometryCollection"] = readMultiGeometryReplacer;
+gml2Parsers["MultiGeometry"] = readMultiGeometryReplacer;
+
+const gml3Parsers = GML3.prototype.GEOMETRY_PARSERS[GMLNS] as Record<
+  string,
+  ReturnType<typeof makeReplacer>
+>;
+gml3Parsers["GeometryCollection"] = readMultiGeometryReplacer;
+gml3Parsers["MultiGeometry"] = readMultiGeometryReplacer;
