@@ -19,7 +19,7 @@ import KML from "ol/format/KML";
 export function convertBNGEastingNorthingToAlpha(
   x: number,
   y: number,
-  includeSpaces?: boolean
+  includeSpaces?: boolean,
 ): string {
   if (x < 0 || x >= 700000 || y < 0 || y >= 1300000) {
     return "Outside UK";
@@ -64,7 +64,7 @@ const prefixes = [
  */
 export function PrefersReducedMotion(): boolean {
   const reduceMotionQuery = window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
+    "(prefers-reduced-motion: reduce)",
   );
   if (!reduceMotionQuery) {
     //the media query is unavailable
@@ -113,7 +113,7 @@ export function extractParamFromHash(hash: string, paramName: string) {
  * @param type localStorage or sessionStorage
  */
 export function storageAvailable(
-  type: "localStorage" | "sessionStorage"
+  type: "localStorage" | "sessionStorage",
 ): boolean {
   let storage: Storage;
 
@@ -145,7 +145,7 @@ export function storageAvailable(
 export function combineURLSearchParams(
   a: URLSearchParams,
   b: URLSearchParams,
-  overwrite = false
+  overwrite = false,
 ): URLSearchParams {
   const fn = overwrite ? a.set : a.append;
   for (const [key, value] of new URLSearchParams(b)) {
@@ -191,7 +191,7 @@ export function hexToRgb(hex: string) {
 export function addLoadingOverlayToElement(
   ele: HTMLElement,
   position: InsertPosition,
-  text: string = "Loading"
+  text: string = "Loading",
 ): void {
   const loadingOverlayHTML = `<div class="gifw-loading-overlay" style="min-height: 7rem;">
                   <div class="position-absolute start-50 translate-middle" style="margin-top: 1rem;">
@@ -215,7 +215,7 @@ export function addLoadingOverlayToElement(
  */
 export function removeLoadingOverlayFromElement(ele: HTMLElement): void {
   const loadingOverlay = ele.querySelector(
-    ".gifw-loading-overlay"
+    ".gifw-loading-overlay",
   ) as HTMLElement;
   if (loadingOverlay) {
     loadingOverlay.remove();
@@ -233,7 +233,7 @@ export function addFullScreenLoader(
   mapId: string,
   loadingText?: string,
   cancellable?: boolean,
-  cancelCallback?: () => void
+  cancelCallback?: () => void,
 ) {
   let loadingTakeoverHTML = `<div class="w-100 h-100 position-fixed top-0 start-0 gifw-full-screen-loader">
                   <div class="position-absolute top-50 start-50 translate-middle" style="
@@ -254,7 +254,7 @@ export function addFullScreenLoader(
 
   if (cancellable && cancelCallback) {
     const cancelButton = mapEle.querySelector(
-      ".gifw-full-screen-loader button"
+      ".gifw-full-screen-loader button",
     );
     cancelButton.addEventListener(
       "click",
@@ -262,7 +262,7 @@ export function addFullScreenLoader(
         cancelCallback();
         removeFullScreenLoader(mapId);
       },
-      { once: true }
+      { once: true },
     );
   }
 }
@@ -317,7 +317,7 @@ export function delay(ms: number) {
  */
 export function getAllParentElements(
   child: HTMLElement,
-  selector: string = "*"
+  selector: string = "*",
 ): HTMLElement[] {
   const parents: HTMLElement[] = [];
 
@@ -374,7 +374,7 @@ export function getValueFromObjectByKey(obj: object, keyName: string) {
  */
 export function groupBy<K, V>(
   list: Array<V>,
-  keyGetter: (input: V) => K
+  keyGetter: (input: V) => K,
 ): Map<K, Array<V>> {
   const map = new Map<K, Array<V>>();
   list.forEach((item) => {
@@ -405,7 +405,7 @@ export class CustomError {
     errorType: AlertType,
     severity: AlertSeverity,
     title: string,
-    content: string
+    content: string,
   ) {
     this.type = errorType;
     this.severity = severity;
@@ -421,7 +421,7 @@ export class CustomError {
         this.severity,
         this.title,
         this.content,
-        "#gifw-error-modal"
+        "#gifw-error-modal",
       );
     } else if (this.type === AlertType.Toast) {
       alert = new Alert(
@@ -429,7 +429,7 @@ export class CustomError {
         this.severity,
         this.title,
         this.content,
-        "#gifw-error-toast"
+        "#gifw-error-toast",
       );
     }
     alert.show();
@@ -469,7 +469,7 @@ export function getFileNameWithoutExtension(path: string): string {
  */
 export function getDefaultStyleByGeomType(
   geomType: string,
-  theme: Theme
+  theme: Theme,
 ): olStyle {
   const rgbColor = hexToRgb(theme.primaryColour);
   let strokeColor = "rgb(0,0,0)";
@@ -510,6 +510,26 @@ export function getDefaultStyleByGeomType(
         }),
       }),
     });
+  } else if (geomType === "GeometryCollection") {
+    return new olStyle({
+      fill: new Fill({
+        color: fillColor,
+      }),
+      stroke: new Stroke({
+        color: strokeColor,
+        width: 3,
+      }),
+      image: new Circle({
+        fill: new Fill({
+          color: fillColorSolid,
+        }),
+        radius: 5,
+        stroke: new Stroke({
+          color: "#000",
+          width: 1,
+        }),
+      }),
+    });
   }
 }
 
@@ -532,7 +552,7 @@ export class Alert {
     severity: AlertSeverity,
     title: string,
     content: string,
-    errorElementSelector: string
+    errorElementSelector: string,
   ) {
     this.type = alertType;
     this.severity = severity;
@@ -579,7 +599,7 @@ export class Alert {
               "bg-danger",
               "bg-warning",
               "bg-success",
-              "text-white"
+              "text-white",
             );
           break;
       }
@@ -627,7 +647,7 @@ export class Alert {
                 "bg-danger",
                 "bg-warning",
                 "bg-success",
-                "text-white"
+                "text-white",
               );
             break;
         }
@@ -657,7 +677,7 @@ export class Alert {
       AlertSeverity.Danger,
       title,
       content,
-      "#gifw-error-modal"
+      "#gifw-error-modal",
     );
     alert.show();
   }
@@ -671,14 +691,14 @@ export class Alert {
   static showTimedToast(
     title: string,
     content: string,
-    severity: AlertSeverity = AlertSeverity.Info
+    severity: AlertSeverity = AlertSeverity.Info,
   ) {
     const alert = new Alert(
       AlertType.Toast,
       severity,
       title,
       content,
-      "#gifw-timed-toast"
+      "#gifw-timed-toast",
     );
     (
       document.querySelector("#gifw-timed-toast .progress-bar") as HTMLElement
@@ -702,19 +722,19 @@ export class Alert {
  * @returns Headers object
  */
 export function extractCustomHeadersFromLayerSource(
-  layerSource: LayerSource
+  layerSource: LayerSource,
 ): Headers {
   const customHeaders = new Headers();
   if (layerSource && layerSource.layerSourceOptions) {
     if (
       layerSource.layerSourceOptions.find(
-        (l) => l.name.toLowerCase() === "headers"
+        (l) => l.name.toLowerCase() === "headers",
       )
     ) {
       const headersJson = JSON.parse(
         layerSource.layerSourceOptions.find(
-          (l) => l.name.toLowerCase() === "headers"
-        ).value
+          (l) => l.name.toLowerCase() === "headers",
+        ).value,
       );
       const keys = getKeysFromObject(headersJson);
       keys.forEach((key) => {
@@ -756,7 +776,7 @@ export function calculateAnimationSpeed(zoomDiff: number): number {
  */
 export function getLayerSourceOptionValueByName(
   sourceOpts: LayerSourceOption[],
-  keyName: string
+  keyName: string,
 ): string {
   const selectedOpt = sourceOpts.filter((o) => {
     return o.name == keyName;
@@ -776,21 +796,21 @@ export function getOpenLayersFormatFromOGCFormat(format: string) {
   const formatStringToOpenLayersFormatMap = new Map();
   formatStringToOpenLayersFormatMap.set(
     "application/gml+xml; version=3.2",
-    new GML32()
+    new GML32(),
   );
   formatStringToOpenLayersFormatMap.set(
     "text/xml; subtype=gml/3.2",
-    new GML32()
+    new GML32(),
   );
   formatStringToOpenLayersFormatMap.set("gml32", new GML32());
   formatStringToOpenLayersFormatMap.set(
     "text/xml; subtype=gml/3.1.1",
-    new GML3()
+    new GML3(),
   );
   formatStringToOpenLayersFormatMap.set("gml3", new GML3());
   formatStringToOpenLayersFormatMap.set(
     "text/xml; subtype=gml/2.1.2",
-    new GML2()
+    new GML2(),
   );
   formatStringToOpenLayersFormatMap.set("gml2", new GML2());
   formatStringToOpenLayersFormatMap.set("application/json", new GeoJSON());
@@ -799,11 +819,11 @@ export function getOpenLayersFormatFromOGCFormat(format: string) {
   formatStringToOpenLayersFormatMap.set("json", new GeoJSON());
   formatStringToOpenLayersFormatMap.set(
     "application/vnd.google-earth.kml xml",
-    new KML()
+    new KML(),
   );
   formatStringToOpenLayersFormatMap.set(
     "application/vnd.google-earth.kml+xml",
-    new KML()
+    new KML(),
   );
   formatStringToOpenLayersFormatMap.set("kml", new KML());
   if (formatStringToOpenLayersFormatMap.has(format.toLowerCase())) {
@@ -820,21 +840,21 @@ export function getOpenLayersFormatFromOGCFormat(format: string) {
 export function createWFSFeatureRequestFromLayer(layer: Layer) {
   const sourceUrlOpt = getLayerSourceOptionValueByName(
     layer.layerSource.layerSourceOptions,
-    "url"
+    "url",
   );
   const formatOpt =
     getLayerSourceOptionValueByName(
       layer.layerSource.layerSourceOptions,
-      "format"
+      "format",
     ) || "application/json";
   const versionOpt =
     getLayerSourceOptionValueByName(
       layer.layerSource.layerSourceOptions,
-      "version"
+      "version",
     ) || "1.1.0";
   const typeName = getLayerSourceOptionValueByName(
     layer.layerSource.layerSourceOptions,
-    "typename"
+    "typename",
   );
   const wfsURL = new URL(sourceUrlOpt);
   //add the WFS request bits on
@@ -844,7 +864,7 @@ export function createWFSFeatureRequestFromLayer(layer: Layer) {
   wfsURL.searchParams.set("outputFormat", formatOpt);
   const paramsOpt = getLayerSourceOptionValueByName(
     layer.layerSource.layerSourceOptions,
-    "params"
+    "params",
   );
   if (paramsOpt !== null) {
     const params: { [x: string]: string } = JSON.parse(paramsOpt);
