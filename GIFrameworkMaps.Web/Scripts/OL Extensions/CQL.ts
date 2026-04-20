@@ -499,7 +499,8 @@ export class CQL {
           case "VALUE": {
             const num = parseFloat(token.text);
             if (isNaN(num)) {
-              const stringValue = token.text.replace(/['"]/g, "");
+              // Strip surrounding quotes, then unescape doubled quotes
+              const stringValue = token.text.replace(/^['"]|['"]$/g, "");
               return CQL.unescapeCQLString(stringValue);
             } else {
               return num;

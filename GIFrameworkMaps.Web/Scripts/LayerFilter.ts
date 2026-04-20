@@ -143,7 +143,13 @@ export class LayerFilter {
           cqlFilter = new URL(sourceUrl).searchParams.get("CQL_FILTER");
         } else {
           //get CQL from ol properties
-          cqlFilter = this.layer.get("gifw-filter-applied");
+          const appliedFilter = this.layer.get("gifw-filter-applied");
+          if (appliedFilter && typeof appliedFilter !== "string") {
+            // Convert OpenLayers Filter object to CQL string
+            cqlFilter = this.cqlFormatter.write(appliedFilter);
+          } else {
+            cqlFilter = appliedFilter;
+          }
         }
       }
       let filter;
@@ -157,12 +163,15 @@ export class LayerFilter {
         defaultFilterContainer.innerHTML = `This layer has a default filter which is shown below. 
                                                 Any clauses you include here will be appended to it using AND
                                                 <br/><code>${this.defaultFilter}</code>`;
-        if (cqlFilter !== this.defaultFilter) {
-          let editableCQLFilter = cqlFilter.replace(
-            `(${this.defaultFilter}) AND (`,
-            "",
-          );
-          editableCQLFilter = editableCQLFilter.slice(0, -1);
+        if (cqlFilter && cqlFilter !== this.defaultFilter) {
+          // Extract just the user filter portion from the combined CQL
+          const prefix = `(${this.defaultFilter}) AND (`;
+          let editableCQLFilter = cqlFilter;
+          if (cqlFilter.startsWith(prefix) && cqlFilter.endsWith(")")) {
+            // Combined format: strip default filter wrapper
+            editableCQLFilter = cqlFilter.slice(prefix.length, -1);
+          }
+          // If cqlFilter didn't have the combined format, it's already just the user filter
           filter = this.convertTextFiltersToOLFilter(editableCQLFilter);
         }
       } else {
@@ -1358,25 +1367,47 @@ export class LayerFilter {
           projection = viewProj;
         }
 
-        const url = createWFSFeatureRequestFromLayer(
+        const baseUrl = createWFSFeatureRequestFromLayer(
           this.layerConfig,
         );
-        vectorSourceUrl = (extent) => {
-          if (
-            projection !==
-            `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`
-          ) {
-            extent = transformExtent(
-              extent,
-              this.gifwMapInstance.olMap.getView().getProjection(),
-              projection,
+        if (cqlFilter) {
+          // When there's a CQL filter and bbox strategy, embed bbox into CQL_FILTER
+          // since bbox and CQL_FILTER params are mutually exclusive in WFS
+          vectorSourceUrl = (extent) => {
+            if (
+              projection !==
+              `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`
+            ) {
+              extent = transformExtent(
+                extent,
+                this.gifwMapInstance.olMap.getView().getProjection(),
+                projection,
+              );
+            }
+            const geomCol = this.layerProperties.filter((p) =>
+              p.type.startsWith("gml:"),
+            )[0].name;
+            const combinedCql = `bbox(${geomCol},${extent.join(",")}) AND ${cqlFilter}`;
+            return `${baseUrl}&srsname=${projection}&CQL_FILTER=${encodeURIComponent(combinedCql)}`;
+          };
+        } else {
+          vectorSourceUrl = (extent) => {
+            if (
+              projection !==
+              `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`
+            ) {
+              extent = transformExtent(
+                extent,
+                this.gifwMapInstance.olMap.getView().getProjection(),
+                projection,
+              );
+            }
+            return (
+              `${baseUrl}&srsname=${projection}&` +
+              `bbox=${extent.join(",")},${projection}`
             );
-          }
-          return (
-            `${url}&srsname=${projection}&` +
-            `bbox=${extent.join(",")},${projection}`
-          );
-        };
+          };
+        }
         (source as Vector).setUrl(vectorSourceUrl);
         source.refresh();
       } else {

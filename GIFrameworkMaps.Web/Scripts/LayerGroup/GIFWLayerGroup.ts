@@ -23,6 +23,8 @@ import { Layer } from "../Interfaces/Layer";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { TileMatrixSet } from "../Interfaces/OGCMetadata/TileMatrixSet";
 import { GIFWMap } from "../Map";
+import { getBasicCapabilities, getDescribeFeatureType } from "../Metadata/Metadata";
+import { CapabilityType } from "../Interfaces/OGCMetadata/BasicServerCapabilities";
 import { createWFSFeatureRequestFromLayer, extractCustomHeadersFromLayerSource, getLayerSourceOptionValueByName, getOpenLayersFormatFromOGCFormat, getValueFromObjectByKey } from "../Util";
 import { LayerGroup } from "./LayerGroup";
 
@@ -149,6 +151,19 @@ export class GIFWLayerGroup implements LayerGroup {
               if (cqlFilter) {
                 ol_layer.setProperties({
                   "gifw-default-filter": cqlFilter,
+                });
+              }
+            } else if (
+              layer.layerSource.layerSourceType.name === "Vector" ||
+              layer.layerSource.layerSourceType.name === "VectorImage"
+            ) {
+              const filterOpt = getLayerSourceOptionValueByName(
+                layer.layerSource.layerSourceOptions,
+                "filter",
+              );
+              if (filterOpt) {
+                ol_layer.setProperties({
+                  "gifw-default-filter": filterOpt,
                 });
               }
             }
@@ -676,8 +691,18 @@ export class GIFWLayerGroup implements LayerGroup {
 
     let url: string | FeatureUrlFunction = sourceUrlOpt;
     let baseUrl = sourceUrlOpt;
+    const filterOpt = urlType === 'wfs'
+      ? getLayerSourceOptionValueByName(layer.layerSource.layerSourceOptions, "filter")
+      : null;
     if (urlType === 'wfs') {
       baseUrl = createWFSFeatureRequestFromLayer(layer);
+      if (filterOpt && loadingStrategy !== bboxStrategy) {
+        // Only add CQL_FILTER as a URL param when not using bbox strategy
+        // (bbox and CQL_FILTER params are mutually exclusive in WFS)
+        const parsedUrl = new URL(baseUrl);
+        parsedUrl.searchParams.set("CQL_FILTER", filterOpt);
+        baseUrl = parsedUrl.toString();
+      }
     }
     url = baseUrl;
 
@@ -686,6 +711,13 @@ export class GIFWLayerGroup implements LayerGroup {
     layerHeaders.forEach(() => {
       hasCustomHeaders = true;
     });
+
+    // When using bbox strategy with a filter, we need the geometry column name
+    // to embed bbox into CQL_FILTER using the CQL BBOX function
+    let geomColName: string | null = null;
+    if (filterOpt && loadingStrategy === bboxStrategy) {
+      geomColName = await this.getGeometryColumnName(layer, sourceUrlOpt, layerHeaders);
+    }
 
     const vectorSource = new olSource.Vector({
       format: format,
@@ -700,7 +732,13 @@ export class GIFWLayerGroup implements LayerGroup {
         let url = baseUrl;
         if (loadingStrategy === bboxStrategy) {
           const projCode = typeof proj === 'string' ? proj : proj.getCode();
-          url = `${baseUrl}&srsname=${projCode}&bbox=${extent.join(',')},${projCode}`;
+          if (filterOpt && geomColName) {
+            // Combine bbox and filter into a single CQL_FILTER param
+            const cqlFilter = `bbox(${geomColName},${extent.join(",")}) AND ${filterOpt}`;
+            url = `${baseUrl}&srsname=${projCode}&CQL_FILTER=${encodeURIComponent(cqlFilter)}`;
+          } else {
+            url = `${baseUrl}&srsname=${projCode}&bbox=${extent.join(',')},${projCode}`;
+          }
         }
 
         this.customVectorLoader(
@@ -722,6 +760,11 @@ export class GIFWLayerGroup implements LayerGroup {
         url = (extent) => {
           if (projection !== `EPSG:${this.gifwMapInstance.olMap.getView().getProjection().getCode()}`) {
             extent = transformExtent(extent, this.gifwMapInstance.olMap.getView().getProjection(), projection);
+          }
+          if (filterOpt && geomColName) {
+            // Combine bbox and filter into a single CQL_FILTER param
+            const cqlFilter = `bbox(${geomColName},${extent.join(",")}) AND ${filterOpt}`;
+            return `${baseUrl}&srsname=${projection}&CQL_FILTER=${encodeURIComponent(cqlFilter)}`;
           }
           return `${baseUrl}&srsname=${projection}&bbox=${extent.join(',')},${projection}`;
         }
@@ -891,6 +934,64 @@ export class GIFWLayerGroup implements LayerGroup {
       console.error("Error loading vector tile:", error);
       tile.setState(3); // Error state
     }
+  }
+
+  /**
+   * Gets the geometry column name for a WFS layer by querying DescribeFeatureType.
+   * Returns null if the geometry column cannot be determined.
+   */
+  private async getGeometryColumnName(
+    layer: Layer,
+    baseUrl: string,
+    layerHeaders: Headers
+  ): Promise<string | null> {
+    try {
+      let proxyEndpoint = "";
+      if (layer.proxyMetaRequests) {
+        proxyEndpoint = `${document.location.protocol}//${this.gifwMapInstance.config.appRoot}proxy`;
+      }
+      this.gifwMapInstance.authManager.applyAuthenticationToRequestHeaders(baseUrl, layerHeaders);
+      const serverCapabilities = await getBasicCapabilities(
+        baseUrl,
+        {},
+        proxyEndpoint,
+        layerHeaders,
+      );
+      if (
+        serverCapabilities &&
+        serverCapabilities.capabilities.filter(
+          (c) => c.type === CapabilityType.DescribeFeatureType && c.url !== "",
+        ).length !== 0
+      ) {
+        const describeFeatureCapability = serverCapabilities.capabilities.filter(
+          (c) => c.type === CapabilityType.DescribeFeatureType,
+        )[0];
+        const featureTypeName = getLayerSourceOptionValueByName(
+          layer.layerSource.layerSourceOptions,
+          "typename",
+        );
+        const featureDescription = await getDescribeFeatureType(
+          describeFeatureCapability.url,
+          featureTypeName,
+          describeFeatureCapability.method,
+          undefined,
+          proxyEndpoint,
+          undefined,
+          layerHeaders,
+        );
+        if (featureDescription && featureDescription.featureTypes.length === 1) {
+          const geomProp = featureDescription.featureTypes[0].properties.find(
+            (p) => p.type.startsWith("gml:"),
+          );
+          if (geomProp) {
+            return geomProp.name;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Could not determine geometry column name for layer filter", e);
+    }
+    return null;
   }
 
 }
