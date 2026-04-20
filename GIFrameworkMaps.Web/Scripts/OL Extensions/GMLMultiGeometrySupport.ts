@@ -12,6 +12,7 @@
  */
 import GML2 from "ol/format/GML2";
 import GML3 from "ol/format/GML3";
+import GML32 from "ol/format/GML32";
 import GMLBase, { GMLNS } from "ol/format/GMLBase";
 import GeometryCollection from "ol/geom/GeometryCollection";
 import type { Geometry } from "ol/geom";
@@ -73,7 +74,8 @@ const MULTIGEOMETRY_PARSERS: Record<string, Record<string, Parser>> = {
 
 /**
  * Parsers for geometry elements found within a geometryMember element.
- * Supports all standard GML geometry types including nested MultiGeometry.
+  * Supports Point, LineString, Polygon, their Multi* variants, and nested
+  * GeometryCollection/MultiGeometry elements.
  */
 const GEOMETRYMEMBER_PARSERS: Record<string, Record<string, Parser>> = {
   [GMLNS]: {
@@ -106,3 +108,10 @@ const gml3Parsers = GML3.prototype.GEOMETRY_PARSERS[GMLNS] as Record<
 >;
 gml3Parsers["GeometryCollection"] = readMultiGeometryReplacer;
 gml3Parsers["MultiGeometry"] = readMultiGeometryReplacer;
+
+const gml32Parsers = GML32.prototype.GEOMETRY_PARSERS['http://www.opengis.net/gml/3.2'] as Record<
+  string,
+  ReturnType<typeof makeReplacer>
+>;
+gml32Parsers["GeometryCollection"] = readMultiGeometryReplacer;
+gml32Parsers["MultiGeometry"] = readMultiGeometryReplacer;
