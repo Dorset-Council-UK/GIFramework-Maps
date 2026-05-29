@@ -1,7 +1,7 @@
 @{
     Layout = null;
     var signInWithRedirectUrl = Url.Action("SignInWithRedirect", "Account");
-    var signInUrl = Url.Action("SignIn", "Account", new { area = "MicrosoftIdentity", returnUrl = ViewData["ReturnUrl"] });
+    var signInUrl = Url.Action("SignIn", "Account", new { area = "MicrosoftIdentity", redirectUri = ViewData["ReturnUrl"] });
 }
 <!DOCTYPE html>
 <html>
