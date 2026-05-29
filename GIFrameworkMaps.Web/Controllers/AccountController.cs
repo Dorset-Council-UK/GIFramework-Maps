@@ -40,7 +40,8 @@ public class AccountController(ICommonRepository repository,
 			returnUrl = "/";
 		}
 
-		ViewData["ReturnUrl"] = System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(returnUrl);
+		ViewData["ReturnUrl"] = returnUrl;
+		ViewData["ReturnUrlJavaScriptEncoded"] = System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(returnUrl);
 		return View();
 	}
 

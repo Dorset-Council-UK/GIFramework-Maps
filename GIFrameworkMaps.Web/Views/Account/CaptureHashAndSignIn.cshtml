@@ -12,7 +12,7 @@
     <script>
         (function () {
             var hash = window.location.hash;
-            var returnUrl = '@ViewData["ReturnUrl"]';
+            var returnUrl = '@ViewData["ReturnUrlJavaScriptEncoded"]';
             if (hash && hash.length > 1) {
                 var fullUrl = window.location.protocol + '//' + window.location.host + returnUrl + hash;
                 window.location.replace('@signInWithRedirectUrl?redirectUri=' + encodeURIComponent(fullUrl));
