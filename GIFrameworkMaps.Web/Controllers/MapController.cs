@@ -83,7 +83,7 @@ namespace GIFrameworkMaps.Web.Controllers
                     //if user not logged in, prompt for login, otherwise redirect to unauthorized
                     if (!User.Identity.IsAuthenticated)
                     {
-                        return RedirectToAction("CaptureHashAndSignIn", "Account", new { returnUrl = Request.Path + Request.QueryString });
+                        return RedirectToAction("CaptureHashAndSignIn", "Account", new { returnUrl = Request.PathBase + Request.Path + Request.QueryString });
                     }
                     else
                     {
