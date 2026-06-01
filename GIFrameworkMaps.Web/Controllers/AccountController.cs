@@ -33,6 +33,19 @@ public class AccountController(ICommonRepository repository,
 	}
 
 	[AllowAnonymous]
+	public IActionResult CaptureHashAndSignIn(string returnUrl)
+	{
+		if (string.IsNullOrEmpty(returnUrl) || !Url.IsLocalUrl(returnUrl))
+		{
+			returnUrl = "/";
+		}
+
+		ViewData["ReturnUrl"] = returnUrl;
+		ViewData["ReturnUrlJavaScriptEncoded"] = System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(returnUrl);
+		return View();
+	}
+
+	[AllowAnonymous]
 	public async Task<IActionResult> SignInWithRedirect(string redirectUri)
 	{
 		StringWriter decodedStringWriter = new();

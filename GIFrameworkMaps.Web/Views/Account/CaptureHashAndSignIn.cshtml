@@ -1,0 +1,26 @@
+@{
+    Layout = null;
+    var signInWithRedirectUrl = Url.Action("SignInWithRedirect", "Account");
+    var signInUrl = Url.Action("SignIn", "Account", new { area = "MicrosoftIdentity", redirectUri = ViewData["ReturnUrl"] });
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirecting...</title>
+</head>
+<body>
+    <script>
+        (function () {
+            var hash = window.location.hash;
+            var returnUrl = '@ViewData["ReturnUrlJavaScriptEncoded"]';
+            if (hash && hash.length > 1) {
+                var fullUrl = window.location.protocol + '//' + window.location.host + returnUrl + hash;
+                window.location.replace('@signInWithRedirectUrl?redirectUri=' + encodeURIComponent(fullUrl));
+            } else {
+                window.location.replace('@signInUrl');
+            }
+        })();
+    </script>
+    <p>Redirecting...</p>
+</body>
+</html>
