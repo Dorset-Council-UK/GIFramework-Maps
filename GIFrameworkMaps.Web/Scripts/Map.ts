@@ -57,6 +57,10 @@ import {
 import { LegendRenderer } from "geostyler-legend";
 import CQL from "./OL Extensions/CQL";
 import { transformExtent } from "ol/proj";
+import { defaults as defaultInteractions } from "ol/interaction/defaults";
+import DragPan from "ol/interaction/DragPan";
+import MouseWheelZoom from "ol/interaction/MouseWheelZoom";
+import { platformModifierKeyOnly } from "ol/events/condition";
 
 // Type definitions for internal use
 interface ProjectionInfo {
@@ -411,6 +415,9 @@ export class GIFWMap {
       layers: allLayerGroups,
       overlays: [this.popupOverlay.overlay],
       controls: olControl.defaults({ attribution: false }).extend(controls),
+      ...(this.shouldEnableTwoFingerPan() && {
+        interactions: this.createTwoFingerPanInteractions(),
+      }),
       view: new olView({
         center: olProj.transform(
           viewParams.defaultCenter,
@@ -814,6 +821,116 @@ export class GIFWMap {
       updatePermalinkInURL(this);
       updatePermalinkInLinks(this);
     });
+
+    // Set up two-finger pan overlay if needed
+    if (this.shouldEnableTwoFingerPan()) {
+      this.setupTwoFingerPanOverlay(map);
+    }
+  }
+
+  /**
+   * Checks if the device is primarily touch-based using the pointer media query
+   */
+  private isTouchDevice(): boolean {
+    return window.matchMedia("(pointer: coarse)").matches;
+  }
+
+  /**
+   * Checks if the map is running inside an iframe
+   */
+  private isRunningInIframe(): boolean {
+    try {
+      return window.self !== window.top;
+    } catch {
+      // If we cannot access window.top due to cross-origin restrictions,
+      // we are definitely inside an iframe
+      return true;
+    }
+  }
+
+  /**
+   * Determines whether two-finger pan mode should be enabled.
+   * This is only enabled when all three conditions are true:
+   * - The map is in embed mode
+   * - The map is running inside an iframe
+   * - The device is primarily touch-based
+   */
+  private shouldEnableTwoFingerPan(): boolean {
+    return (
+      this.mode === "embed" && this.isRunningInIframe() && this.isTouchDevice()
+    );
+  }
+
+  /**
+   * Creates custom interactions for two-finger pan mode.
+   * DragPan requires two pointers (fingers) or the Ctrl/Cmd modifier key.
+   * MouseWheelZoom requires the Ctrl/Cmd modifier key.
+   */
+  private createTwoFingerPanInteractions() {
+    return defaultInteractions({ dragPan: false, mouseWheelZoom: false }).extend(
+      [
+        new DragPan({
+          condition: function (event) {
+            /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+            return (this as any).getPointerCount() === 2 || platformModifierKeyOnly(event);
+          },
+        }),
+        new MouseWheelZoom({
+          condition: platformModifierKeyOnly,
+        }),
+      ]
+    );
+  }
+
+  /**
+   * Sets up a user-facing overlay that shows a hint when the two-finger pan
+   * lock is active and the user attempts to interact without the required gesture.
+   * Shows "Use two fingers to move the map" on a single-touch attempt,
+   * and "Use Ctrl + scroll to zoom the map" on an unmodified wheel scroll.
+   * @param map The OpenLayers map instance
+   */
+  private setupTwoFingerPanOverlay(map: olMap): void {
+    const overlayEle = document.createElement("div");
+    overlayEle.id = "gifw-two-finger-pan-overlay";
+    overlayEle.className = "gifw-two-finger-pan-overlay";
+    overlayEle.setAttribute("aria-live", "polite");
+    overlayEle.setAttribute("role", "status");
+
+    const mapEle = map.getTargetElement() as HTMLElement;
+    mapEle.appendChild(overlayEle);
+
+    let hideTimeout: ReturnType<typeof setTimeout>;
+
+    const showOverlay = (message: string) => {
+      overlayEle.textContent = message;
+      overlayEle.classList.add("visible");
+      clearTimeout(hideTimeout);
+      hideTimeout = setTimeout(() => {
+        overlayEle.classList.remove("visible");
+      }, 2500);
+    };
+
+    // Show hint when the user touches with a single finger (pan attempt)
+    mapEle.addEventListener(
+      "touchstart",
+      (e: TouchEvent) => {
+        if (e.touches.length === 1) {
+          showOverlay("Use two fingers to move the map");
+        }
+      },
+      { passive: true }
+    );
+
+    // Show hint when the user scrolls without holding Ctrl/Cmd (zoom attempt)
+    mapEle.addEventListener(
+      "wheel",
+      (e: WheelEvent) => {
+        if (!e.ctrlKey && !e.metaKey) {
+          showOverlay("Use Ctrl + scroll to zoom the map");
+        }
+      },
+      { passive: true }
+    );
   }
 
   private registerProjections(availableProjections: Projection[]) {
