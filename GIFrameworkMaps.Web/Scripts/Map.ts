@@ -871,8 +871,7 @@ export class GIFWMap {
       [
         new DragPan({
           condition: function (event) {
-            /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-            return (this as any).getPointerCount() === 2 || platformModifierKeyOnly(event);
+            return (this as unknown as DragPan).getPointerCount() === 2 || platformModifierKeyOnly(event);
           },
         }),
         new MouseWheelZoom({
@@ -899,12 +898,14 @@ export class GIFWMap {
     const mapEle = map.getTargetElement() as HTMLElement;
     mapEle.appendChild(overlayEle);
 
-    let hideTimeout: ReturnType<typeof setTimeout>;
+    let hideTimeout: ReturnType<typeof setTimeout> | undefined;
 
     const showOverlay = (message: string) => {
       overlayEle.textContent = message;
       overlayEle.classList.add("visible");
-      clearTimeout(hideTimeout);
+      if (hideTimeout !== undefined) {
+        clearTimeout(hideTimeout);
+      }
       hideTimeout = setTimeout(() => {
         overlayEle.classList.remove("visible");
       }, 2500);
