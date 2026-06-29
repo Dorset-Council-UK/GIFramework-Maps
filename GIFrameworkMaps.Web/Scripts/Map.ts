@@ -867,18 +867,17 @@ export class GIFWMap {
    * MouseWheelZoom requires the Ctrl/Cmd modifier key.
    */
   private createTwoFingerPanInteractions() {
-    return defaultInteractions({ dragPan: false, mouseWheelZoom: false }).extend(
-      [
-        new DragPan({
-          condition: function (event) {
-            return (this as unknown as DragPan).getPointerCount() === 2 || platformModifierKeyOnly(event);
-          },
-        }),
-        new MouseWheelZoom({
-          condition: platformModifierKeyOnly,
-        }),
-      ]
-    );
+    const dragPan = new DragPan({
+      condition: (event) =>
+        dragPan.getPointerCount() === 2 || platformModifierKeyOnly(event),
+    });
+
+    return defaultInteractions({ dragPan: false, mouseWheelZoom: false }).extend([
+      dragPan,
+      new MouseWheelZoom({
+        condition: platformModifierKeyOnly,
+      }),
+    ]);
   }
 
   /**
