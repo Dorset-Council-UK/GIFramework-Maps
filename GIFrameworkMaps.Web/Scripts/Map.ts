@@ -867,7 +867,7 @@ export class GIFWMap {
    * MouseWheelZoom requires the Ctrl/Cmd modifier key.
    */
   private createTwoFingerPanInteractions() {
-    const dragPan = new DragPan({
+    const dragPan: DragPan = new DragPan({
       condition: (event) =>
         dragPan.getPointerCount() === 2 || platformModifierKeyOnly(event),
     });
