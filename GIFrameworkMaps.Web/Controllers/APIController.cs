@@ -12,11 +12,20 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Web.Controllers
 {
+	public class RoutingProxyRequest
+	{
+		public string? Endpoint { get; set; }
+		public object? Payload { get; set; }
+	}
+
 	public class APIController(
 			ILogger<APIController> logger,
 			ICommonRepository repository,
@@ -24,6 +33,7 @@ namespace GIFrameworkMaps.Web.Controllers
 			IAuthorizationService authorization,
 			IOptions<GIFrameworkMapsOptions> options,
 			IOptions<ApiKeyOptions> apiKeyOptions,
+			IHttpClientFactory httpClientFactory,
 			ApplicationDbContext context) : Controller
     {
         //dependency injection
@@ -32,6 +42,7 @@ namespace GIFrameworkMaps.Web.Controllers
         private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
 		private readonly GIFrameworkMapsOptions _options = options.Value;
 		private readonly ApiKeyOptions _apiKeyOptions = apiKeyOptions.Value;
+		private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
 		private readonly IAuthorizationService _authorization = authorization;
         private readonly ApplicationDbContext _context = context;
 
@@ -184,6 +195,8 @@ namespace GIFrameworkMaps.Web.Controllers
                     versionViewModel.AppRoot = $"{host}{pathBase}/";
 					versionViewModel.GoogleMapsAPIKey = _apiKeyOptions?.Google?.MapsApiKey ?? string.Empty;
 					versionViewModel.IsLoggedIn = User.Identity.IsAuthenticated;
+                    versionViewModel.RoutingEnabled = _options.EnableRoutingPanel;
+                    versionViewModel.RoutingMaxIsochroneRangeSeconds = _options.OpenRouteServiceMaxIsochroneRangeSeconds;
                     return Json(versionViewModel);
                 }
                 else
@@ -193,6 +206,37 @@ namespace GIFrameworkMaps.Web.Controllers
             }
             return NotFound();                    
         }
+
+		[HttpPost]
+		[IgnoreAntiforgeryToken]
+		[Route("api/routing/ors")]
+		public async Task<IActionResult> OpenRouteServiceProxy([FromBody] RoutingProxyRequest? request)
+		{
+			if (!_options.EnableRoutingPanel || string.IsNullOrWhiteSpace(_options.OpenRouteServiceApiKey))
+			{
+				return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "OpenRouteService routing is not configured." });
+			}
+
+			if (request is null || string.IsNullOrWhiteSpace(request.Endpoint))
+			{
+				return BadRequest(new { message = "A routing endpoint is required." });
+			}
+
+			var httpClient = _httpClientFactory.CreateClient();
+			var proxyUri = new Uri($"{_options.OpenRouteServiceBaseUrl.TrimEnd('/')}/{request.Endpoint.TrimStart('/')}" );
+			using var httpRequest = new HttpRequestMessage(HttpMethod.Post, proxyUri);
+			httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.OpenRouteServiceApiKey);
+			httpRequest.Content = new StringContent(System.Text.Json.JsonSerializer.Serialize(request.Payload), Encoding.UTF8, "application/json");
+
+			using var response = await httpClient.SendAsync(httpRequest);
+			var content = await response.Content.ReadAsStringAsync();
+			return new ContentResult
+			{
+				Content = content,
+				ContentType = "application/json",
+				StatusCode = (int)response.StatusCode,
+			};
+		}
 
 		public async Task<IActionResult> InfoTemplate(int id)
 		{

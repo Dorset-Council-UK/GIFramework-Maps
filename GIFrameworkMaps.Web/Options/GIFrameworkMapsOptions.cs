@@ -14,6 +14,10 @@
 		public bool HideEmbedOption { get; set; }
 		public bool SuppressXFrameOptions { get; set; }
 		public string AppAccessRequestLink { get; set; }
+		public bool EnableRoutingPanel { get; set; }
+		public string? OpenRouteServiceApiKey { get; set; }
+		public string OpenRouteServiceBaseUrl { get; set; } = "https://api.openrouteservice.org/v2";
+		public int OpenRouteServiceMaxIsochroneRangeSeconds { get; set; } = 1800;
 		public NetworkingOptions Networking { get; set; }
 	}
 }

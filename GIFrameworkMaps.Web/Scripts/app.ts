@@ -11,6 +11,7 @@ import {
 } from "@microsoft/applicationinsights-web";
 import { LegendsPanel } from "./Panels/LegendsPanel";
 import { SharePanel } from "./Panels/SharePanel";
+import { RoutingPanel } from "./Panels/RoutingPanel";
 import { Welcome } from "./Welcome";
 import { VersionViewModel } from "./Interfaces/VersionViewModel";
 import { Tour } from "./Tour";
@@ -143,6 +144,21 @@ document.addEventListener("DOMContentLoaded", () => {
             printPanel,
           );
           sidebars.push(printSidebar);
+        }
+
+        if (config.routingEnabled) {
+          const routingPanel = new RoutingPanel("#routing-panel-content");
+          panels.push(routingPanel);
+
+          const routingSidebar = new GIFWSidebar.Sidebar(
+            "routing-control",
+            "Routing",
+            "Generate routes or isochrones",
+            `${document.location.protocol}//${config.appRoot}img/panel-icons/routing-icon.svg`,
+            6,
+            routingPanel,
+          );
+          sidebars.push(routingSidebar);
         }
 
         const map = new GIFWMaps.GIFWMap(mapId, config, sidebars, mode, gifw_map_services_access_token);

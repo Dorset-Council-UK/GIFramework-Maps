@@ -29,5 +29,7 @@ export interface VersionViewModel {
   appInsightsKey: string;
   googleMapsAPIKey: string;
   isLoggedIn: boolean;
+  routingEnabled: boolean;
+  routingMaxIsochroneRangeSeconds: number;
   urlAuthorizationRules: UrlAuthorizationRules[];
 }

@@ -65,6 +65,8 @@ namespace GIFrameworkMaps.Web.Controllers
 					//now we get the full details
 					var fullVersionDetails = await _repository.GetVersion(version.Id);
 					var viewModel = await _repository.GetVersionViewModel(fullVersionDetails);
+					viewModel.RoutingEnabled = _configuration.GetValue("GIFrameworkMaps:EnableRoutingPanel", false);
+					viewModel.RoutingMaxIsochroneRangeSeconds = _configuration.GetValue("GIFrameworkMaps:OpenRouteServiceMaxIsochroneRangeSeconds", 1800);
                     ViewData["AnalyticsModel"] = await _adminRepository.GetAnalyticsModel();
 
                     var host = Request.Host.ToUriComponent();

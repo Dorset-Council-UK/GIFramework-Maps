@@ -72,6 +72,13 @@
             <div class="card sidebar rounded-end-0" id="print-control" style="display:none;">
                 <partial name="Partials/PrintPanel" />
             </div>
+
+            @if (Model.RoutingEnabled)
+            {
+                <div class="card sidebar rounded-end-0" id="routing-control" style="display:none;">
+                    <partial name="Partials/RoutingPanel" />
+                </div>
+            }
         </div>
 
         <div class="sidebar-panels sidebar-left" id="gifw-sidebar-left">

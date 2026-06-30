@@ -236,6 +236,20 @@
 }
 
 /*SIDEBAR BUTTONS*/
+.gifw-routing-panel .btn-group .btn.active {
+  color: #fff;
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.gifw-routing-panel .btn-group .btn {
+  min-width: 0;
+}
+
+.gifw-routing-panel .alert {
+  margin-bottom: 0;
+}
+
 .giframeworkMap .sidebar-button {
   padding: 0;
   right: 0;

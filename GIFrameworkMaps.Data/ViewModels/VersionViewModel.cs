@@ -28,6 +28,8 @@ namespace GIFrameworkMaps.Data.ViewModels
 		public string? AppRoot { get; set; }
 		public string? GoogleMapsAPIKey { get; set; }
 		public bool IsLoggedIn { get; set; }
+		public bool RoutingEnabled { get; set; }
+		public int RoutingMaxIsochroneRangeSeconds { get; set; }
 		public List<URLAuthorizationRule> URLAuthorizationRules { get; set; } = [];
 	}
 }
