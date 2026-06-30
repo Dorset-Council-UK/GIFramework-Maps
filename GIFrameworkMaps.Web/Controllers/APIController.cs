@@ -3,6 +3,7 @@ using GIFrameworkMaps.Data.Models;
 using GIFrameworkMaps.Web.Models.API;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

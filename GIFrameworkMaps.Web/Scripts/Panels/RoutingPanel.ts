@@ -7,6 +7,7 @@ import { transform } from "ol/proj";
 import { SidebarPanel } from "../Interfaces/SidebarPanel";
 import { GIFWMap } from "../Map";
 import { Sidebar } from "../Sidebar";
+import { FeatureLike } from "ol/Feature";
 
 type RoutingMode = "route" | "isochrone";
 type SelectionTarget = "start" | "end" | "centre" | null;
@@ -234,7 +235,10 @@ export class RoutingPanel implements SidebarPanel {
     const container = document.querySelector(this.container) as HTMLElement;
     const submitButton = container.querySelector<HTMLButtonElement>("#gifw-routing-submit");
     const status = container.querySelector<HTMLElement>("#gifw-routing-status");
-
+    if (submitButton === null) {
+      console.error("Submit button not found.");
+      return;
+    }
     if (this.selectionMode === "route") {
       if (!this.startCoordinate || !this.endCoordinate) {
         this.showStatus("Select a start and end location first.", "warning");
@@ -250,6 +254,14 @@ export class RoutingPanel implements SidebarPanel {
       status.textContent = "Requesting data from OpenRouteService...";
     }
 
+    if (this.startCoordinate === null || this.startCoordinate.length != 2) {
+      console.error("Start coordinate is invalid.");
+      return;
+    }
+    if (this.endCoordinate === null || this.endCoordinate.length != 2) {
+      console.error("End coordinate is invalid.");
+      return;
+    }
     try {
       const requestPayload: RoutingRequestPayload =
         this.selectionMode === "route"
@@ -257,8 +269,8 @@ export class RoutingPanel implements SidebarPanel {
               endpoint: `directions/${this.getSelectedProfile()}`,
               payload: {
                 coordinates: [
-                  [this.startCoordinate![0], this.startCoordinate![1]],
-                  [this.endCoordinate![0], this.endCoordinate![1]],
+                  [this.startCoordinate[0], this.startCoordinate[1]],
+                  [this.endCoordinate[0], this.endCoordinate[1]],
                 ],
                 format: "geojson",
                 units: "km",
@@ -267,7 +279,7 @@ export class RoutingPanel implements SidebarPanel {
           : {
               endpoint: `isochrones/${this.getSelectedProfile()}`,
               payload: {
-                locations: [[this.centreCoordinate![0], this.centreCoordinate![1]]],
+                locations: [[this.centreCoordinate[0], this.centreCoordinate[1]]],
                 range: [this.getSelectedRange()],
                 range_type: this.getSelectedRangeType(),
                 units: "m",
@@ -314,6 +326,10 @@ export class RoutingPanel implements SidebarPanel {
 
   private drawResult(result: Record<string, unknown>): void {
     const source = this.resultLayer.getSource();
+    if (source === null) {
+      console.error("Result layer source is null.");
+      return;
+    }
     source.clear();
 
     const features = (result as { features?: Array<Record<string, unknown>> }).features ?? [];
@@ -353,6 +369,10 @@ export class RoutingPanel implements SidebarPanel {
 
   private refreshSelectionLayer(): void {
     const source = this.selectionLayer.getSource();
+    if (source === null) {
+      console.error("Result layer source is null.");
+      return;
+    }
     source.clear();
 
     const features: Feature[] = [];
@@ -373,7 +393,7 @@ export class RoutingPanel implements SidebarPanel {
     const mapProjection = this.gifwMapInstance.olMap.getView().getProjection();
     const transformed = transform(coordinate, "EPSG:4326", mapProjection);
     const geometry = new Point(transformed);
-    const color = kind === "start" ? "#198754" : kind === "end" ? "#dc3545" : "#0d6efd";
+    //const color = kind === "start" ? "#198754" : kind === "end" ? "#dc3545" : "#0d6efd";
     return new Feature({
       geometry,
       kind,
@@ -412,8 +432,8 @@ export class RoutingPanel implements SidebarPanel {
     this.centreCoordinate = null;
     this.currentResultGeoJson = null;
     this.currentResultLabel = "";
-    this.selectionLayer.getSource().clear();
-    this.resultLayer.getSource().clear();
+    this.selectionLayer.getSource()?.clear();
+    this.resultLayer.getSource()?.clear();
     this.toggleExportButton(false);
     const container = document.querySelector(this.container) as HTMLElement;
     const status = container.querySelector<HTMLElement>("#gifw-routing-status");
@@ -539,7 +559,7 @@ export class RoutingPanel implements SidebarPanel {
     return rangeTypeSelect?.value || "time";
   }
 
-  private getSelectionStyle(feature: Feature): Style {
+  private getSelectionStyle(feature: FeatureLike): Style {
     const kind = feature.get("kind") as "start" | "end" | "centre" | undefined;
     const color = kind === "start" ? "#198754" : kind === "end" ? "#dc3545" : "#0d6efd";
     return new Style({
