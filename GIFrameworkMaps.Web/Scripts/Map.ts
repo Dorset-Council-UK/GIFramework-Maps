@@ -415,8 +415,11 @@ export class GIFWMap {
       layers: allLayerGroups,
       overlays: [this.popupOverlay.overlay],
       controls: olControl.defaults({ attribution: false }).extend(controls),
-      ...(this.shouldEnableTwoFingerPan() && {
+      ...(this.shouldEnableTwoFingerPanAndZoom() && {
         interactions: this.createTwoFingerPanInteractions(),
+      }),
+      ...(this.shouldEnableZoomModifier() && {
+        interactions: this.createZoomModifierInteractions(),
       }),
       view: new olView({
         center: olProj.transform(
@@ -823,8 +826,10 @@ export class GIFWMap {
     });
 
     // Set up two-finger pan overlay if needed
-    if (this.shouldEnableTwoFingerPan()) {
+    if (this.shouldEnableTwoFingerPanAndZoom()) {
       this.setupTwoFingerPanOverlay(map);
+    } else if (this.shouldEnableZoomModifier()) {
+      this.setupZoomModifierOverlay(map);
     }
   }
 
@@ -840,7 +845,8 @@ export class GIFWMap {
    */
   private isRunningInIframe(): boolean {
     try {
-      return window.self !== window.top;
+      return true;
+      // return window.self !== window.top;
     } catch {
       // If we cannot access window.top due to cross-origin restrictions,
       // we are definitely inside an iframe
@@ -855,12 +861,17 @@ export class GIFWMap {
    * - The map is running inside an iframe
    * - The device is primarily touch-based
    */
-  private shouldEnableTwoFingerPan(): boolean {
+  private shouldEnableTwoFingerPanAndZoom(): boolean {
     return (
       this.mode === "embed" && this.isRunningInIframe() && this.isTouchDevice()
     );
   }
 
+  private shouldEnableZoomModifier(): boolean {
+    return (
+      this.mode === "embed" && this.isRunningInIframe() && !this.isTouchDevice()
+    );
+  }
   /**
    * Creates custom interactions for two-finger pan mode.
    * DragPan requires two pointers (fingers) or the Ctrl/Cmd modifier key.
@@ -874,6 +885,19 @@ export class GIFWMap {
 
     return defaultInteractions({ dragPan: false, mouseWheelZoom: false }).extend([
       dragPan,
+      new MouseWheelZoom({
+        condition: platformModifierKeyOnly,
+      }),
+    ]);
+  }
+
+  /**
+   * Creates custom interactions for zoom modifier mode (non-touch embed).
+   * MouseWheelZoom requires the Ctrl/Cmd modifier key; all other interactions
+   * behave normally.
+   */
+  private createZoomModifierInteractions() {
+    return defaultInteractions({ mouseWheelZoom: false }).extend([
       new MouseWheelZoom({
         condition: platformModifierKeyOnly,
       }),
@@ -920,6 +944,46 @@ export class GIFWMap {
       },
       { passive: true }
     );
+
+    // Show hint when the user scrolls without holding Ctrl/Cmd (zoom attempt)
+    mapEle.addEventListener(
+      "wheel",
+      (e: WheelEvent) => {
+        if (!e.ctrlKey && !e.metaKey) {
+          showOverlay("Use Ctrl + scroll to zoom the map");
+        }
+      },
+      { passive: true }
+    );
+  }
+
+  /**
+   * Sets up a user-facing overlay that shows a hint when the user attempts to
+   * scroll without holding Ctrl/Cmd in a non-touch embedded map.
+   * @param map The OpenLayers map instance
+   */
+  private setupZoomModifierOverlay(map: olMap): void {
+    const overlayEle = document.createElement("div");
+    overlayEle.id = "gifw-two-finger-pan-overlay";
+    overlayEle.className = "gifw-two-finger-pan-overlay";
+    overlayEle.setAttribute("aria-live", "polite");
+    overlayEle.setAttribute("role", "status");
+
+    const mapEle = map.getTargetElement() as HTMLElement;
+    mapEle.appendChild(overlayEle);
+
+    let hideTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const showOverlay = (message: string) => {
+      overlayEle.textContent = message;
+      overlayEle.classList.add("visible");
+      if (hideTimeout !== undefined) {
+        clearTimeout(hideTimeout);
+      }
+      hideTimeout = setTimeout(() => {
+        overlayEle.classList.remove("visible");
+      }, 2500);
+    };
 
     // Show hint when the user scrolls without holding Ctrl/Cmd (zoom attempt)
     mapEle.addEventListener(
