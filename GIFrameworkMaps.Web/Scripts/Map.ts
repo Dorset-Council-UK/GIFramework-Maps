@@ -867,11 +867,32 @@ export class GIFWMap {
     );
   }
 
+  /**
+   * Determines whether the Ctrl/Cmd + zoom modifier should be enabled
+   * This is only enabled when all three conditions are true:
+   * - The map is in embed mode
+   * - The map is running inside an iframe
+   * - The device is NOT touch-based
+   */
   private shouldEnableZoomModifier(): boolean {
     return (
       this.mode === "embed" && this.isRunningInIframe() && !this.isTouchDevice()
     );
   }
+
+  /**
+   * Gets the appropriate zoom label based on the users platform
+   * This is not a great solution since it uses the UA string, but
+   * navigator.platform is potenitally being deprecated, and
+   * navigator.userAgentData.platform is still experimental
+   */
+  private getWheelZoomLabel(): string {
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const isMac = userAgent.includes("mac"); 
+
+    return isMac ? "Cmd + scroll" : "Ctrl + scroll";
+  }
+
   /**
    * Creates custom interactions for two-finger pan mode.
    * DragPan requires two pointers (fingers) or the Ctrl/Cmd modifier key.
@@ -950,7 +971,7 @@ export class GIFWMap {
       "wheel",
       (e: WheelEvent) => {
         if (!e.ctrlKey && !e.metaKey) {
-          showOverlay("Use Ctrl + scroll to zoom the map");
+          showOverlay(`Use ${this.getWheelZoomLabel()} to zoom.`);
         }
       },
       { passive: true }
