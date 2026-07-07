@@ -944,14 +944,25 @@ export class GIFWMap {
 
     let hideTimeout: ReturnType<typeof setTimeout> | undefined;
 
+    const hideOverlay = () => {
+      if (hideTimeout !== undefined) {
+        clearTimeout(hideTimeout);
+        hideTimeout = undefined;
+      }
+      overlayEle.classList.remove("visible");
+    };
+
     const showOverlay = (message: string) => {
       overlayEle.textContent = message;
       overlayEle.classList.add("visible");
+
       if (hideTimeout !== undefined) {
         clearTimeout(hideTimeout);
       }
+
       hideTimeout = setTimeout(() => {
         overlayEle.classList.remove("visible");
+        hideTimeout = undefined;
       }, 2500);
     };
 
@@ -959,6 +970,11 @@ export class GIFWMap {
     mapEle.addEventListener(
       "touchstart",
       (e: TouchEvent) => {
+        if (e.touches.length >= 2) {
+          hideOverlay();
+          return;
+        }
+
         if (e.touches.length === 1) {
           showOverlay("Use two fingers to move the map");
         }
@@ -966,7 +982,28 @@ export class GIFWMap {
       { passive: true }
     );
 
-    // Show hint when the user scrolls without holding Ctrl/Cmd (zoom attempt)
+    mapEle.addEventListener(
+      "touchmove",
+      (e: TouchEvent) => {
+        if (e.touches.length >= 2) {
+          hideOverlay();
+        }
+      },
+      { passive: true }
+    );
+
+    mapEle.addEventListener(
+      "touchend",
+      (e: TouchEvent) => {
+        if (e.touches.length >= 2) {
+          hideOverlay();
+        }
+      },
+      { passive: true }
+    );
+
+    mapEle.addEventListener("touchcancel", hideOverlay, { passive: true });
+
     mapEle.addEventListener(
       "wheel",
       (e: WheelEvent) => {
