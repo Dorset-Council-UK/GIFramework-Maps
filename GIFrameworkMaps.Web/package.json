@@ -68,7 +68,7 @@
     "@typescript-eslint/eslint-plugin": "8.63.0",
     "@typescript-eslint/parser": "8.63.0",
     "concurrently": "10.0.3",
-    "eslint": "10.3.0",
+    "eslint": "10.6.0",
     "eslint-config-prettier": "10.1.8",
     "globals": "17.7.0",
     "onchange": "7.1.0",
