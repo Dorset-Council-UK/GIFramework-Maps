@@ -5,6 +5,7 @@
     <CopyRefAssembliesToPublishDirectory>false</CopyRefAssembliesToPublishDirectory>
     <UserSecretsId>0e1f5f35-857f-4c94-956d-0d645193cdde</UserSecretsId>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+	  <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
   </PropertyGroup>
 
   <ItemGroup>
@@ -41,10 +42,6 @@
     <PackageReference Include="Microsoft.Graph" Version="6.2.0" />
     <PackageReference Include="Microsoft.Graph.Beta" Version="5.126.0-preview" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="4.13.0" />
-    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="6.0.3">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Npgsql" Version="10.0.3" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageReference Include="Npgsql.NodaTime" Version="10.0.3" />
@@ -62,10 +59,6 @@
     <None Include="wwwroot\img\svg-icons\map-marker-alt.svg" />
     <None Include="wwwroot\img\svg-icons\map-marker-label.svg" />
     <None Include="wwwroot\img\svg-icons\map-marker.svg" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <TypeScriptCompile Include="Scripts\app.ts" />
   </ItemGroup>
 
   <ItemGroup>

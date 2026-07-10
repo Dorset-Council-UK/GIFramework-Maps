@@ -114,12 +114,6 @@
           "Microsoft.Identity.Web": "4.13.0"
         }
       },
-      "Microsoft.TypeScript.MSBuild": {
-        "type": "Direct",
-        "requested": "[6.0.3, )",
-        "resolved": "6.0.3",
-        "contentHash": "fLWI9KZPIwXxY3/Bh/oK97m9GeTKatE2U86b+/+S40A6VYMgwk4N0rdrqa2bqav3e9ABM7UfPQlDBxj6ixVynQ=="
-      },
       "NodaTime.Serialization.SystemTextJson": {
         "type": "Direct",
         "requested": "[1.4.0, )",
