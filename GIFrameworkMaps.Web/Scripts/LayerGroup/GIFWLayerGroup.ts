@@ -352,6 +352,31 @@ export class GIFWLayerGroup implements LayerGroup {
     return ol_layer;
   }
 
+  /**
+   * Resolves WMS params from a layer's source options, supporting both the legacy
+   * single-JSON-blob format (Name="params") and the new individual key format
+   * (Name="params.KEY", e.g. "params.LAYERS"). When both are present, new-style
+   * keys take precedence over the legacy blob.
+   */
+  private resolveWmsParams(options: import("../Interfaces/Layer").LayerSourceOption[]): Record<string, string> {
+    // Build object from new-style params.KEY entries
+    const newStyleParams: Record<string, string> = {};
+    for (const opt of options) {
+      if (opt.name.toLowerCase().startsWith("params.")) {
+        const key = opt.name.substring("params.".length);
+        if (key) {
+          newStyleParams[key] = opt.value;
+        }
+      }
+    }
+
+    // Also read legacy params JSON blob (if present), letting new-style keys win
+    const legacyOpt = options.find((o) => o.name.toLowerCase() === "params");
+    const legacyParams: Record<string, string> = legacyOpt ? JSON.parse(legacyOpt.value) : {};
+
+    return { ...legacyParams, ...newStyleParams };
+  }
+
   private createTileWMSLayer(
     layer: Layer,
     visible: boolean,
@@ -368,13 +393,7 @@ export class GIFWLayerGroup implements LayerGroup {
       url: url,
       attributions:
         layer.layerSource.attribution.renderedAttributionHTML,
-      params: layer.layerSource.layerSourceOptions
-        .filter((o) => {
-          return o.name.toLowerCase() == "params";
-        })
-        .map((o) => {
-          return JSON.parse(o.value);
-        })[0],
+      params: this.resolveWmsParams(layer.layerSource.layerSourceOptions),
       crossOrigin: "anonymous",
       projection: projection,
     };
@@ -424,13 +443,7 @@ export class GIFWLayerGroup implements LayerGroup {
     const imageWMSOpts: ImageWMSOptions = {
       url: url,
       attributions: layer.layerSource.attribution.renderedAttributionHTML,
-      params: layer.layerSource.layerSourceOptions
-        .filter((o) => {
-          return o.name == "params";
-        })
-        .map((o) => {
-          return JSON.parse(o.value);
-        })[0],
+      params: this.resolveWmsParams(layer.layerSource.layerSourceOptions),
       projection: projection,
     };
     if (layer.proxyMapRequests || hasCustomHeaders || this.gifwMapInstance.authManager) {
