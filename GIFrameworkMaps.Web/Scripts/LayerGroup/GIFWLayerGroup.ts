@@ -19,7 +19,7 @@ import { Options as TileWMSOptions } from "ol/source/TileWMS";
 import { Options as VectorTileOptions } from "ol/source/VectorTile";
 import { Options as XYZOptions } from "ol/source/XYZ";
 import TileGrid from "ol/tilegrid/TileGrid";
-import { Layer } from "../Interfaces/Layer";
+import { Layer, LayerSourceOption } from "../Interfaces/Layer";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { TileMatrixSet } from "../Interfaces/OGCMetadata/TileMatrixSet";
 import { GIFWMap } from "../Map";
@@ -358,23 +358,53 @@ export class GIFWLayerGroup implements LayerGroup {
    * (Name="params.KEY", e.g. "params.LAYERS"). When both are present, new-style
    * keys take precedence over the legacy blob.
    */
-  private resolveWmsParams(options: import("../Interfaces/Layer").LayerSourceOption[]): Record<string, string> {
-    // Build object from new-style params.KEY entries
-    const newStyleParams: Record<string, string> = {};
+  private resolveWmsParams(options: LayerSourceOption[]): Record<string, string> {
+    const merged: Record<string, unknown> = {};
+    // Legacy params blob first (so new-style keys can override)
+    const legacyOpt = options.find((o) => o.name.toLowerCase() === "params");
+    if (legacyOpt) {
+      try {
+        const parsed: unknown = JSON.parse(legacyOpt.value);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          Object.assign(merged, parsed as Record<string, unknown>);
+        }
+      } catch {
+        // Ignore invalid legacy JSON
+      }
+    }
+
+    // New-style params.KEY entries
     for (const opt of options) {
       if (opt.name.toLowerCase().startsWith("params.")) {
-        const key = opt.name.substring("params.".length);
-        if (key) {
-          newStyleParams[key] = opt.value;
+        const rawKey = opt.name.substring("params.".length).trim();
+        if (rawKey) {
+          merged[rawKey.toUpperCase()] = opt.value;
         }
       }
     }
 
-    // Also read legacy params JSON blob (if present), letting new-style keys win
-    const legacyOpt = options.find((o) => o.name.toLowerCase() === "params");
-    const legacyParams: Record<string, string> = legacyOpt ? JSON.parse(legacyOpt.value) : {};
+    return merged;
 
-    return { ...legacyParams, ...newStyleParams };
+
+
+
+
+    // // Build object from new-style params.KEY entries
+    // const newStyleParams: Record<string, string> = {};
+    // for (const opt of options) {
+    //   if (opt.name.toLowerCase().startsWith("params.")) {
+    //     const key = opt.name.substring("params.".length);
+    //     if (key) {
+    //       newStyleParams[key] = opt.value;
+    //     }
+    //   }
+    // }
+
+    // // Also read legacy params JSON blob (if present), letting new-style keys win
+    // const legacyOpt = options.find((o) => o.name.toLowerCase() === "params");
+    // const legacyParams: Record<string, string> = legacyOpt ? JSON.parse(legacyOpt.value) : {};
+
+    // return { ...legacyParams, ...newStyleParams };
   }
 
   private createTileWMSLayer(

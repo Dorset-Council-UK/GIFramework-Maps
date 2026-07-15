@@ -80,8 +80,16 @@
                 .FirstOrDefault(o => string.Equals(o.Name, "params", StringComparison.OrdinalIgnoreCase));
             if (legacyParamsOpt != null)
             {
-                var values = JsonSerializer.Deserialize<Dictionary<string, string>>(legacyParamsOpt.Value);
-                name = values?.FirstOrDefault(v => v.Key.ToLower() == "layers").Value ?? "";
+                Dictionary<string, string> values = null;
+                try
+                {
+                    values = JsonSerializer.Deserialize<Dictionary<string, string>>(legacyParamsOpt.Value, new System.Text.Json.JsonSerializerOptions { AllowTrailingCommas = true });
+                }
+                catch (System.Text.Json.JsonException)
+                {
+                    // Ignore invalid legacy JSON
+                }
+                name = values?.FirstOrDefault(v => string.Equals(v.Key, "layers", StringComparison.OrdinalIgnoreCase)).Value ?? "";
             }
         }
         baseUrl = Model.Layer.LayerSource.LayerSourceOptions.Where(o => o.Name == "url").FirstOrDefault().Value;
