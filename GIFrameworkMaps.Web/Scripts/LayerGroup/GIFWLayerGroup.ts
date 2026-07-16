@@ -384,27 +384,6 @@ export class GIFWLayerGroup implements LayerGroup {
     }
 
     return merged;
-
-
-
-
-
-    // // Build object from new-style params.KEY entries
-    // const newStyleParams: Record<string, string> = {};
-    // for (const opt of options) {
-    //   if (opt.name.toLowerCase().startsWith("params.")) {
-    //     const key = opt.name.substring("params.".length);
-    //     if (key) {
-    //       newStyleParams[key] = opt.value;
-    //     }
-    //   }
-    // }
-
-    // // Also read legacy params JSON blob (if present), letting new-style keys win
-    // const legacyOpt = options.find((o) => o.name.toLowerCase() === "params");
-    // const legacyParams: Record<string, string> = legacyOpt ? JSON.parse(legacyOpt.value) : {};
-
-    // return { ...legacyParams, ...newStyleParams };
   }
 
   private createTileWMSLayer(
