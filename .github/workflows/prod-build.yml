@@ -2,13 +2,70 @@ name: Production (.NET)
 on:
   push:
     branches: [ "main" ]
+  release:
+    types: [ "published" ]
+
+permissions:
+  contents: write
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}
+  REPOSITORY_NAME: ${{ github.event.repository.name }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event_name == 'release' && github.event.release.tag_name || github.ref }}
+
     - uses: ./.github/actions/build
       with:
         environment: 'prod'
-    
+
+    - name: Check release eligibility
+      id: validate_release
+      if: github.event_name == 'release'
+      env:
+        TAG: ${{ env.RELEASE_TAG }}
+      run: |
+        if [ "${{ github.event.release.prerelease }}" = "true" ]; then
+          echo "Skipping release asset upload for prereleases." >&2
+          echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        if [[ "$TAG" == "v" ]]; then
+          echo "Skipping release asset upload because the tag does not include a version number." >&2
+          echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        if [[ "$TAG" != v* ]]; then
+          echo "Skipping release asset upload because the tag format is not supported." >&2
+          echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        echo "should_publish=true" >> "$GITHUB_OUTPUT"
+
+    - name: Publish release asset
+      if: github.event_name == 'release' && steps.validate_release.outputs.should_publish == 'true'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG: ${{ env.RELEASE_TAG }}
+      run: |
+        if [ ! -d release ]; then
+          echo "Expected publish output directory 'release' in the repository root was not created by ./.github/actions/build." >&2
+          exit 1
+        fi
+
+        # Derive a sanitised asset name from the repository name and release tag.
+        REPO_SLUG="$(printf '%s' "$REPOSITORY_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed 's/[^a-z0-9.-]/-/g')"
+        ARTIFACT_NAME="${REPO_SLUG}-web-${TAG#v}.zip"
+        cd release
+        zip -r "../$ARTIFACT_NAME" .
+        cd ..
+        gh release upload "$TAG" "$ARTIFACT_NAME" --clobber
