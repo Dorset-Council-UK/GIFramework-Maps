@@ -134,15 +134,19 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 					model.LayerSource.LayerSourceOptions.Add(urlOpt);
 					if (model.ServiceType == ServiceType.WMS)
 					{
-						var paramsValue = new { LAYERS = model.LayerName, FORMAT = model.Format, VERSION = model.Version, CRS = model.Projection };
-						var valueStr = JsonSerializer.Serialize(paramsValue, wmsParamsObjectWriterOpts);
-						var paramsOpt = new LayerSourceOption
+						model.LayerSource.LayerSourceOptions.Add(new LayerSourceOption { Name = "params.LAYERS", Value = model.LayerName });
+						if (!string.IsNullOrEmpty(model.Format))
 						{
-							Name = "params",
-							Value = valueStr
-						};
-						model.LayerSource.LayerSourceOptions.Add(paramsOpt);
-
+							model.LayerSource.LayerSourceOptions.Add(new LayerSourceOption { Name = "params.FORMAT", Value = model.Format });
+						}
+						if (!string.IsNullOrEmpty(model.Version))
+						{
+							model.LayerSource.LayerSourceOptions.Add(new LayerSourceOption { Name = "params.VERSION", Value = model.Version });
+						}
+						if (!string.IsNullOrEmpty(model.Projection))
+						{
+							model.LayerSource.LayerSourceOptions.Add(new LayerSourceOption { Name = "params.CRS", Value = model.Projection });
+						}
 					}
 					else
 					{
@@ -198,12 +202,6 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             var xyzLayerSourceType = await _context.LayerSourceTypes.Where(l => l.Name == "XYZ").SingleOrDefaultAsync();
             model.LayerSource.LayerSourceTypeId = xyzLayerSourceType.Id;
         }
-
-		private static readonly JsonSerializerOptions wmsParamsObjectWriterOpts = new()
-		{
-			WriteIndented = true,
-			DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-		};
 
 		private static readonly JsonSerializerOptions layerResourceDeserializationOpts = new()
 		{
