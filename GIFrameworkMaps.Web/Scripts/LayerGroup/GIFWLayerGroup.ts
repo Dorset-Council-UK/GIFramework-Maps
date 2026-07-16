@@ -19,7 +19,7 @@ import { Options as TileWMSOptions } from "ol/source/TileWMS";
 import { Options as VectorTileOptions } from "ol/source/VectorTile";
 import { Options as XYZOptions } from "ol/source/XYZ";
 import TileGrid from "ol/tilegrid/TileGrid";
-import { Layer } from "../Interfaces/Layer";
+import { Layer, LayerSourceOption } from "../Interfaces/Layer";
 import { LayerGroupType } from "../Interfaces/LayerGroupType";
 import { TileMatrixSet } from "../Interfaces/OGCMetadata/TileMatrixSet";
 import { GIFWMap } from "../Map";
@@ -352,6 +352,40 @@ export class GIFWLayerGroup implements LayerGroup {
     return ol_layer;
   }
 
+  /**
+   * Resolves WMS params from a layer's source options, supporting both the legacy
+   * single-JSON-blob format (Name="params") and the new individual key format
+   * (Name="params.KEY", e.g. "params.LAYERS"). When both are present, new-style
+   * keys take precedence over the legacy blob.
+   */
+  private resolveWmsParams(options: LayerSourceOption[]): Record<string, string> {
+    const merged: Record<string, unknown> = {};
+    // Legacy params blob first (so new-style keys can override)
+    const legacyOpt = options.find((o) => o.name.toLowerCase() === "params");
+    if (legacyOpt) {
+      try {
+        const parsed: unknown = JSON.parse(legacyOpt.value);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          Object.assign(merged, parsed as Record<string, unknown>);
+        }
+      } catch {
+        // Ignore invalid legacy JSON
+      }
+    }
+
+    // New-style params.KEY entries
+    for (const opt of options) {
+      if (opt.name.toLowerCase().startsWith("params.")) {
+        const rawKey = opt.name.substring("params.".length).trim();
+        if (rawKey) {
+          merged[rawKey.toUpperCase()] = opt.value;
+        }
+      }
+    }
+
+    return merged;
+  }
+
   private createTileWMSLayer(
     layer: Layer,
     visible: boolean,
@@ -368,13 +402,7 @@ export class GIFWLayerGroup implements LayerGroup {
       url: url,
       attributions:
         layer.layerSource.attribution.renderedAttributionHTML,
-      params: layer.layerSource.layerSourceOptions
-        .filter((o) => {
-          return o.name.toLowerCase() == "params";
-        })
-        .map((o) => {
-          return JSON.parse(o.value);
-        })[0],
+      params: this.resolveWmsParams(layer.layerSource.layerSourceOptions),
       crossOrigin: "anonymous",
       projection: projection,
     };
@@ -424,13 +452,7 @@ export class GIFWLayerGroup implements LayerGroup {
     const imageWMSOpts: ImageWMSOptions = {
       url: url,
       attributions: layer.layerSource.attribution.renderedAttributionHTML,
-      params: layer.layerSource.layerSourceOptions
-        .filter((o) => {
-          return o.name == "params";
-        })
-        .map((o) => {
-          return JSON.parse(o.value);
-        })[0],
+      params: this.resolveWmsParams(layer.layerSource.layerSourceOptions),
       projection: projection,
     };
     if (layer.proxyMapRequests || hasCustomHeaders || this.gifwMapInstance.authManager) {

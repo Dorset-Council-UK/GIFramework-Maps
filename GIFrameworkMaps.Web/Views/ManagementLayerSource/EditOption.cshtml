@@ -22,6 +22,12 @@
                 <label asp-for="LayerSourceOption.Name" class="control-label"></label>
                 <input asp-for="LayerSourceOption.Name" class="form-control" />
                 <span asp-validation-for="LayerSourceOption.Name" class="text-danger"></span>
+                <div class="form-text">
+                    To add a WMS parameter, use the <code>params.<em>KEY</em></code> naming convention.
+                    For example: <code>params.LAYERS</code>, <code>params.FORMAT</code>, <code>params.VERSION</code>, <code>params.CRS</code>.
+                    Each parameter is stored as a separate option with its value as plain text.
+                    The legacy single <code>params</code> option (containing raw JSON) is still supported for existing layers.
+                </div>
             </div>
 
             <div class="mb-3">
