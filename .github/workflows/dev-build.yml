@@ -3,12 +3,24 @@ name: Development (.NET)
 on:
   pull_request:
     branches: [ "main" ]
+  release:
+    types: [prereleased]
+
+# Required so we can upload assets to the existing Release using GITHUB_TOKEN
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        # On release events, build the exact tag that was released.
+        # On pull_request, this is ignored and checkout uses the PR ref as normal.
+        ref: ${{ github.event.release.tag_name }}
     - uses: ./.github/actions/build
       with:
         environment: 'dev'
+        release_tag: ${{ github.event.release.tag_name }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
