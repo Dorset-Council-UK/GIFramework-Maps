@@ -140,7 +140,11 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 	if (!string.IsNullOrEmpty(configuration.GetSection("AzureAd")["ClientId"]))
 	{
 		services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-			.AddMicrosoftIdentityWebApp(configuration.GetSection("AzureAd"), OpenIdConnectDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme, true);
+		.AddMicrosoftIdentityWebApp(
+			configuration.GetSection("AzureAd"),
+			OpenIdConnectDefaults.AuthenticationScheme,
+			CookieAuthenticationDefaults.AuthenticationScheme,
+			environment.IsDevelopment());
 
 		services.AddSingleton<ITicketStore, UserTicketStore>();
 		services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme)
