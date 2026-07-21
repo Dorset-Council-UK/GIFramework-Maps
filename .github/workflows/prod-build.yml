@@ -1,14 +1,27 @@
 name: Production (.NET)
+
 on:
   push:
     branches: [ "main" ]
+  release:
+    types: [released]
+
+# Required so we can upload assets to the existing Release using GITHUB_TOKEN
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        # On release events, build the exact tag that was released.
+        # On push, this is ignored and checkout uses the push ref as normal.
+        ref: ${{ github.event.release.tag_name }}
     - uses: ./.github/actions/build
       with:
         environment: 'prod'
+        release_tag: ${{ github.event.release.tag_name }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
     

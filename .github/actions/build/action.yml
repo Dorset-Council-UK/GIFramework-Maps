@@ -5,6 +5,14 @@ inputs:
   environment:
     description: 'The environment to build for (dev or prod).'
     required: true
+  release_tag:
+    description: 'The release tag name (e.g. v1.2.3). When provided, a zip asset is created and uploaded to the GitHub Release.'
+    required: false
+    default: ''
+  github_token:
+    description: 'GitHub token used to upload assets to the release. Pass secrets.GITHUB_TOKEN from the caller workflow.'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -22,6 +30,14 @@ runs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
+
+    - name: Stamp version from release tag
+      if: ${{ inputs.release_tag != '' && startsWith(inputs.release_tag, 'v') }}
+      run: |
+        VERSION="${{ inputs.release_tag }}"
+        echo "Stamping version: $VERSION"
+        jq --arg v "$VERSION" '.GIFrameworkMaps.Version = $v' GIFrameworkMaps.Web/appsettings.json > tmp.json && mv tmp.json GIFrameworkMaps.Web/appsettings.json
+      shell: bash
 
     - name: Restore dependencies
       run: dotnet restore
@@ -48,6 +64,25 @@ runs:
     - name: Publish
       run: dotnet publish -o '../release'
       working-directory: 'GIFrameworkMaps.Web'
+      shell: bash
+
+    - name: Zip publish output
+      if: ${{ inputs.release_tag != '' && startsWith(inputs.release_tag, 'v') }}
+      run: |
+        cd release
+        zip -r "../giframework-maps-web-${{ inputs.release_tag }}.zip" .
+        cd ..
+      shell: bash
+
+    - name: Upload assets to the GitHub Release
+      if: ${{ inputs.release_tag != '' && startsWith(inputs.release_tag, 'v') }}
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        TAG: ${{ inputs.release_tag }}
+      run: |
+        gh release upload "$TAG" \
+          "giframework-maps-web-$TAG.zip" \
+          --clobber
       shell: bash
 
     - name: Upload Build Artifact
