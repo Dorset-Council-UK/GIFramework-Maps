@@ -67,12 +67,12 @@ export class CheckboxListFilter {
    * Attaches a submit listener to the nearest ancestor <form> that resets the
    * display of every .form-check element before the browser serialises the form
    * data.  This ensures that checked-but-filtered-out checkboxes always submit
-   * their values — the belt-and-braces guarantee described in the plan.
+   * their values
    *
-   * NOTE: We intentionally do NOT set `disabled` anywhere in this class; CSS
-   * visibility (display:none) has no effect on form submission.  This guard is
-   * a safety net for any future code that might inadvertently alter that.
-   */
+   * NOTE: We intentionally do NOT set `disabled` on any checkbox inputs in this class;
+   * CSS visibility (display:none) has no effect on form submission. This guard is
+   * a safety net for any future code that might inadvertently disable checkboxes.
+  */
   private _attachFormSubmitGuard(): void {
     const form = this._container.closest("form");
     if (!form) return;

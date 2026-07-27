@@ -24,7 +24,7 @@ else
 {
     @foreach (var category in Model)
     {
-        bool IsCategoryChecked = selectedCategories != null && selectedCategories.Where(b => b == category.Id).Count() != 0;
+        bool IsCategoryChecked = selectedCategories?.Contains(category.Id) == true;
 
         <div class="form-check">
             <input type="checkbox"
@@ -37,7 +37,7 @@ else
         </div>
 
         var children = allCategories.Where(c => c.ParentCategoryId == category.Id).ToList();
-        if (children.Count() != 0)
+        if (children.Count != 0)
         {
             <div class="ms-4">
                 <partial name="ManagementPartials/VersionCategoryList" model="children" />
