@@ -45,7 +45,7 @@
 
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="categories-tab-pane" role="tabpanel" aria-labelledby="categories-tab" tabindex="0">
-                    <partial name="ManagementPartials/VersionCategoryList" model="Model.AvailableCategories.Where(c => c.ParentCategoryId == null).ToList()" view-data="ViewData" />
+                    <partial name="ManagementPartials/VersionCategoryList" model="Model.AvailableCategories.Where(c => c.ParentCategoryId == null).ToList()" view-data='@(new ViewDataDictionary(ViewData) { { "IsRootCategoryList", true } })' />
                 </div>
                 <div class="tab-pane fade" id="versions-tab-pane" role="tabpanel" aria-labelledby="versions-tab" tabindex="0">
                     @if(Model.VersionsLayerAppearsIn is null || Model.VersionsLayerAppearsIn.Count == 0)

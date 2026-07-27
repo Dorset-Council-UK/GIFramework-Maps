@@ -168,7 +168,7 @@
                     Categories
                 </div>
                 <div class="card-body">
-                    <partial name="ManagementPartials/VersionCategoryList" model="Model.AvailableCategories.Where(c => c.ParentCategoryId == null).ToList()" view-data="ViewData" />
+                    <partial name="ManagementPartials/VersionCategoryList" model="Model.AvailableCategories.Where(c => c.ParentCategoryId == null).ToList()" view-data='@(new ViewDataDictionary(ViewData) { { "IsRootCategoryList", true } })' />
                 </div>
             </div>
         </div>

@@ -3,6 +3,7 @@ import { SelectWebService } from "./SelectWebService";
 import { Broadcast } from "./Broadcast";
 import { CreateLayerFromSource } from "./CreateLayerFromSource";
 import { CreateSource } from "./CreateSource";
+import { CheckboxListFilter } from "./CheckboxListFilter";
 import accessibleAutocomplete from "accessible-autocomplete";
 import { Tooltip } from "bootstrap";
 
@@ -48,6 +49,10 @@ addEventListener("DOMContentLoaded", () => {
       accessibleAutocomplete.enhanceSelectElement({ selectElement: ele });
     });
   }
+  //attach checkbox list filters
+  document.querySelectorAll<HTMLElement>("[data-checkbox-filter]").forEach((el) => {
+    new CheckboxListFilter(el);
+  });
   //attach other general things that should appear everywhere
   const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
   [...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl));
