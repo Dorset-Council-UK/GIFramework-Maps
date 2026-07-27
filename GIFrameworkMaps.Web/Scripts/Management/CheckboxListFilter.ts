@@ -129,6 +129,9 @@ export class CheckboxListFilter {
     // .form-check and the .ms-4 wrapper that contains it must also stay visible.
     this._ensureParentsVisible(matchedFormChecks);
 
+    // If a parent matches the filter, keep its children visible too.
+    this._expandMatchedParents(matchedFormChecks);
+
     // Hide any .ms-4 wrappers whose every child .form-check is hidden.
     this._syncNestedWrappers();
   }
@@ -215,6 +218,24 @@ export class CheckboxListFilter {
           }
         }
         node = node.parentElement;
+      }
+    });
+  }
+
+  /**
+   * For every matched .form-check that has a .ms-4 sibling (i.e. it is a
+   * parent category), shows all descendant .form-check elements within that
+   * sibling.  This means a parent matching the search query keeps its children
+   * visible rather than hiding them.
+   */
+  private _expandMatchedParents(matchedFormChecks: Set<HTMLElement>): void {
+    matchedFormChecks.forEach((fc) => {
+      const next = fc.nextElementSibling as HTMLElement | null;
+      if (next?.classList.contains("ms-4")) {
+        next.querySelectorAll<HTMLElement>("div.form-check").forEach((child) => {
+          child.style.display = "";
+          matchedFormChecks.add(child);
+        });
       }
     });
   }
