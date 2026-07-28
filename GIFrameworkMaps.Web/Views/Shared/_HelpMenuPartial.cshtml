@@ -5,6 +5,7 @@
     var hasHelpLink = false;
     var hasFeedbackLink = false;
     var hasCookieControlLink = false;
+    var hasAppVersionString = false;
     @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["PrivacyLink"])) && Uri.IsWellFormedUriString(Convert.ToString(ViewData["PrivacyLink"]), UriKind.Absolute))
     {
         num_links++;
@@ -29,6 +30,10 @@
     {
         num_links++;
         hasCookieControlLink = true;
+    }
+    @if (!String.IsNullOrEmpty(Convert.ToString(ViewData["AppVersion"])))
+    {
+        hasAppVersionString = true;
     }
 }
 
@@ -69,7 +74,15 @@
                     <a class="dropdown-item" id="CookieControlLink" rel="noopener" href="#">Cookie preferences</a>
                 </li>
             }
+            @if (hasAppVersionString)
+            {
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <p class="mb-0 small"><a href="https://github.com/Dorset-Council-UK/GIFramework-Maps#giframework-maps" target="_blank" rel="noopener" class="dropdown-item text-muted"><span class="bi bi-github"></span> @ViewData["AppVersion"]</a></p>
+                </li>
+            }
         </ul>
+
     </li>
 }
 else
