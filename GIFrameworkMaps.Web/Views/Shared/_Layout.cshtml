@@ -7,6 +7,7 @@
     string tosLink = options.ToSLink;
     string privacyLink = options.PrivacyLink;
     string adminDocsLink = options.AdminDocsLink;
+    string appVersion = options.Version;
     AnalyticsViewModel analyticsModel = (ViewData["AnalyticsModel"] != null? (AnalyticsViewModel)ViewData["AnalyticsModel"] :new AnalyticsViewModel());
     analyticsModel.VersionID = -1;
 }
@@ -49,7 +50,7 @@
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Management" asp-action="Index">Manage application</a>
                             </li>
-                            @if (!String.IsNullOrEmpty(adminDocsLink) && Uri.IsWellFormedUriString(adminDocsLink, UriKind.Absolute))
+                            @if (!string.IsNullOrEmpty(adminDocsLink) && Uri.IsWellFormedUriString(adminDocsLink, UriKind.Absolute))
                             {
                                 <li class="nav-item">
                                     <a class="nav-link" target="_blank" rel="noopener" href="@adminDocsLink">Admin Help</a>
@@ -68,7 +69,7 @@
     <div class="container flex-grow">
         <main role="main" class="pb-3">
             @{
-                if (!String.IsNullOrEmpty((string)TempData["Message"]))
+                if (!string.IsNullOrEmpty((string)TempData["Message"]))
                 {
                     <div class="alert alert-@((string)TempData["MessageType"] != "" ? TempData["MessageType"] : "info")">
                         @TempData["Message"]
@@ -84,11 +85,11 @@
             <div class="row">
                 <div class="col-6">
                     <ul class="list-unstyled">
-                        @if (!String.IsNullOrEmpty(tosLink) && Uri.IsWellFormedUriString(tosLink, UriKind.Absolute))
+                        @if (!string.IsNullOrEmpty(tosLink) && Uri.IsWellFormedUriString(tosLink, UriKind.Absolute))
                         {
                             <li><a href="@tosLink">Terms of use</a></li>
                         }
-                        @if (!String.IsNullOrEmpty(privacyLink) && Uri.IsWellFormedUriString(privacyLink, UriKind.Absolute))
+                        @if (!string.IsNullOrEmpty(privacyLink) && Uri.IsWellFormedUriString(privacyLink, UriKind.Absolute))
                         {
                             <li><a href="@privacyLink">Privacy</a></li>
                         }
@@ -96,6 +97,11 @@
                 </div>
                 <div class="col-sm-6">
                     <p>Built with ❤ and ☕ by the <a href="https://github.com/Dorset-Council-UK/GIFramework-Maps">Dorset Council GIS team and other contributors</a></p>
+
+                    @if(!string.IsNullOrEmpty(appVersion))
+                    {
+                        <p><a href="https://github.com/Dorset-Council-UK/GIFramework-Maps/releases"><span class="bi bi-github"></span> GIFramework Maps @appVersion</a></p>
+                    }
                 </div>
             </div>
         </div>

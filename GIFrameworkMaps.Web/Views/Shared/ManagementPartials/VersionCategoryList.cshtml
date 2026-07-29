@@ -3,30 +3,45 @@
 @{
     var allCategories = ViewData["AllCategories"] as List<GIFrameworkMaps.Data.Models.Category>;
     var selectedCategories = ViewData["SelectedCategories"] as List<int>;
+    var isRoot = ViewData["IsRootCategoryList"] is true;
 }
-@foreach (var category in Model)
+
+@if (isRoot)
 {
-
-    bool IsCategoryChecked = selectedCategories != null && selectedCategories.Where(b => b == category.Id).Count() != 0;
-
-    <div class="form-check">
-        <input type="checkbox"
-            class="form-check-input"
-            name="SelectedCategories"
-           value="@category.Id"
-           id="SelectedCategories__@category.Id"
-           @(Html.Raw(IsCategoryChecked ? "checked=\"checked\"" : "")) />
-        <label class="form-check-label" for="SelectedCategories__@category.Id">@category.Name</label>
-    </div>
-
-    var children = allCategories.Where(c => c.ParentCategoryId == category.Id).ToList();
-    if (children.Count() != 0)
-    {
-        <div class="ms-4">
-            <partial name="ManagementPartials/VersionCategoryList" model="children" />
+    var innerViewData = new ViewDataDictionary(ViewData);
+    innerViewData["IsRootCategoryList"] = false;
+    <div data-checkbox-filter>
+        <div class="mb-2">
+            <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" data-checkbox-filter-toggle aria-pressed="false"><span class="bi bi-check2-square"></span> Show checked only</button>
         </div>
+        <div class="mb-2">
+            <input type="text" class="form-control form-control-sm" data-checkbox-filter-search placeholder="Filter categories..." aria-label="Filter categories" />
+        </div>
+        @await Html.PartialAsync("ManagementPartials/VersionCategoryList", Model, innerViewData)
+    </div>
+}
+else
+{
+    @foreach (var category in Model)
+    {
+        bool IsCategoryChecked = selectedCategories?.Contains(category.Id) == true;
+
+        <div class="form-check">
+            <input type="checkbox"
+                class="form-check-input"
+                name="SelectedCategories"
+               value="@category.Id"
+               id="SelectedCategories__@category.Id"
+               @(Html.Raw(IsCategoryChecked ? "checked=\"checked\"" : "")) />
+            <label class="form-check-label" for="SelectedCategories__@category.Id">@category.Name</label>
+        </div>
+
+        var children = allCategories.Where(c => c.ParentCategoryId == category.Id).ToList();
+        if (children.Count != 0)
+        {
+            <div class="ms-4">
+                <partial name="ManagementPartials/VersionCategoryList" model="children" />
+            </div>
+        }
     }
-
-
-
 }

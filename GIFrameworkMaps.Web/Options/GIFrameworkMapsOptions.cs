@@ -15,5 +15,6 @@
 		public bool SuppressXFrameOptions { get; set; }
 		public string AppAccessRequestLink { get; set; }
 		public NetworkingOptions Networking { get; set; }
+		public string Version { get; set; }
 	}
 }
