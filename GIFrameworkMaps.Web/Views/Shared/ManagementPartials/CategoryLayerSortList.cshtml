@@ -1,0 +1,46 @@
+@using GIFrameworkMaps.Data.ViewModels.Management
+@model CategoryEditViewModel
+
+@{
+    // Layers that are currently selected, ordered by their saved SortOrder, then alphabetically for ties/zeroes
+    var selectedLayers = Model.AvailableLayers
+        .Where(l => Model.SelectedLayers.Contains(int.Parse(l.Value)))
+        .OrderBy(l =>
+        {
+            var id = int.Parse(l.Value);
+            return Model.LayerSortOrders.TryGetValue(id, out var s) && s > 0 ? s : int.MaxValue;
+        })
+        .ThenBy(l => l.Text)
+        .ToList();
+}
+
+<div class="form-check mb-3">
+    <input type="checkbox" class="form-check-input" id="sort-alphabetically" name="sortAlphabetically" value="true" @(Model.SortAlphabetically ? "checked" : "") />
+    <label class="form-check-label" for="sort-alphabetically">Sort alphabetically</label>
+    <div class="form-text">When checked, layers sort alphabetically and any custom order is cleared.</div>
+</div>
+
+<div id="layer-sort-custom" @(Model.SortAlphabetically ? "hidden" : "")>
+    <p class="text-muted small">Drag and drop layers to set their display order within this category. Layers not added in the <strong>Layers</strong> tab will not appear here.</p>
+
+    <ul id="layer-sort-list" class="list-group">
+        @if (selectedLayers.Count == 0)
+        {
+            <li id="layer-sort-empty-message" class="list-group-item text-muted fst-italic">No layers selected. Add layers in the <strong>Layers</strong> tab.</li>
+        }
+        else
+        {
+            @for (int i = 0; i < selectedLayers.Count; i++)
+            {
+                var layer = selectedLayers[i];
+                var layerId = int.Parse(layer.Value);
+                var sortOrder = i + 1;
+                <li class="list-group-item d-flex align-items-center gap-2" data-layer-id="@layerId" data-layer-name="@layer.Text">
+                    <span class="drag-handle bi bi-grip-vertical text-muted" style="cursor: grab;" title="Drag to reorder"></span>
+                    <span class="flex-grow-1">@layer.Text</span>
+                    <input type="hidden" name="sortOrderData" value="@layerId:@sortOrder" data-layer-id="@layerId" class="sort-order-input" />
+                </li>
+            }
+        }
+    </ul>
+</div>

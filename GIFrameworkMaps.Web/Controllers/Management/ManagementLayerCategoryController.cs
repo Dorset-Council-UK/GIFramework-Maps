@@ -43,14 +43,15 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 
         [HttpPost, ActionName("Create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePost(CategoryEditViewModel editModel, int[] selectedLayers)
+        public async Task<IActionResult> CreatePost(CategoryEditViewModel editModel, int[] selectedLayers, string[] sortOrderData, bool sortAlphabetically)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
                     _context.Add(editModel.Category);
-                    UpdateCategoryLayers(selectedLayers, editModel.Category);
+                    var sortOrders = sortAlphabetically ? [] : ParseSortOrderData(sortOrderData);
+                    UpdateCategoryLayers(selectedLayers, editModel.Category, sortOrders);
                     await _context.SaveChangesAsync();
                     TempData["Message"] = "New layer category created";
                     TempData["MessageType"] = "success";
@@ -86,43 +87,45 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(editModel);
         }
 
-        [HttpPost, ActionName("Edit")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditPost(int id, int[] selectedLayers)
-        {
-            var categoryToUpdate = await _context.Categories
+		[HttpPost, ActionName("Edit")]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> EditPost(int id, int[] selectedLayers, string[] sortOrderData, bool sortAlphabetically)
+		{
+			var categoryToUpdate = await _context.Categories
 				.Include(o => o.ParentCategory)
-                .FirstOrDefaultAsync(o => o.Id == id);
+				.Include(o => o.Layers)
+				.FirstOrDefaultAsync(o => o.Id == id);
 
-            var editModel = new CategoryEditViewModel() { Category = categoryToUpdate };
+			var editModel = new CategoryEditViewModel() { Category = categoryToUpdate };
 
-            if (await TryUpdateModelAsync(
-                editModel.Category,
-                "Category",
-                a => a.Name,
-                a => a.Description,
-                a => a.Order,
-                a => a.ParentCategoryId
-                ))
-            {
-                try
-                {
-                    UpdateCategoryLayers(selectedLayers, categoryToUpdate);
-                    await _context.SaveChangesAsync();
-                    TempData["Message"] = "Layer category edited";
-                    TempData["MessageType"] = "success";
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (DbUpdateException ex )
-                {
-                    _logger.LogError(ex, "Layer Category edit failed");
-                    ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
-                }
-            }
-            
-            await RebuildViewModel(editModel, categoryToUpdate);
-            return View(editModel);
-        }
+			if (await TryUpdateModelAsync(
+				editModel.Category,
+				"Category",
+				a => a.Name,
+				a => a.Description,
+				a => a.Order,
+				a => a.ParentCategoryId
+				))
+			{
+				try
+				{
+					var sortOrders = sortAlphabetically ? [] : ParseSortOrderData(sortOrderData);
+					UpdateCategoryLayers(selectedLayers, categoryToUpdate, sortOrders);
+					await _context.SaveChangesAsync();
+					TempData["Message"] = "Layer category edited";
+					TempData["MessageType"] = "success";
+					return RedirectToAction(nameof(Index));
+				}
+				catch (DbUpdateException ex )
+				{
+					_logger.LogError(ex, "Layer Category edit failed");
+					ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, contact your system administrator.");
+				}
+			}
+
+			await RebuildViewModel(editModel, categoryToUpdate);
+			return View(editModel);
+		}
 
         public async Task<IActionResult> Delete(int id)
         {
@@ -157,47 +160,56 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(categoryToDelete);
         }
 
-        private void UpdateCategoryLayers(int[] selectedLayers, Category categoryToUpdate)
-        {
-			if(selectedLayers.Length == 0)
+		private static Dictionary<int, int> ParseSortOrderData(string[] sortOrderData)
+		{
+			var result = new Dictionary<int, int>();
+			foreach (var entry in sortOrderData)
+			{
+				var parts = entry.Split(':');
+				if (parts.Length == 2 && int.TryParse(parts[0], out var layerId) && int.TryParse(parts[1], out var sortOrder))
+				{
+					result[layerId] = sortOrder;
+				}
+			}
+			return result;
+		}
+
+		private void UpdateCategoryLayers(int[] selectedLayers, Category categoryToUpdate, Dictionary<int, int> sortOrders)
+		{
+			var selectedLayerIds = new HashSet<int>(selectedLayers ?? []);
+			if (selectedLayerIds.Count == 0)
 			{
 				//get rid of all layers in the category early and exit
 				var categoryLayersToRemove = _context.CategoryLayers.Where(cl => cl.CategoryId == categoryToUpdate.Id);
 				_context.RemoveRange(categoryLayersToRemove);
 				return;
 			}
-			//figure out what to add and what to remove
-            var selectedCategoriesHS = new HashSet<int>(selectedLayers);
-            var versionCategories = new HashSet<int>();
-            if (categoryToUpdate.Layers.Count != 0)
-            {
-                versionCategories = new HashSet<int>(categoryToUpdate.Layers.Select(c => c.LayerId));
-            }
 
-            foreach (var layer in _context.Layers)
-            {
-                if (selectedCategoriesHS.Contains(layer.Id))
-                {
-                    if (!versionCategories.Contains(layer.Id))
-                    {                        
-                        categoryToUpdate.Layers.Add(new CategoryLayer
-                        {
-                            CategoryId = categoryToUpdate.Id,
-                            LayerId = layer.Id
-                        });
-                    }
-                }
-                else
-                {
+			var existingEntriesByLayerId = categoryToUpdate.Layers.ToDictionary(cl => cl.LayerId);
+			var layersToRemove = categoryToUpdate.Layers.Where(cl => !selectedLayerIds.Contains(cl.LayerId)).ToList();
+			foreach (var layerToRemove in layersToRemove)
+			{
+				categoryToUpdate.Layers.Remove(layerToRemove);
+				_context.Remove(layerToRemove);
+			}
 
-                    if (versionCategories.Contains(layer.Id))
-                    {
-                        CategoryLayer categoryLayerToRemove = categoryToUpdate.Layers.FirstOrDefault(i => i.LayerId == layer.Id);
-                        _context.Remove(categoryLayerToRemove);
-                    }
-                }
-            }
-        }
+			foreach (var layerId in selectedLayerIds)
+			{
+				if (existingEntriesByLayerId.TryGetValue(layerId, out var existingEntry))
+				{
+					existingEntry.SortOrder = sortOrders.GetValueOrDefault(layerId, 0);
+				}
+				else
+				{
+					categoryToUpdate.Layers.Add(new CategoryLayer
+					{
+						CategoryId = categoryToUpdate.Id,
+						LayerId = layerId,
+						SortOrder = sortOrders.GetValueOrDefault(layerId, 0)
+					});
+				}
+			}
+		}
 
 		private async Task RebuildViewModel(CategoryEditViewModel model, Category category)
 		{
@@ -230,9 +242,11 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 			model.AvailableParentCategories = new SelectList(parentCategories, "Id", "Name", category.ParentCategoryId);
 			model.AvailableLayers = availableLayers;
 			model.SelectedLayers = selectedLayerIds.ToList();
+			model.LayerSortOrders = category.Layers.ToDictionary(cl => cl.LayerId, cl => cl.SortOrder);
+			model.SortAlphabetically = !category.Layers.Any(cl => cl.SortOrder != 0);
 			model.VersionsCategoryAppearsIn = await _repository.GetVersionsLayerCategoriesAppearIn([model.Category.Id]);
 
 			ViewData["SelectedLayers"] = model.SelectedLayers;
 		}
-    }
+	}
 }

@@ -4,6 +4,7 @@ import { Broadcast } from "./Broadcast";
 import { CreateLayerFromSource } from "./CreateLayerFromSource";
 import { CreateSource } from "./CreateSource";
 import { CheckboxListFilter } from "./CheckboxListFilter";
+import { CategoryLayerSort } from "./CategoryLayerSort";
 import accessibleAutocomplete from "accessible-autocomplete";
 import { Tooltip } from "bootstrap";
 
@@ -53,6 +54,11 @@ addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll<HTMLElement>("[data-checkbox-filter]").forEach((el) => {
     new CheckboxListFilter(el);
   });
+  //attach category layer sort if present
+  const sortList = document.querySelector<HTMLUListElement>("#layer-sort-list");
+  if (sortList) {
+    new CategoryLayerSort(sortList).init();
+  }
   //attach other general things that should appear everywhere
   const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
   [...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl));
