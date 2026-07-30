@@ -54,12 +54,18 @@
                     <button class="nav-link active" id="layers-tab" data-bs-toggle="tab" data-bs-target="#layers-tab-pane" type="button" role="tab" aria-controls="layers-tab-pane" aria-selected="true">Layers</button>
                 </li>
                 <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="sort-tab" data-bs-toggle="tab" data-bs-target="#sort-tab-pane" type="button" role="tab" aria-controls="sort-tab-pane" aria-selected="false">Layer sort order</button>
+                </li>
+                <li class="nav-item" role="presentation">
                     <button class="nav-link" id="versions-tab" data-bs-toggle="tab" data-bs-target="#versions-tab-pane" type="button" role="tab" aria-controls="versions-tab-pane" aria-selected="false">Appears in versions</button>
                 </li>
             </ul>
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="layers-tab-pane" role="tabpanel" aria-labelledby="layers-tab" tabindex="0">
                     <partial name="ManagementPartials/CategoryLayerList" model="Model" view-data="ViewData" />
+                </div>
+                <div class="tab-pane fade" id="sort-tab-pane" role="tabpanel" aria-labelledby="sort-tab" tabindex="0">
+                    <partial name="ManagementPartials/CategoryLayerSortList" model="Model" view-data="ViewData" />
                 </div>
                 <div class="tab-pane fade" id="versions-tab-pane" role="tabpanel" aria-labelledby="versions-tab" tabindex="0">
                     @if (Model.VersionsCategoryAppearsIn is null || Model.VersionsCategoryAppearsIn.Count == 0)
