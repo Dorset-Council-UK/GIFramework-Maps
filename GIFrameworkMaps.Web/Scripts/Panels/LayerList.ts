@@ -90,7 +90,7 @@ export class LayerList {
     headerItem.className = "accordion-header";
     headerItem.id = "category-favourites-heading";
     const accordionButton = document.createElement("button");
-    accordionButton.innerHTML = `<i class="bi bi-star-fill me-2"></i>Favourites`;
+    accordionButton.innerText = `Favourites`;
     accordionButton.className = "accordion-button";
     accordionButton.type = "button";
     accordionButton.ariaExpanded = "true";
@@ -111,7 +111,7 @@ export class LayerList {
     listContainer.className = "list-unstyled";
 
     favouriteLayers.forEach((layer) => {
-      const listItem = this.createLayerListItem(layer);
+      const listItem = this.createLayerListItem(layer, true);
       listContainer.appendChild(listItem);
     });
 
@@ -214,22 +214,34 @@ export class LayerList {
   /**
    * Creates a single item in a layer list
    *
+   * @param layer The layer to create the list item for
+   * @param isFavouriteCopy When true, marks the item as a favourites-folder copy so lookups
+   *   can distinguish it from the canonical item in the main tree. The checkbox id and label
+   *   for are prefixed with 'fav-' to keep all IDs in the document unique.
    * @returns HTMLLIElement
    *
    */
-  private createLayerListItem(layer: Layer): HTMLLIElement {
+  private createLayerListItem(layer: Layer, isFavouriteCopy: boolean = false): HTMLLIElement {
     const olLayer = this.gifwMapInstance.getLayerById(layer.id.toString());
     const layerGroupType = olLayer.get("layerGroupType");
     const listItem = document.createElement("li");
+    listItem.dataset.gifwLayerId = layer.id.toString();
+    if (isFavouriteCopy) {
+      listItem.dataset.gifwFavouriteCopy = "true";
+    }
     const formCheckContainer = document.createElement("div");
     formCheckContainer.className = `form-check`;
     const innerFormCheckContainer = document.createElement("div");
     innerFormCheckContainer.className = `inner-form-check`;
 
+    const checkboxId = isFavouriteCopy
+      ? `fav-layer-switcher-${layer.id}`
+      : `layer-switcher-${layer.id}`;
+
     const checkbox = document.createElement("input");
     checkbox.className = `form-check-input`;
     checkbox.type = "checkbox";
-    checkbox.id = `layer-switcher-${layer.id}`;
+    checkbox.id = checkboxId;
     checkbox.value = `${layer.id}`;
     if (olLayer.getVisible()) {
       checkbox.checked = true;
@@ -245,7 +257,7 @@ export class LayerList {
 
     const label = document.createElement("label");
     label.className = `form-check-label`;
-    label.htmlFor = `layer-switcher-${layer.id}`;
+    label.htmlFor = checkboxId;
     label.innerText = layer.name;
 
     innerFormCheckContainer.appendChild(checkbox);
@@ -255,7 +267,8 @@ export class LayerList {
     const actionsContainer = document.createElement("span");
     actionsContainer.className = "d-inline-flex gap-1 ms-2 layer-actions";
 
-    if (this.favouriteLayersManager) {
+    //removable layers should not be able to be favourited
+    if (this.favouriteLayersManager && layer.favouritable) {
       const isFav = this.favouriteLayersManager.isFavourite(layer.id.toString());
       const favouriteButton = document.createElement("a");
       favouriteButton.className = isFav ? "text-warning" : "text-body-tertiary";
