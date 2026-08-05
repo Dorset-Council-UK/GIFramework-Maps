@@ -253,7 +253,7 @@ export class LayerList {
 
     // Group all action icons into a single container for consistent spacing
     const actionsContainer = document.createElement("span");
-    actionsContainer.className = "d-flex gap-1 ms-2 layer-actions";
+    actionsContainer.className = "d-inline-flex gap-1 ms-2 layer-actions";
 
     if (this.favouriteLayersManager) {
       const isFav = this.favouriteLayersManager.isFavourite(layer.id.toString());
