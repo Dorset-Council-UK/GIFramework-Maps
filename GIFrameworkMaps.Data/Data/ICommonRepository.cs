@@ -19,6 +19,7 @@ namespace GIFrameworkMaps.Data
         List<ProxyAllowedHost> GetProxyAllowedHosts();
         Task<List<ProxyAllowedHost>> GetProxyAllowedHostsAsync();
         Task<List<Bookmark>> GetBookmarksForUserAsync(string userId);
+        Task<List<FavouriteLayer>> GetFavouriteLayersForUserAsync(string userId);
         Task<string> GenerateShortId(string url);
         Task<string> GetFullUrlFromShortId(string shortId);
 		Task<List<URLAuthorizationRule>> GetURLAuthorizationRules();

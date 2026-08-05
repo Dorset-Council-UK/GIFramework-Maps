@@ -27,6 +27,7 @@ import { renderSliderControl } from "./PanelHelper";
 import { Alert, AlertSeverity, getAllParentElements, getValueFromObjectByKey, extractCustomHeadersFromLayerSource } from "../Util";
 import { LayerList } from "./LayerList";
 import { LayerStyle } from "@camptocamp/ogc-client";
+import { FavouriteLayersManager } from "../FavouriteLayersManager";
 
 export class LayersPanel implements SidebarPanel {
   container: string;
@@ -36,13 +37,14 @@ export class LayersPanel implements SidebarPanel {
   private previousZoom: number;
   private loadingLayers: Map<string, { count: number; timeout?: ReturnType<typeof setTimeout> }>;
   private erroredLayers: BaseLayer[];
+  private favouriteLayersManager: FavouriteLayersManager | null = null;
 
   constructor(container: string) {
     this.container = container;
     this.erroredLayers = [];
     this.loadingLayers = new Map();
   }
-  init() {
+  async init() {
     this.previousZoom = Math.ceil(
       this.gifwMapInstance.olMap.getView().getZoom(),
     );
@@ -57,6 +59,14 @@ export class LayersPanel implements SidebarPanel {
       userSortOrder = LayerListSortingOption.Default;
     }
     this.listSortOrder = userSortOrder;
+
+    if (this.gifwMapInstance.config.isLoggedIn) {
+      this.favouriteLayersManager = new FavouriteLayersManager(
+        this.gifwMapInstance.config.appRoot,
+      );
+      await this.favouriteLayersManager.init();
+    }
+
     this.attachCloseButton();
     this.attachControls();
     this.attachLayerEventListeners();
@@ -90,7 +100,7 @@ export class LayersPanel implements SidebarPanel {
    *
    */
   private renderLayerList(): void {
-    const layerList = new LayerList(this);
+    const layerList = new LayerList(this, this.favouriteLayersManager);
     const layerListContainer = document
       .querySelector(this.container)
       .querySelector(".layer-switcher-tree");
@@ -105,18 +115,25 @@ export class LayersPanel implements SidebarPanel {
           "category-",
           "",
         );
-        this.gifwMapInstance.config.categories.filter(
+        // The favourites folder is not in layerCategories config, skip it
+        const matchedCategory = this.gifwMapInstance.config.categories.filter(
           (c) => c.id.toString() === categoryId,
-        )[0].open = false;
+        );
+        if (matchedCategory.length > 0) {
+          matchedCategory[0].open = false;
+        }
       });
       collapseEl.addEventListener("show.bs.collapse", (e) => {
         const categoryId = (e.currentTarget as HTMLElement).id.replace(
           "category-",
           "",
         );
-        this.gifwMapInstance.config.categories.filter(
+        const matchedCategory = this.gifwMapInstance.config.categories.filter(
           (c) => c.id.toString() === categoryId,
-        )[0].open = true;
+        );
+        if (matchedCategory.length > 0) {
+          matchedCategory[0].open = true;
+        }
       });
       return new Collapse(collapseEl, { toggle: false });
     });
@@ -127,6 +144,16 @@ export class LayersPanel implements SidebarPanel {
       "#gifw-layer-switcher-search",
     );
     this.filterLayersListByText(searchInput.value.trim());
+  }
+
+  /**
+   * Public wrapper for renderLayerList, used by LayerList after a favourite toggle
+   *
+   * @returns void
+   *
+   */
+  public renderLayerListPublic(): void {
+    this.renderLayerList();
   }
 
   /**

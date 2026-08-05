@@ -353,6 +353,12 @@ namespace GIFrameworkMaps.Data
             return userBookmarks;
         }
 
+        public async Task<List<FavouriteLayer>> GetFavouriteLayersForUserAsync(string userId)
+        {
+            var favouriteLayers = await _context.FavouriteLayers.Where(f => f.UserId == userId).AsNoTracking().ToListAsync();
+            return favouriteLayers;
+        }
+
         public async Task<string> GenerateShortId(string url)
         {
             string shortId = Convert.ToHexString(RandomNumberGenerator.GetBytes(5));
