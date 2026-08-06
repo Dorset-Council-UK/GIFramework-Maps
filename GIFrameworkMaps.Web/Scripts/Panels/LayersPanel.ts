@@ -44,7 +44,7 @@ export class LayersPanel implements SidebarPanel {
     this.erroredLayers = [];
     this.loadingLayers = new Map();
   }
-  async init() {
+  init() {
     this.previousZoom = Math.ceil(
       this.gifwMapInstance.olMap.getView().getZoom(),
     );
@@ -64,7 +64,9 @@ export class LayersPanel implements SidebarPanel {
       this.favouriteLayersManager = new FavouriteLayersManager(
         this.gifwMapInstance.config.appRoot,
       );
-      await this.favouriteLayersManager.init();
+      this.favouriteLayersManager.init().then(() => {
+        this.renderLayerList();
+      });
     }
 
     this.attachCloseButton();
