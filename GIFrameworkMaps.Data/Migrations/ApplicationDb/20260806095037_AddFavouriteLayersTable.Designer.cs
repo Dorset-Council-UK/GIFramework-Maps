@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260731161949_AddFavouriteLayersTable")]
+    [Migration("20260806095037_AddFavouriteLayersTable")]
     partial class AddFavouriteLayersTable
     {
         /// <inheritdoc />
@@ -282,20 +282,13 @@ namespace GIFrameworkMaps.Data.Migrations.ApplicationDb
 
             modelBuilder.Entity("GIFrameworkMaps.Data.Models.FavouriteLayer", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<int>("LayerId")
                         .HasColumnType("integer");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
+                    b.HasKey("LayerId", "UserId");
 
                     b.ToTable("FavouriteLayers", "giframeworkmaps");
                 });
