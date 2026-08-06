@@ -104,7 +104,7 @@ export class LayerList {
     const categoryContainer = document.createElement("div");
     categoryContainer.className = "accordion-collapse collapse show";
     categoryContainer.id = "category-favourites";
-    categoryContainer.setAttribute("aria-labelled-by", "category-favourites-heading");
+    categoryContainer.setAttribute("aria-labelledby", "category-favourites-heading");
     const accordionBody = document.createElement("div");
     accordionBody.className = "accordion-body";
     const listContainer = document.createElement("ul");

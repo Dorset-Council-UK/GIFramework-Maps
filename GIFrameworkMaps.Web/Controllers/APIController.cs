@@ -424,7 +424,7 @@ namespace GIFrameworkMaps.Web.Controllers
 			}
 			else
 			{
-				return Unauthorized();
+				return NoContent();
 			}
 		}
 
