@@ -10,17 +10,24 @@ using System.Threading.Tasks;
 namespace GIFrameworkMaps.Web.Controllers
 {
 	public class SearchController(ISearchRepository repository, ILogger<SearchController> logger) : Controller
-    {
-        //dependency injection
-        private readonly ISearchRepository _repository = repository;
-        private readonly ILogger<SearchController> _logger = logger;
+	{
+		//dependency injection
+		private readonly ISearchRepository _repository = repository;
+		private readonly ILogger<SearchController> _logger = logger;
 
-		public async Task<JsonResult> Index([FromBody]SearchQuery searchQuery)
-        {
-            //Sanitise user input to prevent log forging
-            _logger.LogInformation("User searched for {searchQuery}", searchQuery.Query.Replace(Environment.NewLine, ""));
+		public async Task<IActionResult> Index([FromBody]SearchQuery searchQuery)
+		{
+			var trimmedQuery = searchQuery.Query?.Trim() ?? string.Empty;
 
-            var results = await _repository.Search(searchQuery.Query, searchQuery.Searches);
+			if (trimmedQuery.Length < SearchLengthLimits.GlobalMinLength || trimmedQuery.Length > SearchLengthLimits.GlobalMaxLength)
+			{
+				return BadRequest($"Search query must be between {SearchLengthLimits.GlobalMinLength} and {SearchLengthLimits.GlobalMaxLength} characters long");
+			}
+
+			//Sanitise user input to prevent log forging
+			_logger.LogInformation("User searched for {searchQuery}", searchQuery.Query.Replace(Environment.NewLine, ""));
+
+			var results = await _repository.Search(searchQuery.Query, searchQuery.Searches);
 
             //Sanitise user input to prevent log forging
             _logger.LogInformation("{TotalResults} results returned for query {searchQuery}", results.TotalResults, searchQuery.Query.Replace(Environment.NewLine, ""));

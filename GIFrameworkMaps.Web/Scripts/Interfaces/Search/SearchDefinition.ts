@@ -7,5 +7,7 @@
   zoomLevel?: number | null;
   epsg?: number;
   validationRegex?: string;
+  minSearchTextLength?: number | null;
+  maxSearchTextLength?: number | null;
   supressGeom?: boolean;
 }

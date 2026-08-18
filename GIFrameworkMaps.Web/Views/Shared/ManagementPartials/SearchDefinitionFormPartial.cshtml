@@ -49,6 +49,20 @@
 </div>
 
 <div class="mb-3">
+    <label asp-for="MinSearchTextLength" class="control-label"></label>
+    <input asp-for="MinSearchTextLength" class="form-control" />
+    <div class="form-text">Optional. Overrides the global minimum search text length (2). This cannot be set lower than the global minimum. Leave blank to use the global minimum.</div>
+    <span asp-validation-for="MinSearchTextLength" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="MaxSearchTextLength" class="control-label"></label>
+    <input asp-for="MaxSearchTextLength" class="form-control" />
+    <div class="form-text">Optional. Overrides the global maximum search text length (500). This cannot be set higher than the global maximum. Leave blank to use the global maximum.</div>
+    <span asp-validation-for="MaxSearchTextLength" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
     <label asp-for="SupressGeom" class="control-label">Supress geometry?</label>
     <input asp-for="SupressGeom" class="form-check-input" type="checkbox" />
     <div class="form-text">This prevents a pin, line or polygon from being drawn on the map when a user clicks on a search result</div>
