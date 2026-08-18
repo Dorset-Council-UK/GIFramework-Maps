@@ -183,6 +183,9 @@ namespace GIFrameworkMaps.Data
 			var minLength = Math.Max(SearchLengthLimits.GlobalMinLength, selectedDefinition.MinSearchTextLength ?? SearchLengthLimits.GlobalMinLength);
 			var maxLength = Math.Min(SearchLengthLimits.GlobalMaxLength, selectedDefinition.MaxSearchTextLength ?? SearchLengthLimits.GlobalMaxLength);
 
+			// Ensure max is never below min (e.g. due to misconfiguration or legacy DB values)
+			maxLength = Math.Max(minLength, maxLength);
+
 			return (minLength, maxLength);
 		}
 
