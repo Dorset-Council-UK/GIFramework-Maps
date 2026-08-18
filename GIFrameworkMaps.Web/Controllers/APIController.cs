@@ -338,11 +338,96 @@ namespace GIFrameworkMaps.Web.Controllers
                     return BadRequest("Bookmark with this name already exists");
                 }
             }
-            else
-            {
-                return BadRequest("Name must be filled in and less than 50 characters");
-            }           
-        }
+			else
+			{
+				return BadRequest("Name must be filled in and less than 50 characters");
+			}           
+		}
+
+		[Authorize]
+		[Route("api/favouritelayers")]
+		public async Task<IActionResult> UserFavouriteLayers()
+		{
+			var claimsIdentity = (ClaimsIdentity)User.Identity;
+			var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+			var userId = claim.Value;
+
+			var favouriteLayers = await _repository.GetFavouriteLayersForUserAsync(userId);
+
+			return Json(favouriteLayers.Select(f => f.LayerId));
+		}
+
+		[Authorize]
+		[HttpPost]
+		[Route("api/favouritelayers/create")]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> AddFavouriteLayer([FromForm] int layerId)
+		{
+			var claimsIdentity = (ClaimsIdentity)User.Identity;
+			var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+			var userId = claim.Value;
+
+			var layerExists = await _context.Layers.AnyAsync(l => l.Id == layerId);
+			if (!layerExists)
+			{
+				return BadRequest("Layer not found");
+			}
+
+			var existingFavourite = await _context.FavouriteLayers
+				.Where(f => f.UserId == userId && f.LayerId == layerId)
+				.FirstOrDefaultAsync();
+
+			if (existingFavourite != null)
+			{
+				return BadRequest("Layer is already a favourite");
+			}
+
+			try
+			{
+				_context.FavouriteLayers.Add(new FavouriteLayer { LayerId = layerId, UserId = userId });
+				await _context.SaveChangesAsync();
+				return Created("", "");
+			}
+			catch (DbUpdateException ex)
+			{
+				_logger.LogError(ex, "Favourite layer creation failed");
+				return StatusCode(500, "Favourite layer creation failed");
+			}
+		}
+
+		[Authorize]
+		[HttpDelete]
+		[Route("api/favouritelayers/delete/{layerId}")]
+		public async Task<IActionResult> DeleteFavouriteLayer(int layerId)
+		{
+			var claimsIdentity = (ClaimsIdentity)User.Identity;
+			var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+			var userId = claim.Value;
+
+			var favouriteToDelete = await _context.FavouriteLayers
+				.Where(f => f.LayerId == layerId && f.UserId == userId)
+				.FirstOrDefaultAsync();
+
+			if (favouriteToDelete != null)
+			{
+				try
+				{
+					_context.FavouriteLayers.Remove(favouriteToDelete);
+					await _context.SaveChangesAsync();
+					return NoContent();
+				}
+				catch (DbUpdateException ex)
+				{
+					_logger.LogError(ex, "Favourite layer delete failed");
+					return StatusCode(500, "Favourite layer delete failed");
+				}
+			}
+			else
+			{
+				return NoContent();
+			}
+		}
+
 		[Route("api/versions/recent")]
 		public async Task<IActionResult> RecentVersions(string versionIds)
 		{

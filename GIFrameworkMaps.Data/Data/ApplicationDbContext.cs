@@ -18,6 +18,7 @@ namespace GIFrameworkMaps.Data
 		public DbSet<Attribution> Attributions { get; set; }
         public DbSet<Basemap> Basemaps { get; set; }
         public DbSet<Bookmark> Bookmarks { get; set; }
+        public DbSet<FavouriteLayer> FavouriteLayers { get; set; }
         public DbSet<Bound> Bounds { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<CategoryLayer> CategoryLayers { get; set; }

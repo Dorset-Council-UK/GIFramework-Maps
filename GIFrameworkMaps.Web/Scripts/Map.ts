@@ -371,6 +371,7 @@ export class GIFWMap {
             l.isDefault = false;
           }
         }
+        l.favouritable = true;
         allLayers.push(l);
       });
     });
@@ -1172,6 +1173,7 @@ export class GIFWMap {
       proxyMetaRequests: false,
       proxyMapRequests: false,
       refreshInterval: 0,
+      favouritable: false
     };
 
     const layerGroup = this.getLayerGroupOfType(type);
@@ -1272,6 +1274,7 @@ export class GIFWMap {
       proxyMetaRequests: proxyMetaRequests,
       proxyMapRequests: proxyMapRequests,
       refreshInterval: 0,
+      favouritable: false,
     };
 
     let layerGroup = this.getLayerGroupOfType(type);

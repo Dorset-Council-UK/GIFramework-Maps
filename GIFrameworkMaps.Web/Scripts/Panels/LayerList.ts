@@ -10,19 +10,22 @@ import { LayersPanel } from "./LayersPanel";
 import { Alert, AlertSeverity, AlertType } from "../Util";
 import { getItem as getSetting, setItem as setSetting, getSessionItem as getSessionSetting, setSessionItem as setSessionSetting, removeItem as removeSetting } from "../UserSettings";
 import { DateTime } from "luxon";
+import { FavouriteLayersManager } from "../FavouriteLayersManager";
 
 export class LayerList {
   layerCategories: Category[];
   gifwMapInstance: GIFWMap;
   layersPanelInstance: LayersPanel;
   ordering: LayerListSortingOption;
+  favouriteLayersManager: FavouriteLayersManager | null;
 
-  constructor(layersPanelInstance: LayersPanel) {
+  constructor(layersPanelInstance: LayersPanel, favouriteLayersManager: FavouriteLayersManager | null = null) {
     this.layerCategories =
       layersPanelInstance.gifwMapInstance.config.categories;
     this.gifwMapInstance = layersPanelInstance.gifwMapInstance;
     this.layersPanelInstance = layersPanelInstance;
     this.ordering = layersPanelInstance.listSortOrder;
+    this.favouriteLayersManager = favouriteLayersManager;
   }
 
   /**
@@ -34,6 +37,14 @@ export class LayerList {
   public createLayerList(): HTMLDivElement {
     const container: HTMLDivElement = document.createElement("div");
     container.className = "accordion accordion-flush";
+
+    // Prepend Favourites folder for logged-in users
+    if (this.favouriteLayersManager) {
+      const favouriteAccordionItem = this.createFavouritesFolder();
+      if (favouriteAccordionItem) {
+        container.appendChild(favouriteAccordionItem);
+      }
+    }
 
     this.layerCategories
       .filter((l) => l.parentCategory === null && l.layers !== null)
@@ -52,6 +63,63 @@ export class LayerList {
       });
 
     return container;
+  }
+
+  /**
+   * Creates the Favourites accordion folder containing all favourited layers present in this version
+   *
+   * @returns HTMLDivElement | null
+   *
+   */
+  private createFavouritesFolder(): HTMLDivElement | null {
+    const manager = this.favouriteLayersManager!;
+    const allLayers = this.layerCategories.flatMap((c) => c.layers ?? []);
+    const favouriteLayers = allLayers.filter((l) =>
+      manager.isFavourite(l.id.toString()),
+    );
+
+    if (favouriteLayers.length === 0) {
+      return null;
+    }
+
+    const accordionItem = document.createElement("div");
+    accordionItem.className = "accordion-item";
+
+    // Header
+    const headerItem = document.createElement("h2");
+    headerItem.className = "accordion-header";
+    headerItem.id = "category-favourites-heading";
+    const accordionButton = document.createElement("button");
+    accordionButton.innerText = `Favourites`;
+    accordionButton.className = "accordion-button";
+    accordionButton.type = "button";
+    accordionButton.ariaExpanded = "true";
+    accordionButton.setAttribute("aria-controls", "category-favourites");
+    accordionButton.dataset.bsToggle = "collapse";
+    accordionButton.dataset.bsTarget = "#category-favourites";
+    headerItem.appendChild(accordionButton);
+    accordionItem.appendChild(headerItem);
+
+    // Body
+    const categoryContainer = document.createElement("div");
+    categoryContainer.className = "accordion-collapse collapse show";
+    categoryContainer.id = "category-favourites";
+    categoryContainer.setAttribute("aria-labelledby", "category-favourites-heading");
+    const accordionBody = document.createElement("div");
+    accordionBody.className = "accordion-body";
+    const listContainer = document.createElement("ul");
+    listContainer.className = "list-unstyled";
+
+    favouriteLayers.forEach((layer) => {
+      const listItem = this.createLayerListItem(layer, true);
+      listContainer.appendChild(listItem);
+    });
+
+    accordionBody.appendChild(listContainer);
+    categoryContainer.appendChild(accordionBody);
+    accordionItem.appendChild(categoryContainer);
+
+    return accordionItem;
   }
 
   /**
@@ -146,22 +214,34 @@ export class LayerList {
   /**
    * Creates a single item in a layer list
    *
+   * @param layer The layer to create the list item for
+   * @param isFavouriteCopy When true, marks the item as a favourites-folder copy so lookups
+   *   can distinguish it from the canonical item in the main tree. The checkbox id and label
+   *   for are prefixed with 'fav-' to keep all IDs in the document unique.
    * @returns HTMLLIElement
    *
    */
-  private createLayerListItem(layer: Layer): HTMLLIElement {
+  private createLayerListItem(layer: Layer, isFavouriteCopy: boolean = false): HTMLLIElement {
     const olLayer = this.gifwMapInstance.getLayerById(layer.id.toString());
     const layerGroupType = olLayer.get("layerGroupType");
     const listItem = document.createElement("li");
+    listItem.dataset.gifwLayerId = layer.id.toString();
+    if (isFavouriteCopy) {
+      listItem.dataset.gifwFavouriteCopy = "true";
+    }
     const formCheckContainer = document.createElement("div");
     formCheckContainer.className = `form-check`;
     const innerFormCheckContainer = document.createElement("div");
     innerFormCheckContainer.className = `inner-form-check`;
 
+    const checkboxId = isFavouriteCopy
+      ? `fav-layer-switcher-${layer.id}`
+      : `layer-switcher-${layer.id}`;
+
     const checkbox = document.createElement("input");
     checkbox.className = `form-check-input`;
     checkbox.type = "checkbox";
-    checkbox.id = `layer-switcher-${layer.id}`;
+    checkbox.id = checkboxId;
     checkbox.value = `${layer.id}`;
     if (olLayer.getVisible()) {
       checkbox.checked = true;
@@ -177,15 +257,37 @@ export class LayerList {
 
     const label = document.createElement("label");
     label.className = `form-check-label`;
-    label.htmlFor = `layer-switcher-${layer.id}`;
+    label.htmlFor = checkboxId;
     label.innerText = layer.name;
 
     innerFormCheckContainer.appendChild(checkbox);
     innerFormCheckContainer.appendChild(label);
 
+    // Group all action icons into a single container for consistent spacing
+    const actionsContainer = document.createElement("span");
+    actionsContainer.className = "d-inline-flex gap-1 ms-2 layer-actions";
+
+    //removable layers should not be able to be favourited
+    if (this.favouriteLayersManager && layer.favouritable) {
+      const isFav = this.favouriteLayersManager.isFavourite(layer.id.toString());
+      const favouriteButton = document.createElement("a");
+      favouriteButton.className = isFav ? "text-warning" : "text-body-tertiary";
+      favouriteButton.href = `#layer-favourite-${layer.id}`;
+      favouriteButton.title = isFav
+        ? `Remove '${layer.name}' from favourites`
+        : `Add '${layer.name}' to favourites`;
+      favouriteButton.innerHTML = `<i class="bi bi-star${isFav ? "-fill" : ""}"></i>`;
+      favouriteButton.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const manager = this.favouriteLayersManager!;
+        await manager.toggleFavourite(layer.id.toString());
+        this.layersPanelInstance.renderLayerListPublic();
+      });
+      actionsContainer.appendChild(favouriteButton);
+    }
+
     if (layerGroupType === LayerGroupType.Overlay) {
       const aboutButton = document.createElement("a");
-      aboutButton.className = `ms-2`;
       aboutButton.href = `#layer-meta-${layer.id}`;
       aboutButton.dataset.gifwAboutLayer = `${layer.id}`;
       aboutButton.title = `Find out more about the '${layer.name}' layer`;
@@ -209,13 +311,12 @@ export class LayerList {
         }
         e.preventDefault();
       });
-      innerFormCheckContainer.appendChild(aboutButton);
+      actionsContainer.appendChild(aboutButton);
     }
 
     if (this.layersPanelInstance.isLayerFilterable(layer, olLayer as olLayer)) {
       const filterButton = document.createElement("a");
       filterButton.id = `gifw-filter-layer-${layer.id}`;
-      filterButton.className = `ms-2`;
       filterButton.href = `#layer-filter-${layer.id}`;
       filterButton.dataset.gifwFilterLayer = `${layer.id}`;
       filterButton.title = `Filter the '${layer.name}' layer`;
@@ -235,12 +336,12 @@ export class LayerList {
         const layerFilter = new LayerFilter(this.layersPanelInstance, layer);
         layerFilter.showFilterDialog();
       });
-      innerFormCheckContainer.appendChild(filterButton);
+      actionsContainer.appendChild(filterButton);
     }
 
     if (layer.removable) {
       const deleteButton = document.createElement("a");
-      deleteButton.className = `ms-2 text-danger`;
+      deleteButton.className = `text-danger`;
       deleteButton.id = `gifw-remove-layer-${layer.id}`;
       deleteButton.href = `#layer-remove-${layer.id}`;
       deleteButton.dataset.gifwAboutLayer = `${layer.id}`;
@@ -252,7 +353,11 @@ export class LayerList {
         }
         e.preventDefault();
       });
-      innerFormCheckContainer.appendChild(deleteButton);
+      actionsContainer.appendChild(deleteButton);
+    }
+
+    if (actionsContainer.hasChildNodes()) {
+      innerFormCheckContainer.appendChild(actionsContainer);
     }
 
     formCheckContainer.appendChild(innerFormCheckContainer);

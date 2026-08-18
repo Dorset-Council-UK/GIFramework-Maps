@@ -27,6 +27,7 @@ import { renderSliderControl } from "./PanelHelper";
 import { Alert, AlertSeverity, getAllParentElements, getValueFromObjectByKey, extractCustomHeadersFromLayerSource } from "../Util";
 import { LayerList } from "./LayerList";
 import { LayerStyle } from "@camptocamp/ogc-client";
+import { FavouriteLayersManager } from "../FavouriteLayersManager";
 
 export class LayersPanel implements SidebarPanel {
   container: string;
@@ -36,6 +37,7 @@ export class LayersPanel implements SidebarPanel {
   private previousZoom: number;
   private loadingLayers: Map<string, { count: number; timeout?: ReturnType<typeof setTimeout> }>;
   private erroredLayers: BaseLayer[];
+  private favouriteLayersManager: FavouriteLayersManager | null = null;
 
   constructor(container: string) {
     this.container = container;
@@ -57,6 +59,16 @@ export class LayersPanel implements SidebarPanel {
       userSortOrder = LayerListSortingOption.Default;
     }
     this.listSortOrder = userSortOrder;
+
+    if (this.gifwMapInstance.config.isLoggedIn) {
+      this.favouriteLayersManager = new FavouriteLayersManager(
+        this.gifwMapInstance.config.appRoot,
+      );
+      this.favouriteLayersManager.init().then(() => {
+        this.renderLayerList();
+      });
+    }
+
     this.attachCloseButton();
     this.attachControls();
     this.attachLayerEventListeners();
@@ -90,10 +102,16 @@ export class LayersPanel implements SidebarPanel {
    *
    */
   private renderLayerList(): void {
-    const layerList = new LayerList(this);
+    const layerList = new LayerList(this, this.favouriteLayersManager);
     const layerListContainer = document
       .querySelector(this.container)
       .querySelector(".layer-switcher-tree");
+    // Dispose any live Bootstrap tooltip instances before destroying their anchor elements,
+    // otherwise Popper detaches and the tooltip floats to (0,0).
+    // Tooltips are attached to .inner-form-check (checkbox.parentElement) by setLayerOutOfRange.
+    layerListContainer.querySelectorAll<HTMLElement>(".inner-form-check").forEach((el) => {
+      Tooltip.getInstance(el)?.dispose();
+    });
     layerListContainer.innerHTML = "";
     layerListContainer.appendChild(layerList.createLayerList());
     const collapseElementList = [].slice.call(
@@ -105,18 +123,25 @@ export class LayersPanel implements SidebarPanel {
           "category-",
           "",
         );
-        this.gifwMapInstance.config.categories.filter(
+        // The favourites folder is not in layerCategories config, skip it
+        const matchedCategory = this.gifwMapInstance.config.categories.filter(
           (c) => c.id.toString() === categoryId,
-        )[0].open = false;
+        );
+        if (matchedCategory.length > 0) {
+          matchedCategory[0].open = false;
+        }
       });
       collapseEl.addEventListener("show.bs.collapse", (e) => {
         const categoryId = (e.currentTarget as HTMLElement).id.replace(
           "category-",
           "",
         );
-        this.gifwMapInstance.config.categories.filter(
+        const matchedCategory = this.gifwMapInstance.config.categories.filter(
           (c) => c.id.toString() === categoryId,
-        )[0].open = true;
+        );
+        if (matchedCategory.length > 0) {
+          matchedCategory[0].open = true;
+        }
       });
       return new Collapse(collapseEl, { toggle: false });
     });
@@ -127,6 +152,18 @@ export class LayersPanel implements SidebarPanel {
       "#gifw-layer-switcher-search",
     );
     this.filterLayersListByText(searchInput.value.trim());
+    // Restore out-of-range tooltips/badges and checkbox states for newly rendered rows.
+    this.setLayerVisibilityState();
+  }
+
+  /**
+   * Public wrapper for renderLayerList, used by LayerList after a favourite toggle
+   *
+   * @returns void
+   *
+   */
+  public renderLayerListPublic(): void {
+    this.renderLayerList();
   }
 
   /**
@@ -647,7 +684,7 @@ export class LayersPanel implements SidebarPanel {
     const layerId = layer.get("layerId");
     const layerSwitcherTree = container.querySelector(".layer-switcher-tree");
     return layerSwitcherTree.querySelector<HTMLInputElement>(
-      `input[type='checkbox'][value='${layerId}']`,
+      `li[data-gifw-layer-id='${layerId}']:not([data-gifw-favourite-copy]) input[type='checkbox']`,
     );
   }
 
@@ -776,25 +813,32 @@ export class LayersPanel implements SidebarPanel {
     }
 
     layers.forEach((l) => {
-      const checkbox = this.getLayerCheckbox(l);
-      if (checkbox) {
-        const invisibilityBadge =
-          checkbox.parentElement.querySelector(".badge-invisible");
-        if (l.getOpacity() === 0 && !invisibilityBadge) {
-          checkbox.parentElement.append(createInvisibleBadge());
-        } else if (l.getOpacity() > 0 && invisibilityBadge) {
-          invisibilityBadge.remove();
-        }
+      const layerId = l.get("layerId");
+      const container = document.querySelector(this.container);
+      const layerSwitcherTree = container.querySelector(".layer-switcher-tree");
+      const allListItems = layerSwitcherTree.querySelectorAll<HTMLElement>(
+        `li[data-gifw-layer-id='${layerId}']`,
+      );
+      allListItems.forEach((listItem) => {
+        const checkbox = listItem.querySelector<HTMLInputElement>("input[type='checkbox']");
+        if (checkbox) {
+          const invisibilityBadge = checkbox.parentElement.querySelector(".badge-invisible");
+          if (l.getOpacity() === 0 && !invisibilityBadge) {
+            checkbox.parentElement.append(createInvisibleBadge());
+          } else if (l.getOpacity() > 0 && invisibilityBadge) {
+            invisibilityBadge.remove();
+          }
 
-        checkbox.parentElement.removeAttribute("title");
-        Tooltip.getInstance(checkbox.parentElement)?.dispose();
-        const outOfRangeBadge = checkbox.parentElement.querySelector(
-          ".badge-out-of-range",
-        );
-        if (outOfRangeBadge) {
-          outOfRangeBadge.remove();
+          checkbox.parentElement.removeAttribute("title");
+          Tooltip.getInstance(checkbox.parentElement)?.dispose();
+          const outOfRangeBadge = checkbox.parentElement.querySelector(
+            ".badge-out-of-range",
+          );
+          if (outOfRangeBadge) {
+            outOfRangeBadge.remove();
+          }
         }
-      }
+      });
       const activeLayerItem = this.getActiveLayerItem(l);
       if (activeLayerItem) {
         const alOutOfRangeBadge = activeLayerItem.querySelector(
@@ -816,12 +860,17 @@ export class LayersPanel implements SidebarPanel {
     const outOfRangeLayers = overzoomedLayers.concat(underzoomedLayers);
 
     outOfRangeLayers.forEach((l) => {
-      const checkbox = this.getLayerCheckbox(l);
-      if (checkbox !== null) {
-        if (!checkbox.parentElement.querySelector(".badge-out-of-range")) {
-          checkbox.parentElement.append(createOutOfRangeBadge());
-        }
-      }
+      const layerId = l.get("layerId");
+      const container = document.querySelector(this.container);
+      const layerSwitcherTree = container.querySelector(".layer-switcher-tree");
+      layerSwitcherTree
+        .querySelectorAll<HTMLElement>(`li[data-gifw-layer-id='${layerId}']`)
+        .forEach((listItem) => {
+          const checkbox = listItem.querySelector<HTMLInputElement>("input[type='checkbox']");
+          if (checkbox && !checkbox.parentElement.querySelector(".badge-out-of-range")) {
+            checkbox.parentElement.append(createOutOfRangeBadge());
+          }
+        });
       const activeLayerItem = this.getActiveLayerItem(l);
       if (activeLayerItem) {
         if (!activeLayerItem.querySelector(".badge-out-of-range")) {
@@ -881,19 +930,25 @@ export class LayersPanel implements SidebarPanel {
     newZoom: number,
   ) {
     const layerId = layer.get("layerId");
-
-    const layerCheckboxLabelContainer: HTMLElement = document.querySelector(
-      `#layer-switcher-${layerId}`,
-    )?.parentElement;
-    if (layerCheckboxLabelContainer) {
-      layerCheckboxLabelContainer.setAttribute(
-        "title",
-        `This layer is out of range. Zoom ${newZoom > layer.getMaxZoom() ? "out" : "in"
-        } to view.`,
+    const container = document.querySelector(this.container);
+    const layerSwitcherTree = container.querySelector(".layer-switcher-tree");
+    const listItems = layerSwitcherTree.querySelectorAll<HTMLElement>(
+      `li[data-gifw-layer-id='${layerId}']`,
+    );
+    listItems.forEach((listItem) => {
+      const checkbox = listItem.querySelector<HTMLInputElement>(
+        "input[type='checkbox']",
       );
-
-      Tooltip.getOrCreateInstance(layerCheckboxLabelContainer);
-    }
+      const labelContainer = checkbox?.parentElement;
+      if (labelContainer) {
+        labelContainer.setAttribute(
+          "title",
+          `This layer is out of range. Zoom ${newZoom > layer.getMaxZoom() ? "out" : "in"
+          } to view.`,
+        );
+        Tooltip.getOrCreateInstance(labelContainer);
+      }
+    });
   }
 
   /**
@@ -904,8 +959,15 @@ export class LayersPanel implements SidebarPanel {
    *
    */
   private setCheckboxState(layer: olLayer<Source, LayerRenderer<olLayer>>) {
-    const cb = this.getLayerCheckbox(layer);
-    cb.checked = layer.getVisible();
+    const container = document.querySelector(this.container);
+    const layerId = layer.get("layerId");
+    const layerSwitcherTree = container.querySelector(".layer-switcher-tree");
+    const allCheckboxes = layerSwitcherTree.querySelectorAll<HTMLInputElement>(
+      `li[data-gifw-layer-id='${layerId}'] input[type='checkbox']`,
+    );
+    allCheckboxes.forEach((cb) => {
+      cb.checked = layer.getVisible();
+    });
   }
 
   /*TODO - Make this generic*/
@@ -1078,28 +1140,30 @@ export class LayersPanel implements SidebarPanel {
         //go through individual layer results and make their checkbox visible and make sure their parent folders are visible and open
         layerResults.forEach((layerResult) => {
           //this is a layer
-          const layerCheckbox: HTMLInputElement = document.querySelector(
-            `#layer-switcher-${layerResult.item.id}`,
+          const layerListItems = layersListContainer.querySelectorAll<HTMLElement>(
+            `li[data-gifw-layer-id='${layerResult.item.id}']`,
           );
-          layerCheckbox.closest("li").style.display = "block";
-          const parentFolders = getAllParentElements(
-            layerCheckbox as HTMLElement,
-            ".accordion-collapse",
-          );
-          parentFolders.forEach((pf) => {
-            pf.classList.add("show");
-            pf.parentElement.classList.remove("border-0");
-            container
-              .querySelector(`.accordion-button[aria-controls="${pf.id}"]`)
-              .setAttribute("aria-expanded", "true");
-            container
-              .querySelector(`.accordion-button[aria-controls="${pf.id}"]`)
-              .classList.remove("collapsed");
-            (
-              container.querySelector(
-                `.accordion-button[aria-controls="${pf.id}"]`,
-              ) as HTMLElement
-            ).style.display = "flex";
+          layerListItems.forEach((layerListItem) => {
+            layerListItem.style.display = "block";
+            const parentFolders = getAllParentElements(
+              layerListItem,
+              ".accordion-collapse",
+            );
+            parentFolders.forEach((pf) => {
+              pf.classList.add("show");
+              pf.parentElement.classList.remove("border-0");
+              container
+                .querySelector(`.accordion-button[aria-controls="${pf.id}"]`)
+                .setAttribute("aria-expanded", "true");
+              container
+                .querySelector(`.accordion-button[aria-controls="${pf.id}"]`)
+                .classList.remove("collapsed");
+              (
+                container.querySelector(
+                  `.accordion-button[aria-controls="${pf.id}"]`,
+                ) as HTMLElement
+              ).style.display = "flex";
+            });
           });
         });
       }
@@ -1396,8 +1460,9 @@ export class LayersPanel implements SidebarPanel {
    * @param layerId The ID of the layer to check
    */
   public updateLayerFilteredStatusIcon(layerId: string): void {
-    const layersListFilterButton = document.getElementById(
-      `gifw-filter-layer-${layerId}`,
+    const container = document.querySelector(this.container);
+    const layersListFilterButtons = container.querySelectorAll(
+      `.layer-switcher-tree [data-gifw-filter-layer="${layerId}"]`,
     );
     const activeLayersFilterButton = document.getElementById(
       `gifw-active-layers-filter-${layerId}`,
@@ -1409,9 +1474,9 @@ export class LayersPanel implements SidebarPanel {
     if (olLayer && layer) {
       const icon = `bi-funnel${this.gifwMapInstance.getLayerFilteredStatus(layer, olLayer as olLayer) ? "-fill" : ""
         }`;
-      if (layersListFilterButton) {
-        layersListFilterButton.querySelector(".bi").className = `bi ${icon}`;
-      }
+      layersListFilterButtons.forEach((btn) => {
+        btn.querySelector(".bi").className = `bi ${icon}`;
+      });
       if (activeLayersFilterButton) {
         activeLayersFilterButton.querySelector(".bi").className = `bi ${icon}`;
       }
