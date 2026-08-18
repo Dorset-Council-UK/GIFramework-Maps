@@ -208,6 +208,8 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.ZoomLevel,
                 a => a.EPSG,
                 a => a.ValidationRegex,
+				a => a.MinSearchTextLength,
+				a => a.MaxSearchTextLength,
                 a => a.SupressGeom,
                 a => a.URLTemplate,
                 a => a.XFieldPath,
@@ -255,7 +257,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.ZoomLevel,
                 a => a.EPSG,
                 a => a.ValidationRegex,
-                a => a.SupressGeom,
+				a => a.MinSearchTextLength,
+				a => a.MaxSearchTextLength,
+				a => a.SupressGeom,
                 a => a.TableName,
                 a => a.XField,
                 a => a.YField,
@@ -300,7 +304,9 @@ namespace GIFrameworkMaps.Web.Controllers.Management
                 a => a.ZoomLevel,
                 a => a.EPSG,
                 a => a.ValidationRegex,
-                a => a.SupressGeom,
+				a => a.MinSearchTextLength,
+				a => a.MaxSearchTextLength,
+				a => a.SupressGeom,
                 a => a.LocalSearchName))
             {
 
