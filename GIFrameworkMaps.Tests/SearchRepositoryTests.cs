@@ -440,5 +440,246 @@ namespace GIFrameworkMaps.Tests
             Assert.That(capturedUri, Does.Contain(expectedEncodedTerm), $"Expected encoded term '{expectedEncodedTerm}' in URI");
             Assert.That(capturedUri, Does.Not.Contain("#"), "URI must not contain an unencoded '#' character");
         }
+
+        [Test(Description = "When the search term is shorter than the search definition's effective minimum length, the search definition should be skipped entirely and produce no results")]
+        public async Task Search_TermShorterThanMinLength_SkipsSearchDefinition()
+        {
+            const int searchDefId = 55;
+
+            var mockLogger = new Mock<ILogger<SearchRepository>>();
+            var mockIApplicationDbContext = new Mock<IApplicationDbContext>();
+
+            var localSearchDef = new LocalSearchDefinition
+            {
+                Id = searchDefId,
+                Name = "BNG12Figure",
+                LocalSearchName = "BNG12Figure",
+                Title = "Long Minimum Search",
+                MinSearchTextLength = 50
+            };
+
+            mockIApplicationDbContext.Setup(m => m.APISearchDefinitions)
+                .Returns(new List<APISearchDefinition>().BuildMockDbSet().Object);
+            mockIApplicationDbContext.Setup(m => m.DatabaseSearchDefinitions)
+                .Returns(new List<DatabaseSearchDefinition>().BuildMockDbSet().Object);
+            mockIApplicationDbContext.Setup(m => m.LocalSearchDefinitions)
+                .Returns(new List<LocalSearchDefinition> { localSearchDef }.BuildMockDbSet().Object);
+
+            var versionSearchDef = new VersionSearchDefinition
+            {
+                SearchDefinitionId = searchDefId,
+                SearchDefinition = localSearchDef
+            };
+            mockIApplicationDbContext.Setup(m => m.VersionSearchDefinitions)
+                .Returns(new List<VersionSearchDefinition> { versionSearchDef }.BuildMockDbSet().Object);
+
+            var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+            mockHttpContextAccessor.Setup(_ => _.HttpContext).Returns(new DefaultHttpContext());
+            var mockFactory = new Mock<IHttpClientFactory>();
+
+            var repository = new SearchRepository(
+                mockLogger.Object,
+                mockIApplicationDbContext.Object,
+                mockFactory.Object,
+                mockHttpContextAccessor.Object,
+                new MemoryCache(new MemoryCacheOptions()));
+
+            var requiredSearches = new List<RequiredSearch>
+            {
+                new() { SearchDefinitionId = searchDefId, Enabled = true, Order = 1 }
+            };
+
+            // Act - the search term ("abc") is shorter than the definition's MinSearchTextLength (50)
+            var results = await repository.Search("abc", requiredSearches);
+
+            // Assert
+            Assert.That(results.ResultCategories, Is.Empty, "No categories should be produced when the term is below the minimum length");
+            Assert.That(results.TotalResults, Is.EqualTo(0));
+            Assert.That(results.IsError, Is.False);
+        }
+
+		[Test(Description = "When the search term is longer than the search definition's effective maximum length, the search term should be truncated")]
+		public async Task Search_TermLongerThanMaxLength_TruncatesSearchTerm()
+		{
+			const int searchDefId = 55;
+
+			var mockLogger = new Mock<ILogger<SearchRepository>>();
+			var mockIApplicationDbContext = new Mock<IApplicationDbContext>();
+
+			var localSearchDef = new LocalSearchDefinition
+			{
+				Id = searchDefId,
+				Name = "BNG12Figure",
+				LocalSearchName = "BNG12Figure",
+				Title = "Short Maximum Search",
+				MaxSearchTextLength = 13
+			};
+
+			mockIApplicationDbContext.Setup(m => m.APISearchDefinitions)
+				.Returns(new List<APISearchDefinition>().BuildMockDbSet().Object);
+			mockIApplicationDbContext.Setup(m => m.DatabaseSearchDefinitions)
+				.Returns(new List<DatabaseSearchDefinition>().BuildMockDbSet().Object);
+			mockIApplicationDbContext.Setup(m => m.LocalSearchDefinitions)
+				.Returns(new List<LocalSearchDefinition> { localSearchDef }.BuildMockDbSet().Object);
+
+			var versionSearchDef = new VersionSearchDefinition
+			{
+				SearchDefinitionId = searchDefId,
+				SearchDefinition = localSearchDef
+			};
+			mockIApplicationDbContext.Setup(m => m.VersionSearchDefinitions)
+				.Returns(new List<VersionSearchDefinition> { versionSearchDef }.BuildMockDbSet().Object);
+
+			var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+			mockHttpContextAccessor.Setup(_ => _.HttpContext).Returns(new DefaultHttpContext());
+			var mockFactory = new Mock<IHttpClientFactory>();
+
+			var repository = new SearchRepository(
+				mockLogger.Object,
+				mockIApplicationDbContext.Object,
+				mockFactory.Object,
+				mockHttpContextAccessor.Object,
+				new MemoryCache(new MemoryCacheOptions()));
+
+			var requiredSearches = new List<RequiredSearch>
+			{
+				new() { SearchDefinitionId = searchDefId, Enabled = true, Order = 1 }
+			};
+
+			// Act - the search term ("366646 101677z") is longer than the definition's MaxSearchTextLength (13)
+			// This is a bit of a hack of a test. By making the search term longer than the max length, we are testing that the search term is truncated to 13 characters.
+			// The LocalSearch method will then process the truncated term ("366646 101677") and produce a result.
+			var results = await repository.Search("366646 101677z", requiredSearches);
+
+			// Assert
+			
+			Assert.That(results.ResultCategories, Has.Exactly(1).Items);
+			Assert.That(results.TotalResults, Is.EqualTo(1));
+			Assert.That(results.IsError, Is.False);
+		}
+
+		[Test(Description = "When a search definition produces results and StopIfFound is set, subsequent enabled search definitions should not be processed")]
+        public async Task Search_StopIfFoundSetAndResultsFound_StopsProcessingFurtherDefinitions()
+        {
+            const int firstSearchDefId = 61;
+            const int secondSearchDefId = 62;
+
+            var mockLogger = new Mock<ILogger<SearchRepository>>();
+            var mockIApplicationDbContext = new Mock<IApplicationDbContext>();
+
+            var firstLocalSearchDef = new LocalSearchDefinition
+            {
+                Id = firstSearchDefId,
+                Name = "BNG12Figure",
+                LocalSearchName = "BNG12Figure",
+                Title = "BNG 12 Figure"
+            };
+
+            var secondLocalSearchDef = new LocalSearchDefinition
+            {
+                Id = secondSearchDefId,
+                Name = "BNG12Figure",
+                LocalSearchName = "BNG12Figure",
+                Title = "Should Not Run"
+            };
+
+            mockIApplicationDbContext.Setup(m => m.APISearchDefinitions)
+                .Returns(new List<APISearchDefinition>().BuildMockDbSet().Object);
+            mockIApplicationDbContext.Setup(m => m.DatabaseSearchDefinitions)
+                .Returns(new List<DatabaseSearchDefinition>().BuildMockDbSet().Object);
+            mockIApplicationDbContext.Setup(m => m.LocalSearchDefinitions)
+                .Returns(new List<LocalSearchDefinition> { firstLocalSearchDef, secondLocalSearchDef }.BuildMockDbSet().Object);
+
+            var versionSearchDefs = new List<VersionSearchDefinition>
+            {
+                new() { SearchDefinitionId = firstSearchDefId, SearchDefinition = firstLocalSearchDef },
+                new() { SearchDefinitionId = secondSearchDefId, SearchDefinition = secondLocalSearchDef }
+            };
+            mockIApplicationDbContext.Setup(m => m.VersionSearchDefinitions)
+                .Returns(versionSearchDefs.BuildMockDbSet().Object);
+
+            var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+            mockHttpContextAccessor.Setup(_ => _.HttpContext).Returns(new DefaultHttpContext());
+            var mockFactory = new Mock<IHttpClientFactory>();
+
+            var repository = new SearchRepository(
+                mockLogger.Object,
+                mockIApplicationDbContext.Object,
+                mockFactory.Object,
+                mockHttpContextAccessor.Object,
+                new MemoryCache(new MemoryCacheOptions()));
+
+            var requiredSearches = new List<RequiredSearch>
+            {
+                new() { SearchDefinitionId = firstSearchDefId, Enabled = true, Order = 1, StopIfFound = true },
+                new() { SearchDefinitionId = secondSearchDefId, Enabled = true, Order = 2, StopIfFound = false }
+            };
+
+            // Act - a valid 12-figure BNG grid reference produces a result for the first definition
+            var results = await repository.Search("366646 101677", requiredSearches);
+
+            // Assert
+            Assert.That(results.ResultCategories, Has.Exactly(1).Items, "Only the first search definition should have produced a result category");
+            Assert.That(results.ResultCategories[0].CategoryName, Is.EqualTo("BNG 12 Figure"));
+            Assert.That(results.TotalResults, Is.GreaterThan(0));
+        }
+
+        [Test(Description = "When executing a single search throws an exception, the error flag should be set on the results but the method should not throw")]
+        public async Task Search_ExceptionThrownDuringSingleSearch_SetsIsErrorFlag()
+        {
+            const int searchDefId = 71;
+
+            var mockLogger = new Mock<ILogger<SearchRepository>>();
+            var mockIApplicationDbContext = new Mock<IApplicationDbContext>();
+
+            var searchDefinition = new LocalSearchDefinition
+            {
+                Id = searchDefId,
+                Name = "BNG12Figure",
+                LocalSearchName = "BNG12Figure",
+                Title = "Erroring Search"
+            };
+
+            mockIApplicationDbContext.Setup(m => m.APISearchDefinitions)
+                .Returns(new List<APISearchDefinition>().BuildMockDbSet().Object);
+            mockIApplicationDbContext.Setup(m => m.DatabaseSearchDefinitions)
+                .Returns(new List<DatabaseSearchDefinition>().BuildMockDbSet().Object);
+            // Deliberately do NOT set up LocalSearchDefinitions so that accessing it inside
+            // SingleSearch throws a NullReferenceException, which should be caught and
+            // recorded via the IsError flag rather than bubbling out of Search().
+            mockIApplicationDbContext.Setup(m => m.LocalSearchDefinitions)
+                .Returns(default(Microsoft.EntityFrameworkCore.DbSet<LocalSearchDefinition>));
+
+            var versionSearchDef = new VersionSearchDefinition
+            {
+                SearchDefinitionId = searchDefId,
+                SearchDefinition = searchDefinition
+            };
+            mockIApplicationDbContext.Setup(m => m.VersionSearchDefinitions)
+                .Returns(new List<VersionSearchDefinition> { versionSearchDef }.BuildMockDbSet().Object);
+
+            var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+            mockHttpContextAccessor.Setup(_ => _.HttpContext).Returns(new DefaultHttpContext());
+            var mockFactory = new Mock<IHttpClientFactory>();
+
+            var repository = new SearchRepository(
+                mockLogger.Object,
+                mockIApplicationDbContext.Object,
+                mockFactory.Object,
+                mockHttpContextAccessor.Object,
+                new MemoryCache(new MemoryCacheOptions()));
+
+            var requiredSearches = new List<RequiredSearch>
+            {
+                new() { SearchDefinitionId = searchDefId, Enabled = true, Order = 1 }
+            };
+
+            // Act
+            var results = await repository.Search("366646 101677", requiredSearches);
+
+            // Assert
+            Assert.That(results.IsError, Is.True, "The IsError flag should be set when a single search throws an exception");
+            Assert.That(results.ResultCategories, Is.Empty, "No results should be added for the definition that threw");
+        }
     }
 }
