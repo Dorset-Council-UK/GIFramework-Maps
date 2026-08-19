@@ -35,6 +35,9 @@ export class Search {
   gifwMapInstance: GIFWMap;
   searchEndpointURL: string;
   searchOptionsURL: string;
+  // These must match GIFrameworkMaps.Data.Models.Search.SearchLengthLimits on the server
+  static readonly globalMinSearchLength: number = 2;
+  static readonly globalMaxSearchLength: number = 500;
   searchBoxHTML: string = `
         <div class="ol-unselectable ol-control gifw-search-control">
             <button class="search-control-toggle d-md-none"><i class="bi bi-search"></i></button>
@@ -42,7 +45,7 @@ export class Search {
         <div class="search-control d-none d-md-block">
             <form id="gifw-search-form">
                 <div class="input-group">
-                    <input type="search" class="form-control" placeholder="Enter a search" aria-label="Search" aria-describedby="gifw-search-button" required>
+                    <input type="search" class="form-control" placeholder="Enter a search" aria-label="Search" aria-describedby="gifw-search-button" required minlength="${Search.globalMinSearchLength}" maxlength="${Search.globalMaxSearchLength}">
                     <button class="btn btn-outline-primary" type="submit" id="gifw-search-button">Search</button>
                     <button class="btn btn-outline-secondary" type="button" id="gifw-search-configure-button" aria-label="Configure search options" title="Configure search options"><i class="bi-gear-fill"></i></button>
                 </div>
@@ -254,7 +257,10 @@ export class Search {
     if (searchTermInput !== null) {
       const searchTerm = searchTermInput.value.trim();
 
-      if (searchTerm.length !== 0) {
+      if (
+        searchTerm.length >= Search.globalMinSearchLength &&
+        searchTerm.length <= Search.globalMaxSearchLength
+      ) {
         if (!this.isOpen) {
           this.open();
         }
@@ -276,6 +282,8 @@ export class Search {
             this.isRunning = false;
             this.cancelledByUser = false;
           });
+      } else {
+        searchTermInput.reportValidity();
       }
     }
     event.preventDefault();

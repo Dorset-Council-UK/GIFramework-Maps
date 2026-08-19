@@ -28,6 +28,14 @@ namespace GIFrameworkMaps.Data.Models.Search
         [DisplayName("Validation regex code (leave blank for no validation)")]
         public string? ValidationRegex { get; set; }
 
+        [Range(SearchLengthLimits.GlobalMinLength, SearchLengthLimits.GlobalMaxLength)]
+        [DisplayName("Minimum search text length (optional override, leave blank to use the global minimum)")]
+        public int? MinSearchTextLength { get; set; }
+
+        [Range(SearchLengthLimits.GlobalMinLength, SearchLengthLimits.GlobalMaxLength)]
+        [DisplayName("Maximum search text length (optional override, leave blank to use the global maximum)")]
+        public int? MaxSearchTextLength { get; set; }
+
         public bool SupressGeom { get; set; }
     }
 }

@@ -110,39 +110,50 @@ namespace GIFrameworkMaps.Data
                     {
 						var selectedDefinition = searchDefinitions.FirstOrDefault(o => o?.Id == reqSearch.SearchDefinitionId, null);
 
-                        if (selectedDefinition is not null)
+						if (selectedDefinition is not null)
+					{
+						var (minLength, maxLength) = GetEffectiveLengthBounds(selectedDefinition);
+
+						// Skip this search provider entirely if the term is shorter than its effective minimum length
+						if (searchTerm.Length < minLength)
 						{
-							if (IsValidSearchTerm(searchTerm, selectedDefinition))
-                            {
-                                var searchResultCategory = new SearchResultCategory()
-                                {
+							continue;
+						}
+
+						// Truncate the term for this provider only if it exceeds its effective maximum length
+						var providerSearchTerm = searchTerm.Length > maxLength ? searchTerm[..maxLength] : searchTerm;
+
+						if (IsValidSearchTerm(providerSearchTerm, selectedDefinition))
+							{
+								var searchResultCategory = new SearchResultCategory()
+								{
 									CategoryName = selectedDefinition.Title,
 									Ordering = reqSearch.Order,
 									AttributionHtml = selectedDefinition.AttributionHtml,
 									SupressGeom = selectedDefinition.SupressGeom
-                                };
+								};
 
-                                try
-                                {
-                                    var results = await SingleSearch(searchTerm, selectedDefinition);
-                                    if (results.Count > 0)
-                                    {
-                                        searchResultCategory.Results = results;
-                                        searchResults.ResultCategories.Add(searchResultCategory);
-                                    }
-                                }
+								try
+								{
+									var results = await SingleSearch(providerSearchTerm, selectedDefinition);
+									if (results.Count > 0)
+									{
+										searchResultCategory.Results = results;
+										searchResults.ResultCategories.Add(searchResultCategory);
+									}
+								}
 								catch(Exception ex)
-                                {
-                                    //set the error flag as something went wrong. We still want to carry on with other searches though
-                                    _logger.LogError(ex,"Exception thrown executing search \"{definition}\"", selectedDefinition.Name);
-                                    searchResults.IsError = true;
-                                }
+								{
+									//set the error flag as something went wrong. We still want to carry on with other searches though
+									_logger.LogError(ex,"Exception thrown executing search \"{definition}\"", selectedDefinition.Name);
+									searchResults.IsError = true;
+								}
 
-                                // Stop search now if flag set on current search and something found since last time flag set
-                                if (searchResultCategory.Results.Count > 0 && reqSearch.StopIfFound)
-                                    break;
-                            }
-                        }
+								// Stop search now if flag set on current search and something found since last time flag set
+								if (searchResultCategory.Results.Count > 0 && reqSearch.StopIfFound)
+									break;
+							}
+						}
                     }
                 }
             }
@@ -150,16 +161,33 @@ namespace GIFrameworkMaps.Data
             return searchResults;
         }
 
-        // A search term is valid if it's blank or it matches the Required Search's validation regular expression. 
-        private static bool IsValidSearchTerm(string searchTerm, SearchDefinition? selectedDefinition)
-        {
-            if (selectedDefinition is null) return false;
+		// A search term is valid if it's blank or it matches the Required Search's validation regular expression. 
+		private static bool IsValidSearchTerm(string searchTerm, SearchDefinition? selectedDefinition)
+		{
+			if (selectedDefinition is null) return false;
 
-            if (string.IsNullOrEmpty(selectedDefinition.ValidationRegex)) return true;
-            
+			if (string.IsNullOrEmpty(selectedDefinition.ValidationRegex)) return true;
+
 			var validationRegex = new Regex(selectedDefinition.ValidationRegex);
-            return validationRegex.IsMatch(searchTerm);
-        }
+			return validationRegex.IsMatch(searchTerm);
+		}
+
+		/// <summary>
+		/// Gets the effective minimum/maximum search term length for a search definition, clamping any
+		/// per-definition overrides so they can never exceed the global length limits.
+		/// </summary>
+		/// <param name="selectedDefinition">The search definition to get the bounds for</param>
+		/// <returns>A tuple containing the effective minimum and maximum lengths</returns>
+		private static (int MinLength, int MaxLength) GetEffectiveLengthBounds(SearchDefinition selectedDefinition)
+		{
+			var minLength = Math.Max(SearchLengthLimits.GlobalMinLength, selectedDefinition.MinSearchTextLength ?? SearchLengthLimits.GlobalMinLength);
+			var maxLength = Math.Min(SearchLengthLimits.GlobalMaxLength, selectedDefinition.MaxSearchTextLength ?? SearchLengthLimits.GlobalMaxLength);
+
+			// Ensure max is never below min (e.g. due to misconfiguration or legacy DB values)
+			maxLength = Math.Max(minLength, maxLength);
+
+			return (minLength, maxLength);
+		}
 
         /// <summary>
         /// Performs a search against a particular search definition
