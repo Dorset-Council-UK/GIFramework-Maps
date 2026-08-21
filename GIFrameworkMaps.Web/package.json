@@ -23,7 +23,7 @@
     "watch:custom": "bun run bun.build.ts --dev --watch",
     "audit": "bun audit",
     "outdated": "bun outdated",
-    "lint": "bunx eslint",
+    "lint": "echo \"bunx eslint temporarily disabled due to lack of TypeScript 7 support.\"",
     "prettier": "bunx prettier . --write",
     "watch:prettier": "bunx onchange \"Scripts/*.ts\" \"wwwroot/css/*.css\" -- prettier --write --ignore-unknown {{changed}}"
   },
