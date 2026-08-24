@@ -215,8 +215,13 @@ export function generatePermalinkForMap(
   if (map.mode === "embed") {
     hash += "&embed=true";
   }
-  if (map.getCesium3DControl()?.is3DEnabled()) {
+  const cesium3DControl = map.getCesium3DControl();
+  if (cesium3DControl?.is3DEnabled()) {
     hash += "&is3d=true";
+    const cameraTilt = cesium3DControl.getCameraTiltDegrees();
+    if (cameraTilt !== undefined) {
+      hash += `&cameraTilt=${cameraTilt.toFixed(2)}`;
+    }
   }
   const baseUrl = `${window.location.origin}${window.location.pathname}`;
   return encodeURI(`${baseUrl}${hash}`);
@@ -230,7 +235,13 @@ export async function updateIs3DModeFromLinkParams(
     return;
   }
 
-  await map.getCesium3DControl()?.set3DEnabled(true);
+  const cameraTilt = params.cameratilt === undefined
+    ? undefined
+    : Number(params.cameratilt);
+  await map.getCesium3DControl()?.set3DEnabled(
+    true,
+    Number.isFinite(cameraTilt) ? cameraTilt : undefined
+  );
 }
 
 /**
