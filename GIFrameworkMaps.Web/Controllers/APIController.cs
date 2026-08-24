@@ -24,6 +24,7 @@ namespace GIFrameworkMaps.Web.Controllers
 			IAuthorizationService authorization,
 			IOptions<GIFrameworkMapsOptions> options,
 			IOptions<ApiKeyOptions> apiKeyOptions,
+            IOptions<TerrainOptions> terrainOptions,
 			ApplicationDbContext context) : Controller
     {
         //dependency injection
@@ -32,6 +33,7 @@ namespace GIFrameworkMaps.Web.Controllers
         private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
 		private readonly GIFrameworkMapsOptions _options = options.Value;
 		private readonly ApiKeyOptions _apiKeyOptions = apiKeyOptions.Value;
+        private readonly TerrainOptions _terrainOptions = terrainOptions.Value;
 		private readonly IAuthorizationService _authorization = authorization;
         private readonly ApplicationDbContext _context = context;
 
@@ -183,6 +185,16 @@ namespace GIFrameworkMaps.Web.Controllers
                     var pathBase = Request.PathBase.ToUriComponent();
                     versionViewModel.AppRoot = $"{host}{pathBase}/";
 					versionViewModel.GoogleMapsAPIKey = _apiKeyOptions?.Google?.MapsApiKey ?? string.Empty;
+
+                    var hasCustomTerrain = !string.IsNullOrWhiteSpace(_terrainOptions.CustomTerrainProviderTileJsonURL);
+                    var hasCesiumIonTerrain = !hasCustomTerrain && !string.IsNullOrWhiteSpace(_terrainOptions.CesiumIonApiKey);
+                    versionViewModel.Enable3D = hasCustomTerrain || hasCesiumIonTerrain;
+                    versionViewModel.CustomTerrainProviderTileJsonURL = hasCustomTerrain
+                        ? _terrainOptions.CustomTerrainProviderTileJsonURL
+                        : null;
+                    versionViewModel.CesiumIonAssetEndpointProxyURL = hasCesiumIonTerrain
+                        ? $"{Request.Scheme}://{host}{pathBase}/proxy?url={Uri.EscapeDataString($"https://api.cesium.com/v1/assets/{_terrainOptions.CesiumIonAssetId}/endpoint")}"
+                        : null;
 					versionViewModel.IsLoggedIn = User.Identity.IsAuthenticated;
                     return Json(versionViewModel);
                 }

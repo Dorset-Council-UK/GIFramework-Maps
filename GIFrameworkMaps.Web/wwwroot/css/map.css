@@ -34,10 +34,19 @@
 .giframeworkMap.embed .ol-rotate {
   top: calc(10.5em - var(--embed-vertical-shift));
 }
+  .giframeworkMap .gifw-3d-control {
+    right: unset;
+    left: 0.5rem;
+    top: 13em;
+  }
+.giframeworkMap .gifw-control--cesium {
+  position: absolute;
+  z-index: 1;
+}
 .giframeworkMap .gifw-measure-control {
   right: unset;
   left: 0.5rem;
-  top: 13em;
+  top: 15.5em;
 }
 .giframeworkMap.embed .gifw-measure-control {
   /*top: calc(13em - var(--embed-vertical-shift));*/
@@ -65,7 +74,7 @@
 .giframeworkMap .gifw-annotation-control {
   right: unset;
   left: 0.5rem;
-  top: 15.5em;
+  top: 18em;
 }
 .giframeworkMap.embed .gifw-annotation-control {
   /*top: calc(15.5em - var(--embed-vertical-shift));*/
@@ -108,7 +117,7 @@
 .giframeworkMap .gifw-info-control {
   right: unset;
   left: 0.5rem;
-  top: 18em;
+  top: 20.5em;
 }
 .giframeworkMap.embed .gifw-info-control {
   /*top: calc(18em - var(--embed-vertical-shift));*/
@@ -137,7 +146,7 @@
 .giframeworkMap .gifw-geolocation-control {
   right: unset;
   left: 0.5rem;
-  top: 20.5em;
+  top: 23em;
 }
 .giframeworkMap.embed .gifw-geolocation-control {
   /*top: calc(20.5em - var(--embed-vertical-shift));*/

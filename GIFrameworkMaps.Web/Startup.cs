@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using NodaTime;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Yarp.ReverseProxy.Forwarder;
@@ -21,7 +23,7 @@ using Yarp.ReverseProxy.Transforms;
 
 namespace GIFrameworkMaps.Web
 {
-	public class Startup(GIFrameworkMapsOptions options)
+    public class Startup(GIFrameworkMapsOptions options, IOptions<TerrainOptions> terrainOptions)
 	{
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
 		public void Configure(
@@ -72,7 +74,7 @@ namespace GIFrameworkMaps.Web
             });
 
             // Setup our own request transform class
-            var transformer = new CustomTransformer(app); // or HttpTransformer.Default;
+            var transformer = new CustomTransformer(app, terrainOptions.Value); // or HttpTransformer.Default;
             var requestOptions = new ForwarderRequestConfig { ActivityTimeout = TimeSpan.FromSeconds(100) };
 
             app.UseEndpoints(endpoints =>
@@ -572,9 +574,10 @@ namespace GIFrameworkMaps.Web
                 order += 10;
             }
         }
-        private class CustomTransformer(IApplicationBuilder app) : HttpTransformer
+        private class CustomTransformer(IApplicationBuilder app, TerrainOptions terrainOptions) : HttpTransformer
         {
             readonly IApplicationBuilder _app = app;
+            readonly TerrainOptions _terrainOptions = terrainOptions;
 
 			public override async ValueTask TransformRequestAsync(
                 HttpContext httpContext,
@@ -591,18 +594,35 @@ namespace GIFrameworkMaps.Web
                 var url = queryContext.Collection["url"];
                 if (!string.IsNullOrEmpty(url))
                 {
-                    List<ProxyAllowedHost> allowedHosts;
-                    /*TODO - Injecting the common repository in this way seems a little suspect but does work*/
-                    using (var scope = _app.ApplicationServices.CreateScope())
-                    {
-                        var repo = scope.ServiceProvider.GetRequiredService<ICommonRepository>();
-                        allowedHosts = await repo.GetProxyAllowedHostsAsync();
-                    }
                     string decodedUrl = System.Uri.UnescapeDataString(url);
                     Uri requestUri = new(decodedUrl);
+                    var isCesiumIonTerrainEndpoint =
+                        requestUri.Host.Equals("api.cesium.com", StringComparison.OrdinalIgnoreCase) &&
+                        requestUri.AbsolutePath.Equals($"/v1/assets/{_terrainOptions.CesiumIonAssetId}/endpoint", StringComparison.Ordinal);
 
-                    if(allowedHosts.FirstOrDefault(h => h.Host.Equals(requestUri.Host, StringComparison.CurrentCultureIgnoreCase)) == null){
-                        return;
+                    if (isCesiumIonTerrainEndpoint)
+                    {
+                        if (string.IsNullOrWhiteSpace(_terrainOptions.CesiumIonApiKey))
+                        {
+                            return;
+                        }
+
+                        proxyRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _terrainOptions.CesiumIonApiKey);
+                    }
+                    else
+                    {
+                        List<ProxyAllowedHost> allowedHosts;
+                        /*TODO - Injecting the common repository in this way seems a little suspect but does work*/
+                        using (var scope = _app.ApplicationServices.CreateScope())
+                        {
+                            var repo = scope.ServiceProvider.GetRequiredService<ICommonRepository>();
+                            allowedHosts = await repo.GetProxyAllowedHostsAsync();
+                        }
+
+                        if (allowedHosts.FirstOrDefault(h => h.Host.Equals(requestUri.Host, StringComparison.CurrentCultureIgnoreCase)) == null)
+                        {
+                            return;
+                        }
                     }
 
                     proxyRequest.RequestUri = requestUri;

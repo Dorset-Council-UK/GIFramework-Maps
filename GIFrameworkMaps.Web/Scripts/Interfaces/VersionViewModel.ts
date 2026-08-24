@@ -28,6 +28,9 @@ export interface VersionViewModel {
   appRoot: string;
   appInsightsKey: string;
   googleMapsAPIKey: string;
+  enable3D: boolean;
+  customTerrainProviderTileJsonURL: string;
+  cesiumIonAssetEndpointProxyURL: string;
   isLoggedIn: boolean;
   urlAuthorizationRules: UrlAuthorizationRules[];
 }

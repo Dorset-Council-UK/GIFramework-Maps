@@ -1,6 +1,7 @@
 ﻿/* eslint-disable no-console */
 import { BuildConfig } from "bun";
-import { watch, type WatchEventType } from "fs";
+import { cp } from "fs/promises";
+import { watch as watchFiles, type WatchEventType } from "fs";
 import path from "path";
 
 const isDev = process.argv.includes("--dev");
@@ -37,9 +38,22 @@ const themeSwitcherBundle: BuildConfig = {
 	format: "iife",
 };
 
+async function copyCesiumAssets(): Promise<void> {
+	const cesiumSource = "./node_modules/cesium/Build/Cesium";
+	const cesiumOutput = "./wwwroot/js/cesium";
+
+	for (const assetDirectory of ["Workers", "Assets", "Widgets", "ThirdParty"]) {
+		await cp(`${cesiumSource}/${assetDirectory}`, `${cesiumOutput}/${assetDirectory}`, {
+			recursive: true,
+			force: true,
+		});
+	}
+}
+
 async function build(): Promise<boolean> {
 	const startTime = performance.now();
 	console.log(`Building in ${isDev ? "development" : "production"} mode...`);
+	await copyCesiumAssets();
 
 	const results = await Promise.all([
 		Bun.build(mapBundle),
@@ -113,7 +127,7 @@ if (isWatch) {
 	};
 
 	// Start watching with recursive option
-	watch(scriptsPath, { recursive: true }, handleFileChange);
+	watchFiles(scriptsPath, { recursive: true }, handleFileChange);
 
 	// Initial build
 	const success = await build();

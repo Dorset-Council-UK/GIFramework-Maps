@@ -52,6 +52,7 @@ import {
   updatePermalinkInURL,
   updatePermalinkInLinks,
   updateBaseMapFromLinkParams,
+  updateIs3DModeFromLinkParams,
   base64UrlDecode,
 } from "./PermalinkUtils";
 import { LegendRenderer } from "geostyler-legend";
@@ -61,6 +62,7 @@ import { defaults as defaultInteractions } from "ol/interaction/defaults";
 import DragPan from "ol/interaction/DragPan";
 import MouseWheelZoom from "ol/interaction/MouseWheelZoom";
 import { platformModifierKeyOnly } from "ol/events/condition";
+import { Cesium3DControl } from "./Cesium3DControl";
 
 // Type definitions for internal use
 interface ProjectionInfo {
@@ -103,6 +105,7 @@ export class GIFWMap {
     | Measure
     | FeatureQuery
     | GIFWGeolocation
+    | Cesium3DControl
   )[] = [];
   private delayPermalinkUpdate: DebouncedFunc<() => void>;
 
@@ -147,6 +150,11 @@ export class GIFWMap {
    * @returns OpenLayers map reference to the created map
    * */
   public async initMap(): Promise<olMap> {
+    if (this.config.enable3D) {
+      (window as Window & { CESIUM_BASE_URL?: string }).CESIUM_BASE_URL =
+        `${document.location.protocol}//${this.config.appRoot}js/cesium/`;
+    }
+
     // Initialize authentication
     await this.initAuthentication();
 
@@ -174,7 +182,14 @@ export class GIFWMap {
     // Set up event listeners
     this.setupEventListeners(map);
 
+    // Restore 3D mode only after its event listeners have been registered.
+    await updateIs3DModeFromLinkParams(this, permalinkParams);
+
     return map;
+  }
+
+  public getCesium3DControl(): Cesium3DControl | undefined {
+    return this.customControls.find((c) => c instanceof Cesium3DControl) as Cesium3DControl | undefined;
   }
 
   /**
@@ -258,6 +273,7 @@ export class GIFWMap {
     const annotateControl = new Annotate(this);
     const infoControl = new FeatureQuery(this);
     const geolocationControl = new GIFWGeolocation(this);
+    const cesium3DControl = this.config.enable3D ? new Cesium3DControl(this) : undefined;
 
     // Store custom controls for later reference
     this.customControls.push(
@@ -268,10 +284,14 @@ export class GIFWMap {
       infoControl,
       geolocationControl
     );
+    if (cesium3DControl) {
+      this.customControls.push(cesium3DControl);
+    }
 
     // Combine all controls
     const controls: olControl.Control[] = [
       rotateControl,
+      ...(cesium3DControl ? [cesium3DControl] : []),
       measureControl,
       annotateControl,
       infoControl,
@@ -826,12 +846,40 @@ export class GIFWMap {
       updatePermalinkInLinks(this);
     });
 
+    this.mapElement.addEventListener("gifw-3d-mode-changed", (event) => {
+      const { enabled } = (event as CustomEvent<{ enabled: boolean }>).detail;
+      this.set2DControlsEnabled(!enabled);
+      this.mapElement.dispatchEvent(new CustomEvent("gifw-update-permalink"));
+    });
+
     // Set up two-finger pan overlay if needed
     if (this.shouldEnableTwoFingerPanAndZoom()) {
       this.setupTwoFingerPanOverlay(map);
     } else if (this.shouldEnableZoomModifier()) {
       this.setupZoomModifierOverlay(map);
     }
+  }
+
+  private set2DControlsEnabled(enabled: boolean): void {
+    const measureControl = this.customControls.find((c) => c instanceof Measure) as Measure;
+    const annotateControl = this.customControls.find((c) => c instanceof Annotate) as Annotate;
+    const infoControl = this.customControls.find((c) => c instanceof FeatureQuery) as FeatureQuery;
+    const contextMenu = this.customControls.find((c) => c instanceof GIFWContextMenu) as GIFWContextMenu;
+
+    if (!enabled) {
+      this.mapElement.dispatchEvent(new Event("gifw-measure-deactivate"));
+      this.mapElement.dispatchEvent(new Event("gifw-annotate-deactivate"));
+      infoControl.deactivate();
+      contextMenu.control.disable();
+    } else {
+      contextMenu.control.enable();
+    }
+
+    [measureControl, annotateControl, infoControl].forEach((control) => {
+      control.element.style.pointerEvents = enabled ? "" : "none";
+      control.element.setAttribute("aria-disabled", (!enabled).toString());
+      control.element.classList.toggle("gifw-control-disabled", !enabled);
+    });
   }
 
   /**

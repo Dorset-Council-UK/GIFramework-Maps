@@ -215,8 +215,22 @@ export function generatePermalinkForMap(
   if (map.mode === "embed") {
     hash += "&embed=true";
   }
+  if (map.getCesium3DControl()?.is3DEnabled()) {
+    hash += "&is3d=true";
+  }
   const baseUrl = `${window.location.origin}${window.location.pathname}`;
   return encodeURI(`${baseUrl}${hash}`);
+}
+
+export async function updateIs3DModeFromLinkParams(
+  map: GIFWMap,
+  params: Record<string, string>
+): Promise<void> {
+  if (params.is3d !== "true" || !map.config.enable3D) {
+    return;
+  }
+
+  await map.getCesium3DControl()?.set3DEnabled(true);
 }
 
 /**

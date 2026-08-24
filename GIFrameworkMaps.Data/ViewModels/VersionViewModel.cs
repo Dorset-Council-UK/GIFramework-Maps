@@ -27,6 +27,9 @@ namespace GIFrameworkMaps.Data.ViewModels
 		public List<ProjectionViewModel> AvailableProjections { get; set; } = [];
 		public string? AppRoot { get; set; }
 		public string? GoogleMapsAPIKey { get; set; }
+		public bool Enable3D { get; set; }
+		public string? CustomTerrainProviderTileJsonURL { get; set; }
+		public string? CesiumIonAssetEndpointProxyURL { get; set; }
 		public bool IsLoggedIn { get; set; }
 		public List<URLAuthorizationRule> URLAuthorizationRules { get; set; } = [];
 	}

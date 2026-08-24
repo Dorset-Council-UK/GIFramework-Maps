@@ -34,6 +34,7 @@ ConfigureKeyVault(builder);
 
 builder.Services.Configure<GIFrameworkMapsOptions>(builder.Configuration.GetSection(GIFrameworkMapsOptions.GIFrameworkMaps));
 builder.Services.Configure<ApiKeyOptions>(builder.Configuration.GetSection(ApiKeyOptions.ApiKeys));
+builder.Services.Configure<TerrainOptions>(builder.Configuration.GetSection(TerrainOptions.Terrain));
 
 var options = builder.Configuration.GetSection(GIFrameworkMapsOptions.GIFrameworkMaps).Get<GIFrameworkMapsOptions>();
 
@@ -42,7 +43,8 @@ ConfigureServices(builder.Services, builder.Configuration, builder.Environment, 
 var app = builder.Build();
 var forwarder = app.Services.GetService<IHttpForwarder>();
 
-var startup = new Startup(options);
+var terrainOptions = builder.Configuration.GetSection(TerrainOptions.Terrain).Get<TerrainOptions>() ?? new TerrainOptions();
+var startup = new Startup(options, Microsoft.Extensions.Options.Options.Create(terrainOptions));
 startup.Configure(app, app.Environment, forwarder);
 await app.RunAsync();
 
