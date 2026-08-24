@@ -876,7 +876,6 @@ export class GIFWMap {
     }
 
     [measureControl, annotateControl, infoControl].forEach((control) => {
-      control.element.style.pointerEvents = enabled ? "" : "none";
       control.element.setAttribute("aria-disabled", (!enabled).toString());
       control.element.classList.toggle("gifw-control-disabled", !enabled);
     });
@@ -1198,6 +1197,7 @@ export class GIFWMap {
     ol_layer.setProperties({ name: name });
     ol_layer.setProperties({ "gifw-queryable": queryable });
     ol_layer.setProperties({ "gifw-is-user-layer": true });
+    ol_layer.setProperties({ altitudeMode: "clampToGround" });
 
     const gifwLayer: Layer = {
       id: layerId,

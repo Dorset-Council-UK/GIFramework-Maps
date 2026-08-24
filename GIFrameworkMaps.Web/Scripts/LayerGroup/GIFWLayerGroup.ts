@@ -802,6 +802,7 @@ export class GIFWLayerGroup implements LayerGroup {
       opacity: opacity,
       extent: extent,
       projection: projection,
+      altitudeMode: 'clampToGround',
       zIndex:
         this.layerGroupType === LayerGroupType.Basemap
           ? -1000
