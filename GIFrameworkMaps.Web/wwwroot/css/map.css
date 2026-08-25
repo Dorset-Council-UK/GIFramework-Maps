@@ -34,11 +34,25 @@
 .giframeworkMap.embed .ol-rotate {
   top: calc(10.5em - var(--embed-vertical-shift));
 }
-  .giframeworkMap .gifw-3d-control {
-    right: unset;
-    left: 0.5rem;
-    top: 13em;
-  }
+.giframeworkMap .gifw-3d-control {
+  right: unset;
+  left: 0.5rem;
+  top: 13em;
+  display: flex;
+  gap: 0.25rem;
+}
+.giframeworkMap .gifw-3d-control button:disabled {
+  opacity: 0.5;
+}
+.giframeworkMap .gifw-3d-control.ol-control-active .gifw-3d-configure-button {
+  background-color: var(--primary-color-transparent-50);
+  box-shadow: none;
+  border: none;
+}
+.giframeworkMap .gifw-3d-control.ol-control-active .gifw-3d-configure-button:hover,
+.giframeworkMap .gifw-3d-control.ol-control-active .gifw-3d-configure-button:focus {
+  background-color: var(--primary-color-transparent-90);
+}
 .giframeworkMap .gifw-control--cesium {
   position: absolute;
   z-index: 1;

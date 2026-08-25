@@ -1,0 +1,48 @@
+<div class="modal" tabindex="-1" id="3d-configurator-modal" aria-labelledby="3d-configurator-title" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="3d-configurator-title">3D settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="row" id="3dConfigForm">
+                    <div class="mb-3 col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="lightingConfigEnabled">
+                            <label class="form-check-label" for="lightingConfigEnabled">
+                                Enable sunlight
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3 col-12 col-sm-6">
+                        <label for="lightingConfigDate" class="form-label">Date</label>
+                        <input class="form-control" type="date" id="lightingConfigDate" required>
+                    </div>
+                    <div class="mb-3 col-12 col-sm-6">
+                        <label for="lightingConfigTime" class="form-label">Time</label>
+                        <input class="form-control" type="time" id="lightingConfigTime" required>
+                    </div>
+                    <div class="mb-3 col-12">
+                        <div class="form-text">
+                            The selected date and time use your device's local time zone and control the position of the sun in the 3D scene.
+                        </div>
+                    </div>
+                    <div class="mb-3 col-12">
+                        <label for="terrainExaggeration" class="form-label">
+                            Terrain exaggeration: <output id="terrainExaggerationValue" for="terrainExaggeration">1</output>
+                        </label>
+                        <input class="form-range" type="range" id="terrainExaggeration" min="0" max="4" step="0.2" value="1">
+                        <div class="form-text">
+                            Increase or reduce the vertical scale of the terrain.
+                        </div>
+                    </div>
+                    <div class="col-12 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Update</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

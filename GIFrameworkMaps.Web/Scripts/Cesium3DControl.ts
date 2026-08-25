@@ -1,4 +1,5 @@
 import { Control as olControl } from "ol/control";
+import { Modal } from "bootstrap";
 import { GIFWMap } from "./Map";
 import { addFullScreenLoader, removeFullScreenLoader } from "./Util";
 
@@ -31,14 +32,20 @@ type OLCesiumInstance = {
     };
     globe: {
       depthTestAgainstTerrain: boolean;
+      enableLighting: boolean;
+      lambertDiffuseMultiplier: number;
       pick(
         ray: import("cesium").Ray,
         scene: unknown,
       ): import("cesium").Cartesian3 | undefined;
     };
+    atmosphere: {
+      dynamicLighting: import("cesium").DynamicAtmosphereLightingType;
+    };
     pick(windowPosition: import("cesium").Cartesian2): unknown;
     pickPosition(windowPosition: import("cesium").Cartesian2): import("cesium").Cartesian3 | undefined;
     pickPositionSupported: boolean;
+    requestRender(): void;
     terrainProvider: unknown;
     verticalExaggeration: number;
   };
@@ -51,6 +58,7 @@ type OLCesiumInstance = {
 };
 
 const DEFAULT_CAMERA_TILT_DEGREES = 50;
+const DEFAULT_TERRAIN_EXAGGERATION = 1;
 
 interface CesiumIonAssetEndpoint {
   url: string;
@@ -66,6 +74,7 @@ interface ReparentedControl {
 export class Cesium3DControl extends olControl {
   private readonly gifwMapInstance: GIFWMap;
   private readonly toggleButton: HTMLButtonElement;
+  private readonly configureButton: HTMLButtonElement;
   private ol3d: OLCesiumInstance | undefined;
   private olControlsContainer: HTMLElement | null = null;
   private readonly reparentedControls: ReparentedControl[] = [];
@@ -73,6 +82,9 @@ export class Cesium3DControl extends olControl {
   private cesiumClickHandler: import("cesium").ScreenSpaceEventHandler | undefined;
   private isInitializing = false;
   private hasCameraTilt = false;
+  private lightingEnabled = true;
+  private lightingDate = Cesium3DControl.createDefaultLightingDate();
+  private terrainExaggeration = DEFAULT_TERRAIN_EXAGGERATION;
 
   constructor(gifwMapInstance: GIFWMap) {
     const element = document.createElement("div");
@@ -80,18 +92,40 @@ export class Cesium3DControl extends olControl {
 
     const toggleButton = document.createElement("button");
     toggleButton.type = "button";
+    toggleButton.className = "gifw-3d-toggle-button";
     toggleButton.title = "Switch to 3D map";
     toggleButton.setAttribute("aria-label", "Switch to 3D map");
     toggleButton.setAttribute("aria-pressed", "false");
     toggleButton.innerHTML = '<i class="bi bi-badge-3d-fill"></i>';
     element.appendChild(toggleButton);
 
+    const configureButton = document.createElement("button");
+    configureButton.type = "button";
+    configureButton.className = "gifw-3d-configure-button";
+    configureButton.title = "Configure 3D options";
+    configureButton.setAttribute("aria-label", "Configure 3D options");
+    configureButton.innerHTML = '<i class="bi bi-gear-fill"></i>';
+    configureButton.disabled = true;
+    configureButton.hidden = true;
+    element.appendChild(configureButton);
+
     super({ element });
 
     this.gifwMapInstance = gifwMapInstance;
     this.toggleButton = toggleButton;
+    this.configureButton = configureButton;
     this.toggleButton.addEventListener("click", () => {
       void this.toggle3D();
+    });
+    this.configureButton.addEventListener("click", () => {
+      this.openConfigModal();
+    });
+
+    document.getElementById("3dConfigForm")?.addEventListener("submit", (event) => {
+      this.updateConfigFromForm(event);
+    });
+    document.getElementById("terrainExaggeration")?.addEventListener("input", (event) => {
+      this.updateTerrainExaggerationOutput((event.currentTarget as HTMLInputElement).value);
     });
   }
 
@@ -117,6 +151,7 @@ export class Cesium3DControl extends olControl {
       if (enabled && cameraTiltDegrees !== undefined) {
         this.setCameraTiltDegrees(cameraTiltDegrees);
       }
+      this.updateButton(enabled);
       return;
     }
 
@@ -156,8 +191,10 @@ export class Cesium3DControl extends olControl {
       removeFullScreenLoader(this.gifwMapInstance.id);
     } catch (error) {
       console.error("Could not initialize 3D mode", error);
+      this.updateButton(false);
       this.toggleButton.disabled = true;
       this.toggleButton.title = "3D map is unavailable";
+      this.toggleButton.setAttribute("aria-label", this.toggleButton.title);
     }
   }
 
@@ -169,15 +206,22 @@ export class Cesium3DControl extends olControl {
       const cesium = await import("cesium");
       window.Cesium = cesium;
       const { default: OLCesium } = await import("olcs");
-      const ol3d = new OLCesium({ map: this.gifwMapInstance.olMap });
+      const ol3d = new OLCesium({
+        map: this.gifwMapInstance.olMap,
+        time: () => cesium.JulianDate.fromDate(this.lightingDate),
+      });
       const scene = ol3d.getCesiumScene();
 
       scene.fog.enabled = true;
       scene.fog.density = 0.005;
       scene.fog.screenSpaceErrorFactor = 4;
       scene.globe.depthTestAgainstTerrain = true;
+      scene.globe.enableLighting = this.lightingEnabled;
       scene.terrainProvider = (await this.createTerrainProvider(cesium)) as typeof scene.terrainProvider;
-      scene.verticalExaggeration = 1;
+      scene.verticalExaggeration = this.terrainExaggeration;
+      scene.atmosphere.dynamicLighting = this.lightingEnabled
+        ? cesium.DynamicAtmosphereLightingType.SUNLIGHT
+        : cesium.DynamicAtmosphereLightingType.NONE;
       scene.camera.moveEnd.addEventListener(() => {
         if (ol3d.getEnabled()) {
           document.getElementById(this.gifwMapInstance.id)?.dispatchEvent(
@@ -221,7 +265,9 @@ export class Cesium3DControl extends olControl {
   ): Promise<import("cesium").TerrainProvider> {
     const customTerrainUrl = this.gifwMapInstance.config.customTerrainProviderTileJsonURL;
     if (customTerrainUrl) {
-      return cesium.CesiumTerrainProvider.fromUrl(customTerrainUrl);
+      return cesium.CesiumTerrainProvider.fromUrl(customTerrainUrl, {
+        requestVertexNormals: true,
+      });
     }
 
     const ionEndpointProxyUrl = this.gifwMapInstance.config.cesiumIonAssetEndpointProxyURL;
@@ -239,11 +285,15 @@ export class Cesium3DControl extends olControl {
       url: endpoint.url,
       headers: { Authorization: `Bearer ${endpoint.accessToken}` },
     });
-    return cesium.CesiumTerrainProvider.fromUrl(resource);
+    return cesium.CesiumTerrainProvider.fromUrl(resource, {
+      requestVertexNormals: true,
+    });
   }
 
   private updateButton(enabled: boolean): void {
-    this.toggleButton.classList.toggle("ol-control-active", enabled);
+    this.element.classList.toggle("ol-control-active", enabled);
+    this.configureButton.disabled = !enabled;
+    this.configureButton.hidden = !enabled;
     this.toggleButton.setAttribute("aria-pressed", enabled.toString());
     this.toggleButton.title = enabled ? "Switch to 2D map" : "Switch to 3D map";
     this.toggleButton.setAttribute("aria-label", this.toggleButton.title);
@@ -301,6 +351,102 @@ export class Cesium3DControl extends olControl {
 
   private toRadians(degrees: number): number {
     return degrees * Math.PI / 180;
+  }
+
+  private static createDefaultLightingDate(): Date {
+    const date = new Date();
+    date.setHours(12, 0, 0, 0);
+    return date;
+  }
+
+  private openConfigModal(): void {
+    if (!this.is3DEnabled()) {
+      return;
+    }
+
+    const enabledInput = document.getElementById("lightingConfigEnabled") as HTMLInputElement;
+    const dateInput = document.getElementById("lightingConfigDate") as HTMLInputElement;
+    const timeInput = document.getElementById("lightingConfigTime") as HTMLInputElement;
+    const exaggerationInput = document.getElementById("terrainExaggeration") as HTMLInputElement;
+    enabledInput.checked = this.lightingEnabled;
+    dateInput.value = this.formatLocalDate(this.lightingDate);
+    timeInput.value = this.formatLocalTime(this.lightingDate);
+    exaggerationInput.value = this.terrainExaggeration.toString();
+    this.updateTerrainExaggerationOutput(exaggerationInput.value);
+
+    Modal.getOrCreateInstance("#3d-configurator-modal").show();
+  }
+
+  private updateConfigFromForm(event: SubmitEvent): void {
+    event.preventDefault();
+
+    const form = event.currentTarget as HTMLFormElement;
+    if (!form.reportValidity()) {
+      return;
+    }
+
+    const enabledInput = document.getElementById("lightingConfigEnabled") as HTMLInputElement;
+    const dateInput = document.getElementById("lightingConfigDate") as HTMLInputElement;
+    const timeInput = document.getElementById("lightingConfigTime") as HTMLInputElement;
+    const exaggerationInput = document.getElementById("terrainExaggeration") as HTMLInputElement;
+    const [year, month, day] = dateInput.value.split("-").map(Number);
+    const [hours, minutes] = timeInput.value.split(":").map(Number);
+    const lightingDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+
+    if (Number.isNaN(lightingDate.getTime())) {
+      dateInput.setCustomValidity("Enter a valid date and time.");
+      dateInput.reportValidity();
+      return;
+    }
+
+    dateInput.setCustomValidity("");
+    this.lightingEnabled = enabledInput.checked;
+    this.lightingDate = lightingDate;
+    this.terrainExaggeration = Number(exaggerationInput.value);
+    this.applyLighting();
+    this.applyTerrainExaggeration();
+    Modal.getInstance("#3d-configurator-modal")?.hide();
+  }
+
+  private formatLocalDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  private formatLocalTime(date: Date): string {
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    return `${hours}:${minutes}`;
+  }
+
+  private applyLighting(): void {
+    if (!this.ol3d) {
+      return;
+    }
+
+    const scene = this.ol3d.getCesiumScene();
+    scene.globe.enableLighting = this.lightingEnabled;
+    scene.atmosphere.dynamicLighting = this.lightingEnabled
+      ? window.Cesium.DynamicAtmosphereLightingType.SUNLIGHT
+      : window.Cesium.DynamicAtmosphereLightingType.NONE;
+    scene.requestRender();
+  }
+
+  private applyTerrainExaggeration(): void {
+    if (!this.ol3d) {
+      return;
+    }
+
+    const scene = this.ol3d.getCesiumScene();
+    scene.verticalExaggeration = this.terrainExaggeration;
+    scene.requestRender();
+  }
+
+  private updateTerrainExaggerationOutput(value: string): void {
+    const output = document.getElementById("terrainExaggerationValue") as HTMLOutputElement;
+    output.value = value;
   }
 
   private moveControlsToCesiumContainer(): void {
