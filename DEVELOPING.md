@@ -8,7 +8,7 @@ To run GIFramework Maps with minimal modification, you will need.
 - Create a user in your database with permission to login
     - You can then either [create the schema yourself](#create-the-schema-yourself) or [let EF create the schema for you](#let-ef-create-the-schema-for-you)
 - Set up your [connection strings and user secrets](#user-secrets-and-connection-strings)
-- [Install Bun](https://bun.com/docs/installation) and run `bun install` from within the `GIFrameworkMaps.Web` project to download the dependencies
+- [Install Bun](https://bun.com/docs/installation) and run `bun install` from within the `GIFrameworkMaps.Web` project to download the dependencies. To run the `--parallel` option, you will need to install Bun 1.4.0 or later.
     - Previously we recommended using the NPM Task Runner extension in Visual Studio. This can still be used for other tasks, but `install` commands should be run using `bun install` in a seperate terminal, since the `install` command in the extension defaults to `npm install`
 - Run the Entity Framework migrations against the `GIFrameworkMaps.Web` project
     - Using Visual Studio
