@@ -2,6 +2,13 @@ import { Control as olControl } from "ol/control";
 import { GIFWMap } from "./Map";
 import { addFullScreenLoader, removeFullScreenLoader } from "./Util";
 
+export interface CesiumTerrainClick {
+  longitude: number;
+  latitude: number;
+  windowPosition: [number, number];
+  pickedObject: unknown;
+}
+
 declare global {
   interface Window {
     Cesium: typeof import("cesium");
@@ -15,13 +22,23 @@ type OLCesiumInstance = {
       moveEnd: {
         addEventListener(listener: () => void): void;
       };
+      getPickRay(windowPosition: import("cesium").Cartesian2): import("cesium").Ray | undefined;
     };
     fog: {
       enabled: boolean;
       density: number;
       screenSpaceErrorFactor: number;
     };
-    globe: { depthTestAgainstTerrain: boolean };
+    globe: {
+      depthTestAgainstTerrain: boolean;
+      pick(
+        ray: import("cesium").Ray,
+        scene: unknown,
+      ): import("cesium").Cartesian3 | undefined;
+    };
+    pick(windowPosition: import("cesium").Cartesian2): unknown;
+    pickPosition(windowPosition: import("cesium").Cartesian2): import("cesium").Cartesian3 | undefined;
+    pickPositionSupported: boolean;
     terrainProvider: unknown;
     verticalExaggeration: number;
   };
@@ -52,6 +69,8 @@ export class Cesium3DControl extends olControl {
   private ol3d: OLCesiumInstance | undefined;
   private olControlsContainer: HTMLElement | null = null;
   private readonly reparentedControls: ReparentedControl[] = [];
+  private readonly terrainClickListeners = new Set<(click: CesiumTerrainClick) => void>();
+  private cesiumClickHandler: import("cesium").ScreenSpaceEventHandler | undefined;
   private isInitializing = false;
   private hasCameraTilt = false;
 
@@ -86,6 +105,11 @@ export class Cesium3DControl extends olControl {
     }
 
     return this.toDegrees(this.ol3d!.getCamera().getTilt());
+  }
+
+  public onTerrainClick(listener: (click: CesiumTerrainClick) => void): () => void {
+    this.terrainClickListeners.add(listener);
+    return () => this.terrainClickListeners.delete(listener);
   }
 
   public async set3DEnabled(enabled: boolean, cameraTiltDegrees?: number): Promise<void> {
@@ -161,6 +185,29 @@ export class Cesium3DControl extends olControl {
           );
         }
       });
+      this.cesiumClickHandler = new cesium.ScreenSpaceEventHandler(scene.canvas);
+      this.cesiumClickHandler.setInputAction(
+        (event: { position: import("cesium").Cartesian2 }) => {
+          if (!ol3d.getEnabled() || this.isControlPosition(scene.canvas, event.position)) {
+            return;
+          }
+
+          const position = this.getTerrainPosition(scene, event.position);
+          if (!position) {
+            return;
+          }
+
+          const cartographic = cesium.Cartographic.fromCartesian(position);
+          const click: CesiumTerrainClick = {
+            longitude: cesium.Math.toDegrees(cartographic.longitude),
+            latitude: cesium.Math.toDegrees(cartographic.latitude),
+            windowPosition: [event.position.x, event.position.y],
+            pickedObject: scene.pick(event.position),
+          };
+          this.terrainClickListeners.forEach((listener) => listener(click));
+        },
+        cesium.ScreenSpaceEventType.LEFT_CLICK,
+      );
 
       this.ol3d = ol3d;
     } finally {
@@ -210,6 +257,42 @@ export class Cesium3DControl extends olControl {
     const clampedTilt = Math.min(Math.max(tiltDegrees, 0), 89);
     this.ol3d.getCamera().setTilt(this.toRadians(clampedTilt));
     this.hasCameraTilt = true;
+  }
+
+  private getTerrainPosition(
+    scene: OLCesiumInstance["getCesiumScene"] extends () => infer T ? T : never,
+    windowPosition: import("cesium").Cartesian2,
+  ): import("cesium").Cartesian3 | undefined {
+    if (scene.pickPositionSupported) {
+      const depthPosition = scene.pickPosition(windowPosition);
+      if (depthPosition) {
+        return depthPosition;
+      }
+    }
+
+    const ray = scene.camera.getPickRay(windowPosition);
+    return ray ? scene.globe.pick(ray, scene) : undefined;
+  }
+
+  private isControlPosition(
+    canvas: HTMLCanvasElement,
+    windowPosition: import("cesium").Cartesian2,
+  ): boolean {
+    const canvasRect = canvas.getBoundingClientRect();
+    const element = document.elementFromPoint(
+      canvasRect.left + windowPosition.x,
+      canvasRect.top + windowPosition.y,
+    );
+    return element?.closest(".ol-control, .sidebar-button, .ol-popup") != null;
+  }
+
+  public override setMap(map: import("ol/Map").default | null): void {
+    if (!map) {
+      this.terrainClickListeners.clear();
+      this.cesiumClickHandler?.destroy();
+      this.cesiumClickHandler = undefined;
+    }
+    super.setMap(map);
   }
 
   private toDegrees(radians: number): number {

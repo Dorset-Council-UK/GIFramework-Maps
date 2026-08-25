@@ -869,13 +869,14 @@ export class GIFWMap {
     if (!enabled) {
       this.mapElement.dispatchEvent(new Event("gifw-measure-deactivate"));
       this.mapElement.dispatchEvent(new Event("gifw-annotate-deactivate"));
-      infoControl.deactivate();
+      infoControl.set3DMode(true);
       contextMenu.control.disable();
     } else {
+      infoControl.set3DMode(false);
       contextMenu.control.enable();
     }
 
-    [measureControl, annotateControl, infoControl].forEach((control) => {
+    [measureControl, annotateControl].forEach((control) => {
       control.element.setAttribute("aria-disabled", (!enabled).toString());
       control.element.classList.toggle("gifw-control-disabled", !enabled);
     });

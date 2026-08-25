@@ -1,7 +1,11 @@
 ﻿import { Control as olControl } from "ol/control";
 import { Draw, Modify, Select } from "ol/interaction";
+import { transform } from "ol/proj";
 import { GIFWMap } from "../Map";
-import { FeatureQuerySearch } from "./FeatureQuerySearch";
+import { CesiumTerrainClick } from "../Cesium3DControl";
+import { FeatureQueryContext, FeatureQuerySearch } from "./FeatureQuerySearch";
+
+type FeatureQueryMode = "point" | "area" | "buffer" | "inactive";
 
 export class FeatureQuery extends olControl {
   gifwMapInstance: GIFWMap;
@@ -15,6 +19,9 @@ export class FeatureQuery extends olControl {
   _infoBufferControlElement: HTMLElement;
   _infoToggleControlElement: HTMLElement;
   _keyboardEventAbortController: AbortController;
+  private is3DMode = false;
+  private modeBefore3D: FeatureQueryMode = "point";
+  private unsubscribeFromTerrainClick: (() => void) | undefined;
 
   constructor(gifwMapInstance: GIFWMap, active: boolean = true) {
     const infoControlElement = document.createElement("div");
@@ -50,7 +57,7 @@ export class FeatureQuery extends olControl {
       if (inhibit) {
         return;
       }
-      if (this.pointActive) {
+      if (this.pointActive && !this.is3DMode) {
         this._featureQuerySearch.doInfoSearch(evt.coordinate, evt.pixel);
       } else if (this.bufferActive) {
         this._featureQuerySearch.doBufferSearch(evt.coordinate);
@@ -78,6 +85,78 @@ export class FeatureQuery extends olControl {
     mapContainer.addEventListener("gifw-info-buffer-activate", () => {
       this.activateBufferSearch();
     });
+  }
+
+  public set3DMode(enabled: boolean): void {
+    if (enabled === this.is3DMode) {
+      return;
+    }
+
+    this.is3DMode = enabled;
+    if (enabled) {
+      this.modeBefore3D = this.getActiveMode();
+      this.deactivate();
+      this.pointActive = true;
+      this.element.hidden = true;
+      this.unsubscribeFromTerrainClick = this.gifwMapInstance
+        .getCesium3DControl()
+        ?.onTerrainClick((click) => this.handle3DTerrainClick(click));
+      return;
+    }
+
+    this.unsubscribeFromTerrainClick?.();
+    this.unsubscribeFromTerrainClick = undefined;
+    this.element.hidden = false;
+    this.restoreModeAfter3D();
+  }
+
+  private handle3DTerrainClick(click: CesiumTerrainClick): void {
+    const view = this.gifwMapInstance.olMap.getView();
+    const coordinate = transform(
+      [click.longitude, click.latitude],
+      "EPSG:4326",
+      view.getProjection(),
+    );
+    const pickedPrimitive = (click.pickedObject as {
+      primitive?: {
+        olFeature?: FeatureQueryContext["pickedFeature"];
+        olLayer?: FeatureQueryContext["pickedLayer"];
+      };
+    } | undefined)?.primitive;
+
+    this._featureQuerySearch.doInfoSearch({
+      coordinate,
+      pixel: this.gifwMapInstance.olMap.getPixelFromCoordinate(coordinate),
+      pickedFeature: pickedPrimitive?.olFeature,
+      pickedLayer: pickedPrimitive?.olLayer,
+    });
+  }
+
+  private getActiveMode(): FeatureQueryMode {
+    if (this.polygonActive) {
+      return "area";
+    }
+    if (this.bufferActive) {
+      return "buffer";
+    }
+    return this.pointActive ? "point" : "inactive";
+  }
+
+  private restoreModeAfter3D(): void {
+    switch (this.modeBefore3D) {
+      case "area":
+        this.activateAreaSearch();
+        break;
+      case "buffer":
+        this.activateBufferSearch();
+        break;
+      case "inactive":
+        this.deactivate();
+        break;
+      default:
+        this.activatePointSearch();
+        break;
+    }
   }
 
   private renderInfoSearchControls() {

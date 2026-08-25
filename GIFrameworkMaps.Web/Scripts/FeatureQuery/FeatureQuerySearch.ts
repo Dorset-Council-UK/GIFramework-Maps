@@ -48,6 +48,13 @@ import {
 } from "../Util";
 import { FeatureQueryResultRenderer } from "./FeatureQueryResultRenderer";
 
+export interface FeatureQueryContext {
+  coordinate: Coordinate;
+  pixel?: number[];
+  pickedFeature?: Feature<Geometry> | RenderFeature;
+  pickedLayer?: Layer<Source, LayerRenderer<Layer<Source>>>;
+}
+
 export class FeatureQuerySearch {
   _gifwMapInstance: GIFWMap;
   _maxTimeout: number = 10000;
@@ -80,7 +87,16 @@ export class FeatureQuerySearch {
     );
   }
 
-  public doInfoSearch(searchCoord: number[], searchPixel: number[]) {
+  public doInfoSearch(searchCoord: number[], searchPixel: number[]): void;
+  public doInfoSearch(context: FeatureQueryContext): void;
+  public doInfoSearch(
+    searchCoordOrContext: number[] | FeatureQueryContext,
+    searchPixel?: number[],
+  ) {
+    const context: FeatureQueryContext = Array.isArray(searchCoordOrContext)
+      ? { coordinate: searchCoordOrContext, pixel: searchPixel }
+      : searchCoordOrContext;
+    const searchCoord = context.coordinate;
     const searchGeom = new olPoint(searchCoord);
     const searchableLayers = this.getSearchableLayers(searchGeom);
     if (searchableLayers.length !== 0) {
@@ -110,15 +126,21 @@ export class FeatureQuerySearch {
           source instanceof VectorTile
         ) {
           const features = new Set<Feature<Geometry> | RenderFeature>();
-          this._gifwMapInstance.olMap
-            .getFeaturesAtPixel(searchPixel, {
-              layerFilter: (l) => {
-                return l === layer;
-              },
-            })
-            .forEach((f) => {
-              features.add(f);
-            });
+          if (context.pickedFeature && context.pickedLayer === layer) {
+            features.add(context.pickedFeature);
+          }
+          if (context.pixel) {
+            this._gifwMapInstance.olMap
+              .getFeaturesAtPixel(context.pixel, {
+                hitTolerance: 5,
+                layerFilter: (l) => {
+                  return l === layer;
+                },
+              })
+              .forEach((f) => {
+                features.add(f);
+              });
+          }
           if (source instanceof Vector) {
             // Add features at the search coordinates that may not be visible at the search pixel, e.g. features with a fill opacity of zero
             source.getFeaturesAtCoordinate(searchCoord).forEach((f) => {
