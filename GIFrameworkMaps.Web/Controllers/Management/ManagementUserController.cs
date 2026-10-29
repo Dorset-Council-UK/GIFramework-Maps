@@ -86,7 +86,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             return View(editModel);
         }
 
-        private void UpdateUserRoles(int[] selectedRoles, Microsoft.Graph.Beta.Models.User userToUpdate)
+        private void UpdateUserRoles(int[] selectedRoles, Microsoft.Graph.Models.User userToUpdate)
         {
             var existingRoles = _context.ApplicationUserRoles.Where(u => u.UserId == userToUpdate.Id).ToList();
             if (selectedRoles == null)
@@ -124,7 +124,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
         }
 
-        private void UpdateUserVersions(int[] selectedVersions, Microsoft.Graph.Beta.Models.User userToUpdate)
+        private void UpdateUserVersions(int[] selectedVersions, Microsoft.Graph.Models.User userToUpdate)
         {
             var existingVersions = _context.VersionUsers.Where(u => u.UserId == userToUpdate.Id).ToList();
             if (selectedVersions == null)
@@ -164,7 +164,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             }
         }
 
-        private async Task RebuildViewModel(UserEditViewModel model, Microsoft.Graph.Beta.Models.User user)
+        private async Task RebuildViewModel(UserEditViewModel model, Microsoft.Graph.Models.User user)
         {
 			// Select only the Id from the application user roles (do not get the data yet)
 			var selectedApplicationRoleIds = _context.ApplicationUserRoles

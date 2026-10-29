@@ -11,13 +11,10 @@ namespace GIFrameworkMaps.Web.Controllers.Version
 		{
 			var userId = "";
 			var email = "";
-			if (User.Identity.IsAuthenticated)
+			if (User.IsAuthenticated)
 			{
-				var claimsIdentity = (ClaimsIdentity)User.Identity;
-				var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-				userId = claim.Value;
-				var emailClaim = claimsIdentity.FindFirst(c => c.Type.Contains("email"));
-				email = emailClaim?.Value ?? string.Empty;
+				userId = User.UserId;
+				email = User.Email;
 			}
 			var versions = await commonRepository.GetVersionsListForUser(userId, email);
 			return View(versions);

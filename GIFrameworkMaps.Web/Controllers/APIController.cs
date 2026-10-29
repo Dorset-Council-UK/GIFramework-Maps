@@ -183,7 +183,7 @@ namespace GIFrameworkMaps.Web.Controllers
                     var pathBase = Request.PathBase.ToUriComponent();
                     versionViewModel.AppRoot = $"{host}{pathBase}/";
 					versionViewModel.GoogleMapsAPIKey = _apiKeyOptions?.Google?.MapsApiKey ?? string.Empty;
-					versionViewModel.IsLoggedIn = User.Identity.IsAuthenticated;
+					versionViewModel.IsLoggedIn = User.IsAuthenticated;
                     return Json(versionViewModel);
                 }
                 else
@@ -260,12 +260,8 @@ namespace GIFrameworkMaps.Web.Controllers
         [Route("api/bookmarks")]
         public async Task<IActionResult> UserBookmarks()
         {
-            var claimsIdentity = (ClaimsIdentity)User.Identity;
-            var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            var userId = claim.Value;
-
-            var bookmarks = await _repository.GetBookmarksForUserAsync(userId);
-
+            var userId = User.UserId;
+			var bookmarks = await _repository.GetBookmarksForUserAsync(userId);
             return Json(bookmarks);
 
         }
@@ -275,12 +271,10 @@ namespace GIFrameworkMaps.Web.Controllers
         [Route("api/bookmarks/delete/{id}")]
         public async Task<IActionResult> DeleteBookmark(int id)
         {
-            var claimsIdentity = (ClaimsIdentity)User.Identity;
-            var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            var userId = claim.Value;
-            //get the bookmark
-            
-            var bookmarkToDelete = await _context.Bookmarks.Where(b => b.Id == id && b.UserId == userId).FirstOrDefaultAsync();
+			var userId = User.UserId;
+			//get the bookmark
+
+			var bookmarkToDelete = await _context.Bookmarks.Where(b => b.Id == id && b.UserId == userId).FirstOrDefaultAsync();
             if(bookmarkToDelete != null)
             {
                 try
@@ -308,10 +302,8 @@ namespace GIFrameworkMaps.Web.Controllers
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> AddBookmark(Bookmark bookmark)
         {
-            var claimsIdentity = (ClaimsIdentity)User.Identity;
-            var claim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            var userId = claim.Value;
-            bookmark.UserId = userId;
+			var userId = User.UserId;
+			bookmark.UserId = userId;
             bookmark.Name = bookmark.Name?.Trim();
             ModelState.Remove("UserId"); //remove this from model state as it is not required
             if (ModelState.IsValid)
@@ -348,12 +340,8 @@ namespace GIFrameworkMaps.Web.Controllers
 		[Route("api/favouritelayers")]
 		public async Task<IActionResult> UserFavouriteLayers()
 		{
-			var claimsIdentity = (ClaimsIdentity)User.Identity;
-			var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-			var userId = claim.Value;
-
+			var userId = User.UserId;
 			var favouriteLayers = await _repository.GetFavouriteLayersForUserAsync(userId);
-
 			return Json(favouriteLayers.Select(f => f.LayerId));
 		}
 
@@ -363,9 +351,7 @@ namespace GIFrameworkMaps.Web.Controllers
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> AddFavouriteLayer([FromForm] int layerId)
 		{
-			var claimsIdentity = (ClaimsIdentity)User.Identity;
-			var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-			var userId = claim.Value;
+			var userId = User.UserId;
 
 			var layerExists = await _context.Layers.AnyAsync(l => l.Id == layerId);
 			if (!layerExists)
@@ -400,9 +386,7 @@ namespace GIFrameworkMaps.Web.Controllers
 		[Route("api/favouritelayers/delete/{layerId}")]
 		public async Task<IActionResult> DeleteFavouriteLayer(int layerId)
 		{
-			var claimsIdentity = (ClaimsIdentity)User.Identity;
-			var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-			var userId = claim.Value;
+			var userId = User.UserId;
 
 			var favouriteToDelete = await _context.FavouriteLayers
 				.Where(f => f.LayerId == layerId && f.UserId == userId)
@@ -433,13 +417,10 @@ namespace GIFrameworkMaps.Web.Controllers
 		{
 			var userId = "";
 			var email = "";
-			if(User.Identity.IsAuthenticated)
+			if(User.IsAuthenticated)
 			{
-				var claimsIdentity = (ClaimsIdentity)User.Identity;
-				var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-				userId = claim.Value;
-				var emailClaim = claimsIdentity.FindFirst(c => c.Type.Contains("email"));
-				email = emailClaim?.Value ?? string.Empty;
+				userId = User.UserId;
+				email = User.Email;
 			}
 			var userVersions = await _repository.GetVersionsListForUser(userId, email);
 

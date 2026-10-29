@@ -21,7 +21,7 @@
             <tr>
                 <th>ID</th>
                 <th>Name</th>
-                <th>Email(s)</th>
+                <th>Email</th>
                 <th>Remove</th>
             </tr>
         </thead>
@@ -31,17 +31,7 @@
                 <tr>
                     <td>@user.Id</td>
                     <td><a href="@editUrl/@user.Id">@user.DisplayName</a></td>
-                    <td>
-                        @if(user.OtherMails is not null)
-                        {
-                            @foreach (var mail in user.OtherMails)
-                            {
-                                @mail
-                                <br />
-                            }
-                        }
-                        
-                    </td>
+                    <td>@user.Mail</td>
                     <td>@Html.ActionLink("Remove", "DeleteUser", new { Id = Model.VersionId, userId = user.Id }, new { @class = "text-danger" })</td>
                 </tr>
             }

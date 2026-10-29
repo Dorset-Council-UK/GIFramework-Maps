@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace GIFrameworkMaps.Web.Controllers.Management
 {
@@ -28,7 +29,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
             if (_repository.PurgeCache())
             {
                 success = true;
-                _logger.LogInformation("Memory Cache purged by {user}", User.Identity.Name);
+                _logger.LogInformation("Memory Cache purged by {user}", User.DisplayName);
             }
             TempData["Message"] = $"Cache was {(success ? "successfully" : "not")} purged";
             TempData["MessageType"] = success ? "success" : "error";
