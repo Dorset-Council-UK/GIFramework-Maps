@@ -96,15 +96,6 @@
           "Microsoft.Graph.Core": "4.0.1"
         }
       },
-      "Microsoft.Graph.Beta": {
-        "type": "Direct",
-        "requested": "[6.2.0-preview, )",
-        "resolved": "6.2.0-preview",
-        "contentHash": "AhOdhaKFqvYAbfeDKWsPxfZi1QoCJPdtO++rNhF5P9xgP0oeQykC0hrdDAal38Xj1+y4bxwg+VCZnOde1w9D4A==",
-        "dependencies": {
-          "Microsoft.Graph.Core": "4.0.1"
-        }
-      },
       "Microsoft.Identity.Web.UI": {
         "type": "Direct",
         "requested": "[4.16.1, )",
@@ -820,7 +811,7 @@
         "dependencies": {
           "Azure.Identity": "[1.21.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.14, )",
-          "Microsoft.Graph.Beta": "[6.2.0-preview, )",
+          "Microsoft.Graph": "[6.9.0, )",
           "Microsoft.IdentityModel.JsonWebTokens": "[8.23.0, )",
           "Newtonsoft.Json": "[13.0.4, )",
           "Npgsql": "[10.0.3, )",
