@@ -40,7 +40,7 @@ internal static class ClaimsPrincipalExtensions
 		/// Get the email address from the claims
 		/// </summary>
 		/// <remarks>Checking the claims in the order http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress, emails, preferred_username</remarks>
-		internal string Email => GetClaimValue(claimsPrincipal, [ClaimTypes.Email, "emails", "preferred_username"]) ?? Unknown;
+		internal string Email => GetClaimValue(claimsPrincipal, [ClaimTypes.Email, "emails", "preferred_username"]) ?? string.Empty;
 
 		/// <summary>
 		/// Get the identity provider from the claims
