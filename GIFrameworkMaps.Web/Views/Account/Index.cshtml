@@ -1,4 +1,4 @@
-﻿@using System.Security.Principal
+﻿@using System.Security.Claims
 
 @{
     ViewData["Title"] = "My account";
@@ -10,9 +10,9 @@
 
 <div class="table-responsive">
     <table class="table table-striped">
-        <tr><th>User name</th><td>@User.Identity.Name</td></tr>
-        <tr><th>Email address</th><td>@(User.Claims.FirstOrDefault(c => c.Type.Contains("email")) != null ? User.Claims.FirstOrDefault(c => c.Type.Contains("email")).Value : "Not provided") </td></tr>
-        <tr><th>User ID</th><td>@(User.Claims.FirstOrDefault(c => c.Type.Contains("nameidentifier")) != null ? User.Claims.FirstOrDefault(c => c.Type.Contains("nameidentifier")).Value : "Not provided")</td></tr>
+        <tr><th>User name</th><td>@User.DisplayName</td></tr>
+        <tr><th>Email address</th><td>@User.Email</td></tr>
+        <tr><th>User ID</th><td>@User.UserId</td></tr>
 
     </table>
 </div>

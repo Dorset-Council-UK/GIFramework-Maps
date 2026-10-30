@@ -80,20 +80,19 @@ This will give you a minimal starting application, with a few basic basemaps, to
 ### Authentication
 Follow these instructions if you want your app to have authentication so that permitted users can access the administration part of the site.
 
-Currently this app only supports Microsoft Azure AD B2C authentication. Refer to the official documentation to set this up in your project.
+Currently this app only officially supports Microsoft Extra External ID authentication. Refer to the official documentation to set this up in your project.
 
 Once you've got a service set up, you'll need to add a number of settings to your user secrets to enable it.
 
 ```
 "AzureAd": {
-  "Instance": "https://<your-instance-name>.b2clogin.com",
-  "Domain": "<your-b2c-domain>",
-  "ClientId": "<your-client-id>",
-  "TenantId": "<your-tenant-id>",
-  "ClientSecret": "<your-client-secret>",
-  "SignedOutCallbackPath": "<your-signout-callback-path>",
-  "SignUpSignInPolicyId": "<your-sign-in-policy-id>"
-}
+    "ClientId": "<your-client-id>",
+    "ClientSecret": "<your-client-secret>",
+    "Domain": "<your-tenant-id>.ciamlogin.com",
+    "Instance": "<your-instance-url>",
+    "ResponseType": "code",
+    "TenantId": "<your-tenant-id>"
+},
 ```
 
 Go to your database and add a row to `ApplicationRoles` called `GIFWAdmin`. This is the role that has access to the administrative back-end. 

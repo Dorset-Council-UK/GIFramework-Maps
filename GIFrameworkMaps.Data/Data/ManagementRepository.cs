@@ -6,10 +6,13 @@ using GIFrameworkMaps.Data.ViewModels.Management;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Graph.Beta;
-using Microsoft.Graph.Beta.Models;
+using Microsoft.Graph;
+using Microsoft.Graph.Models;
+using Microsoft.Kiota.Abstractions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace GIFrameworkMaps.Data
@@ -233,17 +236,17 @@ namespace GIFrameworkMaps.Data
             return await _context.LocalSearchDefinitions.FindAsync(id);
 		}
 
-        public async Task<List<Microsoft.Graph.Beta.Models.User>> GetUsers()
+        public async Task<List<User>> GetUsers()
         {
             string cachekey = "AllGraphUsers";
-            if(_memoryCache.TryGetValue(cachekey, out List <Microsoft.Graph.Beta.Models.User>? cachedUsers))
+            if(_memoryCache.TryGetValue(cachekey, out List <User>? cachedUsers))
             {
                 if (cachedUsers != null)
                 {
                     return cachedUsers;
                 }
             }
-            List<Microsoft.Graph.Beta.Models.User> allUsers = [];
+            List<User> allUsers = [];
             var graphClient = GetGraphClient();
             if (graphClient != null)
             {
@@ -285,7 +288,7 @@ namespace GIFrameworkMaps.Data
 				var graphClient = GetGraphClient();
 				if (graphClient is not null)
 				{
-					var requestBody = new Microsoft.Graph.Beta.DirectoryObjects.GetByIds.GetByIdsPostRequestBody
+					var requestBody = new Microsoft.Graph.DirectoryObjects.GetByIds.GetByIdsPostRequestBody
 					{
 						Ids = versionUsers,
 						Types = ["user"]
@@ -303,18 +306,26 @@ namespace GIFrameworkMaps.Data
 			return [];
 		}
 
-		public async Task<Microsoft.Graph.Beta.Models.User?> GetUser(string id)
-        {
-            var graphClient = GetGraphClient();
-            if (graphClient is not null)
-            {
-                var user = await graphClient.Users[id].GetAsync();
-                return user;
-            }
-            return null;
-        }
+		public async Task<User?> GetUser(string id)
+		{
+			var graphClient = GetGraphClient();
+			if (graphClient is null || string.IsNullOrWhiteSpace(id))
+				return null;
 
-        private GraphServiceClient? GetGraphClient()
+			try
+			{
+				return await graphClient.Users[id].GetAsync();
+			}
+			catch (Exception ex) when (
+				ex is ServiceException s && s.ResponseStatusCode == 404
+				|| ex is ApiException a && a.ResponseStatusCode == 404)
+			{
+				return null;
+			}
+
+		}
+
+		private GraphServiceClient? GetGraphClient()
         {
             if (!string.IsNullOrEmpty(_configuration.GetSection("AzureAd")["ClientId"]))
             {
@@ -384,13 +395,13 @@ namespace GIFrameworkMaps.Data
 		/// </summary>
 		/// <param name="CategoryIds"></param>
 		/// <returns></returns>
-		public async Task<IList<Version>> GetVersionsLayerCategoriesAppearIn(IList<int> CategoryIds)
+		public async Task<IList<Models.Version>> GetVersionsLayerCategoriesAppearIn(IList<int> CategoryIds)
 		{
 			var versions = await _context.Versions
 				.IgnoreAutoIncludes()
 				.AsNoTracking()
 				.Where(v => v.VersionCategories.Any(cl => CategoryIds.Contains(cl.CategoryId)))
-				.Select(v => new Version
+				.Select(v => new Models.Version
 				{
 					Id = v.Id,
 					Name = v.Name,

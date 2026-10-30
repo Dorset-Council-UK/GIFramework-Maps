@@ -1,4 +1,4 @@
-using Microsoft.Graph.Beta.Models;
+using Microsoft.Graph.Models;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 

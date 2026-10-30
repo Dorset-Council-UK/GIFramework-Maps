@@ -1,12 +1,12 @@
-﻿@using System.Security.Principal
-@using System.Net
+﻿@using System.Net
+@using System.Security.Claims
 
-@if (Convert.ToBoolean(ViewData["ShowLogin"]) || User.Identity.IsAuthenticated)
+@if (Convert.ToBoolean(ViewData["ShowLogin"]) || User.IsAuthenticated)
 {
-    @if (User.Identity.IsAuthenticated)
+    @if (User.IsAuthenticated)
     {
         <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#"><i class="bi-person-circle"></i> @User.Identity.Name</a>
+            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#"><i class="bi-person-circle"></i> @User.DisplayName</a>
             <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" id="my-account" asp-area="" asp-controller="Account" asp-action="Index">My account</a></li>
                 @if (User.IsInRole("GIFWAdmin"))

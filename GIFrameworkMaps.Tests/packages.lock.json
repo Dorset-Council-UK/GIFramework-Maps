@@ -304,10 +304,10 @@
         "resolved": "10.0.14",
         "contentHash": "1bbZqqCJTPba3inTADExbp/9PsGVyvGOX3zr6tFr7ySCgVkX9Lpw7BV0TizktNItd3SsbUu1sQfSAYm1GZMoNw=="
       },
-      "Microsoft.Graph.Beta": {
+      "Microsoft.Graph": {
         "type": "Transitive",
-        "resolved": "6.2.0-preview",
-        "contentHash": "AhOdhaKFqvYAbfeDKWsPxfZi1QoCJPdtO++rNhF5P9xgP0oeQykC0hrdDAal38Xj1+y4bxwg+VCZnOde1w9D4A==",
+        "resolved": "6.9.0",
+        "contentHash": "QyYd3lQQAEys93QAtV9ykxxzEkUjH5GxJG6tBkZvJWRz0SMF+gqVqhwQLkvRpAEWh7S49cF6sFpyv56uNS0MXQ==",
         "dependencies": {
           "Microsoft.Graph.Core": "4.0.1"
         }
@@ -587,7 +587,7 @@
         "dependencies": {
           "Azure.Identity": "[1.21.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.14, )",
-          "Microsoft.Graph.Beta": "[6.2.0-preview, )",
+          "Microsoft.Graph": "[6.9.0, )",
           "Microsoft.IdentityModel.JsonWebTokens": "[8.23.0, )",
           "Newtonsoft.Json": "[13.0.4, )",
           "Npgsql": "[10.0.3, )",

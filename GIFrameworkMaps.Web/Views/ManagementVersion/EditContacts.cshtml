@@ -17,16 +17,13 @@
         foreach(var contactableUser in ContactableUsers)
         {
 
-            Microsoft.Graph.Beta.Models.User fetchedUser = null;
+            Microsoft.Graph.Models.User fetchedUser = null;
             if (contactableUser.UserId != null)
             {
                 fetchedUser = await repository.GetUser(contactableUser.UserId);
-                if(fetchedUser is not null)
+                if(fetchedUser is not null && !string.IsNullOrEmpty(fetchedUser.Mail))
                 {
-                    @foreach (var mail in fetchedUser.OtherMails)
-                    {
-                        emailList.Add(mail);
-                    }
+                    emailList.Add(fetchedUser.Mail);
                 }
             }
             if (contactableUser.Email is not null)
@@ -58,7 +55,7 @@
             <tr>
                 <th>Edit</th>
                 <th>Display Name</th>
-                <th>Email(s)</th>
+                <th>Email</th>
                 <th>Mailing List</th>
                 <th>Remove</th>
             </tr>
@@ -68,7 +65,7 @@
             {
 
                 //if user id is set, get user details from repository
-                Microsoft.Graph.Beta.Models.User fetchedUser = null;
+                Microsoft.Graph.Models.User fetchedUser = null;
                 if(user.UserId != null)
                 {
                     fetchedUser = await repository.GetUser(user.UserId);      
@@ -87,14 +84,7 @@
                     }
                     @if (fetchedUser is not null)
                     {
-                        <td>
-                            @foreach (var mail in fetchedUser.OtherMails)
-                            {
-                                @mail
-
-                                <br />
-                            }
-                        </td>
+                        <td>@fetchedUser.Mail</td>
                     }
                     else
                     {

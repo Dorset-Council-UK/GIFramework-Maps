@@ -20,16 +20,7 @@
             <table class="table table-striped">
                 <tr><th>User ID</th><td>@Model.User.Id</td></tr>
                 <tr><th>Display Name</th><td>@Model.User.DisplayName </td></tr>
-                <tr>
-                    <th>Email(s)</th>
-                    <td>
-                        @foreach (var mail in Model.User.OtherMails)
-                        {
-                            @mail
-
-                            <br />
-                        }
-                    </td>
+                <tr><th>Email</th><td>@Model.User.Mail</td>
                 </tr>
 
             </table>
