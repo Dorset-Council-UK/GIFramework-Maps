@@ -59,6 +59,6 @@ internal static class ClaimsPrincipalExtensions
 		/// <summary>
 		/// Get the objectID claim which is http://schemas.xmlsoap.org/ws/2005/05/identity/claims/objectid
 		/// </summary>
-		internal string UserId => claimsPrincipal?.GetObjectId() ?? Unknown;
+		internal string UserId => claimsPrincipal?.GetObjectId() ?? throw new InvalidOperationException("The current user does not have an object ID claim.");
 	}
 }

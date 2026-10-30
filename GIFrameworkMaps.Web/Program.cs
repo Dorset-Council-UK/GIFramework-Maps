@@ -230,19 +230,17 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 							HttpOnly = true,
 							IsEssential = true,
 							Secure = true,
-							SameSite = SameSiteMode.Lax,
+							SameSite = SameSiteMode.None,
 							MaxAge = TimeSpan.FromMinutes(5),
 						});
 
-						// SignIn defaults its redirectUri to the application's PathBase.
-						var signInPath = context.Request.PathBase.Add("/sign-in");
-						context.Response.Redirect(signInPath);
+						await context.HttpContext.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme, context.Properties);
 						context.HandleResponse();
 					}
 					else
 					{
 						context.Response.Cookies.Delete(authRetryCookieName);
-						var loginFailedPath = context.Request.PathBase.Add("/account/login-failed");
+						var loginFailedPath = context.Request.PathBase.Add("/Home/Error");
 						context.Response.Redirect(loginFailedPath);
 						context.HandleResponse();
 					}
