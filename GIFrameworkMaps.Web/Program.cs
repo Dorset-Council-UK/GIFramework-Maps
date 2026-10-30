@@ -5,28 +5,33 @@ using GIFrameworkMaps.Data.Models.Authorization;
 using GIFrameworkMaps.Web;
 using GIFrameworkMaps.Web.Authorization;
 using GIFrameworkMaps.Web.Filters;
-using OpenTelemetry.Trace;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Http.Resilience;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using Npgsql;
+using OpenTelemetry.Trace;
 using System;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 using Yarp.ReverseProxy.Forwarder;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +50,7 @@ var forwarder = app.Services.GetService<IHttpForwarder>();
 var startup = new Startup(options);
 startup.Configure(app, app.Environment, forwarder);
 await app.RunAsync();
+
 
 void ConfigureKeyVault(WebApplicationBuilder builder)
 {
@@ -139,42 +145,120 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 	// Configure authentication and authorization if Azure AD ClientId is provided
 	if (!string.IsNullOrEmpty(configuration.GetSection("AzureAd")["ClientId"]))
 	{
-		services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-		.AddMicrosoftIdentityWebApp(
-			configuration.GetSection("AzureAd"),
-			OpenIdConnectDefaults.AuthenticationScheme,
-			CookieAuthenticationDefaults.AuthenticationScheme,
-			environment.IsDevelopment());
+
+		var azureAdSection = configuration
+				.GetSection("AzureAd");
+
+		// Setup Authentication
+		services
+			.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+			.AddMicrosoftIdentityWebApp(azureAdSection);
 
 		services.AddSingleton<ITicketStore, UserTicketStore>();
 		services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme)
 		   .Configure<ITicketStore>((o, ticketStore) => o.SessionStore = ticketStore);
 
-		services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+		//Add resilient HTTP clients for OpenID Connect backchannel and other services that may be unreliable
+		services.AddHttpClient(Options.DefaultName).AddStandardResilienceHandler();
+
+		// OpenIdConnect backchannel resilience
+		const string clientName = "OpenIdConnectResilient";
+		services
+			.AddHttpClient(clientName)
+			.AddStandardResilienceHandler();
+
+		services
+			.AddOptions<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme)
+			.Configure<IHttpClientFactory>((options, httpClientFactory) =>
+			{
+				options.Backchannel = httpClientFactory.CreateClient(clientName);
+			});
+
+		const string authRetryCookieName = "authretry-giframework-maps";
+
+		services
+		.AddOptions<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme)
+		.Configure<IHttpClientFactory>((options, httpClientFactory) =>
 		{
-			options.ClientId = configuration.GetSection("AzureAd")["ClientId"];
-			options.ClientSecret = configuration.GetSection("AzureAd")["ClientSecret"];
-			options.Authority = configuration.GetSection("AzureAd")["Authority"] + "v2.0/";
-
-			options.UsePkce = true;
-			options.ResponseType = "code";
-			options.ResponseMode = "form_post";
-
-			options.Scope.Clear();
-			options.Scope.Add("openid");
-			options.Scope.Add("offline_access");
-			options.Scope.Add(options.ClientId);
-
 			options.GetClaimsFromUserInfoEndpoint = true;
 			options.UseTokenLifetime = false;
 			options.SaveTokens = true;
-
-			options.Events = new OpenIdConnectEvents()
+			// Authorization code flow with offline_access is required for Entra to issue a refresh token
+			options.ResponseType = OpenIdConnectResponseType.Code;
+			foreach (var scope in new[] { "openid", "profile", "offline_access" })
 			{
-				//OnRedirectToIdentityProvider =
-				//{
-				//	//Use this to insert a login hint if required
-				//}
+				if (!options.Scope.Contains(scope))
+				{
+					options.Scope.Add(scope);
+				}
+			}
+			options.Backchannel = httpClientFactory.CreateClient("OpenIdConnectResilient");
+			// OpenID Connect adds
+			options.SignedOutRedirectUri = "/account/signed-out";
+			options.AccessDeniedPath = "/account/access-denied";
+			options.Events ??= new OpenIdConnectEvents();
+			var existingRedirectHandler = options.Events.OnRedirectToIdentityProvider;
+			var existingOnRemoteFailureHandler = options.Events.OnRemoteFailure;
+			var existingOnTokenValidatedHandler = options.Events.OnTokenValidated;
+
+			// Workaround to fix intermittent AADSTS165000 on first login
+			// where user is prompted to login with <appId>@domain.com instead of their actual email address.
+			options.Events.OnRedirectToIdentityProvider = async context =>
+			{
+				context.ProtocolMessage.Prompt = "select_account";
+				if (existingRedirectHandler != null)
+					await existingRedirectHandler(context);
+			};
+			// Workaround for Entra External ID stale session errors on first login of the day.
+			// When a user's Entra session expires overnight, the first authentication attempt can fail
+			// with AADSTS50133 (session invalid due to expiry) or AADSTS165000 (session context missing).
+			// This handler retries authentication once to obtain a fresh session. If the retry also fails
+			// (indicating a genuine issue like a required password change), the user is redirected to an
+			// error page to avoid an infinite redirect loop.
+			options.Events.OnRemoteFailure = async context =>
+			{
+				if (context.Failure?.Message?.Contains("AADSTS50133", StringComparison.Ordinal) == true ||
+					context.Failure?.Message?.Contains("AADSTS165000", StringComparison.Ordinal) == true)
+				{
+
+					var hasRetried = context.Request.Cookies.ContainsKey(authRetryCookieName);
+
+					if (!hasRetried)
+					{
+						context.Response.Cookies.Append(authRetryCookieName, "1", new CookieOptions
+						{
+							HttpOnly = true,
+							IsEssential = true,
+							Secure = true,
+							SameSite = SameSiteMode.Lax,
+							MaxAge = TimeSpan.FromMinutes(5),
+						});
+
+						// SignIn defaults its redirectUri to the application's PathBase.
+						var signInPath = context.Request.PathBase.Add("/sign-in");
+						context.Response.Redirect(signInPath);
+						context.HandleResponse();
+					}
+					else
+					{
+						context.Response.Cookies.Delete(authRetryCookieName);
+						var loginFailedPath = context.Request.PathBase.Add("/account/login-failed");
+						context.Response.Redirect(loginFailedPath);
+						context.HandleResponse();
+					}
+				}
+				else
+				{
+
+					if (existingOnRemoteFailureHandler != null)
+						await existingOnRemoteFailureHandler(context);
+				}
+			};
+			options.Events.OnTokenValidated = async context =>
+			{
+				context.Response.Cookies.Delete(authRetryCookieName);
+				if (existingOnTokenValidatedHandler != null)
+					await existingOnTokenValidatedHandler(context);
 			};
 		});
 

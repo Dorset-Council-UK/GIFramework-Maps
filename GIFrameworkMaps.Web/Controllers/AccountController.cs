@@ -16,6 +16,7 @@ using System.Runtime.Serialization.Json;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace GIFrameworkMaps.Web.Controllers;
 
@@ -87,7 +88,7 @@ public class AccountController(ICommonRepository repository,
 	{
 		try
 		{
-			if (User.Identity.IsAuthenticated)
+			if (User.IsAuthenticated)
 			{
 				var idToken = await HttpContext.GetTokenAsync("id_token");
 				var refreshToken = await HttpContext.GetTokenAsync("refresh_token");
@@ -122,27 +123,42 @@ public class AccountController(ICommonRepository repository,
 	{
 		try
 		{
-			var baseURL = configuration.GetSection("AzureAd")["Authority"];
-			if (string.IsNullOrEmpty(baseURL)) return null;
+			var azureAdSection = configuration.GetSection("AzureAd");
+			var baseURL = azureAdSection["Authority"];
+			if (string.IsNullOrEmpty(baseURL))
+			{
+				var instance = azureAdSection["Instance"];
+				var tenantId = azureAdSection["TenantId"];
+				if (string.IsNullOrEmpty(instance) || string.IsNullOrEmpty(tenantId)) return null;
+				baseURL = $"{instance.TrimEnd('/')}/{tenantId}";
+			}
 
-			var queryString = new Dictionary<string, string>
+			var formData = new Dictionary<string, string>
 			{
 				{ "grant_type", "refresh_token" },
 				{ "refresh_token", refreshToken },
 				{ "client_id", configuration.GetSection("AzureAd")["ClientId"] },
-				{ "client_secret", configuration.GetSection("AzureAd")["ClientSecret"] }
+				{ "client_secret", configuration.GetSection("AzureAd")["ClientSecret"] },
+				{ "scope", "openid profile offline_access" }
 			};
 
-			var requestUri = QueryHelpers.AddQueryString(baseURL + "oauth2/v2.0/token", queryString);
+			var requestUri = baseURL.TrimEnd('/') + "/oauth2/v2.0/token";
 			using var client = httpClientFactory.CreateClient();
-			var response = await client.PostAsync(requestUri, null);
+			using var requestContent = new FormUrlEncodedContent(formData);
+			var response = await client.PostAsync(requestUri, requestContent);
 
 			if (response.IsSuccessStatusCode)
 			{
 				var content = await response.Content.ReadAsStreamAsync();
 				var serializer = new DataContractJsonSerializer(typeof(RefreshResponseModel));
-				return (RefreshResponseModel)serializer.ReadObject(content);
+				var tokens = (RefreshResponseModel)serializer.ReadObject(content);
+				if (string.IsNullOrEmpty(tokens?.id_token))
+				{
+					logger.LogWarning("Token refresh succeeded but no id_token was returned.");
+				}
+				return tokens;
 			}
+			logger.LogWarning("Token refresh failed with status code {StatusCode}: {Body}", response.StatusCode, await response.Content.ReadAsStringAsync());
 		}
 		catch(Exception ex)
 		{
@@ -178,7 +194,10 @@ public class AccountController(ICommonRepository repository,
 			{
 				updatedTicket.Properties.Items[AuthenticationTicketProperties.RefreshToken] = tokens.refresh_token;
 			}
-			updatedTicket.Properties.Items[AuthenticationTicketProperties.ExpiresAt] = issuedTime.AddSeconds(tokens.id_token_expires_in).ToString("o");
+			// Entra ID does not return id_token_expires_in (B2C only), so fall back to expires_in.
+			// Expiry is relative to now, as the tokens were just issued.
+			var idTokenLifetime = tokens.id_token_expires_in > 0 ? tokens.id_token_expires_in : tokens.expires_in;
+			updatedTicket.Properties.Items[AuthenticationTicketProperties.ExpiresAt] = DateTimeOffset.UtcNow.AddSeconds(idTokenLifetime).ToString("o");
 			updatedTicket.Properties.Items[AuthenticationTicketProperties.Issued] = issuedTime.ToString("o");
 			updatedTicket.Properties.Items[AuthenticationTicketProperties.Expires] = issuedTime.AddSeconds(tokens.expires_in).ToString("o");
 

@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Extensions.Caching.Memory;
 using System.Threading.Tasks;
 using System;
 using System.Collections.Concurrent;
-using Microsoft.Graph.Beta.Models.Networkaccess;
 
 namespace GIFrameworkMaps.Web.Filters
 {
