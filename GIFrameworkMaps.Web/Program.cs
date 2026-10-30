@@ -194,8 +194,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 			}
 			options.Backchannel = httpClientFactory.CreateClient("OpenIdConnectResilient");
 			// OpenID Connect adds
-			options.SignedOutRedirectUri = "/account/signed-out";
-			options.AccessDeniedPath = "/account/access-denied";
+			options.AccessDeniedPath = "/MicrosoftIdentity/Account/AccessDenied";
 			options.Events ??= new OpenIdConnectEvents();
 			var existingRedirectHandler = options.Events.OnRedirectToIdentityProvider;
 			var existingOnRemoteFailureHandler = options.Events.OnRemoteFailure;
