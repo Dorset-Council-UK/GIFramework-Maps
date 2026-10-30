@@ -92,11 +92,12 @@ public class AccountController(ICommonRepository repository,
 			{
 				var idToken = await HttpContext.GetTokenAsync("id_token");
 				var refreshToken = await HttpContext.GetTokenAsync("refresh_token");
-				var expiresAt = await HttpContext.GetTokenAsync("expires_at");
 
-				if (!string.IsNullOrEmpty(expiresAt) && !string.IsNullOrEmpty(refreshToken))
+				if (!string.IsNullOrEmpty(idToken) && !string.IsNullOrEmpty(refreshToken))
 				{
-					if (DateTimeOffset.TryParse(expiresAt, out var expiryDate) && expiryDate.AddMinutes(-5) < DateTimeOffset.UtcNow)
+					var storedIdToken = new Microsoft.IdentityModel.JsonWebTokens.JsonWebToken(idToken);
+					var expiryDate = new DateTimeOffset(storedIdToken.ValidTo);
+					if (expiryDate.AddMinutes(-5) < DateTimeOffset.UtcNow)
 					{
 						var refreshedTokens = await RefreshTokensAsync(refreshToken);
 						if (refreshedTokens != null)
@@ -176,15 +177,11 @@ public class AccountController(ICommonRepository repository,
 		if (ticket != null)
 		{
 			var updatedTicket = ticket.Clone();
-			//use the tickets issued time if possible, fall back to DateTimeOffset.UtcNow if not
-			if (!updatedTicket.Properties.Items.TryGetValue(AuthenticationTicketProperties.Issued, out var issuedString) ||
-				!DateTimeOffset.TryParse(issuedString, out var issuedTime))
-			{
-				issuedTime = DateTimeOffset.UtcNow;
-			}
 			if (!string.IsNullOrEmpty(tokens.id_token))
 			{
 				updatedTicket.Properties.Items[AuthenticationTicketProperties.IdToken] = tokens.id_token;
+				var refreshedIdToken = new Microsoft.IdentityModel.JsonWebTokens.JsonWebToken(tokens.id_token);
+				updatedTicket.Properties.Items[AuthenticationTicketProperties.ExpiresAt] = new DateTimeOffset(refreshedIdToken.ValidTo).ToString("o");
 			}
 			if (!string.IsNullOrEmpty(tokens.access_token))
 			{
@@ -194,12 +191,6 @@ public class AccountController(ICommonRepository repository,
 			{
 				updatedTicket.Properties.Items[AuthenticationTicketProperties.RefreshToken] = tokens.refresh_token;
 			}
-			// Entra ID does not return id_token_expires_in (B2C only), so fall back to expires_in.
-			// Expiry is relative to now, as the tokens were just issued.
-			var idTokenLifetime = tokens.id_token_expires_in > 0 ? tokens.id_token_expires_in : tokens.expires_in;
-			updatedTicket.Properties.Items[AuthenticationTicketProperties.ExpiresAt] = DateTimeOffset.UtcNow.AddSeconds(idTokenLifetime).ToString("o");
-			updatedTicket.Properties.Items[AuthenticationTicketProperties.Issued] = issuedTime.ToString("o");
-			updatedTicket.Properties.Items[AuthenticationTicketProperties.Expires] = issuedTime.AddSeconds(tokens.expires_in).ToString("o");
 
 			// Sign in again with the updated ticket
 			// This will automatically handle storing the ticket in the ticket store
