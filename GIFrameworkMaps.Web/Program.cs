@@ -180,18 +180,31 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 		.AddOptions<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme)
 		.Configure<IHttpClientFactory>((options, httpClientFactory) =>
 		{
-			options.GetClaimsFromUserInfoEndpoint = true;
+			options.GetClaimsFromUserInfoEndpoint = false;
 			options.UseTokenLifetime = false;
 			options.SaveTokens = true;
 			// Authorization code flow with offline_access is required for Entra to issue a refresh token
 			options.ResponseType = OpenIdConnectResponseType.Code;
-			foreach (var scope in new[] { "openid", "profile", "offline_access" })
+			foreach (var scope in new[] { "openid", "profile", "email", "offline_access" })
 			{
 				if (!options.Scope.Contains(scope))
 				{
 					options.Scope.Add(scope);
 				}
 			}
+			//add additional scopes from configuration
+			var additionalScopes = azureAdSection.GetSection("AdditionalScopes")?.Get<string[]>();
+			if (additionalScopes != null)
+			{
+				foreach (var scope in additionalScopes)
+				{
+					if (!options.Scope.Contains(scope))
+					{
+						options.Scope.Add(scope);
+					}
+				}
+			}
+
 			options.Backchannel = httpClientFactory.CreateClient("OpenIdConnectResilient");
 			// OpenID Connect adds
 			options.AccessDeniedPath = "/MicrosoftIdentity/Account/AccessDenied";
@@ -233,7 +246,16 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 							MaxAge = TimeSpan.FromMinutes(5),
 						});
 
-						await context.HttpContext.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme, context.Properties);
+						// Start a fresh authentication attempt without the failed attempt's protocol state.
+						var retryProperties = new AuthenticationProperties
+						{
+							RedirectUri = context.Properties?.RedirectUri
+								?? context.Request.PathBase.Add("/").Value
+						};
+
+						await context.HttpContext.ChallengeAsync(
+							OpenIdConnectDefaults.AuthenticationScheme,
+							retryProperties);
 						context.HandleResponse();
 					}
 					else

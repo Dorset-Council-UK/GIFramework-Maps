@@ -17,6 +17,10 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Extensions.Options;
+using System.Globalization;
+using System.Linq;
 
 namespace GIFrameworkMaps.Web.Controllers;
 
@@ -25,7 +29,8 @@ public class AccountController(ICommonRepository repository,
 							   ApplicationDbContext context,
 							   IConfiguration configuration,
 							   IHttpClientFactory httpClientFactory,
-							   ILogger<AccountController> logger) : Controller
+							   ILogger<AccountController> logger,
+							   IOptionsMonitor<OpenIdConnectOptions> openIdConnectOptions) : Controller
 {
 
 	public IActionResult Index()
@@ -84,32 +89,39 @@ public class AccountController(ICommonRepository repository,
 	}
 
 	[AllowAnonymous]
+	[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 	public async Task<IActionResult> Token()
 	{
 		try
 		{
 			if (User.IsAuthenticated)
 			{
-				var idToken = await HttpContext.GetTokenAsync("id_token");
-				var refreshToken = await HttpContext.GetTokenAsync("refresh_token");
-
-				if (!string.IsNullOrEmpty(idToken) && !string.IsNullOrEmpty(refreshToken))
+				var authResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+				if (!authResult.Succeeded || authResult.Ticket == null)
 				{
-					var storedIdToken = new Microsoft.IdentityModel.JsonWebTokens.JsonWebToken(idToken);
-					var expiryDate = new DateTimeOffset(storedIdToken.ValidTo);
-					if (expiryDate.AddMinutes(-5) < DateTimeOffset.UtcNow)
+					return NoContent();
+				}
+				var properties = authResult.Ticket.Properties;
+				var accessToken = properties.GetTokenValue("access_token");
+				var refreshToken = properties.GetTokenValue("refresh_token");
+				var hasExpiry = DateTimeOffset.TryParse(properties.GetTokenValue("expires_at"),
+					CultureInfo.InvariantCulture, DateTimeStyles.None, out var expiryDate);
+
+				if (string.IsNullOrEmpty(accessToken) || !hasExpiry || expiryDate <= DateTimeOffset.UtcNow.AddMinutes(5))
+				{
+					if (!string.IsNullOrEmpty(refreshToken))
 					{
 						var refreshedTokens = await RefreshTokensAsync(refreshToken);
 						if (refreshedTokens != null)
 						{
-							await UpdateAuthenticationTicketAsync(refreshedTokens);
-							idToken = refreshedTokens.id_token;
+							await UpdateAuthenticationTicketAsync(authResult.Ticket, refreshedTokens);
+							return Content(refreshedTokens.access_token, "text/plain");
 						}
 					}
 				}
-				if (!string.IsNullOrEmpty(idToken))
+				if (!string.IsNullOrEmpty(accessToken) && hasExpiry && expiryDate > DateTimeOffset.UtcNow)
 				{
-					return Content(idToken, "text/plain");
+					return Content(accessToken, "text/plain");
 				}
 			}
 		}
@@ -125,41 +137,44 @@ public class AccountController(ICommonRepository repository,
 		try
 		{
 			var azureAdSection = configuration.GetSection("AzureAd");
-			var baseURL = azureAdSection["Authority"];
-			if (string.IsNullOrEmpty(baseURL))
+			var options = openIdConnectOptions.Get(OpenIdConnectDefaults.AuthenticationScheme);
+			var oidcConfiguration = options.Configuration;
+			if (oidcConfiguration == null && options.ConfigurationManager != null)
 			{
-				var instance = azureAdSection["Instance"];
-				var tenantId = azureAdSection["TenantId"];
-				if (string.IsNullOrEmpty(instance) || string.IsNullOrEmpty(tenantId)) return null;
-				baseURL = $"{instance.TrimEnd('/')}/{tenantId}";
+				oidcConfiguration = await options.ConfigurationManager.GetConfigurationAsync(HttpContext.RequestAborted);
+			}
+			if (string.IsNullOrEmpty(oidcConfiguration?.TokenEndpoint))
+			{
+				logger.LogWarning("Token refresh failed because the OpenID Connect token endpoint is unavailable.");
+				return null;
 			}
 
 			var formData = new Dictionary<string, string>
 			{
 				{ "grant_type", "refresh_token" },
 				{ "refresh_token", refreshToken },
-				{ "client_id", configuration.GetSection("AzureAd")["ClientId"] },
-				{ "client_secret", configuration.GetSection("AzureAd")["ClientSecret"] },
-				{ "scope", "openid profile offline_access" }
+				{ "client_id", azureAdSection["ClientId"] },
+				{ "client_secret", azureAdSection["ClientSecret"] },
+				{ "scope", string.Join(" ", options.Scope) }
 			};
 
-			var requestUri = baseURL.TrimEnd('/') + "/oauth2/v2.0/token";
-			using var client = httpClientFactory.CreateClient();
+			using var client = httpClientFactory.CreateClient("OpenIdConnectResilient");
 			using var requestContent = new FormUrlEncodedContent(formData);
-			var response = await client.PostAsync(requestUri, requestContent);
+			using var response = await client.PostAsync(oidcConfiguration.TokenEndpoint, requestContent, HttpContext.RequestAborted);
 
 			if (response.IsSuccessStatusCode)
 			{
-				var content = await response.Content.ReadAsStreamAsync();
+				using var content = await response.Content.ReadAsStreamAsync(HttpContext.RequestAborted);
 				var serializer = new DataContractJsonSerializer(typeof(RefreshResponseModel));
 				var tokens = (RefreshResponseModel)serializer.ReadObject(content);
-				if (string.IsNullOrEmpty(tokens?.id_token))
+				if (string.IsNullOrEmpty(tokens?.access_token) || tokens.expires_in <= 0)
 				{
-					logger.LogWarning("Token refresh succeeded but no id_token was returned.");
+					logger.LogWarning("Token refresh succeeded but no access_token with a valid lifetime was returned.");
+					return null;
 				}
 				return tokens;
 			}
-			logger.LogWarning("Token refresh failed with status code {StatusCode}: {Body}", response.StatusCode, await response.Content.ReadAsStringAsync());
+			logger.LogWarning("Token refresh failed with status code {StatusCode}.", response.StatusCode);
 		}
 		catch(Exception ex)
 		{
@@ -169,35 +184,27 @@ public class AccountController(ICommonRepository repository,
 		return null;
 	}
 
-	private async Task UpdateAuthenticationTicketAsync(RefreshResponseModel tokens)
+	private async Task UpdateAuthenticationTicketAsync(AuthenticationTicket ticket, RefreshResponseModel tokens)
 	{
-		var authResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-		var ticket = authResult.Ticket;
-
-		if (ticket != null)
+		var updatedTicket = ticket.Clone();
+		var storedTokens = updatedTicket.Properties.GetTokens().ToDictionary(token => token.Name, token => token.Value);
+		if (!string.IsNullOrEmpty(tokens.id_token))
 		{
-			var updatedTicket = ticket.Clone();
-			if (!string.IsNullOrEmpty(tokens.id_token))
-			{
-				updatedTicket.Properties.Items[AuthenticationTicketProperties.IdToken] = tokens.id_token;
-				var refreshedIdToken = new Microsoft.IdentityModel.JsonWebTokens.JsonWebToken(tokens.id_token);
-				updatedTicket.Properties.Items[AuthenticationTicketProperties.ExpiresAt] = new DateTimeOffset(refreshedIdToken.ValidTo).ToString("o");
-			}
-			if (!string.IsNullOrEmpty(tokens.access_token))
-			{
-				updatedTicket.Properties.Items[AuthenticationTicketProperties.AccessToken] = tokens.access_token;
-			}
-			if (!string.IsNullOrEmpty(tokens.refresh_token))
-			{
-				updatedTicket.Properties.Items[AuthenticationTicketProperties.RefreshToken] = tokens.refresh_token;
-			}
-
-			// Sign in again with the updated ticket
-			// This will automatically handle storing the ticket in the ticket store
-			await HttpContext.SignInAsync(
-				CookieAuthenticationDefaults.AuthenticationScheme,
-				updatedTicket.Principal,
-				updatedTicket.Properties);
+			storedTokens["id_token"] = tokens.id_token;
 		}
+		storedTokens["access_token"] = tokens.access_token;
+		storedTokens["expires_at"] = DateTimeOffset.UtcNow.AddSeconds(tokens.expires_in).ToString("o", CultureInfo.InvariantCulture);
+		if (!string.IsNullOrEmpty(tokens.refresh_token))
+		{
+			storedTokens["refresh_token"] = tokens.refresh_token;
+		}
+		updatedTicket.Properties.StoreTokens(storedTokens.Select(token => new AuthenticationToken { Name = token.Key, Value = token.Value }));
+
+		// Sign in again with the updated ticket
+		// This will automatically handle storing the ticket in the ticket store
+		await HttpContext.SignInAsync(
+			CookieAuthenticationDefaults.AuthenticationScheme,
+			updatedTicket.Principal,
+			updatedTicket.Properties);
 	}
 }
