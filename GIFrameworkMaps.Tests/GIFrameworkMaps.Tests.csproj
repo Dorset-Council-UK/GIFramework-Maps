@@ -28,7 +28,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\GIFrameworkMaps.Data\GIFrameworkMaps.Data.csproj" />
+    <ProjectReference Include="..\GIFrameworkMaps.Web\GIFrameworkMaps.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>
