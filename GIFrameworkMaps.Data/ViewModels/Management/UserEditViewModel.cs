@@ -7,7 +7,7 @@ namespace GIFrameworkMaps.Data.ViewModels.Management
 	{
 		protected readonly string _nameSlugSeparator = "__";
 
-		public Microsoft.Graph.Beta.Models.User? User { get; set; }
+		public Microsoft.Graph.Models.User? User { get; set; }
 		public IList<int> SelectedRoles { get; set; } = [];
 		public IList<int> SelectedVersions { get; set; } = [];
 		public IList<SelectListItem> AvailableRoles { get; set; } = [];

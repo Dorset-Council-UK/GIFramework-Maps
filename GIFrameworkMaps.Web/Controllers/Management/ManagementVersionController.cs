@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph.Beta.Models;
+using Microsoft.Graph.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -357,7 +357,7 @@ namespace GIFrameworkMaps.Web.Controllers.Management
 				VersionName = version.Name,
 				UserId = userId,
 				UserDisplayName = user.DisplayName,
-				UserPrimaryEmail = user.OtherMails.FirstOrDefault()
+				UserPrimaryEmail = user.Mail
 			};
 			return View(viewModel);
 		}

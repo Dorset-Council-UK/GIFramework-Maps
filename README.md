@@ -25,7 +25,7 @@ With GIFramework Maps, you can:
 - Track your location using your GPS, and export the track
 - Search for locations using mutliple configurable search services
 - Manage all your maps using the built-in GUI administation pages
-- Provide secure versions using Azure AD login
+- Provide secure versions using Azure Extra External ID login
 
 ![Example of a feature query in a GIFramework Maps Map](https://github.com/user-attachments/assets/54b50936-54c7-4565-be82-a51f57ca1910)
 

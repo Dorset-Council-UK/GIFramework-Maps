@@ -38,11 +38,11 @@
           "Newtonsoft.Json": "13.0.4"
         }
       },
-      "Microsoft.Graph.Beta": {
+      "Microsoft.Graph": {
         "type": "Direct",
-        "requested": "[6.2.0-preview, )",
-        "resolved": "6.2.0-preview",
-        "contentHash": "AhOdhaKFqvYAbfeDKWsPxfZi1QoCJPdtO++rNhF5P9xgP0oeQykC0hrdDAal38Xj1+y4bxwg+VCZnOde1w9D4A==",
+        "requested": "[6.9.0, )",
+        "resolved": "6.9.0",
+        "contentHash": "QyYd3lQQAEys93QAtV9ykxxzEkUjH5GxJG6tBkZvJWRz0SMF+gqVqhwQLkvRpAEWh7S49cF6sFpyv56uNS0MXQ==",
         "dependencies": {
           "Microsoft.Graph.Core": "4.0.1"
         }

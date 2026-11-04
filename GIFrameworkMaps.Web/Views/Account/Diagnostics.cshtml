@@ -1,9 +1,9 @@
-﻿@using System.Security.Principal
+﻿@using System.Security.Claims;
 
 <h3>Basic details</h3>
     <div class="table-responsive">
         <table class="table table-striped">
-        <tr><th>User name</th><td>@User.Identity.Name</td></tr>
+        <tr><th>User name</th><td>@User.DisplayName</td></tr>
         <tr><th>Authentication Type</th><td>@User.Identity.AuthenticationType</td></tr>
     
     </table>

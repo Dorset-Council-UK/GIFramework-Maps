@@ -11,12 +11,12 @@ namespace GIFrameworkMaps.Web.Authorization
 
 		public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
         {
-            var claimsIdentity = (ClaimsIdentity)principal.Identity;
-            var userIdClaim = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            var userId = userIdClaim.Value;
+			var claimsIdentity = (ClaimsIdentity)principal.Identity!;
 
-            //fetch roles from user roles table
-            var roles = _commonRepository.GetUserRoles(userId);
+			var userId = principal.UserId;
+
+			//fetch roles from user roles table
+			var roles = _commonRepository.GetUserRoles(userId);
             
             foreach(var role in roles)
             {

@@ -1,4 +1,5 @@
-﻿@using GIFrameworkMaps.Data.ViewModels.Management
+﻿@using System.Security.Claims
+@using GIFrameworkMaps.Data.ViewModels.Management
 @{
     AnalyticsViewModel analyticsModel = (ViewData["AnalyticsModel"] != null ? (AnalyticsViewModel)ViewData["AnalyticsModel"] : new AnalyticsViewModel());
     analyticsModel.VersionID = int.Parse(ViewData["VersionID"].ToString());
@@ -90,7 +91,7 @@
                     </ul>
                     <ul class="navbar-nav">
                         <partial name="_ThemeSwitcherMenu"/>
-                        @if (User.Identity.IsAuthenticated)
+                        @if (User.IsAuthenticated)
                         {
                             <partial name="~/Views/Map/Partials/Bookmarks.cshtml" />
                         }

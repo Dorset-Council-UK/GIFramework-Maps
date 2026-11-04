@@ -1,4 +1,4 @@
-﻿@model List<Microsoft.Graph.Beta.Models.User>
+﻿@model List<Microsoft.Graph.Models.User>
 @{
     ViewData["Title"] = "Users";
 
@@ -29,10 +29,7 @@
                     <td>@user.Id</td>
                     <td><a href="@editUrl/@user.Id">@user.DisplayName</a></td>
                     <td>
-                        @foreach(var mail in user.OtherMails)
-                        {
-                            @mail<br />
-                        }
+                        @user.Mail
                     </td>
                 </tr>
             }

@@ -18,9 +18,10 @@
     },
     "GIFrameworkMaps.Web": {
       "commandName": "Project",
-      "dotnetRunMessages": "true",
+      "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "https://localhost:5001;http://localhost:5000",
+      "applicationUrl": "https://giframeworkmaps.dev.localhost:7140;http://giframeworkmaps.dev.localhost:5140",
+      "launchUrl": "https://giframeworkmaps.dev.localhost:7140/",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation"

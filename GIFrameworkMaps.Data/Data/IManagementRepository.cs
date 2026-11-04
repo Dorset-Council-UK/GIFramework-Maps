@@ -2,7 +2,7 @@
 using GIFrameworkMaps.Data.Models.Search;
 using GIFrameworkMaps.Data.Models.Tour;
 using GIFrameworkMaps.Data.ViewModels.Management;
-using Microsoft.Graph.Beta.Models;
+using Microsoft.Graph.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -42,8 +42,8 @@ namespace GIFrameworkMaps.Data
         Task<List<DatabaseSearchDefinition>> GetDatabaseSearchDefinitions();
         Task<LocalSearchDefinition?> GetLocalSearchDefinition(int id);
         Task<List<LocalSearchDefinition>> GetLocalSearchDefinitions();
-        Task<List<Microsoft.Graph.Beta.Models.User>> GetUsers();
-        Task<Microsoft.Graph.Beta.Models.User?> GetUser(string id);
+        Task<List<User>> GetUsers();
+        Task<User?> GetUser(string id);
 		Task<IList<User>> GetUsersInVersion(int id);
 		Task<Projection?> GetProjection(int id);
 		Task<List<Projection>> GetProjections();

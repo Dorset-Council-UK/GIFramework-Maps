@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace GIFrameworkMaps.Web.Controllers
 {
@@ -81,7 +82,7 @@ namespace GIFrameworkMaps.Web.Controllers
                 else
                 {
                     //if user not logged in, prompt for login, otherwise redirect to unauthorized
-                    if (!User.Identity.IsAuthenticated)
+                    if (!User.IsAuthenticated)
                     {
                         return RedirectToAction("CaptureHashAndSignIn", "Account", new { returnUrl = Request.PathBase + Request.Path + Request.QueryString });
                     }
