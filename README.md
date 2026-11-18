@@ -47,6 +47,8 @@ GIFramework Maps uses [Entity Framework Core](https://docs.microsoft.com/en-us/e
 
 The `/proxy` endpoint accepts one absolute HTTPS destination URL on port 443 (implicit or explicit). Its DNS hostname must exactly match a `ProxyAllowedHosts.Host` entry, ignoring case. Store hostnames only, without a scheme, port, path, or wildcard. IP literals and localhost names are not accepted, and the proxy does not follow upstream redirects.
 
+For each new upstream connection, the proxy rejects the destination if any resolved IPv4 or IPv6 address is internal or loopback, even if the hostname is allowlisted. This includes private, link-local, and shared carrier-grade NAT addresses. The check is not a substitute for network egress controls on deployment-specific internal ranges.
+
 ## Contributing
 
 Please see our guide on [contributing](CONTRIBUTING.md) if you're interested in getting involved.

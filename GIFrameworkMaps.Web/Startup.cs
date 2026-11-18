@@ -12,9 +12,11 @@ using NodaTime;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Yarp.ReverseProxy.Forwarder;
@@ -67,11 +69,17 @@ namespace GIFrameworkMaps.Web
                 AllowAutoRedirect = false,
                 AutomaticDecompression = DecompressionMethods.None,
                 UseCookies = false,
+                ConnectCallback = ConnectProxyAsync,
                 ActivityHeadersPropagator = new ReverseProxyPropagator(DistributedContextPropagator.Current)
-
             });
 
-            var requestOptions = new ForwarderRequestConfig { ActivityTimeout = TimeSpan.FromSeconds(100) };
+            // ConnectCallback guards TCP connections, not HTTP/3 over QUIC.
+            var requestOptions = new ForwarderRequestConfig
+            {
+                ActivityTimeout = TimeSpan.FromSeconds(100),
+                Version = HttpVersion.Version20,
+                VersionPolicy = HttpVersionPolicy.RequestVersionOrLower
+            };
 
             app.UseEndpoints(endpoints =>
             {
@@ -555,6 +563,57 @@ namespace GIFrameworkMaps.Web
                     StopIfFound = true
                 });
 				order += 10;
+			}
+		}
+
+		private static async ValueTask<Stream> ConnectProxyAsync(SocketsHttpConnectionContext context, CancellationToken cancellationToken)
+		{
+			var endpoint = context.DnsEndPoint;
+			var addresses = await Dns.GetHostAddressesAsync(endpoint.Host, endpoint.AddressFamily, cancellationToken);
+			ValidateProxyAddresses(addresses);
+
+			var socket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
+			try
+			{
+				// Use the checked addresses directly so connecting cannot trigger another DNS lookup.
+				await socket.ConnectAsync(addresses, endpoint.Port, cancellationToken);
+				return new NetworkStream(socket, ownsSocket: true);
+			}
+			catch
+			{
+				socket.Dispose();
+				throw;
+			}
+		}
+
+		private static readonly IPNetwork[] InternalProxyNetworks =
+		[
+			IPNetwork.Parse("0.0.0.0/8"),
+			IPNetwork.Parse("10.0.0.0/8"),
+			IPNetwork.Parse("100.64.0.0/10"),
+			IPNetwork.Parse("169.254.0.0/16"),
+			IPNetwork.Parse("172.16.0.0/12"),
+			IPNetwork.Parse("192.168.0.0/16"),
+			IPNetwork.Parse("fc00::/7"),
+			IPNetwork.Parse("fe80::/10"),
+			IPNetwork.Parse("fec0::/10")
+		];
+
+		internal static void ValidateProxyAddresses(IPAddress[] addresses)
+		{
+			if (addresses.Length == 0)
+			{
+				throw new HttpRequestException("The proxy destination did not resolve to an IP address.");
+			}
+
+			foreach (var resolvedAddress in addresses)
+			{
+				var address = resolvedAddress.IsIPv4MappedToIPv6 ? resolvedAddress.MapToIPv4() : resolvedAddress;
+				if (IPAddress.IsLoopback(address) || address.Equals(IPAddress.IPv6Any) ||
+					InternalProxyNetworks.Any(network => network.Contains(address)))
+				{
+					throw new HttpRequestException("The proxy destination resolved to an internal or loopback IP address.");
+				}
 			}
 		}
 

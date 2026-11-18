@@ -7,6 +7,7 @@ using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,6 +73,40 @@ namespace GIFrameworkMaps.Tests
 			await Startup.ForwardProxyRequestAsync(context, forwarder.Object, client, options);
 
 			forwarder.Verify(f => f.SendAsync(context, "https://maps.example.test", client, options, It.IsAny<HttpTransformer>()), Times.Once);
+		}
+
+		[TestCase("0.0.0.0")]
+		[TestCase("10.0.0.1")]
+		[TestCase("100.127.255.255")]
+		[TestCase("127.0.0.2")]
+		[TestCase("169.254.0.1")]
+		[TestCase("172.31.255.255")]
+		[TestCase("192.168.0.1")]
+		[TestCase("::")]
+		[TestCase("::1")]
+		[TestCase("::ffff:127.0.0.1")]
+		[TestCase("::ffff:192.168.0.1")]
+		[TestCase("fc00::1")]
+		[TestCase("fd00::1")]
+		[TestCase("fe80::1")]
+		[TestCase("fec0::1")]
+		public void RejectsDnsResultContainingAnInternalAddress(string address)
+		{
+			Assert.Throws<HttpRequestException>(() => Startup.ValidateProxyAddresses(
+				[IPAddress.Parse("8.8.8.8"), IPAddress.Parse(address)]));
+		}
+
+		[Test]
+		public void RejectsEmptyDnsResult()
+		{
+			Assert.Throws<HttpRequestException>(() => Startup.ValidateProxyAddresses([]));
+		}
+
+		[Test]
+		public void AcceptsPublicIpv4AndIpv6DnsResults()
+		{
+			Assert.DoesNotThrow(() => Startup.ValidateProxyAddresses(
+				[IPAddress.Parse("100.128.0.1"), IPAddress.Parse("172.32.0.1"), IPAddress.Parse("2606:4700::1111")]));
 		}
 
 		private static ServiceProvider CreateServices()
