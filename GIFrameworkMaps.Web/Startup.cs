@@ -7,17 +7,19 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using NodaTime;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Yarp.ReverseProxy.Forwarder;
-using Yarp.ReverseProxy.Transforms;
 
 namespace GIFrameworkMaps.Web
 {
@@ -67,13 +69,17 @@ namespace GIFrameworkMaps.Web
                 AllowAutoRedirect = false,
                 AutomaticDecompression = DecompressionMethods.None,
                 UseCookies = false,
+                ConnectCallback = ConnectProxyAsync,
                 ActivityHeadersPropagator = new ReverseProxyPropagator(DistributedContextPropagator.Current)
-
             });
 
-            // Setup our own request transform class
-            var transformer = new CustomTransformer(app); // or HttpTransformer.Default;
-            var requestOptions = new ForwarderRequestConfig { ActivityTimeout = TimeSpan.FromSeconds(100) };
+            // ConnectCallback guards TCP connections, not HTTP/3 over QUIC.
+            var requestOptions = new ForwarderRequestConfig
+            {
+                ActivityTimeout = TimeSpan.FromSeconds(100),
+                Version = HttpVersion.Version20,
+                VersionPolicy = HttpVersionPolicy.RequestVersionOrLower
+            };
 
             app.UseEndpoints(endpoints =>
             {
@@ -179,26 +185,13 @@ namespace GIFrameworkMaps.Web
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
                 
-                endpoints.MapControllerRoute("UserShortLink","u/{id}",new { controller = "Map", action = "UserShortLink" });
+				endpoints.MapControllerRoute("UserShortLink","u/{id}",new { controller = "Map", action = "UserShortLink" });
 
-                endpoints.MapControllerRoute("Default_Slug", "{slug1}/{slug2?}/{slug3?}", new { controller = "Map", action = "Index", slug1 = default_version_slug });
-                
-                endpoints.Map("/proxy", async httpContext =>
-                {
-                    var queryContext = new QueryTransformContext(httpContext.Request);
-                    if (queryContext.Collection.TryGetValue("url", out Microsoft.Extensions.Primitives.StringValues url))
-                    {
-                        var error = await forwarder.SendAsync(httpContext, url, httpClient, requestOptions, transformer);
-                        // Check if the proxy operation was successful
-                        if (error != ForwarderError.None)
-                        {
-                            var errorFeature = httpContext.Features.Get<IForwarderErrorFeature>();
-                            var exception = errorFeature.Exception;
-                        }
-                    }
-                });
+				endpoints.MapControllerRoute("Default_Slug", "{slug1}/{slug2?}/{slug3?}", new { controller = "Map", action = "Index", slug1 = default_version_slug });
+
+				endpoints.Map("/proxy", httpContext => ForwardProxyRequestAsync(httpContext, forwarder, httpClient, requestOptions));
 				endpoints.MapStaticAssets();
-                endpoints.MapHub<BroadcastHub>("/broadcasthub").DisableHttpMetrics();
+				endpoints.MapHub<BroadcastHub>("/broadcasthub").DisableHttpMetrics();
 				endpoints.MapHealthChecks("/monitor/health").DisableHttpMetrics();
 				endpoints.MapRazorPages();
             });
@@ -569,53 +562,116 @@ namespace GIFrameworkMaps.Web
                     Order = order,
                     StopIfFound = true
                 });
-                order += 10;
-            }
-        }
-        private class CustomTransformer(IApplicationBuilder app) : HttpTransformer
-        {
-            readonly IApplicationBuilder _app = app;
+				order += 10;
+			}
+		}
 
+		private static async ValueTask<Stream> ConnectProxyAsync(SocketsHttpConnectionContext context, CancellationToken cancellationToken)
+		{
+			var endpoint = context.DnsEndPoint;
+			var addresses = await Dns.GetHostAddressesAsync(endpoint.Host, endpoint.AddressFamily, cancellationToken);
+			ValidateProxyAddresses(addresses);
+
+			var socket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
+			try
+			{
+				// Use the checked addresses directly so connecting cannot trigger another DNS lookup.
+				await socket.ConnectAsync(addresses, endpoint.Port, cancellationToken);
+				return new NetworkStream(socket, ownsSocket: true);
+			}
+			catch
+			{
+				socket.Dispose();
+				throw;
+			}
+		}
+
+		private static readonly IPNetwork[] InternalProxyNetworks =
+		[
+			IPNetwork.Parse("0.0.0.0/8"),
+			IPNetwork.Parse("10.0.0.0/8"),
+			IPNetwork.Parse("100.64.0.0/10"),
+			IPNetwork.Parse("169.254.0.0/16"),
+			IPNetwork.Parse("172.16.0.0/12"),
+			IPNetwork.Parse("192.168.0.0/16"),
+			IPNetwork.Parse("fc00::/7"),
+			IPNetwork.Parse("fe80::/10"),
+			IPNetwork.Parse("fec0::/10")
+		];
+
+		internal static void ValidateProxyAddresses(IPAddress[] addresses)
+		{
+			if (addresses.Length == 0)
+			{
+				throw new HttpRequestException("The proxy destination did not resolve to an IP address.");
+			}
+
+			foreach (var resolvedAddress in addresses)
+			{
+				var address = resolvedAddress.IsIPv4MappedToIPv6 ? resolvedAddress.MapToIPv4() : resolvedAddress;
+				if (IPAddress.IsLoopback(address) || address.Equals(IPAddress.IPv6Any) ||
+					InternalProxyNetworks.Any(network => network.Contains(address)))
+				{
+					throw new HttpRequestException("The proxy destination resolved to an internal or loopback IP address.");
+				}
+			}
+		}
+
+		internal static async Task ForwardProxyRequestAsync(
+			HttpContext httpContext,
+			IHttpForwarder forwarder,
+			HttpMessageInvoker httpClient,
+			ForwarderRequestConfig requestOptions)
+		{
+			var logger = httpContext.RequestServices.GetRequiredService<ILogger<Startup>>();
+			var urls = httpContext.Request.Query["url"];
+			if (urls.Count != 1 || string.IsNullOrWhiteSpace(urls[0]) ||
+				!Uri.TryCreate(urls[0], UriKind.Absolute, out var destination))
+			{
+				logger.LogDebug("Proxy request rejected: expected one absolute destination URL.");
+				httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+				return;
+			}
+
+			if (destination.Scheme != Uri.UriSchemeHttps || destination.Port != 443 ||
+				destination.HostNameType != UriHostNameType.Dns || destination.IsLoopback ||
+				string.Equals(destination.Host.TrimEnd('.'), "localhost", StringComparison.OrdinalIgnoreCase) ||
+				destination.Host.TrimEnd('.').EndsWith(".localhost", StringComparison.OrdinalIgnoreCase) ||
+				destination.UserInfo.Length != 0 || destination.Fragment.Length != 0)
+			{
+				logger.LogDebug("Proxy request rejected: destination violates the URL policy.");
+				httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+				return;
+			}
+
+			var repo = httpContext.RequestServices.GetRequiredService<ICommonRepository>();
+			var allowedHosts = await repo.GetProxyAllowedHostsAsync();
+			if (!allowedHosts.Any(host => string.Equals(host.Host, destination.Host, StringComparison.OrdinalIgnoreCase)))
+			{
+				logger.LogDebug("Proxy request rejected: destination host is not allowlisted.");
+				httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+				return;
+			}
+
+			await forwarder.SendAsync(httpContext, destination.GetLeftPart(UriPartial.Authority),
+				httpClient, requestOptions, new CustomTransformer(destination));
+		}
+
+		private sealed class CustomTransformer(Uri destination) : HttpTransformer
+		{
 			public override async ValueTask TransformRequestAsync(
-                HttpContext httpContext,
-                HttpRequestMessage proxyRequest, 
-                string destinationPrefix,
-                CancellationToken cancellationToken)
-            {
-                // Copy all request headers
-                await base.TransformRequestAsync(httpContext, proxyRequest, destinationPrefix, cancellationToken);
+				HttpContext httpContext,
+				HttpRequestMessage proxyRequest,
+				string destinationPrefix,
+				CancellationToken cancellationToken)
+			{
+				await base.TransformRequestAsync(httpContext, proxyRequest, destinationPrefix, cancellationToken);
 
-                // Customize the query string:
-                var queryContext = new QueryTransformContext(httpContext.Request);
-
-                var url = queryContext.Collection["url"];
-                if (!string.IsNullOrEmpty(url))
-                {
-                    List<ProxyAllowedHost> allowedHosts;
-                    /*TODO - Injecting the common repository in this way seems a little suspect but does work*/
-                    using (var scope = _app.ApplicationServices.CreateScope())
-                    {
-                        var repo = scope.ServiceProvider.GetRequiredService<ICommonRepository>();
-                        allowedHosts = await repo.GetProxyAllowedHostsAsync();
-                    }
-                    string decodedUrl = System.Uri.UnescapeDataString(url);
-                    Uri requestUri = new(decodedUrl);
-
-                    if(allowedHosts.FirstOrDefault(h => h.Host.Equals(requestUri.Host, StringComparison.CurrentCultureIgnoreCase)) == null){
-                        return;
-                    }
-
-                    proxyRequest.RequestUri = requestUri;
-                    //Transform request headers
-                    proxyRequest.Headers.Host = null;
-                    proxyRequest.Headers.Remove("Origin");
-                    proxyRequest.Headers.Remove("Cookie");
-                }
-                else
-                {
-                    //drop the request?
-                }
-            }
-        }
-    }
+				proxyRequest.RequestUri = destination;
+				proxyRequest.Headers.Host = null;
+				proxyRequest.Headers.Remove("Origin");
+				proxyRequest.Headers.Remove("Cookie");
+			}
+		}
+	}
 }
