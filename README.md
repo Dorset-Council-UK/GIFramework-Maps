@@ -43,6 +43,10 @@ To run GIFramework Maps with minimal modification, you will need:
 
 GIFramework Maps uses [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/). Postgres has been set up for this project, but with some modifications, any Entity Framework Core compatible provider should work. For a full list of providers, check the [Entity Framework docs](https://docs.microsoft.com/en-us/ef/core/providers/?tabs=dotnet-core-cli).
 
+### Proxy destinations
+
+The `/proxy` endpoint accepts one absolute HTTPS destination URL on port 443 (implicit or explicit). Its DNS hostname must exactly match a `ProxyAllowedHosts.Host` entry, ignoring case. Store hostnames only, without a scheme, port, path, or wildcard. IP literals and localhost names are not accepted, and the proxy does not follow upstream redirects.
+
 ## Contributing
 
 Please see our guide on [contributing](CONTRIBUTING.md) if you're interested in getting involved.
