@@ -1,5 +1,4 @@
 import Sortable from "sortablejs";
-import DOMPurify from "dompurify";
 
 export class CategoryLayerSort {
   private readonly _sortList: HTMLUListElement;
@@ -97,13 +96,13 @@ export class CategoryLayerSort {
     emptyMessage?.remove();
 
     // Avoid duplicates
-    if (this._sortList.querySelector(`li[data-layer-id="${layerId}"]`)) {
+    if (this._sortList.querySelector(`li[data-layer-id="${CSS.escape(layerId)}"]`)) {
       return;
     }
 
     // Get the layer name from the associated label (text node only, before any child elements)
     const label = document.querySelector<HTMLLabelElement>(
-      `label[for="SelectedLayers__${layerId}"]`,
+      `label[for="${CSS.escape(`SelectedLayers__${layerId}`)}"]`,
     );
     const layerName = label?.firstChild?.textContent?.trim() ?? `Layer ${layerId}`;
 
@@ -115,18 +114,30 @@ export class CategoryLayerSort {
     li.className = "list-group-item d-flex align-items-center gap-2";
     li.dataset.layerId = layerId;
     li.dataset.layerName = layerName;
-    li.innerHTML = `
-      <span class="drag-handle bi bi-grip-vertical text-muted" style="cursor: grab;" title="Drag to reorder"></span>
-      <span class="flex-grow-1">${DOMPurify.sanitize(layerName)}</span>
-      <input type="hidden" name="sortOrderData" value="${layerId}:${nextOrder}" data-layer-id="${layerId}" class="sort-order-input" />
-    `;
 
+    const handle = document.createElement("span");
+    handle.className = "drag-handle bi bi-grip-vertical text-muted";
+    handle.style.cursor = "grab";
+    handle.title = "Drag to reorder";
+
+    const name = document.createElement("span");
+    name.className = "flex-grow-1";
+    name.textContent = layerName;
+
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = "sortOrderData";
+    input.value = `${layerId}:${nextOrder}`;
+    input.dataset.layerId = layerId;
+    input.className = "sort-order-input";
+
+    li.append(handle, name, input);
     this._sortList.appendChild(li);
   }
 
   private _removeLayerFromSortList(layerId: string): void {
     const li = this._sortList.querySelector<HTMLLIElement>(
-      `li[data-layer-id="${layerId}"]`,
+      `li[data-layer-id="${CSS.escape(layerId)}"]`,
     );
     li?.remove();
 
