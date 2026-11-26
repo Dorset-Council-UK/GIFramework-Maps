@@ -590,7 +590,7 @@ export class GIFWMap {
         const layerSource = layer.getSource();
         if (layerSource instanceof TileWMS || layerSource instanceof ImageWMS) {
           const currentStyleName = layerSource.getParams()?.STYLES || "";
-          if (currentStyleName !== permalinkStyleName) {
+          if (permalinkStyleName && currentStyleName !== permalinkStyleName) {
             layerSource.updateParams({ STYLES: permalinkStyleName });
           }
         }
